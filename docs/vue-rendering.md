@@ -23,3 +23,13 @@ Use `@mdsnai/sdk/web` as the runtime source of truth, and let Vue own rendering.
 
 - You already have a Vue design system
 - You want custom UI without reimplementing protocol runtime
+
+## Snapshot Rendering Notes
+
+In Vue, keep snapshot in reactive state and re-render on `subscribe` callback. Prefer derived view state from snapshot rather than duplicating runtime state.
+
+## Common Pitfalls
+
+- Calling `host.mount()` multiple times for same root.
+- Forgetting `host.unmount()` on app teardown.
+- Mutating snapshot objects directly.

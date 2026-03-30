@@ -29,3 +29,14 @@ description: Public entry points and capability map for @mdsnai/sdk.
 - [Server Runtime](/docs/server-runtime)
 - [Web Runtime](/docs/web-runtime)
 - [Elements](/docs/elements)
+
+## Import Guidance
+
+- Prefer subpath imports for clear boundaries (`@mdsnai/sdk/server`, etc.).
+- Use root import when you explicitly want a single import surface.
+- Avoid importing deep internal files under `dist/*` directly.
+
+## Compatibility Notes
+
+- Current line: single package with subpath exports.
+- Legacy multi-package names are not public entry points in current release docs.

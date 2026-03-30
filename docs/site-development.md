@@ -33,3 +33,17 @@ This page documents the recommended site-development baseline in the current SDK
 - [Routing and Layouts](/docs/routing-layouts)
 - [Config Reference](/docs/config-reference)
 - [Action Reference](/docs/action-reference)
+
+## Recommended Build Sequence
+
+1. Lock route list and canonical page files.
+2. Implement `renderPage()` composition functions per route.
+3. Implement action list with explicit `target + routePath + blockName`.
+4. Wire Node host and static mounts.
+5. Add browser runtime mount and verify block updates.
+
+## Common Pitfalls
+
+- Treating demo shell import map as SDK public API.
+- Returning full page for every action when block fragment is enough.
+- Mixing business state mutation into UI layer instead of action handlers.

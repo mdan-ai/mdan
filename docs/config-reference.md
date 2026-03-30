@@ -40,3 +40,15 @@ Key options:
 - `markdownRenderer`
 
 For exact signatures, see [API Reference](/docs/api-reference).
+
+## Production Defaults (Suggested)
+
+- `createNodeHost({ rootRedirect })`: always set root redirect explicitly.
+- `ignoreFavicon`: keep default unless your infra needs custom handling.
+- `staticMounts`: prefer explicit URL prefix, avoid broad mounts.
+- `fetchImpl`: in browser use `window.fetch` directly.
+
+## Example Mapping
+
+- Host options in use: [examples/starter/dev.mjs](/Users/hencoo/projects/mdsn/examples/starter/dev.mjs)
+- Adapter options in use: [examples/express-starter/src/express-adapter.ts](/Users/hencoo/projects/mdsn/examples/express-starter/src/express-adapter.ts)

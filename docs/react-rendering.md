@@ -23,3 +23,13 @@ Use `@mdsnai/sdk/web` for runtime and React for rendering.
 
 - You want full React ownership of interaction UI
 - You still want MDSN protocol/runtime guarantees
+
+## Snapshot Rendering Notes
+
+In React, subscribe in `useEffect`, update local state from `host.getSnapshot()`, and cleanup subscription on unmount.
+
+## Common Pitfalls
+
+- Missing cleanup in effect causes duplicate subscriptions.
+- Recreating host object on every render.
+- Coupling action dispatch to stale closure state.

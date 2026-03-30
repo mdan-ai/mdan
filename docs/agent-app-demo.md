@@ -24,3 +24,15 @@ MDSN keeps human-readable content and machine-operable interaction in one canoni
 - [examples/guestbook/src/index.ts](/Users/hencoo/projects/mdsn/examples/guestbook/src/index.ts)
 - [examples/auth-session/src/index.ts](/Users/hencoo/projects/mdsn/examples/auth-session/src/index.ts)
 - [Shared Interaction](/docs/shared-interaction)
+
+## Validation Checklist for Agent Flows
+
+- Agent can read full markdown page source.
+- Agent can discover and call block targets.
+- Action responses preserve enough markdown context for next step.
+- Error paths return actionable markdown fragments (not opaque text).
+
+## Example Mapping
+
+- Guestbook read/write: [examples/guestbook/src/index.ts](/Users/hencoo/projects/mdsn/examples/guestbook/src/index.ts)
+- Auth transitions: [examples/auth-session/src/index.ts](/Users/hencoo/projects/mdsn/examples/auth-session/src/index.ts)

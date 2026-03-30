@@ -47,3 +47,26 @@ Use server helpers when needed:
 - `refreshSession(...)`
 
 See [API Reference](/docs/api-reference) for details.
+
+## Handler Patterns
+
+### Read Action (GET)
+
+```ts
+handler: ({ block }) => block()
+```
+
+### Write Action (POST)
+
+```ts
+handler: ({ inputs, block }) => {
+  // mutate domain state
+  return block();
+}
+```
+
+## Common Pitfalls
+
+- `blockName` typo causes runtime mismatch.
+- Write requests sent without `text/markdown` content type.
+- Action returns stale page object after state mutation.

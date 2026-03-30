@@ -30,3 +30,17 @@ In `docs-site`, locale routing is `/docs/*` and `/zh/docs/*`, with fallback when
 
 - [Server Runtime](/docs/server-runtime)
 - [Shared Interaction](/docs/shared-interaction)
+
+## Route Contract Checklist
+
+For each action ensure:
+
+- `target` exists in markdown operations.
+- `methods` matches operation method.
+- `routePath` matches page route.
+- `blockName` matches block definition and anchors.
+
+## Layout Hooking Points
+
+- Use `renderHtml` in hosted app for docs/site shell generation.
+- Use `transformHtml` in Node host for final-stage HTML injection.

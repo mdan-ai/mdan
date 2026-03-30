@@ -28,3 +28,16 @@ See:
 - unsupported `Accept` -> `406`
 
 For negotiation details, see [Shared Interaction](/docs/shared-interaction).
+
+## Adapter Checklist
+
+- Normalize incoming method/url/headers/body.
+- Pass cookies into `request.cookies`.
+- Forward `status/headers/body` from runtime response unchanged.
+- Avoid shadow routing logic in adapter.
+
+## Common Pitfalls
+
+- Treating `application/x-www-form-urlencoded` as direct runtime write body.
+- Dropping `set-cookie` from runtime response headers.
+- Re-serializing runtime markdown body as JSON.

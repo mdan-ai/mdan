@@ -46,3 +46,15 @@ Wrong write media type returns `415`.
 - Agents can request markdown semantics directly
 - Browsers can keep html rendering path
 - Stream consumers can opt into SSE explicitly
+
+## Backward Compatibility
+
+`Accept` without `q` remains supported. The new behavior only adds weighted selection when `q` is present.
+
+## Practical Test Cases
+
+- `Accept: text/markdown` -> markdown
+- `Accept: text/html` -> html
+- `Accept: text/event-stream` -> event-stream (route-dependent)
+- `Accept: text/html;q=0.8, text/markdown;q=0.8` -> markdown (tie-break rule)
+- `Accept: application/json` -> 406

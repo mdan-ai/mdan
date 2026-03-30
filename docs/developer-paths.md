@@ -63,3 +63,16 @@ See:
 
 - [SDK Overview](/docs/sdk)
 - [API Reference](/docs/api-reference)
+
+## Decision Checklist
+
+Use this quick checklist:
+
+- Need fastest launch with official UI: choose Path A.
+- Need custom visual system but same protocol: choose Path B.
+- Need deep backend integration: choose Path C.
+- Need parser/serializer utilities only: choose Path D.
+
+## Anti-Pattern to Avoid
+
+Do not duplicate protocol logic in frontend framework code. Keep protocol and routing rules in server/runtime layers, then map UI to snapshot state.
