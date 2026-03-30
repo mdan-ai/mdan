@@ -3,10 +3,10 @@ node_modules/
 
 # Build artifacts
 dist/
-packages/*/dist/
+sdk/*/dist/
 examples/*/dist/
 *.tsbuildinfo
-packages/*/tsconfig.tsbuildinfo
+sdk/*/tsconfig.tsbuildinfo
 examples/*/tsconfig.tsbuildinfo
 
 # Test and tooling outputs
@@ -14,10 +14,10 @@ examples/*/tsconfig.tsbuildinfo
 coverage/
 output/
 .playwright-cli/
-packages/*/test/**/*.js
-packages/*/test/**/*.js.map
-packages/*/test/**/*.d.ts
-packages/*/test/**/*.d.ts.map
+sdk/*/test/**/*.js
+sdk/*/test/**/*.js.map
+sdk/*/test/**/*.d.ts
+sdk/*/test/**/*.d.ts.map
 
 # Temp/cache files
 .DS_Store

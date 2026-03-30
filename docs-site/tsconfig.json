@@ -1,13 +1,13 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
     "rootDir": "./src",
     "outDir": "./dist"
   },
   "references": [
-    { "path": "../../sdk/core" },
-    { "path": "../../sdk/server" }
+    { "path": "../sdk/core" },
+    { "path": "../sdk/server" }
   ],
   "include": ["src/**/*.ts"]
 }

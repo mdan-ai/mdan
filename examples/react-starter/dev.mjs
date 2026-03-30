@@ -213,8 +213,8 @@ const server = http.createServer(
     },
     staticMounts: [
       {
-        urlPrefix: "/packages/",
-        directory: join(repoRoot, "packages")
+        urlPrefix: "/sdk/",
+        directory: join(repoRoot, "sdk")
       },
       {
         urlPrefix: "/node_modules/",

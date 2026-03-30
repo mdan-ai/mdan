@@ -21,9 +21,9 @@ function withVersion(path) {
 
 const importMap = {
   imports: {
-    "@mdsn/core": withVersion("/packages/core/dist/index.js"),
-    "@mdsn/web": withVersion("/packages/web/dist/index.js"),
-    "@mdsn/elements": withVersion("/packages/elements/dist/index.js"),
+    "@mdsn/core": withVersion("/sdk/core/dist/index.js"),
+    "@mdsn/web": withVersion("/sdk/web/dist/index.js"),
+    "@mdsn/elements": withVersion("/sdk/elements/dist/index.js"),
     "lit": withVersion("/node_modules/lit/index.js"),
     "lit-html": withVersion("/node_modules/lit-html/lit-html.js"),
     "lit-html/is-server.js": withVersion("/node_modules/lit-html/is-server.js"),
@@ -60,8 +60,8 @@ const server = http.createServer(
     },
     staticMounts: [
       {
-        urlPrefix: "/packages/",
-        directory: join(repoRoot, "packages")
+        urlPrefix: "/sdk/",
+        directory: join(repoRoot, "sdk")
       },
       {
         urlPrefix: "/node_modules/",

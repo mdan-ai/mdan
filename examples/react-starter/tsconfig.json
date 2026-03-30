@@ -7,10 +7,10 @@
     "jsx": "react-jsx"
   },
   "references": [
-    { "path": "../../packages/core" },
-    { "path": "../../packages/server" },
-    { "path": "../../packages/web" },
-    { "path": "../../packages/elements" }
+    { "path": "../../sdk/core" },
+    { "path": "../../sdk/server" },
+    { "path": "../../sdk/web" },
+    { "path": "../../sdk/elements" }
   ],
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

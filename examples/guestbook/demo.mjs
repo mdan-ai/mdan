@@ -13,9 +13,9 @@ const guestbookPagePath = join(repoRoot, "examples", "guestbook", "pages", "gues
 
 const importMap = {
   imports: {
-    "@mdsn/core": "/packages/core/dist/index.js",
-    "@mdsn/web": "/packages/web/dist/index.js",
-    "@mdsn/elements": "/packages/elements/dist/index.js",
+    "@mdsn/core": "/sdk/core/dist/index.js",
+    "@mdsn/web": "/sdk/web/dist/index.js",
+    "@mdsn/elements": "/sdk/elements/dist/index.js",
     "lit": "/node_modules/lit/index.js",
     "lit-html": "/node_modules/lit-html/lit-html.js",
     "lit-html/is-server.js": "/node_modules/lit-html/is-server.js",
@@ -47,8 +47,8 @@ const server = http.createServer(
     transformHtml: injectEnhancement,
     staticMounts: [
       {
-        urlPrefix: "/packages/",
-        directory: join(repoRoot, "packages")
+        urlPrefix: "/sdk/",
+        directory: join(repoRoot, "sdk")
       },
       {
         urlPrefix: "/node_modules/",

@@ -112,7 +112,7 @@ http.createServer(
     staticFiles: {
       "/starter/client.js": join(exampleRoot, "dist", "client.js")
     },
-    staticMounts: [{ urlPrefix: "/packages/", directory: join(repoRoot, "packages") }]
+    staticMounts: [{ urlPrefix: "/sdk/", directory: join(repoRoot, "sdk") }]
   })
 );
 ```

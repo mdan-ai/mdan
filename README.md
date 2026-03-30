@@ -94,7 +94,7 @@ http.createServer(
   createNodeHost(server, {
     rootRedirect: "/guestbook",
     transformHtml: injectEnhancement,
-    staticMounts: [{ urlPrefix: "/packages/", directory: join(repoRoot, "packages") }]
+    staticMounts: [{ urlPrefix: "/sdk/", directory: join(repoRoot, "sdk") }]
   })
 );
 ```

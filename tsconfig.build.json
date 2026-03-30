@@ -1,11 +1,12 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/create-mdsn" },
-    { "path": "./packages/core" },
-    { "path": "./packages/server" },
-    { "path": "./packages/web" },
-    { "path": "./packages/elements" },
+    { "path": "./docs-site" },
+    { "path": "./sdk/create-mdsn" },
+    { "path": "./sdk/core" },
+    { "path": "./sdk/server" },
+    { "path": "./sdk/web" },
+    { "path": "./sdk/elements" },
     { "path": "./examples/guestbook" },
     { "path": "./examples/auth-session" },
     { "path": "./examples/starter" },

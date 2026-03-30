@@ -19,8 +19,8 @@ function withVersion(path) {
 
 const importMap = {
   imports: {
-    "@mdsn/core": withVersion("/packages/core/dist/index.js"),
-    "@mdsn/web": withVersion("/packages/web/dist/index.js"),
+    "@mdsn/core": withVersion("/sdk/core/dist/index.js"),
+    "@mdsn/web": withVersion("/sdk/web/dist/index.js"),
     "marked": withVersion("/node_modules/marked/lib/marked.esm.js"),
     "vue": withVersion("/node_modules/vue/dist/vue.esm-browser.js")
   }
@@ -211,8 +211,8 @@ const server = http.createServer(
     },
     staticMounts: [
       {
-        urlPrefix: "/packages/",
-        directory: join(repoRoot, "packages")
+        urlPrefix: "/sdk/",
+        directory: join(repoRoot, "sdk")
       },
       {
         urlPrefix: "/node_modules/",
