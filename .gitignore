@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+packages/*/dist/
+examples/*/dist/
+*.tsbuildinfo
+packages/*/tsconfig.tsbuildinfo
+examples/*/tsconfig.tsbuildinfo
+
+# Test and tooling outputs
+.vitest-cache/
+coverage/
+output/
+.playwright-cli/
+packages/*/test/**/*.js
+packages/*/test/**/*.js.map
+packages/*/test/**/*.d.ts
+packages/*/test/**/*.d.ts.map
+
+# Temp/cache files
+.DS_Store
+*.log
+tmp/
+temp/
+
+# Internal docs and local notes
+docs/
+zh-spec.md
+
+# Temporary scripts
+scripts/

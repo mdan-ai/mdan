@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/server" },
+    { "path": "./packages/web" },
+    { "path": "./packages/elements" },
+    { "path": "./examples/guestbook" },
+    { "path": "./examples/auth-session" },
+    { "path": "./examples/starter" },
+    { "path": "./examples/express-starter" },
+    { "path": "./examples/marked-starter" },
+    { "path": "./examples/vue-starter" },
+    { "path": "./examples/react-starter" }
+  ]
+}
