@@ -72,7 +72,6 @@ const mdsn = createDocsSiteServer({
 
 const server = http.createServer(
   createNodeHost(mdsn, {
-    rootRedirect: "/",
     staticFiles: {
       "/docs-site/site.css": join(docsRoot, "public", "site.css"),
       "/docs-site/docs.js": join(docsRoot, "public", "docs.js")
