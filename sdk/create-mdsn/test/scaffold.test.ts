@@ -1,11 +1,10 @@
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { pathToFileURL } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { readBundledSdkVersion, scaffoldStarterProject } from "../src/index.js";
+import { scaffoldStarterProject } from "../src/index.js";
 
 describe("create-mdsn starter scaffold", () => {
   it("creates the starter with app-oriented structure and filled placeholders", async () => {
@@ -26,7 +25,7 @@ describe("create-mdsn starter scaffold", () => {
 
     const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
     expect(packageJson).toContain('"name": "my-mdsn-app"');
-    expect(packageJson).toContain('"@mdsnai/sdk": "^0.1.0-test"');
+    expect(packageJson).toContain('"@mdsnai/sdk": "0.1.0-test"');
     expect(packageJson).toContain('"start": "npm run build && node index.mjs"');
 
     const readme = await readFile(join(targetDir, "README.md"), "utf8");
@@ -57,31 +56,17 @@ describe("create-mdsn starter scaffold", () => {
     ).rejects.toThrow(/must be empty/);
   });
 
-  it("reads the bundled sdk dependency version instead of the create-mdsn package version", async () => {
-    const parent = await mkdtemp(join(tmpdir(), "mdsn-create-version-"));
-    const packageRoot = join(parent, "create-mdsn");
-    await mkdir(packageRoot, { recursive: true });
-    await writeFile(
-      join(parent, "package.json"),
-      JSON.stringify({
-        name: "outer",
-        version: "9.9.9"
-      }),
-      "utf8"
-    );
-    await writeFile(
-      join(packageRoot, "package.json"),
-      JSON.stringify({
-        name: "create-mdsn",
-        version: "0.3.1",
-        dependencies: {
-          "@mdsnai/sdk": "0.3.0"
-        }
-      }),
-      "utf8"
-    );
+  it("can scaffold a starter pinned to latest", async () => {
+    const parent = await mkdtemp(join(tmpdir(), "mdsn-create-latest-"));
+    const targetDir = join(parent, "latest-app");
 
-    const version = await readBundledSdkVersion(pathToFileURL(join(packageRoot, "dist", "cli.js")).href);
-    expect(version).toBe("0.3.0");
+    await scaffoldStarterProject({
+      targetDir,
+      projectName: "latest-app",
+      sdkVersion: "latest"
+    });
+
+    const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
+    expect(packageJson).toContain('"@mdsnai/sdk": "latest"');
   });
 });

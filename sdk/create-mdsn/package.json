@@ -1,6 +1,6 @@
 {
   "name": "create-mdsn",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": false,
   "description": "Create a minimal MDSN app with npm create.",
   "license": "MIT",
@@ -33,6 +33,7 @@
   },
   "files": [
     "dist",
+    "README.md",
     "template/starter"
   ],
   "bin": {
@@ -45,6 +46,6 @@
     }
   },
   "dependencies": {
-    "@mdsnai/sdk": "0.3.0"
+    "@mdsnai/sdk": "0.3.3"
   }
 }

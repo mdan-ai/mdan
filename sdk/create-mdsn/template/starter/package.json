@@ -8,7 +8,7 @@
     "start": "npm run build && node index.mjs"
   },
   "dependencies": {
-    "@mdsnai/sdk": "^__SDK_VERSION__"
+    "@mdsnai/sdk": "__SDK_VERSION__"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

@@ -64,8 +64,8 @@ npm start
 
 ## Docs
 
-- [Getting Started](https://docs.mdsn.ai/docs/getting-started)
-- [Understanding MDSN](https://docs.mdsn.ai/docs/understanding-mdsn)
-- [SDK Overview](https://docs.mdsn.ai/docs/sdk)
-- [Custom Rendering](https://docs.mdsn.ai/docs/custom-rendering)
-- [API Reference](https://docs.mdsn.ai/docs/api-reference)
+- [Getting Started](https://docs.mdsn.ai/getting-started)
+- [Understanding MDSN](https://docs.mdsn.ai/understanding-mdsn)
+- [SDK Overview](https://docs.mdsn.ai/sdk)
+- [Custom Rendering](https://docs.mdsn.ai/custom-rendering)
+- [API Reference](https://docs.mdsn.ai/api-reference)

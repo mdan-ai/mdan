@@ -22,8 +22,8 @@ The generated app uses this small shape:
 
 ## Docs
 
-- [Docs](https://docs.mdsn.ai/docs)
-- [Getting Started](https://docs.mdsn.ai/docs/getting-started)
-- [Understanding MDSN](https://docs.mdsn.ai/docs/understanding-mdsn)
-- [Examples](https://docs.mdsn.ai/docs/examples)
-- [SDK Overview](https://docs.mdsn.ai/docs/sdk)
+- [Docs](https://docs.mdsn.ai/)
+- [Getting Started](https://docs.mdsn.ai/getting-started)
+- [Understanding MDSN](https://docs.mdsn.ai/understanding-mdsn)
+- [Examples](https://docs.mdsn.ai/examples)
+- [SDK Overview](https://docs.mdsn.ai/sdk)

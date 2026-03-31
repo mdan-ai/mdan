@@ -13,10 +13,6 @@ const TEMPLATE_PLACEHOLDERS = {
   __SDK_VERSION__: ""
 } as const;
 
-function packageRootFromModule(moduleUrl: string): string {
-  return resolve(fileURLToPath(new URL("..", moduleUrl)));
-}
-
 function templateRootFromModule(moduleUrl: string): string {
   return resolve(fileURLToPath(new URL("../template/starter", moduleUrl)));
 }
@@ -89,25 +85,4 @@ export async function scaffoldStarterProject(
   const files = await walkFiles(targetDir);
   await Promise.all(files.map((filePath) => replaceInFile(filePath, replacements)));
   return targetDir;
-}
-
-export async function readCreateMdsnVersion(moduleUrl = import.meta.url): Promise<string> {
-  const packageJsonPath = join(packageRootFromModule(moduleUrl), "package.json");
-  const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as { version?: string };
-  if (!packageJson.version) {
-    throw new Error("Unable to determine create-mdsn package version.");
-  }
-  return packageJson.version;
-}
-
-export async function readBundledSdkVersion(moduleUrl = import.meta.url): Promise<string> {
-  const packageJsonPath = join(packageRootFromModule(moduleUrl), "package.json");
-  const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as {
-    dependencies?: Record<string, string>;
-  };
-  const version = packageJson.dependencies?.["@mdsnai/sdk"];
-  if (!version) {
-    throw new Error("Unable to determine bundled @mdsnai/sdk version.");
-  }
-  return version;
 }

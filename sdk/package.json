@@ -1,6 +1,6 @@
 {
   "name": "@mdsnai/sdk",
-  "version": "0.3.0",
+  "version": "0.3.3",
   "private": false,
   "description": "Reference SDK for building MDSN apps with Markdown-first pages, actions, and browser runtimes.",
   "license": "MIT",

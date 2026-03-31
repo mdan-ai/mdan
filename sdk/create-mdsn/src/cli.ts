@@ -2,7 +2,7 @@
 
 import { resolve } from "node:path";
 
-import { readBundledSdkVersion, scaffoldStarterProject } from "./index.js";
+import { scaffoldStarterProject } from "./index.js";
 
 function printUsage(): void {
   console.log("Usage: npm create mdsn@latest <project-name>");
@@ -17,10 +17,9 @@ async function main(argv: string[]): Promise<void> {
   }
 
   const targetDir = resolve(process.cwd(), targetArg);
-  const version = await readBundledSdkVersion();
   const projectDir = await scaffoldStarterProject({
     targetDir,
-    sdkVersion: version,
+    sdkVersion: "latest",
     ...(targetArg === "." ? {} : { projectName: targetArg })
   });
 
