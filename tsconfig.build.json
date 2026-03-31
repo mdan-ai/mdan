@@ -2,7 +2,7 @@
   "files": [],
   "references": [
     { "path": "./docs-site" },
-    { "path": "./sdk/create-mdsn" },
+    { "path": "./create-mdsn" },
     { "path": "./sdk" },
     { "path": "./examples/guestbook" },
     { "path": "./examples/auth-session" },

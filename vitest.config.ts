@@ -13,7 +13,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["sdk/test/**/*.test.ts", "sdk/create-mdsn/test/**/*.test.ts"],
+    include: ["sdk/test/**/*.test.ts", "create-mdsn/test/**/*.test.ts"],
     coverage: {
       reporter: ["text", "html"]
     }

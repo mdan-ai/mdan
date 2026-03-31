@@ -5,7 +5,7 @@
   "type": "module",
   "workspaces": [
     "sdk",
-    "sdk/create-mdsn",
+    "create-mdsn",
     "examples/*"
   ],
   "scripts": {

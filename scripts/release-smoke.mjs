@@ -255,7 +255,7 @@ async function main() {
     if (mode === "prepublish") {
       await run("npm", ["run", "build"], { cwd: repoRoot });
       const sdkTarball = await packWorkspace(join(repoRoot, "sdk"));
-      const createTarball = await packWorkspace(join(repoRoot, "sdk/create-mdsn"));
+      const createTarball = await packWorkspace(join(repoRoot, "create-mdsn"));
       const projectDir = await createProject({
         mode,
         tempRoot,
