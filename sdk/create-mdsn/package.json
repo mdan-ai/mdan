@@ -2,7 +2,7 @@
   "name": "create-mdsn",
   "version": "0.3.0",
   "private": false,
-  "description": "npm create entry for scaffolding a new MDSN app project.",
+  "description": "Create a minimal MDSN app with npm create.",
   "license": "MIT",
   "homepage": "https://docs.mdsn.ai",
   "bugs": {
@@ -28,6 +28,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
   "files": [
     "dist",
     "template/starter"

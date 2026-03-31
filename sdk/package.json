@@ -2,7 +2,7 @@
   "name": "@mdsnai/sdk",
   "version": "0.3.0",
   "private": false,
-  "description": "SDK, parser, server runtime, web runtime, and elements UI for building MDSN apps.",
+  "description": "Reference SDK for building MDSN apps with Markdown-first pages, actions, and browser runtimes.",
   "license": "MIT",
   "homepage": "https://docs.mdsn.ai",
   "bugs": {
@@ -29,6 +29,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
   "files": [
     "dist",
     "README.md"

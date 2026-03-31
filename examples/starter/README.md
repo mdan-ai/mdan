@@ -1,42 +1,48 @@
 # MDSN Starter
 
-这是一个最小可运行的 MDSN 脚手架。
+This is the smallest runnable MDSN starter.
 
-## 目录
+## Files
 
-- `pages/guestbook.md`
-  - 你的 canonical 页面源
-- `src/index.ts`
-  - 你的业务逻辑
-- `src/client.ts`
-  - 默认 UI 挂载入口，走 `createHeadlessHost() + mountMdsnElements()`
-- `dev.mjs`
-  - 本地开发壳，基于 `createNodeHost()`
+- `app/index.md`
+  - page source and interaction definition
+- `app/server.ts`
+  - state and action handlers
+- `app/client.ts`
+  - browser runtime mount
+- `index.mjs`
+  - local Node host
 
-## 启动
+## Start
 
-先在仓库根目录执行：
+If you are browsing the [MDSN repository](https://github.com/mdsn-ai/mdsn), this example is the in-repo version of the published starter.
+
+Run once from the repository root:
 
 ```bash
 npm install
-npm run build
-node examples/starter/dev.mjs
 ```
 
-然后打开：
+Then start the example:
 
-- `http://127.0.0.1:4322/guestbook`
+```bash
+cd examples/starter
+npm start
+```
 
-## 你通常只需要改这三处
+Open:
 
-1. `pages/guestbook.md`
-2. `src/index.ts` 里的业务状态
-3. `src/index.ts` 里的显式 action binding 和 handler
+- `http://127.0.0.1:3000/`
 
-## 当前推荐边界
+## Usual edit points
 
-- 页面源放 `.md`
-- 运行时 block 内容用 `composePage()`
-- hosted app 里的 action 显式声明 `target / methods / routePath / blockName`
-- 浏览器侧默认链路走 `createHeadlessHost() + mountMdsnElements()`
-- Node 开发壳用 `createNodeHost()`
+1. `app/index.md`
+2. business state in `app/server.ts`
+3. explicit action bindings and handlers in `app/server.ts`
+
+## Core pieces
+
+- page source in `app/index.md`
+- state and actions in `app/server.ts`
+- browser runtime in `app/client.ts`
+- Node host in `index.mjs`

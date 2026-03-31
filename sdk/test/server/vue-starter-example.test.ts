@@ -3,28 +3,28 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createVueStarterServer } from "../../../examples/vue-starter/src/index.js";
+import { createAppServer } from "../../../examples/vue-starter/app/server.js";
 
 async function readVueStarterSource(): Promise<string> {
-  return readFile(join(process.cwd(), "examples", "vue-starter", "pages", "guestbook.md"), "utf8");
+  return readFile(join(process.cwd(), "examples", "vue-starter", "app", "index.md"), "utf8");
 }
 
 describe("vue starter example", () => {
   it("keeps the server side as thin as the base starter", async () => {
-    const source = (await readVueStarterSource()).replace("# Guestbook", "# Vue Starter Guestbook");
-    const server = createVueStarterServer({
+    const source = (await readVueStarterSource()).replace("# Vue Starter", "# Vue Starter Example");
+    const server = createAppServer({
       source,
       initialMessages: ["Vue One", "Vue Two"]
     });
 
     const pageResponse = await server.handle({
       method: "GET",
-      url: "https://example.test/guestbook",
+      url: "https://example.test/",
       headers: { accept: "text/markdown" },
       cookies: {}
     });
 
-    expect(pageResponse.body).toContain("# Vue Starter Guestbook");
+    expect(pageResponse.body).toContain("# Vue Starter Example");
     expect(pageResponse.body).toContain("## 2 live messages");
     expect(pageResponse.body).toContain("- Vue One");
     expect(pageResponse.body).toContain("- Vue Two");
@@ -45,8 +45,8 @@ describe("vue starter example", () => {
   });
 
   it("keeps the browser entry client-only and Vue-hosted", async () => {
-    const clientSource = await readFile(join(process.cwd(), "examples", "vue-starter", "src", "client.ts"), "utf8");
-    const devSource = await readFile(join(process.cwd(), "examples", "vue-starter", "dev.mjs"), "utf8");
+    const clientSource = await readFile(join(process.cwd(), "examples", "vue-starter", "app", "client.ts"), "utf8");
+    const devSource = await readFile(join(process.cwd(), "examples", "vue-starter", "index.mjs"), "utf8");
 
     expect(clientSource).toContain('from "vue"');
     expect(clientSource).toContain('from "marked"');
@@ -57,5 +57,6 @@ describe("vue starter example", () => {
     expect(clientSource).not.toContain("@mdsnai/sdk/server");
     expect(clientSource).not.toContain("parseRenderableMarkdown");
     expect(devSource).toContain('"marked"');
+    expect(devSource).toContain('"/app/client.js"');
   });
 });

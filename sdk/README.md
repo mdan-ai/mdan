@@ -1,21 +1,8 @@
 # @mdsnai/sdk
 
-`@mdsnai/sdk` is the reference SDK and runtime for MDSN.
+`@mdsnai/sdk` is the reference SDK for building apps with MDSN.
 
-MDSN keeps page content and page interaction in the same source by combining a Markdown body with an executable `mdsn` block.
-
-## Start With One Package
-
-For most projects, start with subpath imports from one package:
-
-```ts
-import { composePage } from "@mdsnai/sdk/core";
-import { createHostedApp, createNodeHost } from "@mdsnai/sdk/server";
-import { createHeadlessHost } from "@mdsnai/sdk/web";
-import { mountMdsnElements } from "@mdsnai/sdk/elements";
-```
-
-Use the root entry (`@mdsnai/sdk`) when you want the combined API surface.
+MDSN is a Markdown-first page and interaction format. `@mdsnai/sdk` gives you the parser, server runtime, browser runtime, and default UI for working with it.
 
 ## Why MDSN
 
@@ -23,51 +10,62 @@ Plain Markdown is good for content, but weak at expressing interaction.
 
 Once a page needs inputs, actions, partial updates, or navigation, that structure usually gets pushed into templates, frontend state, and custom API glue.
 
-MDSN makes that interaction layer explicit while keeping the page source readable for humans and AI agents.
+MDSN makes that interaction layer explicit while keeping the page source readable for humans, AI agents, and agentic systems.
 
-## What This Package Includes
+In MDSN, page content is not only presentation. It is also shared prompt context for AI agents.
 
-- the MDSN parser and core model
-- server helpers for actions and Markdown fragments
-- headless web APIs for custom rendering
-- default Web Components UI
+The same Markdown source can carry:
 
-## Package Entry Points
-
-- `@mdsnai/sdk`
-- `@mdsnai/sdk/core`
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/web`
-- `@mdsnai/sdk/elements`
+- content for humans to read
+- state and task context for AI agents to interpret
+- explicit interaction structure for both sides to continue from
 
 ## Use Cases
 
-- interactive docs with embedded actions
-- skills/agent apps with Markdown as the protocol source
-- hosted interfaces with your own server stack
-- custom browser UIs built on the same headless runtime
+- skills apps with guided inputs and step-by-step actions for non-technical users
+- agent apps that agents can read, enter, and continue over HTTP
+- interactive docs, runbooks, and internal tools with embedded actions
+- shared pages where humans and agents work from the same content and next-step actions
+- agentic workflows where the server returns both updated results and the next actions to take
+- custom hosted interfaces built with React, Vue, or your own server stack
+
+## Syntax
+
+The starter uses this minimal page shape:
+
+````md
+---
+title: "Agent App"
+---
+
+# Agent App
+
+Use this starter as the smallest end-to-end MDSN app.
+
+<!-- mdsn:block main -->
+
+```mdsn
+BLOCK main {
+  INPUT text required -> message
+  GET "/list" -> refresh label:"Refresh"
+  POST "/post" (message) -> submit label:"Submit"
+}
+```
+````
 
 ## Quick Start
 
 ```bash
-npm create mdsn@latest my-app
-cd my-app
+npm create mdsn@latest agent-app
+cd agent-app
 npm install
-npm run start
+npm start
 ```
 
 ## Docs
 
+- [Getting Started](https://docs.mdsn.ai/docs/getting-started)
+- [Understanding MDSN](https://docs.mdsn.ai/docs/understanding-mdsn)
 - [SDK Overview](https://docs.mdsn.ai/docs/sdk)
+- [Custom Rendering](https://docs.mdsn.ai/docs/custom-rendering)
 - [API Reference](https://docs.mdsn.ai/docs/api-reference)
-- [Server Runtime](https://docs.mdsn.ai/docs/server-runtime)
-- [Web Runtime](https://docs.mdsn.ai/docs/web-runtime)
-- [Elements](https://docs.mdsn.ai/docs/elements)
-
-For local source docs in this repo:
-
-- `docs/sdk.md`
-- `docs/api-reference.md`
-- `docs/server-runtime.md`
-- `docs/web-runtime.md`
-- `docs/elements.md`

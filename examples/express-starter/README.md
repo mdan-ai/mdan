@@ -1,28 +1,30 @@
 # MDSN Express Starter
 
-这是一个最小可运行的 Express 接入示例。
+This is the smallest runnable Express integration example.
 
-## 目录
+## Files
 
-- `pages/guestbook.md`
-  - canonical 页面源
-- `src/index.ts`
-  - 业务逻辑，和普通 starter 一致
-- `src/express-adapter.ts`
-  - 把 Express `req/res` 映射到 `server.handle()` 的薄适配层
-- `dev.mjs`
-  - 本地开发壳，基于 Express
+- `app/index.md`
+  - page source
+- `app/server.ts`
+  - app logic, using the same shape as the regular starter
+- `app/client.ts`
+  - default UI mount
+- `app/express-adapter.ts`
+  - thin adapter that maps Express `req/res` into `server.handle()`
+- `index.mjs`
+  - local Express host
 
-## 启动
+## Start
 
-先在仓库根目录执行：
+Run once from the repository root:
 
 ```bash
 npm install
-npm run build
-node examples/express-starter/dev.mjs
+cd examples/express-starter
+npm start
 ```
 
-然后打开：
+Open:
 
-- `http://127.0.0.1:4330/guestbook`
+- `http://127.0.0.1:4330/`

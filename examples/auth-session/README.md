@@ -1,39 +1,39 @@
 # MDSN Auth Session Example
 
-这是一个 starter 风格的 session 示例。
+This is a starter-style session example.
 
-## 目录
+## Files
 
-- `pages/login.md`
-  - 默认登录页，只暴露登录和跳去注册
-- `pages/register.md`
-  - 注册页，只暴露注册和返回登录
-- `pages/vault.md`
-  - 登录后页面源，暴露 session 和 private notes
-- `src/index.ts`
-  - 用户、笔记和 session 业务逻辑
-- `src/client.ts`
-  - 默认 UI 挂载入口，走 `createHeadlessHost() + mountMdsnElements()`
-- `dev.mjs`
-  - 本地开发壳，基于 `createNodeHost()`
+- `app/login.md`
+  - default login page with login and register navigation
+- `app/register.md`
+  - register page with register and back-to-login actions
+- `app/vault.md`
+  - post-login page source with session data and private notes
+- `app/server.ts`
+  - user, note, and session logic
+- `app/client.ts`
+  - default UI mount using `createHeadlessHost() + mountMdsnElements()`
+- `index.mjs`
+  - local Node host using `createNodeHost()`
 
-## 启动
+## Start
 
-先在仓库根目录执行：
+Run once from the repository root:
 
 ```bash
 npm install
-npm run build
-node examples/auth-session/dev.mjs
+cd examples/auth-session
+npm start
 ```
 
-然后打开：
+Open:
 
 - `http://127.0.0.1:4323/login`
 
-## 这份示例在验证什么
+## What this example shows
 
-1. 页面源仍然是 `.md`
-2. `createHostedApp()` 的显式 action binding 能承载 session 场景
-3. 登录、注册、受保护操作、登出都走同一套 MDSN 协议
-4. 默认是登录页，注册页和登录页互相跳转；登录或注册成功后整页切到 `vault.md`
+1. page sources still live in `.md` files
+2. explicit `createHostedApp()` action bindings work for session flows
+3. login, register, protected actions, and logout all use the same MDSN protocol
+4. the app starts on `login.md`, moves between login and register, and switches to `vault.md` after success

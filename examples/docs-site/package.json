@@ -1,9 +1,0 @@
-{
-  "name": "docs-site-example",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@mdsnai/sdk": "0.1.0"
-  }
-}

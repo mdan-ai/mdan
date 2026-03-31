@@ -3,8 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "start": "npm run build && node index.mjs"
+  },
   "dependencies": {
     "@mdsnai/sdk": "0.1.0",
     "marked": "^17.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.3"
   }
 }

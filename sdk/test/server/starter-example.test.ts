@@ -3,28 +3,28 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createStarterServer } from "../../../examples/starter/src/index.js";
+import { createAppServer } from "../../../examples/starter/app/server.js";
 
 async function readStarterSource(): Promise<string> {
-  return readFile(join(process.cwd(), "examples", "starter", "pages", "guestbook.md"), "utf8");
+  return readFile(join(process.cwd(), "examples", "starter", "app", "index.md"), "utf8");
 }
 
 describe("starter example", () => {
   it("is a self-contained minimal scaffold", async () => {
-    const source = (await readStarterSource()).replace("# Guestbook", "# Starter Guestbook");
-    const server = createStarterServer({
+    const source = (await readStarterSource()).replace("# Agent App", "# Starter Agent App");
+    const server = createAppServer({
       source,
       initialMessages: ["First", "Second"]
     });
 
     const pageResponse = await server.handle({
       method: "GET",
-      url: "https://example.test/guestbook",
+      url: "https://example.test/",
       headers: { accept: "text/markdown" },
       cookies: {}
     });
 
-    expect(pageResponse.body).toContain("# Starter Guestbook");
+    expect(pageResponse.body).toContain("# Starter Agent App");
     expect(pageResponse.body).toContain("## 2 live messages");
     expect(pageResponse.body).toContain("- First");
     expect(pageResponse.body).toContain("- Second");
@@ -42,6 +42,6 @@ describe("starter example", () => {
 
     expect(postResponse.body).toContain("## 3 live messages");
     expect(postResponse.body).toContain("- Third");
-    expect(postResponse.body).not.toContain('title: "Guestbook"');
+    expect(postResponse.body).not.toContain('title: "Agent App"');
   });
 });

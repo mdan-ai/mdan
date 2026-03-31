@@ -1,38 +1,70 @@
 ---
-title: Agent App Demo Walkthrough
-description: End-to-end walkthrough of an agent-facing MDSN app flow.
+title: Agent App Demo
+description: Walk through agent-driven flows using the current guestbook and auth-session examples.
 ---
 
-# Agent App Demo Walkthrough
+# Agent App Demo
 
-This walkthrough explains the protocol flow used by the demo-style apps.
+This page shows how an agent actually moves through an MDSN app using the current repository examples.
 
-## Flow
+## Basic Flow
 
-1. Agent requests a page route.
-2. Server returns full page Markdown.
-3. Agent selects a block action target.
-4. Server returns block Markdown fragment.
-5. Agent iterates using updated fragment context.
+In MDSN, an agent loop is not “call a JSON API, then rebuild the next step yourself”.
 
-## Why It Matters
+It looks like this:
 
-MDSN keeps human-readable content and machine-operable interaction in one canonical source.
+1. Read the full page Markdown.
+2. Discover the operations available from the current content.
+3. Execute one of those operations.
+4. Read the returned Markdown fragment.
+5. Continue from the updated context.
 
-## Practical References
+That loop works both for simple state updates like `guestbook` and for auth flows like `login`, `register`, and `vault`.
 
-- [examples/guestbook/src/index.ts](/Users/hencoo/projects/mdsn/examples/guestbook/src/index.ts)
-- [examples/auth-session/src/index.ts](/Users/hencoo/projects/mdsn/examples/auth-session/src/index.ts)
-- [Shared Interaction](/docs/shared-interaction)
+## Example A: Guestbook
 
-## Validation Checklist for Agent Flows
+Reference: [examples/guestbook/app/server.ts](/Users/hencoo/projects/mdsn/examples/guestbook/app/server.ts)
 
-- Agent can read full markdown page source.
-- Agent can discover and call block targets.
-- Action responses preserve enough markdown context for next step.
-- Error paths return actionable markdown fragments (not opaque text).
+Server behavior:
 
-## Example Mapping
+- `GET /` returns the full page Markdown
+- `GET /list` returns the guestbook block fragment
+- `POST /post` appends a message and returns the updated guestbook block fragment
 
-- Guestbook read/write: [examples/guestbook/src/index.ts](/Users/hencoo/projects/mdsn/examples/guestbook/src/index.ts)
-- Auth transitions: [examples/auth-session/src/index.ts](/Users/hencoo/projects/mdsn/examples/auth-session/src/index.ts)
+The key point is that both reads and writes stay inside the block, so the agent works with a smaller and more stable context.
+
+## Example B: Auth Session
+
+Reference: [examples/auth-session/app/server.ts](/Users/hencoo/projects/mdsn/examples/auth-session/app/server.ts)
+
+This example adds two important patterns:
+
+- session mutation during action handling with `signIn` and `signOut`
+- explicit page transitions through `navigate(...)`
+
+Typical transitions:
+
+- register success -> `navigate` to `/vault` with sign-in mutation
+- login success -> `navigate` to `/vault`
+- logout -> `navigate` to `/login` with sign-out mutation
+
+That means the agent does not have to guess where to go next. The returned content already carries the next path.
+
+## Agent-Facing Error Strategy
+
+Avoid opaque errors. Return actionable Markdown fragments that include the next legal operation.
+
+In `auth-session`, unauthenticated writes to `vault` return a recoverable fragment that includes a `GET "/login"` operation.
+
+## Verification Checklist
+
+- the agent can identify executable operations, request methods, and input shape from the current page or fragment
+- failure states still return Markdown that allows recovery
+- session-changing operations also return clear follow-up actions
+- write operations return updated block Markdown rather than stale content
+
+## Related Docs
+
+- [HTTP Content Negotiation](/docs/shared-interaction)
+- [Application Structure](/docs/application-structure)
+- [Server Integration](/docs/server-integration)

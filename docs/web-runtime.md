@@ -1,8 +1,17 @@
+---
+title: Web Runtime
+description: The browser-side runtime model in @mdsnai/sdk/web.
+---
+
 # Web Runtime
 
-`@mdsnai/sdk/web` is the browser-side headless host. It consumes host-rendered HTML bootstrap data, manages requests, and exposes page/block state to any renderer.
+`@mdsnai/sdk/web` is the browser-side runtime. It does not render your UI.
 
-## Headless Usage
+It reads the initial state written into HTML by the server, sends requests, maintains page and block state, and exposes that state to any rendering layer.
+
+If you want one sentence to remember, use this: `web` is responsible for how interaction continues. Whether you draw the UI yourself is a separate question.
+
+## Basic Usage
 
 ```ts
 import { createHeadlessHost } from "@mdsnai/sdk/web";
@@ -15,31 +24,33 @@ host.subscribe((snapshot) => {
 });
 ```
 
-这是浏览器侧唯一推荐的 runtime 主线：
+This is the recommended browser-side path:
 
-- 默认 UI：`createHeadlessHost()` + `mountMdsnElements()`
-- 框架 UI：`createHeadlessHost()` + Vue/React/Svelte 自己渲染
+- default UI: `createHeadlessHost()` + `mountMdsnElements()`
+- framework UI: `createHeadlessHost()` + Vue, React, or Svelte rendering
 
-框架接管 UI 时，推荐直接使用这套接口：
+When a framework owns the UI, the recommended interface is:
 
 - `host.getSnapshot()`
 - `host.subscribe(listener)`
 - `host.submit(operation, values)`
 - `host.visit(target)`
 
-## What It Does
+## What It Actually Does
 
-After mounting, the host will:
+After mounting, the runtime will:
 
-- read the initial bootstrap snapshot from the current HTML page
-- send `GET` and `POST` actions in the correct MDSN wire format
-- merge block fragment responses into the current snapshot
-- load a new page snapshot when the response includes an explicit continue target
-- notify any renderer through `subscribe(listener)`
+- read the initial state from the current HTML document
+- send `GET` and `POST` actions with the correct protocol behavior
+- merge returned block fragments into current state
+- load new page state when a response points at a new page target
+- notify any rendering layer through `subscribe(listener)`
+
+In other words, it is responsible for the interaction process itself, not the visual presentation.
 
 ## Runtime State
 
-The headless host exposes a tiny state API:
+The runtime exposes a small state API:
 
 ```ts
 host.subscribe((snapshot) => {
@@ -53,8 +64,9 @@ Current states are:
 - `loading`
 - `error`
 
-## Typical Pairings
+## Relationship to `elements`
 
-Use `createHeadlessHost()` together with `mountMdsnElements()` from `@mdsnai/sdk/elements` if you want the default official UI.
+- if you want the official default UI, combine `createHeadlessHost()` with `mountMdsnElements()`
+- if you want Vue, React, or another framework to own the UI, keep only `createHeadlessHost()`
 
-Use `createHeadlessHost()` when you want the browser to keep the protocol/runtime, but the framework to own page/block rendering.
+You can think of it as: `web` runs the interaction, `elements` displays it.

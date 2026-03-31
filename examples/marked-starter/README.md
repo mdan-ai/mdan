@@ -1,35 +1,32 @@
 # MDSN Marked Starter
 
-这是一个最小可运行的第三方 Markdown 渲染器接入示例。
+This is the smallest runnable example of plugging a third-party Markdown renderer into MDSN.
 
-它做的事情很简单：
+It does a few simple things:
 
-- `server` 通过同一个 `markdownRenderer` 输出 browser HTML
-- `elements` 通过同一个 `markdownRenderer` 渲染默认 UI
-- agent 路径仍然保持原始 `md + mdsn`，不受 HTML renderer 影响
-- 第三方库使用的是 `marked`
+- `server` uses the same `markdownRenderer` for browser HTML output
+- `elements` uses the same `markdownRenderer` for the default UI
+- the agent path still stays on raw `md + mdsn`
+- the third-party library is `marked`
 
-## 启动
-
-先在仓库根目录执行：
+## Run It
 
 ```bash
-npm install
-npm run build
-node examples/marked-starter/dev.mjs
+cd examples/marked-starter
+npm start
 ```
 
-然后打开：
+Then open:
 
-- `http://127.0.0.1:4326/guestbook`
+- `http://127.0.0.1:4326/`
 
-## 目录
+## Structure
 
-- `pages/guestbook.md`
-  - canonical 页面源
-- `src/index.ts`
-  - server 侧接入 `marked`
-- `src/client.ts`
-  - default elements 侧接入 `marked`
-- `dev.mjs`
-  - 本地开发壳
+- `app/index.md`
+  - page source
+- `app/server.ts`
+  - server-side `marked` integration
+- `app/client.ts`
+  - default UI-side `marked` integration
+- `index.mjs`
+  - local runtime shell

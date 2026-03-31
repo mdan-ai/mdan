@@ -21,19 +21,22 @@ describe("create-mdsn starter scaffold", () => {
     expect(topLevelEntries.sort()).toEqual(["README.md", "app", "index.mjs", "package.json", "tsconfig.json"]);
 
     const appEntries = await readdir(join(targetDir, "app"));
-    expect(appEntries.sort()).toEqual(["client.ts", "guestbook.md", "server.ts"]);
+    expect(appEntries.sort()).toEqual(["client.ts", "index.md", "server.ts"]);
 
     const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
     expect(packageJson).toContain('"name": "my-mdsn-app"');
     expect(packageJson).toContain('"@mdsnai/sdk": "^0.1.0-test"');
+    expect(packageJson).toContain('"start": "npm run build && node index.mjs"');
 
     const readme = await readFile(join(targetDir, "README.md"), "utf8");
     expect(readme).toContain("# my-mdsn-app");
-    expect(readme).toContain("app/guestbook.md");
+    expect(readme).toContain("app/index.md");
+    expect(readme).toContain("http://127.0.0.1:3000/");
 
     const indexSource = await readFile(join(targetDir, "index.mjs"), "utf8");
     expect(indexSource).toContain('import { createAppServer } from "./dist/sdk-server.js";');
     expect(indexSource).toContain('"/app/client.js"');
+    expect(indexSource).toContain("process.env.PORT || 3000");
 
     const serverSource = await readFile(join(targetDir, "app", "server.ts"), "utf8");
     expect(serverSource).toContain("createHostedApp");

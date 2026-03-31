@@ -1,35 +1,21 @@
 ---
 title: Custom Rendering with Vue
-description: Use Vue as the UI layer on top of MDSN headless runtime.
+description: Use @mdsnai/sdk/web as the runtime while Vue owns the UI.
 ---
 
 # Custom Rendering with Vue
 
-Use `@mdsnai/sdk/web` as the runtime source of truth, and let Vue own rendering.
+This page is kept for old links. The main content now lives in [Custom Rendering](/docs/custom-rendering).
 
-## Pattern
+If you only care about the Vue version, go straight to:
 
-1. `createHeadlessHost({ root, fetchImpl })`
-2. `host.mount()`
-3. Subscribe to snapshots
-4. Render `snapshot.markdown` and `snapshot.blocks` in Vue
+- [Custom Rendering](/docs/custom-rendering)
+- [examples/vue-starter/app/client.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/app/client.ts)
 
-## Reference Example
+The key Vue-specific difference is simple: you will usually manage host creation, subscription, and teardown in the component lifecycle, then map runtime state into the component tree.
 
-- [examples/vue-starter/src/client.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/src/client.ts)
-- [examples/vue-starter/src/index.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/src/index.ts)
+## Related Docs
 
-## When To Use
-
-- You already have a Vue design system
-- You want custom UI without reimplementing protocol runtime
-
-## Snapshot Rendering Notes
-
-In Vue, keep snapshot in reactive state and re-render on `subscribe` callback. Prefer derived view state from snapshot rather than duplicating runtime state.
-
-## Common Pitfalls
-
-- Calling `host.mount()` multiple times for same root.
-- Forgetting `host.unmount()` on app teardown.
-- Mutating snapshot objects directly.
+- [Web Runtime](/docs/web-runtime)
+- [Examples](/docs/examples)
+- [Custom Rendering](/docs/custom-rendering)

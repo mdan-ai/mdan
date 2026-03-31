@@ -1,6 +1,13 @@
+---
+title: Session Provider
+description: Server-side session read, write, and clear hooks.
+---
+
 # Session Provider
 
-Session is a runtime concern. `@mdsnai/sdk/server` models it through a thin provider interface:
+This page is about where to connect an existing login or cookie setup into MDSN.
+
+Session is a runtime concern. `@mdsnai/sdk/server` integrates it through a thin provider interface:
 
 ```ts
 type Session = Record<string, unknown>;
@@ -12,13 +19,19 @@ type MdsnSessionProvider = {
 };
 ```
 
-This keeps the SDK transport-aware without hard-coding a single cookie implementation into handlers.
+This lets the SDK work with your existing session approach without hard-coding one cookie implementation into handlers.
 
 ## What Each Method Does
+
+- `read(request)`
+- `commit(mutation, response)`
+- `clear(response)`
 
 - `read`: load the current session from the incoming request
 - `commit`: persist a login or refresh mutation onto the outgoing response
 - `clear`: remove the current session from the outgoing response
+
+Those three methods are enough. MDSN does not ask you to rebuild your auth system. It only asks you to plug in read, write, and clear.
 
 ## Typical Cookie-Backed Shape
 
@@ -38,4 +51,4 @@ const session = {
 };
 ```
 
-This is intentionally thin so you can wrap your existing auth/session system instead of replacing it.
+This interface is intentionally thin so you can wrap your existing cookie or session system instead of replacing it.

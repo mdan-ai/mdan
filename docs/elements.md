@@ -1,17 +1,26 @@
+---
+title: Elements
+description: @mdsnai/sdk/elements provides the official default UI.
+---
+
 # Elements
 
-`@mdsnai/sdk/elements` provides the default Lit-based UI for MDSN pages.
+`@mdsnai/sdk/elements` provides the official default UI for MDSN, built on Web Components.
 
-它现在也直接建立在 headless browser bootstrap 之上，而不再只是给 server 输出的原始 HTML 套样式。
+It now sits directly on top of the browser runtime state instead of only styling raw server-rendered HTML.
 
-推荐主线是 `mountMdsnElements({ root, host, ... })`。`registerMdsnElements()` 只是低层注册器，通常只在测试或特殊自定义接入里单独使用。
+If you do not want to build your own UI, this is the most direct browser-side option.
+
+The main path is `mountMdsnElements({ root, host, ... })`. `registerMdsnElements()` is a lower-level primitive that is mostly useful in tests or special integrations.
 
 ## Basic Usage
 
 ```ts
 import { mountMdsnElements } from "@mdsnai/sdk/elements";
 import { createHeadlessHost } from "@mdsnai/sdk/web";
+```
 
+```ts
 const host = createHeadlessHost({ root: document, fetchImpl: window.fetch });
 mountMdsnElements({
   root: document,
@@ -19,7 +28,7 @@ mountMdsnElements({
 }).mount();
 ```
 
-如果你想接第三方 Markdown 渲染器，也可以把同一个 renderer 注入进来：
+If you want a third-party Markdown renderer, inject the same renderer here:
 
 ```ts
 mountMdsnElements({
@@ -33,9 +42,9 @@ mountMdsnElements({
 }).mount();
 ```
 
-如果你只想注册这些自定义元素，也仍然可以单独调用 `registerMdsnElements()`。
+If you only want to register the custom elements, you can still call `registerMdsnElements()` on its own.
 
-默认会注册这些 custom elements：
+By default it registers:
 
 - `mdsn-page`
 - `mdsn-block`
@@ -44,12 +53,10 @@ mountMdsnElements({
 - `mdsn-action`
 - `mdsn-error`
 
-## What This Package Is For
+## When This Package Fits
 
-Use `@mdsnai/sdk/elements` when you want:
+- you want a ready-to-use default UI
+- you want framework-neutral Web Components
+- you want a thin official view layer on top of the same browser runtime
 
-- a better default UI than raw HTML
-- Web Components that stay framework-neutral
-- a thin official view layer on top of the same headless state model used by framework hosts
-
-Use `@mdsnai/sdk/web` without `@mdsnai/sdk/elements` if you want a headless runtime and plan to render your own UI.
+If you only want the browser runtime and plan to render everything yourself, use `@mdsnai/sdk/web` without `@mdsnai/sdk/elements`.

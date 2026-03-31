@@ -1,114 +1,62 @@
+---
+title: API Reference
+description: Public API overview for the current @mdsnai/sdk package.
+---
+
 # API Reference
 
-这份文档只覆盖当前 SDK 包根入口真正对外暴露的 API。
+This document only covers APIs that are actually part of the current public SDK surface.
 
-如果某个能力没有出现在这里，就不应该被当成公共 SDK 接口依赖。
+If something does not appear here, you should not rely on it as a public SDK interface.
+
+This page is for looking up entry points and API names. It is not meant to explain the whole model or best practices.
 
 ## `@mdsnai/sdk/core`
 
-推荐把 `@mdsnai/sdk/core` 理解成“协议对象层”。
+This group contains the protocol and Markdown handling tools.
 
 ### `parsePage(source)`
 
-解析 canonical `.md` 页面源，返回页面对象。
-
-```ts
-import { parsePage } from "@mdsnai/sdk/core";
-
-const page = parsePage(source);
-```
-
-适合：
-
-- 只想做协议解析
-- 想自己决定什么时候组合运行时 block 内容
+Parses a `.md` page source and returns a page object.
 
 ### `composePage(source, { blocks })`
 
-解析页面并附加运行时 block 内容，返回 composed page。
+Parses a page and attaches runtime block content, returning a composed page object.
 
-```ts
-import { composePage } from "@mdsnai/sdk/core";
-
-const page = composePage(source, {
-  blocks: {
-    guestbook: "## 2 live messages\n\n- Welcome\n- Hello"
-  }
-});
-```
-
-返回值额外提供：
+The returned value also provides:
 
 - `page.fragment(blockName)`
 
-例如：
-
-```ts
-const fragment = page.fragment("guestbook");
-```
-
-这是当前推荐的 block 片段提取方式。
+This is the recommended way to extract a block fragment from a composed page.
 
 ### `validatePage(page)`
 
-校验页面结构：
+Validates page structure, including:
 
-- block 名称
-- anchor 对齐
-- input 引用
-- operation 约束
-
-```ts
-import { parsePage, validatePage } from "@mdsnai/sdk/core";
-
-const page = validatePage(parsePage(source));
-```
+- block names
+- anchor alignment
+- input references
+- operation constraints
 
 ### `parseMarkdownBody(body)`
 
-解析 `POST` body 的 canonical Markdown 形式。
-
-```ts
-import { parseMarkdownBody } from "@mdsnai/sdk/core";
-
-parseMarkdownBody('nickname: "Guest", message: "Hello"');
-```
+Parses the Markdown form of a `POST` request body.
 
 ### `serializeMarkdownBody(values)`
 
-把字段序列化成 canonical Markdown body：
-
-```ts
-import { serializeMarkdownBody } from "@mdsnai/sdk/core";
-
-serializeMarkdownBody({ nickname: "Guest", message: "Hello" });
-```
-
-输出：
-
-```md
-nickname: "Guest", message: "Hello"
-```
+Serializes fields into a standard Markdown request body.
 
 ### `serializePage(page)`
 
-把完整页面对象序列化为完整页面 Markdown。
+Serializes a full page object into full page Markdown.
 
 ### `serializeFragment(fragment)`
 
-把 block 级片段序列化为 Markdown 片段。
+Serializes a block-level fragment into Markdown.
 
 ### `MdsnMarkdownRenderer`
 
-统一的 Markdown 渲染扩展接口。
-
-```ts
-interface MdsnMarkdownRenderer {
-  render(markdown: string): string;
-}
-```
-
-同一个 renderer 对象可以同时注入给：
+The shared Markdown renderer extension point. The same renderer can be injected into:
 
 - `createMdsnServer({ markdownRenderer })`
 - `createHostedApp({ markdownRenderer })`
@@ -116,53 +64,24 @@ interface MdsnMarkdownRenderer {
 
 ### `negotiateRepresentation(acceptHeader)`
 
-根据 `Accept` 协商：
+Negotiates from `Accept`:
 
 - `event-stream`
 - `markdown`
 - `html`
 - `not-acceptable`
 
-显式包含 `text/markdown` 时优先返回 `markdown`。
+When `text/markdown` is explicitly present, it wins over `html`.
 
 ## `@mdsnai/sdk/server`
 
-推荐把 `@mdsnai/sdk/server` 理解成“运行时 + Node host”。
+This group contains the server runtime and Node host entry.
 
 ### `createHostedApp({ pages, actions, ...options })`
 
-创建一个更紧凑的 hosted app 入口。
+Creates a more compact Hosted App entry.
 
-```ts
-import { createHostedApp } from "@mdsnai/sdk/server";
-
-const app = createHostedApp({
-  pages: {
-    "/guestbook": renderGuestbookPage
-  },
-  actions: [
-    {
-      target: "/list",
-      methods: ["GET"],
-      routePath: "/guestbook",
-      blockName: "guestbook",
-      handler: ({ block }) => block()
-    },
-    {
-      target: "/post",
-      methods: ["POST"],
-      routePath: "/guestbook",
-      blockName: "guestbook",
-      handler: ({ inputs, block }) => {
-        messages.push(inputs.message ?? "");
-        return block();
-      }
-    }
-  ]
-});
-```
-
-每个 action 都要显式声明：
+Each action must explicitly declare:
 
 - `target`
 - `methods`
@@ -170,7 +89,7 @@ const app = createHostedApp({
 - `blockName`
 - `handler`
 
-每个 action 会自动拿到：
+Each action automatically receives:
 
 - `routePath`
 - `blockName`
@@ -179,21 +98,15 @@ const app = createHostedApp({
 
 ### `createMdsnServer(options?)`
 
-创建服务端 runtime。
+Creates the server runtime.
 
-```ts
-import { createMdsnServer } from "@mdsnai/sdk/server";
-
-const server = createMdsnServer();
-```
-
-可选项：
+Common options:
 
 - `session`
 - `renderHtml`
 - `markdownRenderer`
 
-创建后可注册：
+Once created, you can register:
 
 - `server.page(path, handler)`
 - `server.get(path, handler)`
@@ -202,58 +115,25 @@ const server = createMdsnServer();
 
 ### `block(page, blockName, result?)`
 
-把 composed page 的某个 block 直接包装成成功 action result。
-
-```ts
-import { block } from "@mdsnai/sdk/server";
-
-return block(page, "guestbook");
-```
-
-可选第三个参数可继续附加：
-
-- `status`
-- `headers`
-- `session`
+Wraps a block from a composed page into a successful action result.
 
 ### `stream(asyncIterable, result?)`
 
-把一个异步片段流包装成 `text/event-stream` 响应。
-
-```ts
-import { stream } from "@mdsnai/sdk/server";
-
-return stream(
-  (async function* () {
-    yield { markdown: "## Tick", blocks: [] };
-  })()
-);
-```
+Wraps an async fragment stream into a `text/event-stream` response.
 
 ### `ok(result)`
 
-构造成功 action result。适合你需要完全手写 fragment 时使用。
+Builds a successful action result for cases where you want to handcraft the fragment.
 
 ### `fail(result)`
 
-构造失败 action result。适合需要显式设置 4xx/5xx 状态且仍返回 `md + mdsn` 片段时使用。
+Builds a failed action result for cases where you want an explicit 4xx/5xx status and still return a Markdown fragment.
 
 ### `createNodeHost(server, options?)`
 
-当前唯一推荐的 Node `http` 入口。
+The current recommended Node `http` entry point.
 
-```ts
-import http from "node:http";
-import { createNodeHost } from "@mdsnai/sdk/server";
-
-http.createServer(
-  createNodeHost(server, {
-    rootRedirect: "/guestbook"
-  })
-);
-```
-
-支持：
+Supported options:
 
 - `rootRedirect`
 - `ignoreFavicon`
@@ -261,57 +141,27 @@ http.createServer(
 - `staticFiles`
 - `staticMounts`
 
-它会同时负责：
-
-- Node request -> neutral request bridge
-- form body 归一化
-- cookie 透传
-- 静态文件壳
-- 其它请求转发给 `server.handle()`
-
 ### `signIn(session)`
 
-创建登录 session mutation。
+Creates a sign-in session mutation.
 
 ### `signOut()`
 
-创建登出 session mutation。
+Creates a sign-out session mutation.
 
 ### `refreshSession(session)`
 
-创建续期 session mutation。
-
-### 公开类型
-
-包根入口当前保留这些类型：
-
-- `MdsnRequest`
-- `MdsnResponse`
-- `MdsnSessionSnapshot`
-- `MdsnSessionMutation`
-- `MdsnSessionProvider`
-- `MdsnActionResult`
-- `MdsnHandler`
-- `MdsnHandlerContext`
-- `MdsnHandlerResult`
-- `MdsnPageHandler`
+Creates a session refresh mutation.
 
 ## `@mdsnai/sdk/web`
 
-推荐把 `@mdsnai/sdk/web` 理解成“浏览器协议运行时”。
+This group contains the browser-side runtime.
 
 ### `createHeadlessHost({ root, fetchImpl })`
 
-框架接管 UI 时的推荐入口。它消费 server 注入到 HTML 里的 bootstrap 数据，并把当前 page/block 状态暴露给 Vue、React、Svelte 之类的宿主。
+This is the recommended entry point for the browser runtime.
 
-```ts
-import { createHeadlessHost } from "@mdsnai/sdk/web";
-
-const host = createHeadlessHost({ root: document, fetchImpl: window.fetch });
-host.mount();
-```
-
-返回对象提供：
+The returned host provides:
 
 - `host.getSnapshot()`
 - `host.subscribe(listener)`
@@ -320,45 +170,20 @@ host.mount();
 - `host.mount()`
 - `host.unmount()`
 
-`snapshot` 当前至少包含：
-
-- `route`
-- `status`
-- `error`
-- `markdown`
-- `blocks`
-
 ## `@mdsnai/sdk/elements`
 
-推荐把 `@mdsnai/sdk/elements` 理解成“默认 UI 渲染器 + 自定义元素注册器”。
+This group contains the default UI layer and custom element registry.
 
 ### `mountMdsnElements({ root, host, markdownRenderer? })`
 
-默认 UI 的推荐入口。它会：
+The recommended default UI entry. It will:
 
-- 注册官方 Web Components
-- 基于 snapshot 渲染默认 page/block/form UI
-
-```ts
-import { mountMdsnElements } from "@mdsnai/sdk/elements";
-import { createHeadlessHost } from "@mdsnai/sdk/web";
-
-const host = createHeadlessHost({ root: document, fetchImpl: window.fetch });
-mountMdsnElements({
-  root: document,
-  host
-}).mount();
-```
+- register the official Web Components
+- render the default page, block, and form UI from current state
 
 ### `registerMdsnElements()`
 
-```ts
-import { registerMdsnElements } from "@mdsnai/sdk/elements";
-
-registerMdsnElements();
-```
-
-会注册默认的 Web Components：
+Registers these default Web Components:
 
 - `mdsn-page`
 - `mdsn-block`
@@ -367,11 +192,11 @@ registerMdsnElements();
 - `mdsn-action`
 - `mdsn-error`
 
-## 不再推荐依赖的旧路径
+## Legacy Paths You Should Avoid Depending On
 
-这些能力仍可能存在于包内部文件里，但不应该再作为公共 SDK 边界依赖：
+These may still exist inside package internals, but they should not be treated as public SDK boundaries:
 
-- `fragmentForBlock()` 包根调用
-- `createNodeRequestListener()` 包根调用
-- `renderHtmlDocument()` 包根调用
-- `@mdsnai/sdk/elements/register` 子路径
+- `fragmentForBlock()` root export
+- `createNodeRequestListener()` root export
+- `renderHtmlDocument()` root export
+- `@mdsnai/sdk/elements/register` subpath

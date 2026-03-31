@@ -11,9 +11,8 @@ This example keeps the MDSN protocol and server runtime intact, but lets React t
 Run the local demo with:
 
 ```bash
-npm install
-npm run build
-node examples/react-starter/dev.mjs
+cd examples/react-starter
+npm start
 ```
 
-Then open [http://127.0.0.1:4325/guestbook](http://127.0.0.1:4325/guestbook).
+Then open [http://127.0.0.1:4325/](http://127.0.0.1:4325/).

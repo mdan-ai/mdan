@@ -1,8 +1,13 @@
+---
+title: Server Runtime
+description: Responsibilities, entry points, and common usage of @mdsnai/sdk/server.
+---
+
 # Server Runtime
 
-`@mdsnai/sdk/server` is the main entry point for people who want to host MDSN on the server.
+`@mdsnai/sdk/server` is the main entry point when you want to host an MDSN app on the server.
 
-It is target-first, which means you register handlers by the actual HTTP path written in the MDSN operation.
+It registers and handles operations by the explicit HTTP paths written in the MDSN page.
 
 ## Basic Usage
 
@@ -35,20 +40,20 @@ const server = createHostedApp({
 
 ## Handler Shape
 
-Handlers receive a context object with:
+Handlers receive a context object that includes:
 
 - parsed inputs
 - framework-neutral request metadata
-- session snapshot
+- current session state
 
-如果你直接使用 `createHostedApp()`，action handler 还会拿到：
+If you use `createHostedApp()` directly, action handlers also receive:
 
 - `routePath`
 - `blockName`
 - `page()`
 - `block()`
 
-最常见的 block action 可以直接写成：
+The most common block operation can be written like this:
 
 ```ts
 const page = composePage(source, {
@@ -73,11 +78,11 @@ const server = createHostedApp({
 });
 ```
 
-The runtime serializes that result into `md + mdsn`.
+The runtime serializes that into a Markdown fragment ready to return.
 
-`createHostedApp()` 现在不再通过“匿名 session 先渲染一遍页面”去猜 action 绑定。`actions` 必须显式声明 `target / methods / routePath / blockName`，这样注册语义是稳定的，不会被页面可见状态偷偷影响。
+`createHostedApp()` does not try to infer action bindings by rendering a page first and guessing from visible state. `actions` must explicitly declare `target / methods / routePath / blockName`, so registration stays stable.
 
-Use `createHostedApp()` when your app is naturally “a set of pages plus actions”. Drop down to `createMdsnServer()` when you need full manual control.
+Use `createHostedApp()` when your app is naturally a set of pages plus operations. Drop down to `createMdsnServer()` when you need full manual control.
 
 ## Request Bridge
 
@@ -136,7 +141,7 @@ http.createServer(
 
 ## Custom Markdown Renderer
 
-当 browser 走 HTML host 链时，`@mdsnai/sdk/server` 会负责把 Markdown 渲染成 HTML。这个渲染能力现在支持注入：
+When the browser goes through the HTML path, `@mdsnai/sdk/server` renders Markdown into HTML. You can inject that renderer:
 
 ```ts
 const server = createHostedApp({
@@ -150,8 +155,8 @@ const server = createHostedApp({
 });
 ```
 
-如果你同时使用默认 `@mdsnai/sdk/elements` UI，建议把同一个 `markdownRenderer` 对象同时传给 `mountMdsnElements(...)`，这样 server 和默认 UI 的 Markdown 呈现会保持一致。
+If you also use the default `@mdsnai/sdk/elements` UI, pass the same `markdownRenderer` object to `mountMdsnElements(...)` so server-side and default UI rendering stay consistent.
 
 ## When To Wrap It
 
-If you later want Express, Hono, or Next support, build that as a thin adapter around `server.handle()` rather than forking the runtime logic.
+If you later want Express, Hono, or Next support, build that as a thin adapter around `server.handle()` instead of forking the runtime logic.

@@ -1,43 +1,20 @@
 ---
 title: Server Development
-description: Integrate MDSN server runtime with your own backend stack.
+description: Safely integrate the MDSN runtime into an existing backend framework.
 ---
 
 # Server Development
 
-Use this path when you already have a backend framework and need to integrate MDSN safely.
+This page is kept for old links. The main content now lives in [Server Integration](/docs/server-integration).
 
-## Integration Model
+## What To Read Instead
 
-- Keep business logic in your app modules
-- Use `createHostedApp()` or `createMdsnServer()` for protocol runtime
-- Bridge framework requests into `server.handle()`
+- Want to see how to plug MDSN into an existing backend: [Server Integration](/docs/server-integration)
+- Want to understand what the server runtime itself provides: [Server Runtime](/docs/server-runtime)
+- Want to see a full example: [examples/express-starter](/Users/hencoo/projects/mdsn/examples/express-starter)
 
-## Express Example
+## Related Docs
 
-See:
-
-- [examples/express-starter/src/express-adapter.ts](/Users/hencoo/projects/mdsn/examples/express-starter/src/express-adapter.ts)
-- [examples/express-starter/src/index.ts](/Users/hencoo/projects/mdsn/examples/express-starter/src/index.ts)
-
-## Critical Behaviors
-
-- POST write requests use `Content-Type: text/markdown`
-- malformed Markdown body -> `400`
-- wrong write media type -> `415`
-- unsupported `Accept` -> `406`
-
-For negotiation details, see [Shared Interaction](/docs/shared-interaction).
-
-## Adapter Checklist
-
-- Normalize incoming method/url/headers/body.
-- Pass cookies into `request.cookies`.
-- Forward `status/headers/body` from runtime response unchanged.
-- Avoid shadow routing logic in adapter.
-
-## Common Pitfalls
-
-- Treating `application/x-www-form-urlencoded` as direct runtime write body.
-- Dropping `set-cookie` from runtime response headers.
-- Re-serializing runtime markdown body as JSON.
+- [HTTP Content Negotiation](/docs/shared-interaction)
+- [Server Runtime](/docs/server-runtime)
+- [Application Structure](/docs/application-structure)

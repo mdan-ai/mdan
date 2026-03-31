@@ -11,9 +11,8 @@ This example keeps the MDSN protocol and server runtime intact, but lets Vue tak
 Run the local demo with:
 
 ```bash
-npm install
-npm run build
-node examples/vue-starter/dev.mjs
+cd examples/vue-starter
+npm start
 ```
 
-Then open [http://127.0.0.1:4324/guestbook](http://127.0.0.1:4324/guestbook).
+Then open [http://127.0.0.1:4324/](http://127.0.0.1:4324/).

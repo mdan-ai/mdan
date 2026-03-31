@@ -1,32 +1,75 @@
 ---
-title: HTTP 内容协商与共享交互
-description: 解释 markdown/html/event-stream 协商与 agent/browser 共享交互模型。
+title: HTTP 内容协商
+description: 说明 MDSN 如何用同一套页面和操作定义，同时服务 Agent 和浏览器。
 ---
 
-# HTTP 内容协商与共享交互
+# HTTP 内容协商
 
-MDSN 通过 `Accept` 协商支持多种表示：
+MDSN 用 HTTP 内容协商，让同一个应用可以同时服务 Agent 和浏览器。
 
-- `text/event-stream`
-- `text/markdown`
-- `text/html`
-
-## `q` 权重
-
-支持标准 `q` 加权协商，例如：
+核心规则很简单：
 
 ```http
-Accept: text/html;q=0.6, text/markdown;q=0.9
+Accept: text/markdown
 ```
 
-会选择 `text/markdown`。
+返回 Markdown。
 
-同权重时优先级：
+```http
+Accept: text/html
+```
 
-1. `event-stream`
-2. `markdown`
-3. `html`
+返回 HTML。
 
-## 兼容性
+## 为什么这样做
 
-不写 `q` 仍然兼容旧行为。
+Agent 需要直接处理 Markdown。  
+浏览器需要直接显示 HTML。
+
+MDSN 不想因此拆成两套系统，所以选择让同一个结果按不同调用方返回不同形式。
+
+## 常见请求
+
+Agent 读取页面或调用 action 时，通常发送：
+
+```http
+Accept: text/markdown
+```
+
+浏览器访问页面或提交交互时，通常发送：
+
+```http
+Accept: text/html
+```
+
+写入时，请求体仍然使用 Markdown：
+
+```http
+Content-Type: text/markdown
+```
+
+这页真正想说明的只有一件事：
+
+- 同一个应用可以给 Agent 返回 Markdown
+- 同一个应用也可以给浏览器返回 HTML
+
+也就是说，变化的是返回形式，不是应用本身。
+
+这也是为什么 Agent 可以直接用 `curl` 这类原生命令行 HTTP 工具和同一个 Web 应用交互，而不需要先启动无头浏览器。
+
+## 为什么这样做重要
+
+这样做最重要的价值，是避免把同一个应用拆成两套东西。
+
+- 不需要一套给 Agent 的协议，再单独维护一套给浏览器的接口
+- 不需要在内容、交互和服务端行为之间来回同步两份定义
+- Agent 和浏览器虽然看到的形式不同，但背后走的是同一个应用
+
+这样应用会更简单，也更不容易漂移。
+
+## 相关文档
+
+- [理解 MDSN](/zh/docs/understanding-mdsn)
+- [应用结构](/zh/docs/application-structure)
+- [服务端运行时](/zh/docs/server-runtime)
+- [Agent App Demo 讲解](/zh/docs/agent-app-demo)

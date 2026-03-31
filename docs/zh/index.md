@@ -1,54 +1,80 @@
 ---
 title: MDSN
-description: MDSN 文档首页
+description: MDSN 是什么，它解决什么问题，以及从哪里开始理解和使用它。
 ---
 
 # MDSN
 
-MDSN 是一套面向交互式页面、skills apps 与 agent apps 的 Markdown 原生 SDK 运行时。
+MDSN 是建立在 Markdown 之上的交互页面格式。
 
-如果只记一句话，可以记这个：
+它想做的事情很直接：把页面内容、可执行操作和后续交互重新收回到同一个应用页面里。
 
-**同一个页面源，同时定义页面内容和页面交互。**
+在很多 AI 应用里，内容、工具、提示、JSON 接口和浏览器 UI 往往分散在不同层里，各自维护。  
+MDSN 选择把这些重新组织回一页 Markdown 中。
 
-在 MDSN 里：
+**一页 Markdown，同时定义内容、操作和下一步交互。**
 
-- 页面内容仍然是 Markdown
-- 动态区域通过 `mdsn:block` 锚点挂回正文
-- `read` / `write` 成功后返回 Markdown 片段
-- host 只替换当前 block 区域
+## MDSN 是什么
 
-## 从这里开始
+MDSN 更像一种应用表达方式，而不是一组分散的接口约定。
 
-- [SDK 概览](/zh/docs/sdk)
-- [服务端运行时](/zh/docs/server-runtime)
-- [Web 运行时](/zh/docs/web-runtime)
+在 MDSN 里，页面本身就承载了内容、操作和后续交互：
 
-## 三个核心概念
+- 页面内容写在 Markdown 里
+- 可执行操作也定义在页面里
+- 服务端返回的 Markdown 片段不仅是结果，也是下一步交互上下文
+- 同一个 Web 应用既可以被浏览器访问，也可以被 Agent 直接通过 HTTP 交互
 
-### 1. 页面源
+这让 MDSN 很适合用来构建 agent app、skills app，以及需要持续多步交互的页面型应用。
 
-一个 MDSN 页面通常包含：
+`@mdsnai/sdk` 是当前这套格式和相关 Host 行为的一份参考实现。
 
-- frontmatter
-- Markdown 正文
-- 一个可执行的 `mdsn` 代码块
+## 为什么这样设计
 
-### 2. Block
+如果一个应用本身就要同时给 Agent 和人使用，继续拆成多套东西通常会越来越重：
 
-`BLOCK` 是页面中的交互作用域。
+- Agent 走一套工具或 JSON 接口
+- 浏览器走另一套页面和交互模型
+- 服务端还要额外维护提示词、状态和下一步动作的同步关系
 
-它通过 `mdsn:block <name>` 这样的锚点语义挂回正文，并在运行时成为可替换区域。
+MDSN 的做法，是让页面本身承担这层表达。这样一来：
 
-### 3. 片段更新
+- Agent 可以直接读取 Markdown，并继续执行下一步操作
+- Agent 可以直接通过 HTTP 与同一个 Web 应用交互，用 `curl` 这类原生命令行工具就够了
+- 这让 Agent 不必依赖无头浏览器去模拟人类操作页面
+- 浏览器可以继续访问 HTML，而不需要另一套独立应用
+- 服务端可以通过返回 Markdown 片段，持续驱动后续交互
+- 应用更不容易在“页面、协议、工具、UI”之间逐渐漂移
 
-一次成功的 `read` 或 `write` 会返回新的 Markdown 片段，host 只替换当前 block 区域。
+## 工作方式
+
+MDSN 的工作方式可以先概括成三步：
+
+1. 页面源用 Markdown 表达内容和操作
+2. 交互发生后，服务端返回更新后的 Markdown 片段
+3. Agent 或浏览器基于这个结果继续下一步
+
+对 Agent 来说，通常读取的是 Markdown。  
+对浏览器来说，通常读取的是 HTML。
+
+也就是：
+
+- `Accept: text/markdown` -> 返回 Markdown
+- `Accept: text/html` -> 返回 HTML
+
+变化的是返回形式，不是背后那套应用。
+
+## 文档导览
+
+- 想先在 5 分钟内跑起来：看 [快速开始](/zh/docs/getting-started)
+- 想理解页面、block 和更新方式：看 [理解 MDSN](/zh/docs/understanding-mdsn)
+- 想理解为什么同一个应用可以同时服务 Agent 和浏览器：看 [HTTP 内容协商](/zh/docs/shared-interaction)
+- 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
+- 想理解 SDK 边界：看 [SDK 概览](/zh/docs/sdk)
 
 ## 推荐阅读顺序
 
-- [SDK 概览](/zh/docs/sdk)
-- [API 参考](/zh/docs/api-reference)
-- [Elements 组件](/zh/docs/elements)
-- [Session Provider](/zh/docs/session-provider)
-- [第三方渲染器](/zh/docs/third-party-markdown-renderer)
-- [示例](/zh/docs/examples)
+1. [快速开始](/zh/docs/getting-started)
+2. [理解 MDSN](/zh/docs/understanding-mdsn)
+3. [应用结构](/zh/docs/application-structure)
+4. [SDK 概览](/zh/docs/sdk)

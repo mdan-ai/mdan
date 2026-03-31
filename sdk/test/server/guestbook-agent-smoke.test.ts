@@ -4,8 +4,8 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createGuestbookServer } from "../../../examples/guestbook/src/index.js";
-import { createStarterServer } from "../../../examples/starter/src/index.js";
+import { createGuestbookServer } from "../../../examples/guestbook/app/server.js";
+import { createAppServer } from "../../../examples/starter/app/server.js";
 import { createNodeHost } from "../../src/server/index.js";
 
 const servers = new Set<http.Server>();
@@ -61,11 +61,11 @@ async function postMarkdown(url: string, body: string) {
 }
 
 async function readExampleGuestbookSource(): Promise<string> {
-  return readFile(join(process.cwd(), "examples", "guestbook", "pages", "guestbook.md"), "utf8");
+  return readFile(join(process.cwd(), "examples", "guestbook", "app", "index.md"), "utf8");
 }
 
 async function readStarterGuestbookSource(): Promise<string> {
-  return readFile(join(process.cwd(), "examples", "starter", "pages", "guestbook.md"), "utf8");
+  return readFile(join(process.cwd(), "examples", "starter", "app", "index.md"), "utf8");
 }
 
 describe("guestbook agent-only smoke test", () => {
@@ -75,9 +75,9 @@ describe("guestbook agent-only smoke test", () => {
       source,
       initialMessages: ["Alpha", "Beta"]
     });
-    const baseUrl = await listen(createNodeHost(server, { rootRedirect: "/guestbook" }));
+    const baseUrl = await listen(createNodeHost(server));
 
-    const page = await getMarkdown(`${baseUrl}/guestbook`);
+    const page = await getMarkdown(`${baseUrl}/`);
     expect(page.status).toBe(200);
     const pageBody = await page.text();
     expect(pageBody).toContain("# Guestbook");
@@ -103,16 +103,16 @@ describe("guestbook agent-only smoke test", () => {
 
   it("keeps the starter scaffold self-discoverable over HTTP only", async () => {
     const source = await readStarterGuestbookSource();
-    const server = createStarterServer({
+    const server = createAppServer({
       source,
       initialMessages: ["First", "Second"]
     });
-    const baseUrl = await listen(createNodeHost(server, { rootRedirect: "/guestbook" }));
+    const baseUrl = await listen(createNodeHost(server));
 
-    const page = await getMarkdown(`${baseUrl}/guestbook`);
+    const page = await getMarkdown(`${baseUrl}/`);
     expect(page.status).toBe(200);
     const pageBody = await page.text();
-    expect(pageBody).toContain("# Guestbook");
+    expect(pageBody).toContain("# Agent App");
     expect(pageBody).toContain("## 2 live messages");
     expect(pageBody).toContain('GET "/list" -> refresh');
     expect(pageBody).toContain('POST "/post" (message) -> submit');

@@ -1,60 +1,75 @@
 ---
-title: HTTP Content Negotiation and Shared Interaction
-description: Accept negotiation, markdown/html/event-stream responses, and agent/browser convergence.
+title: HTTP Content Negotiation
+description: How MDSN serves agents and browsers from the same page and operation definitions.
 ---
 
-# HTTP Content Negotiation and Shared Interaction
+# HTTP Content Negotiation
 
-MDSN supports shared interaction across agents and browsers by negotiating representation per request.
+MDSN uses HTTP content negotiation so the same app can serve both agents and browsers.
 
-## Supported Representations
-
-- `text/event-stream` -> stream events
-- `text/markdown` -> protocol markdown payload
-- `text/html` -> host-rendered html payload
-
-## `Accept` Negotiation Rules
-
-The runtime supports standard `q` weighting in `Accept`.
-
-Example:
+The core rule is simple:
 
 ```http
-Accept: text/html;q=0.6, text/markdown;q=0.9
+Accept: text/markdown
 ```
 
-Result: choose `text/markdown`.
+returns Markdown.
 
-When weights are equal, tie-break order is:
+```http
+Accept: text/html
+```
 
-1. `event-stream`
-2. `markdown`
-3. `html`
+returns HTML.
 
-If no supported representation is acceptable, runtime returns `406`.
+## Why This Exists
 
-## Write Requests
+Agents need Markdown.  
+Browsers need HTML.
 
-For direct action writes, canonical media type is:
+MDSN does not want two separate application surfaces for that, so it returns the same underlying result in the form each caller needs.
 
-- `Content-Type: text/markdown`
+## Typical Requests
 
-Wrong write media type returns `415`.
+When an agent reads a page or invokes an action, it usually sends:
+
+```http
+Accept: text/markdown
+```
+
+When a browser visits a page or submits an interaction, it usually sends:
+
+```http
+Accept: text/html
+```
+
+For writes, the body still uses Markdown:
+
+```http
+Content-Type: text/markdown
+```
+
+The important point is simple:
+
+- the same app can return Markdown to agents
+- the same app can return HTML to browsers
+
+What changes is the returned form, not the application itself.
+
+That is why an agent can talk directly to the same web app with native HTTP tools like `curl`, without needing a headless browser.
 
 ## Why This Matters
 
-- Agents can request markdown semantics directly
-- Browsers can keep html rendering path
-- Stream consumers can opt into SSE explicitly
+The biggest value here is that you do not have to split one app into two systems.
 
-## Backward Compatibility
+- you do not need one interface for agents and a different one for browsers
+- you do not need to keep content, interaction, and server behavior in sync across duplicated definitions
+- agents and browsers see different forms, but they are still using the same app
 
-`Accept` without `q` remains supported. The new behavior only adds weighted selection when `q` is present.
+That keeps the app simpler and less likely to drift over time.
 
-## Practical Test Cases
+## Related Docs
 
-- `Accept: text/markdown` -> markdown
-- `Accept: text/html` -> html
-- `Accept: text/event-stream` -> event-stream (route-dependent)
-- `Accept: text/html;q=0.8, text/markdown;q=0.8` -> markdown (tie-break rule)
-- `Accept: application/json` -> 406
+- [Understanding MDSN](/docs/understanding-mdsn)
+- [Application Structure](/docs/application-structure)
+- [Server Runtime](/docs/server-runtime)
+- [Agent App Demo](/docs/agent-app-demo)

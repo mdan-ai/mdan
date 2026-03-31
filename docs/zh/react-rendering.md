@@ -1,15 +1,21 @@
 ---
 title: 使用 React 自定义渲染
-description: 以 @mdsnai/sdk/web 作为运行时，用 React 完整接管 UI。
+description: 以 @mdsnai/sdk/web 为运行时，React 完整接管 UI。
 ---
 
 # 使用 React 自定义渲染
 
-推荐模式：
+这页保留给旧链接。相关内容已经并入 [自定义渲染](/zh/docs/custom-rendering)。
 
-1. `createHeadlessHost({ root, fetchImpl })`
-2. `host.mount()`
-3. 在 `useEffect` 订阅并清理
-4. 从 snapshot 派生 React 视图
+如果你只关心 React 版本，可以直接看：
 
-这样可以在不重写协议逻辑的前提下实现完全自定义 UI。
+- [自定义渲染](/zh/docs/custom-rendering)
+- [examples/react-starter/app/client.tsx](/Users/hencoo/projects/mdsn/examples/react-starter/app/client.tsx)
+
+最核心的差别只有一层：在 React 里，你通常会用 `useEffect` 管理 `host` 的创建、订阅和清理，再把运行时状态投影成组件状态。
+
+## 相关文档
+
+- [Web 运行时](/zh/docs/web-runtime)
+- [示例](/zh/docs/examples)
+- [自定义渲染](/zh/docs/custom-rendering)

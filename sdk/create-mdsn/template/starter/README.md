@@ -4,27 +4,26 @@ This is a minimal MDSN starter.
 
 ## 30-Second Tour
 
-- `app/guestbook.md`
-  Defines the page and block protocol.
+- `app/index.md`
+  Defines the page source and interaction.
 - `app/server.ts`
-  Owns business state and action handlers.
+  Owns state and action handlers.
 - `app/client.ts`
-  Mounts the default browser UI.
+  Mounts the browser runtime.
 - `index.mjs`
-  Starts the local Node host.
+  Starts the Node host.
 
 ## Run It
 
 ```bash
 npm install
-npm run build
 npm start
 ```
 
-Then open [http://127.0.0.1:4322/guestbook](http://127.0.0.1:4322/guestbook).
+Then open [http://127.0.0.1:3000/](http://127.0.0.1:3000/).
 
 ## First Things To Change
 
-1. Edit `app/guestbook.md`
+1. Edit `app/index.md`
 2. Edit `app/server.ts`
 3. Keep `app/client.ts` as-is, or replace it when you want to own the UI

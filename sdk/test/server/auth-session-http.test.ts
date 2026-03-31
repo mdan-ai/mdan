@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createAuthServer } from "../../../examples/auth-session/src/index.js";
+import { createAuthServer } from "../../../examples/auth-session/app/server.js";
 import { createNodeHost } from "../../src/server/index.js";
 
 const servers = new Set<http.Server>();
@@ -42,9 +42,9 @@ async function listen(listener: http.RequestListener): Promise<string> {
 
 async function readAuthSources(): Promise<{ loginSource: string; registerSource: string; vaultSource: string }> {
   const [loginSource, registerSource, vaultSource] = await Promise.all([
-    readFile(join(process.cwd(), "examples", "auth-session", "pages", "login.md"), "utf8"),
-    readFile(join(process.cwd(), "examples", "auth-session", "pages", "register.md"), "utf8"),
-    readFile(join(process.cwd(), "examples", "auth-session", "pages", "vault.md"), "utf8")
+    readFile(join(process.cwd(), "examples", "auth-session", "app", "login.md"), "utf8"),
+    readFile(join(process.cwd(), "examples", "auth-session", "app", "register.md"), "utf8"),
+    readFile(join(process.cwd(), "examples", "auth-session", "app", "vault.md"), "utf8")
   ]);
   return { loginSource, registerSource, vaultSource };
 }

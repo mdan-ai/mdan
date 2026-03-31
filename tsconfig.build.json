@@ -7,7 +7,7 @@
     { "path": "./examples/guestbook" },
     { "path": "./examples/auth-session" },
     { "path": "./examples/starter" },
-    { "path": "./examples/docs-site" },
+    { "path": "./examples/docs-starter" },
     { "path": "./examples/express-starter" },
     { "path": "./examples/marked-starter" },
     { "path": "./examples/vue-starter" },

@@ -3,10 +3,10 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createGuestbookServer } from "../../../examples/guestbook/src/index.js";
+import { createGuestbookServer } from "../../../examples/guestbook/app/server.js";
 
 async function readGuestbookSource(): Promise<string> {
-  return readFile(join(process.cwd(), "examples", "guestbook", "pages", "guestbook.md"), "utf8");
+  return readFile(join(process.cwd(), "examples", "guestbook", "app", "index.md"), "utf8");
 }
 
 describe("guestbook example", () => {
@@ -19,7 +19,7 @@ describe("guestbook example", () => {
 
     const pageResponse = await server.handle({
       method: "GET",
-      url: "https://example.test/guestbook",
+      url: "https://example.test/",
       headers: { accept: "text/markdown" },
       cookies: {}
     });

@@ -3,11 +3,11 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createExpressStarterServer } from "../../../examples/express-starter/src/index.js";
-import { createExpressMdsnHandler } from "../../../examples/express-starter/src/express-adapter.js";
+import { createExpressStarterServer } from "../../../examples/express-starter/app/server.js";
+import { createExpressMdsnHandler } from "../../../examples/express-starter/app/express-adapter.js";
 
 async function readExpressStarterSource(): Promise<string> {
-  return readFile(join(process.cwd(), "examples", "express-starter", "pages", "guestbook.md"), "utf8");
+  return readFile(join(process.cwd(), "examples", "express-starter", "app", "index.md"), "utf8");
 }
 
 describe("express starter example", () => {
@@ -83,10 +83,11 @@ describe("express starter example", () => {
   });
 
   it("documents a real express runtime shell in dev.mjs", async () => {
-    const devSource = await readFile(join(process.cwd(), "examples", "express-starter", "dev.mjs"), "utf8");
+    const devSource = await readFile(join(process.cwd(), "examples", "express-starter", "index.mjs"), "utf8");
 
     expect(devSource).toContain('from "express"');
     expect(devSource).toContain("express.urlencoded");
     expect(devSource).toContain("createExpressMdsnHandler");
+    expect(devSource).toContain('"/app/client.js"');
   });
 });

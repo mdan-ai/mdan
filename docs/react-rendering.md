@@ -1,35 +1,21 @@
 ---
 title: Custom Rendering with React
-description: Use React as the UI layer on top of MDSN headless runtime.
+description: Use @mdsnai/sdk/web as the runtime while React owns the UI.
 ---
 
 # Custom Rendering with React
 
-Use `@mdsnai/sdk/web` for runtime and React for rendering.
+This page is kept for old links. The main content now lives in [Custom Rendering](/docs/custom-rendering).
 
-## Pattern
+If you only care about the React version, go straight to:
 
-1. `createHeadlessHost({ root, fetchImpl })`
-2. `host.mount()`
-3. Subscribe in React lifecycle/hooks
-4. Render from `snapshot.markdown` and `snapshot.blocks`
+- [Custom Rendering](/docs/custom-rendering)
+- [examples/react-starter/app/client.tsx](/Users/hencoo/projects/mdsn/examples/react-starter/app/client.tsx)
 
-## Reference Example
+The key React-specific difference is simple: you will usually use `useEffect` to manage host creation, subscription, and cleanup, then project runtime state into component state.
 
-- [examples/react-starter/src/client.tsx](/Users/hencoo/projects/mdsn/examples/react-starter/src/client.tsx)
-- [examples/react-starter/src/index.ts](/Users/hencoo/projects/mdsn/examples/react-starter/src/index.ts)
+## Related Docs
 
-## When To Use
-
-- You want full React ownership of interaction UI
-- You still want MDSN protocol/runtime guarantees
-
-## Snapshot Rendering Notes
-
-In React, subscribe in `useEffect`, update local state from `host.getSnapshot()`, and cleanup subscription on unmount.
-
-## Common Pitfalls
-
-- Missing cleanup in effect causes duplicate subscriptions.
-- Recreating host object on every render.
-- Coupling action dispatch to stale closure state.
+- [Web Runtime](/docs/web-runtime)
+- [Examples](/docs/examples)
+- [Custom Rendering](/docs/custom-rendering)

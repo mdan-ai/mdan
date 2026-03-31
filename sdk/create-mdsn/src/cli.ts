@@ -29,7 +29,6 @@ async function main(argv: string[]): Promise<void> {
   console.log("Next steps:");
   console.log(`  cd ${targetArg}`);
   console.log("  npm install");
-  console.log("  npm run build");
   console.log("  npm start");
 }
 
