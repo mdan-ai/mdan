@@ -243,17 +243,28 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
     <title>${escapeHtml(pageTitle)} · ${escapeHtml(siteTitle)}</title>
     <link rel="icon" href="/docs-site/logo-mark.svg${assetSuffix}" type="image/svg+xml">
     <link rel="stylesheet" href="/docs-site/site.css${assetSuffix}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script defer src="/docs-site/docs.js${assetSuffix}"></script>
   </head>
   <body>
+    <div class="docs-orbit docs-orbit-a"></div>
+    <div class="docs-orbit docs-orbit-b"></div>
     <header class="docs-topbar">
       <a class="docs-brand" href="${homeRoute}" aria-label="${escapeHtml(siteTitle)}">
         <img src="/docs-site/logo-mark.svg${assetSuffix}" alt="" width="36" height="36">
-        <span>${escapeHtml(siteTitle)}</span>
+        <span class="docs-brand-lockup">
+          <span class="docs-brand-mark">MDSN</span>
+          <span class="docs-brand-copy">${escapeHtml(siteTitle)}</span>
+        </span>
       </a>
-      <div class="docs-lang-switch" aria-label="Language">
-        <a href="${escapeHtml(enRoute)}"${locale === "en" ? ' aria-current="page"' : ""}>EN</a>
-        <a href="${escapeHtml(zhRoute)}"${locale === "zh" ? ' aria-current="page"' : ""}>中文</a>
+      <div class="docs-topbar-actions">
+        <a class="docs-site-link" href="https://mdsn.ai" target="_blank" rel="noreferrer">${locale === "zh" ? "官网" : "Site"}</a>
+        <div class="docs-lang-switch" aria-label="Language">
+          <a href="${escapeHtml(enRoute)}"${locale === "en" ? ' aria-current="page"' : ""}>EN</a>
+          <a href="${escapeHtml(zhRoute)}"${locale === "zh" ? ' aria-current="page"' : ""}>中文</a>
+        </div>
       </div>
     </header>
     <main class="docs-shell">

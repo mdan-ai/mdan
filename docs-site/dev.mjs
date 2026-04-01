@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 
-import { createNodeHost } from "@mdsnai/sdk/server";
+import { createNodeHost } from "@mdsnai/sdk/server/node";
 
 import { createDocsSiteServer } from "./dist/index.js";
 
