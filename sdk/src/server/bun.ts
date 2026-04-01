@@ -3,6 +3,7 @@ import { extname, resolve } from "node:path";
 
 import { serializeMarkdownBody } from "../core/index.js";
 
+import { toMarkdownContentType } from "./content-type.js";
 import type { MdsnRequest, MdsnResponse } from "./types.js";
 
 interface MdsnRequestHandler {
@@ -236,7 +237,7 @@ export function createHost(handler: MdsnRequestHandler, options: CreateBunHostOp
         return new Response("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.", {
           status: 413,
           headers: {
-            "content-type": "text/markdown"
+            "content-type": toMarkdownContentType()
           }
         });
       }

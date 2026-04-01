@@ -128,6 +128,7 @@ export function createHostedApp(options: CreateHostedAppOptions) {
           });
         },
         pageResult(pageOrRoute = binding.routePath, result = {}) {
+          const resolvedRoutePath = typeof pageOrRoute === "string" ? pageOrRoute : binding.routePath;
           const page =
             typeof pageOrRoute === "string"
               ? (() => {
@@ -145,6 +146,7 @@ export function createHostedApp(options: CreateHostedAppOptions) {
           return {
             status: 200,
             ...result,
+            route: resolvedRoutePath,
             page
           };
         },
@@ -156,7 +158,10 @@ export function createHostedApp(options: CreateHostedAppOptions) {
               routePath: binding.routePath
             }),
             binding.blockName,
-            result
+            {
+              ...result,
+              route: binding.routePath
+            }
           );
         }
       });

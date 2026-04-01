@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://docs.mdsn.ai/</loc></url>
+  <url><loc>https://docs.mdsn.ai/getting-started</loc></url>
+  <url><loc>https://docs.mdsn.ai/what-is-mdsn</loc></url>
+  <url><loc>https://docs.mdsn.ai/mdsn-vs-mcp</loc></url>
+  <url><loc>https://docs.mdsn.ai/protocol/v1</loc></url>
+  <url><loc>https://docs.mdsn.ai/understanding-mdsn</loc></url>
+  <url><loc>https://docs.mdsn.ai/shared-interaction</loc></url>
+  <url><loc>https://docs.mdsn.ai/application-structure</loc></url>
+  <url><loc>https://docs.mdsn.ai/sdk</loc></url>
+  <url><loc>https://docs.mdsn.ai/server-runtime</loc></url>
+  <url><loc>https://docs.mdsn.ai/server-integration</loc></url>
+  <url><loc>https://docs.mdsn.ai/examples</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/getting-started</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/protocol/v1</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/understanding-mdsn</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/shared-interaction</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/application-structure</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/sdk</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/server-runtime</loc></url>
+  <url><loc>https://docs.mdsn.ai/zh/examples</loc></url>
+</urlset>

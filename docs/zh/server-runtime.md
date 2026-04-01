@@ -9,6 +9,14 @@ description: @mdsnai/sdk/server 的职责、入口与常见集成方式。
 
 它按 MDSN 页面里显式写出的 HTTP 路径注册和处理操作。
 
+MDSN 现在官方支持 Node 和 Bun，而且两边用的是同一套服务端模型：
+
+- 共享的应用逻辑放在 `@mdsnai/sdk/server`
+- Node host 适配器放在 `@mdsnai/sdk/server/node`
+- Bun host 适配器放在 `@mdsnai/sdk/server/bun`
+
+变化的是最外层 host 适配器，不是页面和 action 的应用模型。
+
 ## 基本用法
 
 ```ts
@@ -137,6 +145,24 @@ Bun.serve({
     transformHtml: injectEnhancement
   })
 });
+```
+
+## 运行时入口
+
+页面和 action 逻辑继续使用共享服务端运行时：
+
+```ts
+import { createHostedApp } from "@mdsnai/sdk/server";
+```
+
+然后再选择与你部署环境一致的 host 适配器：
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/node";
+```
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/bun";
 ```
 
 ## 内置职责

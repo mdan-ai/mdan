@@ -6,6 +6,7 @@ import { pipeline } from "node:stream/promises";
 
 import { serializeMarkdownBody } from "../core/index.js";
 
+import { toMarkdownContentType } from "./content-type.js";
 import type { MdsnRequest, MdsnResponse } from "./types.js";
 
 interface MdsnRequestHandler {
@@ -207,7 +208,7 @@ export function createNodeRequestListener(
     } catch (error) {
       if (error instanceof PayloadTooLargeError) {
         response.statusCode = 413;
-        response.setHeader("content-type", "text/markdown");
+        response.setHeader("content-type", toMarkdownContentType());
         response.end("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.");
         return;
       }

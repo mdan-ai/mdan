@@ -93,7 +93,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(response.body).toContain("## Hi Guest");
   });
 
@@ -130,6 +132,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(response.body).toContain("# Welcome Guest");
     expect(commit).toHaveBeenCalledTimes(1);
   });
@@ -158,7 +163,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(415);
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(response.body).toContain("Unsupported Media Type");
   });
 
@@ -251,7 +258,7 @@ describe("createMdsnServer", () => {
     ).resolves.toMatchObject({
       status: 400,
       headers: {
-        "content-type": "text/markdown"
+        "content-type": 'text/markdown; profile="https://mdsn.ai/protocol/v1"'
       }
     });
   });
@@ -275,7 +282,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(500);
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(response.body).toContain("Internal Server Error");
   });
 
@@ -312,7 +321,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(500);
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(response.body).toContain("Internal Server Error");
   });
 
@@ -370,6 +381,39 @@ describe("createMdsnServer", () => {
     expect(response.body).toContain("DEMO");
   });
 
+  it("injects discovery links into custom html shells when htmlDiscovery is configured", async () => {
+    const server = createMdsnServer({
+      htmlDiscovery: {
+        markdownHref: "/list",
+        llmsTxtHref: "/llms.txt"
+      },
+      renderHtml(fragment) {
+        return `<!doctype html><html lang="en"><head><title>Custom Shell</title></head><body><main>${fragment.markdown}</main></body></html>`;
+      }
+    });
+
+    server.get("/list", async () =>
+      ok({
+        fragment: {
+          markdown: "# Demo",
+          blocks: []
+        }
+      })
+    );
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/list",
+      headers: { accept: "text/html" },
+      cookies: {}
+    });
+
+    expect(response.headers["content-type"]).toBe("text/html");
+    expect(response.body).toContain('<link rel="alternate" type="text/markdown" href="/list">');
+    expect(response.body).toContain('<link rel="llms-txt" href="/llms.txt">');
+    expect(response.body).toContain("<title>Custom Shell</title>");
+  });
+
   it("returns markdown when accept explicitly includes text/markdown alongside html", async () => {
     const server = createMdsnServer();
 
@@ -389,7 +433,9 @@ describe("createMdsnServer", () => {
       cookies: {}
     });
 
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(response.body).toContain("# Demo");
   });
 
@@ -458,7 +504,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(response.body).toContain('title: "Guestbook"');
     expect(response.body).toContain("## 2 live messages");
     expect(response.body).toContain("- Hello");
@@ -518,7 +566,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(406);
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     await expect(readBody(response.body)).resolves.toContain("Page routes do not support text/event-stream");
   });
 
@@ -537,7 +587,9 @@ describe("createMdsnServer", () => {
     });
 
     expect(response.status).toBe(500);
-    expect(response.headers["content-type"]).toBe("text/markdown");
+    expect(response.headers["content-type"]).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     await expect(readBody(response.body)).resolves.toContain("Internal Server Error");
   });
 });

@@ -34,10 +34,26 @@ export interface MdsnNavigation {
   target: string;
 }
 
+export interface MdsnHtmlDiscoveryLinks {
+  markdownHref?: string;
+  llmsTxtHref?: string;
+}
+
+export interface MdsnHtmlDiscoveryContext {
+  request: MdsnRequest;
+  kind: "page" | "fragment";
+  route?: string;
+}
+
+export type MdsnHtmlDiscoveryResolver =
+  | MdsnHtmlDiscoveryLinks
+  | ((context: MdsnHtmlDiscoveryContext) => MdsnHtmlDiscoveryLinks | null | undefined);
+
 export interface MdsnActionResult {
   fragment?: MdsnFragment;
   page?: MdsnPage;
   navigation?: MdsnNavigation;
+  route?: string;
   status?: number;
   headers?: Record<string, string>;
   session?: MdsnSessionMutation;
@@ -47,6 +63,7 @@ export type MdsnStreamChunk = string | MdsnFragment;
 
 export interface MdsnStreamResult {
   stream: AsyncIterable<MdsnStreamChunk> | Iterable<MdsnStreamChunk>;
+  route?: string;
   status?: number;
   headers?: Record<string, string>;
   session?: MdsnSessionMutation;

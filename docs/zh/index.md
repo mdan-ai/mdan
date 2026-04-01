@@ -1,24 +1,21 @@
 ---
 title: MDSN
-description: MDSN 是什么，它解决什么问题，以及从哪里开始理解和使用它。
+description: MDSN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
 ---
 
 # MDSN
 
-MDSN 是建立在 Markdown 之上的交互页面格式。
+MDSN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
 
-它想做的事情很直接：把页面内容、可执行操作和后续交互重新收回到同一个应用页面里。
+它把内容、操作和后续交互放回同一个页面模型里。
 
-在很多 AI 应用里，内容、工具、提示、JSON 接口和浏览器 UI 往往分散在不同层里，各自维护。  
-MDSN 选择把这些重新组织回一页 Markdown 中。
-
-**一页 Markdown，同时定义内容、操作和下一步交互。**
+这意味着同一个应用可以同时服务浏览器和 Agent，而不需要把交互模型拆散到 Markdown、提示词、JSON API 和前端胶水代码里。
 
 ## MDSN 是什么
 
-MDSN 更像一种应用表达方式，而不是一组分散的接口约定。
+MDSN 把页面本身当成应用行为的基本单位。
 
-在 MDSN 里，页面本身就承载了内容、操作和后续交互：
+在一份页面源里，你可以同时保留：
 
 - 页面内容写在 Markdown 里
 - 可执行操作也定义在页面里
@@ -29,9 +26,9 @@ MDSN 更像一种应用表达方式，而不是一组分散的接口约定。
 
 `@mdsnai/sdk` 是当前这套格式和相关 Host 行为的一份参考实现。
 
-## 为什么这样设计
+## 它解决什么问题
 
-如果一个应用本身就要同时给 Agent 和人使用，继续拆成多套东西通常会越来越重：
+如果一个应用本身就要同时给 Agent 和人使用，架构通常会很快分叉：
 
 - Agent 走一套工具或 JSON 接口
 - 浏览器走另一套页面和交互模型
@@ -45,6 +42,24 @@ MDSN 的做法，是让页面本身承担这层表达。这样一来：
 - 浏览器可以继续访问 HTML，而不需要另一套独立应用
 - 服务端可以通过返回 Markdown 片段，持续驱动后续交互
 - 应用更不容易在“页面、协议、工具、UI”之间逐渐漂移
+
+## 什么时候适合用 MDSN
+
+当你满足下面这些条件时，MDSN 很合适：
+
+- 同一个应用既要给人用，也要给 Agent 用
+- 你的交互模型天然是页面型、多步式的
+- 你希望内容和操作定义能放在一起，保持可读
+- 你希望同一个服务端应用同时协商 Markdown 和 HTML
+
+## 什么时候不适合
+
+下面这些场景通常不必上 MDSN：
+
+- 你只需要一个传统的浏览器 Web 应用
+- 你的系统本质上只是一个 JSON API
+- 你的 UI 严重依赖大型前端 SPA 状态模型
+- 你根本不需要 Agent 可读的交互面
 
 ## 工作方式
 
@@ -67,6 +82,9 @@ MDSN 的工作方式可以先概括成三步：
 ## 文档导览
 
 - 想先在 5 分钟内跑起来：看 [快速开始](/zh/docs/getting-started)
+- 想先快速理解定义、适用场景和边界：看 [什么是 MDSN？](/zh/docs/what-is-mdsn)
+- 想理解 MDSN 和 MCP 的关系：看 [MDSN 与 MCP](/zh/docs/mdsn-vs-mcp)
+- 想看协议层面对 Markdown 响应的正式定义：看 [协议 v1](/zh/docs/protocol/v1)
 - 想理解页面、block 和更新方式：看 [理解 MDSN](/zh/docs/understanding-mdsn)
 - 想理解为什么同一个应用可以同时服务 Agent 和浏览器：看 [HTTP 内容协商](/zh/docs/shared-interaction)
 - 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
@@ -75,6 +93,7 @@ MDSN 的工作方式可以先概括成三步：
 ## 推荐阅读顺序
 
 1. [快速开始](/zh/docs/getting-started)
-2. [理解 MDSN](/zh/docs/understanding-mdsn)
-3. [应用结构](/zh/docs/application-structure)
-4. [SDK 概览](/zh/docs/sdk)
+2. [什么是 MDSN？](/zh/docs/what-is-mdsn)
+3. [理解 MDSN](/zh/docs/understanding-mdsn)
+4. [应用结构](/zh/docs/application-structure)
+5. [SDK 概览](/zh/docs/sdk)

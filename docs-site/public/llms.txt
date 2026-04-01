@@ -1,0 +1,25 @@
+# MDSN
+
+MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.
+
+It keeps content, operations, and follow-up interaction in the same page model so one app can serve both browsers and agents.
+
+## Recommended starting points
+- https://docs.mdsn.ai/
+- https://docs.mdsn.ai/getting-started
+- https://docs.mdsn.ai/what-is-mdsn
+- https://docs.mdsn.ai/mdsn-vs-mcp
+- https://docs.mdsn.ai/protocol/v1
+- https://docs.mdsn.ai/understanding-mdsn
+- https://docs.mdsn.ai/shared-interaction
+- https://docs.mdsn.ai/application-structure
+- https://docs.mdsn.ai/sdk
+- https://docs.mdsn.ai/server-runtime
+- https://docs.mdsn.ai/examples
+
+## Packages
+- https://www.npmjs.com/package/@mdsnai/sdk
+- https://www.npmjs.com/package/create-mdsn
+
+## Source
+- https://github.com/mdsn-ai/mdsn

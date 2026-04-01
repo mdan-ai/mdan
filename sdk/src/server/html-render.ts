@@ -15,10 +15,12 @@ interface MdsnRenderableDocument extends MdsnFragment {
 
 const blockAnchorPattern = /^<!--\s*mdsn:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
 
-interface RenderHtmlDocumentOptions {
+export interface RenderHtmlDocumentOptions {
   continueTarget?: string;
   kind?: "page" | "fragment";
   route?: string;
+  alternateMarkdownHref?: string;
+  llmsTxtHref?: string;
   markdownRenderer?: MdsnMarkdownRenderer;
 }
 
@@ -168,6 +170,36 @@ function createHeadlessBootstrap(
   return bootstrap;
 }
 
+export function renderHtmlDiscoveryLinks(options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref">): string {
+  return [
+    options.alternateMarkdownHref
+      ? `<link rel="alternate" type="text/markdown" href="${escapeHtml(options.alternateMarkdownHref)}">`
+      : "",
+    options.llmsTxtHref ? `<link rel="llms-txt" href="${escapeHtml(options.llmsTxtHref)}">` : ""
+  ]
+    .filter(Boolean)
+    .join("\n    ");
+}
+
+export function injectHtmlDiscoveryLinks(
+  html: string,
+  options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref">
+): string {
+  const links = {
+    ...(options.alternateMarkdownHref && !html.includes('rel="alternate" type="text/markdown"')
+      ? { alternateMarkdownHref: options.alternateMarkdownHref }
+      : {}),
+    ...(options.llmsTxtHref && !html.includes('rel="llms-txt"') ? { llmsTxtHref: options.llmsTxtHref } : {})
+  };
+  const tags = renderHtmlDiscoveryLinks(links);
+
+  if (!tags || !html.includes("</head>")) {
+    return html;
+  }
+
+  return html.replace("</head>", `    ${tags}\n  </head>`);
+}
+
 function renderMarkdownWithAnchors(
   markdown: string,
   blocks: MdsnBlock[],
@@ -224,11 +256,14 @@ export function renderHtmlDocument(fragment: MdsnRenderableDocument, options: Re
   const bootstrapScript = bootstrap
     ? `\n    <script id="mdsn-bootstrap" type="application/json">${escapeScriptJson(JSON.stringify(bootstrap))}</script>`
     : "";
+  const discoveryLinks = renderHtmlDiscoveryLinks(options);
+  const discoveryHead = discoveryLinks ? `\n    ${discoveryLinks}` : "";
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+${discoveryHead}
     <style>
       :root {
         font-family: ui-sans-serif, system-ui, sans-serif;

@@ -7,6 +7,12 @@ description: 用 @mdsnai/sdk 快速跑起你的第一个 MDSN 应用。
 
 这页只做一件事：让你在几分钟内把第一个 MDSN 应用跑起来。
 
+MDSN 现在官方支持 Node 和 Bun。
+
+- 如果你想走更成熟、更常见的 host 基线，选 Node
+- 如果你想直接用 Bun starter 和 Bun 工具链入口，选 Bun
+- 两边变化的是 runtime 外壳，不是应用模型
+
 ## 1. 创建并启动项目
 
 Node starter：
@@ -98,6 +104,7 @@ bun run build
 
 ## 5. 下一步
 
+- 想先快速理解它是什么、适合什么场景：看 [什么是 MDSN？](/zh/docs/what-is-mdsn)
 - 想理解它到底怎么工作：看 [理解 MDSN](/zh/docs/understanding-mdsn)
 - 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
 - 想直接看更多示例：看 [示例](/zh/docs/examples)

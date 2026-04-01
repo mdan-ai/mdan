@@ -9,6 +9,14 @@ description: Responsibilities, entry points, and common usage of @mdsnai/sdk/ser
 
 It registers and handles operations by the explicit HTTP paths written in the MDSN page.
 
+MDSN officially supports Node and Bun with the same server model:
+
+- shared app logic lives behind `@mdsnai/sdk/server`
+- Node hosting lives behind `@mdsnai/sdk/server/node`
+- Bun hosting lives behind `@mdsnai/sdk/server/bun`
+
+The app model stays the same across both runtimes. What changes is only the outer host adapter.
+
 ## Basic Usage
 
 ```ts
@@ -136,6 +144,24 @@ Bun.serve({
     transformHtml: injectEnhancement
   })
 });
+```
+
+## Runtime Entry Points
+
+Use the shared server runtime for page and action logic:
+
+```ts
+import { createHostedApp } from "@mdsnai/sdk/server";
+```
+
+Then choose the runtime adapter that matches your deployment target:
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/node";
+```
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/bun";
 ```
 
 ## Built-In Responsibilities

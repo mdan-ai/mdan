@@ -203,6 +203,77 @@ BLOCK secure {
     expect(response.body).toContain('POST "/shared" (message) -> save');
   });
 
+  it("uses hosted route context to emit markdown discovery links for html pages and actions", async () => {
+    const source = `---
+title: Guestbook
+---
+
+# Guestbook
+
+<!-- mdsn:block guestbook -->
+
+\`\`\`mdsn
+BLOCK guestbook {
+  INPUT text required -> message
+  POST "/post" (message) -> submit label:"Submit"
+}
+\`\`\``;
+
+    const app = createHostedApp({
+      htmlDiscovery(context) {
+        return {
+          markdownHref: `/guides${context.route}.md`,
+          llmsTxtHref: "/llms.txt"
+        };
+      },
+      pages: {
+        "/guestbook": () =>
+          composePage(source, {
+            blocks: {
+              guestbook: "## 1 live message\n\n- Welcome"
+            }
+          })
+      },
+      actions: [
+        {
+          target: "/post",
+          methods: ["POST"],
+          routePath: "/guestbook",
+          blockName: "guestbook",
+          handler: ({ block }) => block()
+        }
+      ]
+    });
+
+    const pageResponse = await app.handle({
+      method: "GET",
+      url: "https://example.test/guestbook",
+      headers: { accept: "text/html" },
+      cookies: {}
+    });
+
+    expect(pageResponse.status).toBe(200);
+    expect(pageResponse.body).toContain('href="/guides/guestbook.md"');
+    expect(pageResponse.body).toContain('rel="llms-txt" href="/llms.txt"');
+    expect(pageResponse.headers.link).toContain('</guides/guestbook.md>; rel="alternate"; type="text/markdown"');
+    expect(pageResponse.headers.link).toContain('</llms.txt>; rel="llms-txt"');
+
+    const actionResponse = await app.handle({
+      method: "POST",
+      url: "https://example.test/post",
+      headers: {
+        accept: "text/html",
+        "content-type": "text/markdown"
+      },
+      body: 'message: "Hello"',
+      cookies: {}
+    });
+
+    expect(actionResponse.status).toBe(200);
+    expect(actionResponse.body).toContain('href="/guides/guestbook.md"');
+    expect(actionResponse.headers.link).toContain('</guides/guestbook.md>; rel="alternate"; type="text/markdown"');
+  });
+
   it("rejects duplicate method and target registrations", () => {
     expect(() =>
       createHostedApp({

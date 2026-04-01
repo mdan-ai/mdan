@@ -53,6 +53,7 @@ export function navigate(options: NavigateOptions): MdsnActionResult {
     ...(typeof options.status === "number" ? { status: options.status } : {}),
     ...(options.headers ? { headers: options.headers } : {}),
     ...(options.session ? { session: options.session } : {}),
+    route: options.target,
     navigation: {
       target: options.target
     },

@@ -118,4 +118,27 @@ This is **important**.
     expect(response.body).toContain('<a href="/zh/sdk" aria-current="page">中文</a>');
     expect(response.body).toContain("搜索文档...");
   });
+
+  it("shows AI-facing entry pages in the start navigation when they exist", async () => {
+    const server = createDocsSiteServer({
+      pages: {
+        "/": `# Docs`,
+        "/what-is-mdsn": `# What is MDSN?`,
+        "/mdsn-vs-mcp": `# MDSN vs MCP`
+      }
+    });
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/what-is-mdsn",
+      headers: { accept: "text/html" },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain('href="/what-is-mdsn"');
+    expect(response.body).toContain("What is MDSN?");
+    expect(response.body).toContain('href="/mdsn-vs-mcp"');
+    expect(response.body).toContain("MDSN vs MCP");
+  });
 });

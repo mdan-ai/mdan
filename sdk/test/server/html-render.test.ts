@@ -207,6 +207,24 @@ describe("renderHtmlDocument", () => {
     expect(html).toContain('"continueTarget":"/vault"');
   });
 
+  it("renders alternate markdown and llms discovery links when configured", () => {
+    const html = renderHtmlDocument(
+      {
+        markdown: "# Guestbook",
+        blocks: []
+      },
+      {
+        kind: "page",
+        route: "/guestbook",
+        alternateMarkdownHref: "/guides/guestbook.md",
+        llmsTxtHref: "/llms.txt"
+      }
+    );
+
+    expect(html).toContain('<link rel="alternate" type="text/markdown" href="/guides/guestbook.md">');
+    expect(html).toContain('<link rel="llms-txt" href="/llms.txt">');
+  });
+
   it("renders page bootstrap data for headless framework hosts", () => {
     const html = renderHtmlDocument(
       {

@@ -1,6 +1,8 @@
 # MDSN
 
-MDSN is a Markdown-first page and interaction format for apps that humans and AI agents can both use.
+MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.
+
+It keeps content, operations, and follow-up interaction in the same page model.
 
 This repository contains the reference SDK, the project starter, runnable examples, and the docs site.
 

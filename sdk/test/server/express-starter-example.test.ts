@@ -78,7 +78,9 @@ describe("express starter example", () => {
     );
 
     expect(statusCode).toBe(200);
-    expect(headers.get("content-type")).toBe("text/markdown");
+    expect(headers.get("content-type")).toBe(
+      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+    );
     expect(body).toContain("From Express");
   });
 

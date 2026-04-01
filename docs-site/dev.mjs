@@ -80,7 +80,10 @@ const server = http.createServer(
     staticFiles: {
       "/docs-site/site.css": join(docsRoot, "public", "site.css"),
       "/docs-site/docs.js": join(docsRoot, "public", "docs.js"),
-      "/docs-site/logo-mark.svg": join(docsRoot, "public", "logo-mark.svg")
+      "/docs-site/logo-mark.svg": join(docsRoot, "public", "logo-mark.svg"),
+      "/robots.txt": join(docsRoot, "public", "robots.txt"),
+      "/llms.txt": join(docsRoot, "public", "llms.txt"),
+      "/sitemap.xml": join(docsRoot, "public", "sitemap.xml")
     }
   })
 );

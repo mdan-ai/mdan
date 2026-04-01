@@ -23,6 +23,8 @@ export const docsNav: DocsNavSection[] = [
     items: [
       { href: "/docs", label: { en: "Overview", zh: "文档首页" } },
       { href: "/docs/getting-started", label: { en: "Getting Started", zh: "快速开始" } },
+      { href: "/docs/what-is-mdsn", label: { en: "What is MDSN?", zh: "什么是 MDSN？" } },
+      { href: "/docs/mdsn-vs-mcp", label: { en: "MDSN vs MCP", zh: "MDSN 与 MCP" } },
       { href: "/docs/understanding-mdsn", label: { en: "Understanding MDSN", zh: "理解 MDSN" } },
       { href: "/docs/shared-interaction", label: { en: "HTTP Content Negotiation", zh: "HTTP 内容协商" } }
     ]
@@ -46,6 +48,7 @@ export const docsNav: DocsNavSection[] = [
     },
     items: [
       { href: "/docs/sdk", label: { en: "SDK Overview", zh: "SDK 概览" } },
+      { href: "/docs/protocol/v1", label: { en: "Protocol v1", zh: "协议 v1" } },
       { href: "/docs/server-runtime", label: { en: "Server Runtime", zh: "服务端运行时" } },
       { href: "/docs/web-runtime", label: { en: "Web Runtime", zh: "Web 运行时" } },
       { href: "/docs/elements", label: { en: "Elements", zh: "Elements 组件" } },

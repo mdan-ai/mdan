@@ -1,43 +1,40 @@
 ---
 title: MDSN
-description: What MDSN is, what problem it solves, and where to start.
+description: MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.
 ---
 
 # MDSN
 
-MDSN is an interactive page format built on Markdown.
+MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.
 
-What it is trying to do is simple: bring page content, executable operations, and follow-up interaction back into the same application page.
+It keeps content, operations, and follow-up interaction in the same page model.
 
-In many AI apps, content, tools, prompts, JSON APIs, and browser UI end up spread across different layers.  
-MDSN puts those pieces back into a single Markdown page.
-
-**One Markdown page defines content, operations, and what can happen next.**
+That means one app can serve browsers and agents without splitting the interaction model across Markdown, prompts, JSON APIs, and UI glue.
 
 ## What MDSN Is
 
-MDSN is closer to an application expression format than a loose set of separate interfaces.
+MDSN treats the page itself as the unit of application behavior.
 
-In MDSN, the page itself carries content, operations, and follow-up interaction:
+In one page source, you can keep:
 
 - page content is written in Markdown
 - executable operations are also defined in the page
 - Markdown fragments returned by the server are not just results, but the next interaction context
 - the same web app can be visited in a browser and used directly by an agent over HTTP
 
-That makes MDSN a good fit for agent apps, skills apps, and page-shaped applications with ongoing multi-step interaction.
+That makes MDSN a good fit for agent apps, skills apps, internal tools, and page-shaped applications with ongoing multi-step interaction.
 
 `@mdsnai/sdk` is the current reference implementation for this format and its host behavior.
 
-## Why It Is Designed This Way
+## What Problem It Solves
 
-When the same app needs to serve both agents and people, splitting it into separate layers usually gets heavy fast:
+When the same app needs to serve both agents and people, the architecture often drifts apart fast:
 
 - agents talk to one tool or JSON interface
 - browsers talk to a different page and interaction model
 - the server has to keep prompts, state, and follow-up actions in sync across both
 
-MDSN lets the page itself carry that expression. As a result:
+MDSN brings that back into one readable application surface. As a result:
 
 - agents can read Markdown directly and keep going from there
 - agents can talk to the same web app over HTTP using tools like `curl`
@@ -45,6 +42,24 @@ MDSN lets the page itself carry that expression. As a result:
 - browsers can keep using HTML without a second application model
 - the server can keep driving follow-up interaction by returning Markdown fragments
 - the app is less likely to drift across pages, protocols, tools, and UI
+
+## When To Use MDSN
+
+MDSN is a strong fit when:
+
+- the same app needs to work for both humans and AI agents
+- your interaction model is naturally page-shaped and multi-step
+- you want content and actions to stay readable together
+- you want one server app to negotiate Markdown for agents and HTML for browsers
+
+## When Not To Use MDSN
+
+MDSN is probably not the right fit when:
+
+- you only need a conventional browser-only app
+- your application is mostly a JSON API with no page-shaped interaction
+- your UI depends heavily on a large client-side SPA state model
+- you do not care about agent-readable interaction at all
 
 ## How It Works
 
@@ -67,6 +82,9 @@ What changes is the returned form, not the underlying app.
 ## Docs Guide
 
 - Want to get something running in five minutes: [Getting Started](/docs/getting-started)
+- Want a crisp definition and best-fit use cases: [What is MDSN?](/docs/what-is-mdsn)
+- Want to compare MDSN with MCP: [MDSN vs MCP](/docs/mdsn-vs-mcp)
+- Want the protocol-level definition behind MDSN Markdown responses: [Protocol v1](/docs/protocol/v1)
 - Want to understand pages, blocks, and updates: [Understanding MDSN](/docs/understanding-mdsn)
 - Want to understand how one app serves both agents and browsers: [HTTP Content Negotiation](/docs/shared-interaction)
 - Want to start building a real app: [Application Structure](/docs/application-structure)
@@ -75,6 +93,7 @@ What changes is the returned form, not the underlying app.
 ## Recommended Reading Order
 
 1. [Getting Started](/docs/getting-started)
-2. [Understanding MDSN](/docs/understanding-mdsn)
-3. [Application Structure](/docs/application-structure)
-4. [SDK Overview](/docs/sdk)
+2. [What is MDSN?](/docs/what-is-mdsn)
+3. [Understanding MDSN](/docs/understanding-mdsn)
+4. [Application Structure](/docs/application-structure)
+5. [SDK Overview](/docs/sdk)

@@ -168,4 +168,45 @@ Keep docs and shell aligned.
     expect(response.body).toContain("Getting Started");
     expect(response.body).toContain('href="/getting-started"');
   });
+
+  it("renders canonical, description, and social metadata for docs pages", async () => {
+    const server = createDocsSiteServer({
+      siteTitle: "MDSN Docs",
+      pages: {
+        "/": `# Docs Home`,
+        "/what-is-mdsn": `---
+title: What is MDSN?
+description: Understand what MDSN is, who it is for, and when to use it.
+---
+
+# What is MDSN?
+
+MDSN is a Markdown-first framework.
+`
+      }
+    });
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/what-is-mdsn",
+      headers: { accept: "text/html" },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain(
+      '<meta name="description" content="Understand what MDSN is, who it is for, and when to use it.">'
+    );
+    expect(response.body).toContain('<link rel="canonical" href="https://docs.mdsn.ai/what-is-mdsn">');
+    expect(response.body).toContain('<meta property="og:title" content="What is MDSN? · MDSN Docs">');
+    expect(response.body).toContain(
+      '<meta property="og:description" content="Understand what MDSN is, who it is for, and when to use it.">'
+    );
+    expect(response.body).toContain('<meta property="og:url" content="https://docs.mdsn.ai/what-is-mdsn">');
+    expect(response.body).toContain('<meta name="twitter:card" content="summary">');
+    expect(response.body).toContain('<link rel="alternate" hreflang="en" href="https://docs.mdsn.ai/what-is-mdsn">');
+    expect(response.body).toContain(
+      '<link rel="alternate" hreflang="zh" href="https://docs.mdsn.ai/zh/what-is-mdsn">'
+    );
+  });
 });

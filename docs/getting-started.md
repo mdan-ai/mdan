@@ -7,6 +7,12 @@ description: Get your first MDSN app running with @mdsnai/sdk.
 
 This page does one thing: get your first MDSN app running in a few minutes.
 
+MDSN officially supports Node and Bun.
+
+- choose Node if you want the most established host baseline
+- choose Bun if you want a Bun-native starter and toolchain entry
+- the app model stays the same across both runtimes
+
 ## 1. Create and Start a Project
 
 Node starter:
@@ -98,6 +104,7 @@ bun run build
 
 ## 5. Next
 
+- Want a clearer definition before going deeper: [What is MDSN?](/docs/what-is-mdsn)
 - Want to understand how it works: [Understanding MDSN](/docs/understanding-mdsn)
 - Want to start building a real app: [Application Structure](/docs/application-structure)
 - Want to browse more examples: [Examples](/docs/examples)

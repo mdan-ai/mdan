@@ -8,15 +8,30 @@ import {
   type MdsnPage
 } from "../core/index.js";
 
-import { renderHtmlDocument } from "./html-render.js";
+import { toMarkdownContentType } from "./content-type.js";
+import { injectHtmlDiscoveryLinks, renderHtmlDocument } from "./html-render.js";
 import { MdsnRouter } from "./router.js";
 import { fail } from "./result.js";
-import type { MdsnActionResult, MdsnHandler, MdsnHandlerResult, MdsnPageHandler, MdsnRequest, MdsnResponse, MdsnSessionProvider, MdsnStreamChunk, MdsnStreamResult } from "./types.js";
+import type {
+  MdsnActionResult,
+  MdsnHandler,
+  MdsnHandlerResult,
+  MdsnHtmlDiscoveryContext,
+  MdsnHtmlDiscoveryLinks,
+  MdsnHtmlDiscoveryResolver,
+  MdsnPageHandler,
+  MdsnRequest,
+  MdsnResponse,
+  MdsnSessionProvider,
+  MdsnStreamChunk,
+  MdsnStreamResult
+} from "./types.js";
 
 export interface CreateMdsnServerOptions {
   session?: MdsnSessionProvider;
   renderHtml?: typeof renderHtmlDocument;
   markdownRenderer?: MdsnMarkdownRenderer;
+  htmlDiscovery?: MdsnHtmlDiscoveryResolver;
 }
 
 function getPathname(request: MdsnRequest): string {
@@ -59,6 +74,60 @@ function createInternalServerErrorResult() {
   });
 }
 
+function normalizeDiscoveryLink(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function resolveHtmlDiscoveryLinks(
+  htmlDiscovery: MdsnHtmlDiscoveryResolver | undefined,
+  context: MdsnHtmlDiscoveryContext
+): MdsnHtmlDiscoveryLinks | null {
+  if (!htmlDiscovery) {
+    return null;
+  }
+
+  const resolved = typeof htmlDiscovery === "function" ? htmlDiscovery(context) : htmlDiscovery;
+  if (!resolved) {
+    return null;
+  }
+
+  const markdownHref = normalizeDiscoveryLink(resolved.markdownHref);
+  const llmsTxtHref = normalizeDiscoveryLink(resolved.llmsTxtHref);
+  if (!markdownHref && !llmsTxtHref) {
+    return null;
+  }
+
+  return {
+    ...(markdownHref ? { markdownHref } : {}),
+    ...(llmsTxtHref ? { llmsTxtHref } : {})
+  };
+}
+
+function discoveryLinksToHeader(links: MdsnHtmlDiscoveryLinks | null): string | undefined {
+  if (!links) {
+    return undefined;
+  }
+
+  const values = [
+    links.markdownHref ? `<${links.markdownHref}>; rel="alternate"; type="text/markdown"` : "",
+    links.llmsTxtHref ? `<${links.llmsTxtHref}>; rel="llms-txt"` : ""
+  ].filter(Boolean);
+
+  return values.length > 0 ? values.join(", ") : undefined;
+}
+
+function mergeLinkHeader(headers: Record<string, string>, linkHeader: string | undefined): Record<string, string> {
+  if (!linkHeader) {
+    return headers;
+  }
+
+  return {
+    ...headers,
+    link: headers.link ? `${headers.link}, ${linkHeader}` : linkHeader
+  };
+}
+
 function getRenderablePage(page: MdsnPage) {
   const visibleBlockNames = page.visibleBlockNames ? new Set(page.visibleBlockNames) : null;
   const blocks = visibleBlockNames ? page.blocks.filter((block) => visibleBlockNames.has(block.name)) : page.blocks;
@@ -79,7 +148,12 @@ function getRenderablePage(page: MdsnPage) {
       };
 }
 
-function resolveResponseBody(result: MdsnActionResult, representation: "markdown" | "html", renderHtml: typeof renderHtmlDocument): string {
+function resolveResponseBody(
+  result: MdsnActionResult,
+  representation: "markdown" | "html",
+  renderHtml: typeof renderHtmlDocument,
+  discoveryLinks: MdsnHtmlDiscoveryLinks | null
+): string {
   if (result.page) {
     return representation === "markdown"
       ? serializePage(result.page)
@@ -87,6 +161,9 @@ function resolveResponseBody(result: MdsnActionResult, representation: "markdown
           getRenderablePage(result.page),
           {
             kind: "page",
+            ...(result.route ? { route: result.route } : {}),
+            ...(discoveryLinks?.markdownHref ? { alternateMarkdownHref: discoveryLinks.markdownHref } : {}),
+            ...(discoveryLinks?.llmsTxtHref ? { llmsTxtHref: discoveryLinks.llmsTxtHref } : {}),
             ...(result.navigation?.target ? { continueTarget: result.navigation.target } : {})
           }
         );
@@ -100,6 +177,9 @@ function resolveResponseBody(result: MdsnActionResult, representation: "markdown
     ? serializeFragment(result.fragment)
     : renderHtml(result.fragment, {
         kind: "fragment",
+        ...(result.route ? { route: result.route } : {}),
+        ...(discoveryLinks?.markdownHref ? { alternateMarkdownHref: discoveryLinks.markdownHref } : {}),
+        ...(discoveryLinks?.llmsTxtHref ? { llmsTxtHref: discoveryLinks.llmsTxtHref } : {}),
         ...(result.navigation?.target ? { continueTarget: result.navigation.target } : {})
       });
 }
@@ -140,18 +220,33 @@ function createStreamBody(result: MdsnHandlerResult): string | AsyncIterable<str
   })();
 }
 
-function createResponse(result: MdsnHandlerResult, representation: "markdown" | "html" | "event-stream", renderHtml: typeof renderHtmlDocument): MdsnResponse {
-  const headers: Record<string, string> = {
+function createResponse(
+  result: MdsnHandlerResult,
+  representation: "markdown" | "html" | "event-stream",
+  renderHtml: typeof renderHtmlDocument,
+  request: MdsnRequest,
+  htmlDiscovery: MdsnHtmlDiscoveryResolver | undefined
+): MdsnResponse {
+  const discoveryLinks =
+    representation === "html"
+      ? resolveHtmlDiscoveryLinks(htmlDiscovery, {
+          request,
+          kind: "page" in result && result.page ? "page" : "fragment",
+          ...("route" in result && result.route ? { route: result.route } : {})
+        })
+      : null;
+
+  const headers = mergeLinkHeader({
     "content-type":
-      representation === "markdown" ? "text/markdown" : representation === "html" ? "text/html" : "text/event-stream",
+      representation === "markdown" ? toMarkdownContentType() : representation === "html" ? "text/html" : "text/event-stream",
     ...(result.headers ?? {})
-  };
+  }, discoveryLinksToHeader(discoveryLinks));
 
   const body =
     representation === "markdown"
-      ? resolveResponseBody(result as MdsnActionResult, "markdown", renderHtml)
+      ? resolveResponseBody(result as MdsnActionResult, "markdown", renderHtml, discoveryLinks)
       : representation === "html"
-        ? resolveResponseBody(result as MdsnActionResult, "html", renderHtml)
+        ? resolveResponseBody(result as MdsnActionResult, "html", renderHtml, discoveryLinks)
         : createStreamBody(result);
 
   return {
@@ -165,19 +260,32 @@ function createPageResponse(
   page: MdsnPage,
   representation: "markdown" | "html",
   renderHtml: typeof renderHtmlDocument,
+  request: MdsnRequest,
+  htmlDiscovery: MdsnHtmlDiscoveryResolver | undefined,
   route?: string
 ): MdsnResponse {
+  const discoveryLinks =
+    representation === "html"
+      ? resolveHtmlDiscoveryLinks(htmlDiscovery, {
+          request,
+          kind: "page",
+          ...(route ? { route } : {})
+        })
+      : null;
+
   return {
     status: 200,
-    headers: {
-      "content-type": representation === "markdown" ? "text/markdown" : "text/html"
-    },
+    headers: mergeLinkHeader({
+      "content-type": representation === "markdown" ? toMarkdownContentType() : "text/html"
+    }, discoveryLinksToHeader(discoveryLinks)),
     body:
       representation === "markdown"
         ? serializePage(page)
         : renderHtml(getRenderablePage(page), {
             kind: "page",
-            ...(route ? { route } : {})
+            ...(route ? { route } : {}),
+            ...(discoveryLinks?.markdownHref ? { alternateMarkdownHref: discoveryLinks.markdownHref } : {}),
+            ...(discoveryLinks?.llmsTxtHref ? { llmsTxtHref: discoveryLinks.llmsTxtHref } : {})
           })
   };
 }
@@ -185,13 +293,15 @@ function createPageResponse(
 export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
   const router = new MdsnRouter();
   const sessionProvider = options.session;
-  const htmlRenderer =
+  const baseHtmlRenderer =
     options.renderHtml ??
     ((fragment, renderOptions) =>
       renderHtmlDocument(fragment, {
         ...renderOptions,
         ...(options.markdownRenderer ? { markdownRenderer: options.markdownRenderer } : {})
       }));
+  const htmlRenderer: typeof renderHtmlDocument = (fragment, renderOptions = {}) =>
+    injectHtmlDiscoveryLinks(baseHtmlRenderer(fragment, renderOptions), renderOptions);
 
   return {
     get(path: string, handler: MdsnHandler): void {
@@ -215,7 +325,9 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
             }
           }),
           "markdown",
-          htmlRenderer
+          htmlRenderer,
+          request,
+          options.htmlDiscovery
         );
       }
 
@@ -232,7 +344,9 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
                 fragment: createErrorFragment("Not Acceptable", "Page routes do not support text/event-stream.")
               }),
               "markdown",
-              htmlRenderer
+              htmlRenderer,
+              request,
+              options.htmlDiscovery
             );
           }
           let page: MdsnPage | null;
@@ -242,10 +356,10 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
               session
             });
           } catch {
-            return createResponse(createInternalServerErrorResult(), representation, htmlRenderer);
+            return createResponse(createInternalServerErrorResult(), representation, htmlRenderer, request, options.htmlDiscovery);
           }
           if (page) {
-            return createPageResponse(page, representation, htmlRenderer, pathname);
+            return createPageResponse(page, representation, htmlRenderer, request, options.htmlDiscovery, pathname);
           }
         }
       }
@@ -261,7 +375,9 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
             }
           }),
           representation,
-          htmlRenderer
+          htmlRenderer,
+          request,
+          options.htmlDiscovery
         );
       }
 
@@ -275,7 +391,9 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
             )
           }),
           representation,
-          htmlRenderer
+          htmlRenderer,
+          request,
+          options.htmlDiscovery
         );
       }
 
@@ -290,7 +408,9 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
               fragment: createErrorFragment("Invalid Request Body", error.message)
             }),
             representation,
-            htmlRenderer
+            htmlRenderer,
+            request,
+            options.htmlDiscovery
           );
         }
         throw error;
@@ -304,9 +424,9 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
           session
         });
       } catch {
-        return createResponse(createInternalServerErrorResult(), representation, htmlRenderer);
+        return createResponse(createInternalServerErrorResult(), representation, htmlRenderer, request, options.htmlDiscovery);
       }
-      const response = createResponse(result, representation, htmlRenderer);
+      const response = createResponse(result, representation, htmlRenderer, request, options.htmlDiscovery);
 
       if (sessionProvider) {
         try {
@@ -316,7 +436,7 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
             await sessionProvider.commit(result.session ?? null, response);
           }
         } catch {
-          return createResponse(createInternalServerErrorResult(), representation, htmlRenderer);
+          return createResponse(createInternalServerErrorResult(), representation, htmlRenderer, request, options.htmlDiscovery);
         }
       }
 

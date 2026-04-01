@@ -9,6 +9,7 @@ export interface CreateDocsSiteServerOptions {
   pages: Record<string, string>;
   markdownRenderer?: MdsnMarkdownRenderer;
   siteTitle?: string;
+  siteOrigin?: string;
   assetVersion?: string;
 }
 
@@ -34,6 +35,25 @@ function toTitle(frontmatter: MdsnFrontmatter, route: string): string {
   }
   const fallback = route.split("/").filter(Boolean).at(-1) ?? "docs";
   return fallback.replaceAll("-", " ");
+}
+
+function toDescription(frontmatter: MdsnFrontmatter, fallback: string): string {
+  const frontmatterDescription = frontmatter.description;
+  if (typeof frontmatterDescription === "string" && frontmatterDescription.trim()) {
+    return frontmatterDescription.trim();
+  }
+  return fallback;
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+function toAbsoluteUrl(origin: string, route: string): string {
+  if (route === "/") {
+    return `${origin}/`;
+  }
+  return `${origin}${route}`;
 }
 
 function sortByRoute(records: DocsPageRecord[]): DocsPageRecord[] {
@@ -163,6 +183,9 @@ function renderToc(items: ReturnType<typeof extractToc>, locale: DocsLocale): st
 export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
   const markdownRenderer = options.markdownRenderer;
   const siteTitle = options.siteTitle ?? "MDSN Docs";
+  const siteOrigin = trimTrailingSlash(options.siteOrigin ?? "https://docs.mdsn.ai");
+  const siteDescription =
+    "MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.";
   const assetVersion = options.assetVersion?.trim();
   const assetSuffix = assetVersion ? `?v=${encodeURIComponent(assetVersion)}` : "";
 
@@ -218,9 +241,14 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
       const locale = localeFromRoute(route);
       const page = pageMap.get(route);
       const pageTitle = page ? toTitle(page.frontmatter, route) : "Docs";
+      const pageDescription = page ? toDescription(page.frontmatter, siteDescription) : siteDescription;
+      const fullTitle = `${pageTitle} · ${siteTitle}`;
+      const canonicalUrl = toAbsoluteUrl(siteOrigin, route);
       const suffix = docsRouteSuffix(route);
       const enRoute = withFallbackRoute(withLocaleSuffix("en", suffix), "/", availableRoutes);
       const zhRoute = withFallbackRoute(withLocaleSuffix("zh", suffix), "/zh", availableRoutes);
+      const enCanonicalUrl = toAbsoluteUrl(siteOrigin, enRoute);
+      const zhCanonicalUrl = toAbsoluteUrl(siteOrigin, zhRoute);
       const homeRoute = locale === "zh" && availableRoutes.has("/zh") ? "/zh" : "/";
       const navigation = renderNavigation(availableRoutes, route, locale);
       const tocItems = extractToc(fragment.markdown);
@@ -240,7 +268,20 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(pageTitle)} · ${escapeHtml(siteTitle)}</title>
+    <title>${escapeHtml(fullTitle)}</title>
+    <meta name="description" content="${escapeHtml(pageDescription)}">
+    <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
+    <link rel="alternate" hreflang="en" href="${escapeHtml(enCanonicalUrl)}">
+    <link rel="alternate" hreflang="zh" href="${escapeHtml(zhCanonicalUrl)}">
+    <link rel="alternate" hreflang="x-default" href="${escapeHtml(enCanonicalUrl)}">
+    <meta property="og:title" content="${escapeHtml(fullTitle)}">
+    <meta property="og:description" content="${escapeHtml(pageDescription)}">
+    <meta property="og:type" content="${route === "/" || route === "/zh" ? "website" : "article"}">
+    <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
+    <meta property="og:site_name" content="${escapeHtml(siteTitle)}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="${escapeHtml(fullTitle)}">
+    <meta name="twitter:description" content="${escapeHtml(pageDescription)}">
     <link rel="icon" href="/docs-site/logo-mark.svg${assetSuffix}" type="image/svg+xml">
     <link rel="stylesheet" href="/docs-site/site.css${assetSuffix}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
