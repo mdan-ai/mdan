@@ -41,6 +41,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "prepack": "node ../scripts/sync-package-license.mjs",
+    "postpack": "node ../scripts/sync-package-license.mjs --cleanup"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
