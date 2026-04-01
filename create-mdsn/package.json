@@ -1,6 +1,6 @@
 {
   "name": "create-mdsn",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": false,
   "description": "Create a minimal MDSN app with npm create or bunx.",
   "license": "MIT",

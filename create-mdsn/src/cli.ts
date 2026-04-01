@@ -121,8 +121,12 @@ async function main(argv: string[]): Promise<void> {
 
 const entryPath = process.argv[1] ? resolve(process.argv[1]) : null;
 const modulePath = resolve(fileURLToPath(import.meta.url));
+const isMainModule =
+  typeof import.meta.main === "boolean"
+    ? import.meta.main
+    : entryPath === modulePath;
 
-if (entryPath === modulePath) {
+if (isMainModule || entryPath === modulePath) {
   main(process.argv.slice(2)).catch((error) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

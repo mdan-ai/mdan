@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This changelog starts at `0.4.0`. Earlier releases were not backfilled.
 
+## 0.4.1 - 2026-04-01
+
+### Fixed
+
+- `create-mdsn` now starts correctly when invoked through `bunx`
+- Published Bun scaffold verification now covers the registry-installed starter path
+
 ## 0.4.0 - 2026-04-01
 
 ### Added
