@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createNodeHost } from "@mdsnai/sdk/server";
+import { createHost } from "@mdsnai/sdk/server/node";
 
 import { createDocsSiteServer } from "./dist/server.js";
 
@@ -22,7 +22,7 @@ const mdsn = createDocsSiteServer({
 });
 
 const server = http.createServer(
-  createNodeHost(mdsn, {
+  createHost(mdsn, {
     rootRedirect: "/docs",
     staticFiles: {
       "/docs-site/site.css": join(exampleRoot, "public", "site.css")

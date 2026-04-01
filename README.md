@@ -4,6 +4,8 @@ MDSN is a Markdown-first page and interaction format for apps that humans and AI
 
 This repository contains the reference SDK, the project starter, runnable examples, and the docs site.
 
+MDSN officially supports Node and Bun through shared server primitives plus runtime-specific host adapters.
+
 ## Why MDSN
 
 Markdown is easy to read and easy to generate, but plain Markdown is weak at expressing interaction.
@@ -34,13 +36,40 @@ cd examples/starter
 npm start
 ```
 
-If you want to start a new app:
+You can still use Bun for install and build work:
+
+```bash
+bun install
+bun run build
+cd examples/starter
+npm start
+```
+
+The in-repo examples keep their current Node host shells.
+
+If you want to start a new app on Node:
 
 ```bash
 npm create mdsn@latest agent-app
 cd agent-app
 npm install
 npm start
+```
+
+If you want to start a new app on Bun:
+
+```bash
+bunx create-mdsn agent-app
+cd agent-app
+bun install
+bun start
+```
+
+You can also override the starter runtime explicitly:
+
+```bash
+npm create mdsn@latest agent-app -- --runtime bun
+bunx create-mdsn agent-app --runtime node
 ```
 
 ## Examples

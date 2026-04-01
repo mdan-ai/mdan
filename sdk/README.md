@@ -2,6 +2,8 @@
 
 `@mdsnai/sdk` is the reference SDK for building apps with MDSN.
 
+It officially supports Node and Bun through a shared server runtime plus runtime-specific host adapters.
+
 MDSN is a Markdown-first page and interaction format. `@mdsnai/sdk` gives you the parser, server runtime, browser runtime, and default UI for working with it.
 
 ## Why MDSN
@@ -53,11 +55,42 @@ BLOCK main {
 
 ## Quick Start
 
+Node starter:
+
 ```bash
 npm create mdsn@latest agent-app
 cd agent-app
 npm install
 npm start
+```
+
+Bun starter:
+
+```bash
+bunx create-mdsn agent-app
+cd agent-app
+bun install
+bun start
+```
+
+You can also force either runtime with `--runtime node` or `--runtime bun`.
+
+## Runtime Adapters
+
+Shared server modeling stays on `@mdsnai/sdk/server`:
+
+```ts
+import { createHostedApp } from "@mdsnai/sdk/server";
+```
+
+Then choose the host adapter for your runtime:
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/node";
+```
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/bun";
 ```
 
 ## Docs

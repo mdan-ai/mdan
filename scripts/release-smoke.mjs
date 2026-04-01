@@ -1,11 +1,28 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { createServer } from "node:net";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 
 const repoRoot = resolve(new URL("..", import.meta.url).pathname);
 const cacheDir = "/tmp/mdsn-release-smoke-cache";
+const defaultBunBin = process.env.HOME ? join(process.env.HOME, ".bun", "bin", "bun") : "bun";
+const bunBin = process.env.BUN_BIN ?? (existsSync(defaultBunBin) ? defaultBunBin : "bun");
+
+function withBunPath(env = {}) {
+  if (!bunBin.includes("/")) {
+    return { ...process.env, ...env };
+  }
+
+  const bunDir = dirname(bunBin);
+  const nextPath = [bunDir, env.PATH, process.env.PATH].filter(Boolean).join(":");
+  return {
+    ...process.env,
+    ...env,
+    PATH: nextPath
+  };
+}
 
 function parseArgs(argv) {
   const args = {};
@@ -66,7 +83,7 @@ async function reservePort() {
     const server = createServer();
     server.unref();
     server.on("error", rejectPromise);
-    server.listen(0, "127.0.0.1", () => {
+    server.listen(0, () => {
       const address = server.address();
       if (!address || typeof address === "string") {
         rejectPromise(new Error("Unable to reserve port"));
@@ -129,6 +146,34 @@ function startApp(cwd, port) {
   };
 }
 
+function startAppForRuntime(cwd, port, runtime) {
+  if (runtime === "bun") {
+    const child = spawn(bunBin, ["run", "start"], {
+      cwd,
+      env: withBunPath({ PORT: String(port) }),
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    return {
+      child,
+      output() {
+        return { stdout, stderr };
+      }
+    };
+  }
+
+  return startApp(cwd, port);
+}
+
 async function stopApp(handle) {
   if (!handle || handle.child.exitCode !== null) return;
   handle.child.kill("SIGTERM");
@@ -145,17 +190,23 @@ async function rewriteSdkDependency(projectDir, spec) {
   await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
 }
 
-async function createProject({ mode, tempRoot, createVersion, createTarball, sdkTarball }) {
+async function createProject({ mode, runtime, tempRoot, createVersion, sdkTarball }) {
   const cwd = join(tempRoot, "workspace");
   await mkdir(cwd, { recursive: true });
 
   if (mode === "prepublish") {
-    await run(
-      "npm",
-      ["exec", "--yes", `--package=${createTarball}`, "create-mdsn", "agent-app"],
-      { cwd, env: { npm_config_cache: cacheDir } }
-    );
+    const cliPath = join(repoRoot, "create-mdsn", "dist", "cli.js");
+    if (runtime === "bun") {
+      await run(bunBin, ["run", cliPath, "agent-app", "--runtime", "bun"], { cwd });
+    } else {
+      await run("node", [cliPath, "agent-app", "--runtime", "node"], { cwd });
+    }
     await rewriteSdkDependency(join(cwd, "agent-app"), sdkTarball);
+    return join(cwd, "agent-app");
+  }
+
+  if (runtime === "bun") {
+    await run(bunBin, ["x", `create-mdsn@${createVersion}`, "agent-app"], { cwd });
     return join(cwd, "agent-app");
   }
 
@@ -166,7 +217,7 @@ async function createProject({ mode, tempRoot, createVersion, createTarball, sdk
   return join(cwd, "agent-app");
 }
 
-async function assertFlow(projectDir, expectedSdkSpec) {
+async function assertFlow(projectDir, expectedSdkSpec, runtime) {
   const packageJson = JSON.parse(await readFile(join(projectDir, "package.json"), "utf8"));
   if (packageJson.dependencies?.["@mdsnai/sdk"] !== expectedSdkSpec) {
     throw new Error(
@@ -174,10 +225,14 @@ async function assertFlow(projectDir, expectedSdkSpec) {
     );
   }
 
-  await run("npm", ["install", "--cache", cacheDir], { cwd: projectDir });
+  if (runtime === "bun") {
+    await run(bunBin, ["install"], { cwd: projectDir });
+  } else {
+    await run("npm", ["install", "--cache", cacheDir], { cwd: projectDir });
+  }
 
   const port = await reservePort();
-  const app = startApp(projectDir, port);
+  const app = startAppForRuntime(projectDir, port, runtime);
   const baseUrl = `http://127.0.0.1:${port}`;
 
   try {
@@ -237,6 +292,10 @@ async function assertFlow(projectDir, expectedSdkSpec) {
     if (!nextHtml.includes("2 live messages") || !nextHtml.includes("Hello from release smoke")) {
       throw new Error(`Updated HTML page missing expected content\n${nextHtml}`);
     }
+  } catch (error) {
+    const { stdout, stderr } = app.output();
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${message}\n--- app stdout ---\n${stdout}\n--- app stderr ---\n${stderr}`.trim());
   } finally {
     await stopApp(app);
   }
@@ -245,25 +304,32 @@ async function assertFlow(projectDir, expectedSdkSpec) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const mode = args.mode ?? "prepublish";
+  const runtime = args.runtime ?? "node";
   if (mode !== "prepublish" && mode !== "postpublish") {
     throw new Error(`Unsupported mode: ${mode}`);
+  }
+  if (runtime !== "node" && runtime !== "bun") {
+    throw new Error(`Unsupported runtime: ${runtime}`);
   }
 
   const tempRoot = await mkdtemp(join(tmpdir(), `mdsn-release-smoke-${mode}-`));
 
   try {
     if (mode === "prepublish") {
-      await run("npm", ["run", "build"], { cwd: repoRoot });
+      if (runtime === "bun") {
+        await run(bunBin, ["run", "build"], { cwd: repoRoot });
+      } else {
+        await run("npm", ["run", "build"], { cwd: repoRoot });
+      }
       const sdkTarball = await packWorkspace(join(repoRoot, "sdk"));
-      const createTarball = await packWorkspace(join(repoRoot, "create-mdsn"));
       const projectDir = await createProject({
         mode,
+        runtime,
         tempRoot,
-        sdkTarball,
-        createTarball
+        sdkTarball
       });
-      await assertFlow(projectDir, sdkTarball);
-      console.log(`release smoke (${mode}) passed`);
+      await assertFlow(projectDir, sdkTarball, runtime);
+      console.log(`release smoke (${mode}, ${runtime}) passed`);
       return;
     }
 
@@ -271,11 +337,12 @@ async function main() {
     const sdkVersion = args["sdk-version"] ?? "latest";
     const projectDir = await createProject({
       mode,
+      runtime,
       tempRoot,
       createVersion
     });
-    await assertFlow(projectDir, `^${sdkVersion}`);
-    console.log(`release smoke (${mode}) passed`);
+    await assertFlow(projectDir, `^${sdkVersion}`, runtime);
+    console.log(`release smoke (${mode}, ${runtime}) passed`);
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
   }

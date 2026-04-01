@@ -1,6 +1,6 @@
 # __PROJECT_NAME__
 
-This is a minimal MDSN starter.
+This is a minimal MDSN starter for the Node host.
 
 ## 30-Second Tour
 

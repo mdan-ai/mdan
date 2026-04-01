@@ -14,7 +14,8 @@ describe("create-mdsn starter scaffold", () => {
     await scaffoldStarterProject({
       targetDir,
       projectName: "my-mdsn-app",
-      sdkVersion: "0.1.0-test"
+      sdkVersion: "0.1.0-test",
+      runtime: "node"
     });
 
     const topLevelEntries = await readdir(targetDir);
@@ -26,15 +27,20 @@ describe("create-mdsn starter scaffold", () => {
     const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
     expect(packageJson).toContain('"name": "my-mdsn-app"');
     expect(packageJson).toContain('"@mdsnai/sdk": "0.1.0-test"');
-    expect(packageJson).toContain('"start": "npm run build && node index.mjs"');
+    expect(packageJson).toContain('"start": "tsc -p tsconfig.json && node index.mjs"');
 
     const readme = await readFile(join(targetDir, "README.md"), "utf8");
     expect(readme).toContain("# my-mdsn-app");
     expect(readme).toContain("app/index.md");
     expect(readme).toContain("http://127.0.0.1:3000/");
+    expect(readme).toContain("npm install");
+    expect(readme).toContain("npm start");
+    expect(readme).toContain("Node host");
+    expect(readme).not.toContain("Bun-native");
 
     const indexSource = await readFile(join(targetDir, "index.mjs"), "utf8");
     expect(indexSource).toContain('import { createAppServer } from "./dist/server.js";');
+    expect(indexSource).toContain('@mdsnai/sdk/server/node');
     expect(indexSource).toContain('"/app/client.js"');
     expect(indexSource).toContain("process.env.PORT || 3000");
 
@@ -51,7 +57,8 @@ describe("create-mdsn starter scaffold", () => {
       scaffoldStarterProject({
         targetDir: parent,
         projectName: "already-here",
-        sdkVersion: "0.1.0-test"
+        sdkVersion: "0.1.0-test",
+        runtime: "node"
       })
     ).rejects.toThrow(/must be empty/);
   });
@@ -63,10 +70,36 @@ describe("create-mdsn starter scaffold", () => {
     await scaffoldStarterProject({
       targetDir,
       projectName: "latest-app",
-      sdkVersion: "latest"
+      sdkVersion: "latest",
+      runtime: "node"
     });
 
     const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
     expect(packageJson).toContain('"@mdsnai/sdk": "latest"');
+  });
+
+  it("can scaffold a Bun-native starter", async () => {
+    const parent = await mkdtemp(join(tmpdir(), "mdsn-create-bun-"));
+    const targetDir = join(parent, "bun-app");
+
+    await scaffoldStarterProject({
+      targetDir,
+      projectName: "bun-app",
+      sdkVersion: "0.1.0-test",
+      runtime: "bun"
+    });
+
+    const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
+    expect(packageJson).toContain('"start": "tsc -p tsconfig.json && bun run index.mjs"');
+
+    const readme = await readFile(join(targetDir, "README.md"), "utf8");
+    expect(readme).toContain("Bun host");
+    expect(readme).toContain("bun install");
+    expect(readme).toContain("bun start");
+    expect(readme).toContain("without installing Node");
+
+    const indexSource = await readFile(join(targetDir, "index.mjs"), "utf8");
+    expect(indexSource).toContain('@mdsnai/sdk/server/bun');
+    expect(indexSource).toContain("Bun.serve");
   });
 });

@@ -24,7 +24,8 @@
     "skills-app",
     "agent-app",
     "server",
-    "web-components"
+    "web-components",
+    "bun"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -52,6 +53,14 @@
     "./server": {
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
+    },
+    "./server/node": {
+      "types": "./dist/server/node-runtime.d.ts",
+      "default": "./dist/server/node-runtime.js"
+    },
+    "./server/bun": {
+      "types": "./dist/server/bun.d.ts",
+      "default": "./dist/server/bun.js"
     },
     "./web": {
       "types": "./dist/web/index.d.ts",

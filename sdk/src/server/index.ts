@@ -1,5 +1,4 @@
 export { createHostedApp } from "./hosted-app.js";
-export { createNodeHost } from "./node.js";
 export { block, fail, navigate, ok, stream } from "./result.js";
 export { createMdsnServer, type CreateMdsnServerOptions } from "./runtime.js";
 export { refreshSession, signIn, signOut } from "./session.js";

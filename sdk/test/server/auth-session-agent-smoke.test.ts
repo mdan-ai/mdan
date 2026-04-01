@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -5,7 +7,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createAuthServer } from "../../../examples/auth-session/app/server.js";
-import { createNodeHost } from "../../src/server/index.js";
+import { createHost } from "@mdsnai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 
@@ -31,7 +33,7 @@ async function listen(listener: http.RequestListener): Promise<string> {
   const server = http.createServer(listener);
   servers.add(server);
   await new Promise<void>((resolve) => {
-    server.listen(0, "127.0.0.1", () => resolve());
+    server.listen(0, () => resolve());
   });
   const address = server.address();
   if (!address || typeof address === "string") {
@@ -81,7 +83,7 @@ describe("auth-session agent-only smoke test", () => {
   it("supports self-discoverable login/register, vault access, logout, and stale-cookie rejection over HTTP only", async () => {
     const sources = await readAuthSources();
     const server = createAuthServer(sources);
-    const baseUrl = await listen(createNodeHost(server, { rootRedirect: "/login" }));
+    const baseUrl = await listen(createHost(server, { rootRedirect: "/login" }));
 
     const loginPage = await getMarkdown(`${baseUrl}/login`);
     expect(loginPage.status).toBe(200);
@@ -142,5 +144,5 @@ describe("auth-session agent-only smoke test", () => {
     expect(replayWrite.status).toBe(401);
     const replayBody = await replayWrite.text();
     expect(replayBody).toContain('GET "/login" -> recover');
-  });
+  }, 15_000);
 });

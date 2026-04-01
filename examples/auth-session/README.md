@@ -15,7 +15,7 @@ This is a starter-style session example.
 - `app/client.ts`
   - default UI mount using `createHeadlessHost() + mountMdsnElements()`
 - `index.mjs`
-  - local Node host using `createNodeHost()`
+  - local Node host using `createHost()` from `@mdsnai/sdk/server/node`
 
 ## Start
 
@@ -23,6 +23,14 @@ Run once from the repository root:
 
 ```bash
 npm install
+cd examples/auth-session
+npm start
+```
+
+Or with Bun for install/build work:
+
+```bash
+bun install
 cd examples/auth-session
 npm start
 ```

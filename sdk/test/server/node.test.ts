@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import http from "node:http";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -5,8 +7,8 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createNodeHost, createMdsnServer, ok, stream } from "../../src/server/index.js";
-import { createNodeRequestListener } from "../../src/server/node.js";
+import { createMdsnServer, ok, stream } from "../../src/server/index.js";
+import { createHost, createNodeRequestListener } from "@mdsnai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 
@@ -32,7 +34,7 @@ async function listen(listener: http.RequestListener): Promise<string> {
   const server = http.createServer(listener);
   servers.add(server);
   await new Promise<void>((resolve) => {
-    server.listen(0, "127.0.0.1", () => resolve());
+    server.listen(0, () => resolve());
   });
   const address = server.address();
   if (!address || typeof address === "string") {
@@ -308,7 +310,7 @@ describe("createNodeRequestListener", () => {
     );
 
     const baseUrl = await listen(
-      createNodeHost(mdsn, {
+      createHost(mdsn, {
         rootRedirect: "/guestbook",
         staticFiles: {
           "/hello.js": join(tempRoot, "hello.js")
@@ -364,7 +366,7 @@ describe("createNodeRequestListener", () => {
 
     const mdsn = createMdsnServer();
     const baseUrl = await listen(
-      createNodeHost(mdsn, {
+      createHost(mdsn, {
         staticFiles: {
           "/index.html": join(tempRoot, "index.html")
         }
@@ -412,7 +414,7 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createNodeHost(mdsn));
+    const baseUrl = await listen(createHost(mdsn));
     const login = await fetch(`${baseUrl}/login`, {
       method: "POST",
       headers: {
@@ -480,7 +482,7 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createNodeHost(mdsn));
+    const baseUrl = await listen(createHost(mdsn));
     const login = await fetch(`${baseUrl}/login`, {
       method: "POST",
       headers: {
@@ -521,7 +523,7 @@ describe("createNodeRequestListener", () => {
 
     const mdsn = createMdsnServer();
     const baseUrl = await listen(
-      createNodeHost(mdsn, {
+      createHost(mdsn, {
         staticMounts: [{ urlPrefix: "/public/", directory: publicDir }]
       })
     );

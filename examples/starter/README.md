@@ -23,11 +23,24 @@ Run once from the repository root:
 npm install
 ```
 
+Or:
+
+```bash
+bun install
+```
+
 Then start the example:
 
 ```bash
 cd examples/starter
 npm start
+```
+
+You can still use Bun for the install/build side:
+
+```bash
+bun install
+bun run build
 ```
 
 Open:

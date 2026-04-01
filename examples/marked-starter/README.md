@@ -16,6 +16,15 @@ cd examples/marked-starter
 npm start
 ```
 
+Or with Bun for install/build work:
+
+```bash
+bun install
+bun run build
+cd examples/marked-starter
+npm start
+```
+
 Then open:
 
 - `http://127.0.0.1:4326/`

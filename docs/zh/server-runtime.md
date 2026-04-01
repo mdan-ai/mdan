@@ -5,7 +5,7 @@ description: @mdsnai/sdk/server 的职责、入口与常见集成方式。
 
 # 服务端运行时
 
-`@mdsnai/sdk/server` 是在服务端托管 MDSN 应用时的主入口。
+`@mdsnai/sdk/server` 是在服务端组织 MDSN 应用时的主入口。
 
 它按 MDSN 页面里显式写出的 HTTP 路径注册和处理操作。
 
@@ -13,7 +13,7 @@ description: @mdsnai/sdk/server 的职责、入口与常见集成方式。
 
 ```ts
 import { composePage } from "@mdsnai/sdk/core";
-import { createHostedApp, createNodeHost } from "@mdsnai/sdk/server";
+import { createHostedApp } from "@mdsnai/sdk/server";
 
 const server = createHostedApp({
   pages: {
@@ -108,11 +108,13 @@ const response = await server.handle({
 - `headers`
 - `body`
 
-如果你运行在 Node `http` 上，直接用内置入口：
+如果你运行在 Node `http` 上，直接用 Node 适配器：
 
 ```ts
+import { createHost } from "@mdsnai/sdk/server/node";
+
 http.createServer(
-  createNodeHost(server, {
+  createHost(server, {
     rootRedirect: "/guestbook",
     transformHtml: injectEnhancement,
     staticFiles: {
@@ -121,6 +123,20 @@ http.createServer(
     staticMounts: [{ urlPrefix: "/sdk/", directory: join(repoRoot, "sdk") }]
   })
 );
+```
+
+如果你运行在 Bun 上，直接用 Bun 适配器：
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/bun";
+
+Bun.serve({
+  port: 3000,
+  fetch: createHost(server, {
+    rootRedirect: "/guestbook",
+    transformHtml: injectEnhancement
+  })
+});
 ```
 
 ## 内置职责
@@ -132,7 +148,8 @@ http.createServer(
 - 解析 POST Markdown body
 - 对非 Markdown 的直接 POST 写入返回 `415 Unsupported Media Type`
 - 对格式错误的 Markdown body 返回可恢复的 `400`
-- 使用 `createNodeHost()` 托管 Node `http`
+- 通过 `@mdsnai/sdk/server/node` 托管 Node `http`
+- 通过 `@mdsnai/sdk/server/bun` 托管 Bun
 - 把 cookie 转发进 `request.cookies`
 - 注入 session
 - 协商 Markdown 与 HTML

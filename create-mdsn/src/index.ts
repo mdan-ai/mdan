@@ -2,10 +2,13 @@ import { cp, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises"
 import { basename, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+export type StarterRuntime = "node" | "bun";
+
 export interface ScaffoldStarterProjectOptions {
   targetDir: string;
   projectName?: string;
   sdkVersion: string;
+  runtime?: StarterRuntime;
 }
 
 const TEMPLATE_PLACEHOLDERS = {
@@ -13,8 +16,13 @@ const TEMPLATE_PLACEHOLDERS = {
   __SDK_VERSION__: ""
 } as const;
 
-function templateRootFromModule(moduleUrl: string): string {
-  return resolve(fileURLToPath(new URL("../template/starter", moduleUrl)));
+const DEFAULT_RUNTIME: StarterRuntime = "node";
+
+function templateRootsFromModule(moduleUrl: string, runtime: StarterRuntime): string[] {
+  return [
+    resolve(fileURLToPath(new URL("../template/shared", moduleUrl))),
+    resolve(fileURLToPath(new URL(`../template/${runtime}`, moduleUrl)))
+  ];
 }
 
 async function ensureEmptyTarget(targetDir: string): Promise<void> {
@@ -66,7 +74,8 @@ export async function scaffoldStarterProject(
   options: ScaffoldStarterProjectOptions,
   moduleUrl = import.meta.url
 ): Promise<string> {
-  const templateRoot = templateRootFromModule(moduleUrl);
+  const runtime = options.runtime ?? DEFAULT_RUNTIME;
+  const templateRoots = templateRootsFromModule(moduleUrl, runtime);
   const targetDir = resolve(options.targetDir);
   const projectName = options.projectName?.trim() || basename(targetDir);
 
@@ -75,7 +84,9 @@ export async function scaffoldStarterProject(
   }
 
   await ensureEmptyTarget(targetDir);
-  await cp(templateRoot, targetDir, { recursive: true });
+  for (const templateRoot of templateRoots) {
+    await cp(templateRoot, targetDir, { recursive: true });
+  }
 
   const replacements = {
     __PROJECT_NAME__: projectName,

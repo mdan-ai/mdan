@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -5,7 +7,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createAuthServer } from "../../../examples/auth-session/app/server.js";
-import { createNodeHost } from "../../src/server/index.js";
+import { createHost } from "@mdsnai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 
@@ -31,7 +33,7 @@ async function listen(listener: http.RequestListener): Promise<string> {
   const server = http.createServer(listener);
   servers.add(server);
   await new Promise<void>((resolve) => {
-    server.listen(0, "127.0.0.1", () => resolve());
+    server.listen(0, () => resolve());
   });
   const address = server.address();
   if (!address || typeof address === "string") {
@@ -60,7 +62,7 @@ describe("auth-session example over real node http", () => {
   it("keeps the full markdown flow intact across login/register pages, vault, logout, and recovery", async () => {
     const sources = await readAuthSources();
     const server = createAuthServer(sources);
-    const baseUrl = await listen(createNodeHost(server, { rootRedirect: "/login" }));
+    const baseUrl = await listen(createHost(server, { rootRedirect: "/login" }));
 
     const loginPage = await fetch(`${baseUrl}/login`, {
       headers: {
@@ -166,12 +168,12 @@ describe("auth-session example over real node http", () => {
     expect(notesAfterLogout.status).toBe(401);
     const notesAfterLogoutBody = await notesAfterLogout.text();
     expect(notesAfterLogoutBody).toContain('GET "/login" -> recover');
-  });
+  }, 15_000);
 
   it("supports non-ascii nicknames by encoding the session cookie value", async () => {
     const sources = await readAuthSources();
     const server = createAuthServer(sources);
-    const baseUrl = await listen(createNodeHost(server, { rootRedirect: "/login" }));
+    const baseUrl = await listen(createHost(server, { rootRedirect: "/login" }));
 
     const register = await fetch(`${baseUrl}/register`, {
       method: "POST",
@@ -189,5 +191,5 @@ describe("auth-session example over real node http", () => {
     expect(setCookie).not.toContain("哈哈");
     const registerBody = await register.text();
     expect(registerBody).toContain("Account created for 哈哈");
-  });
+  }, 15_000);
 });

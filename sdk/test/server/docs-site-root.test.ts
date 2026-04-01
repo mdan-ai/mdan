@@ -44,15 +44,15 @@ Run tests.
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe("text/html");
     expect(response.body).toContain('id="docs-nav-filter"');
-    expect(response.body).toContain('href="/docs"');
+    expect(response.body).toContain('href="/"');
     expect(response.body).toContain('aria-current="page"');
     expect(response.body).toContain("On this page");
     expect(response.body).toContain('href="#setup"');
     expect(response.body).toContain('href="#verify"');
     expect(response.body).toContain('src="/docs-site/docs.js"');
     expect(response.body).toContain('<html lang="en">');
-    expect(response.body).toContain('<a href="/docs/sdk" aria-current="page">EN</a>');
-    expect(response.body).toContain('<a href="/zh/docs/sdk">中文</a>');
+    expect(response.body).toContain('<a href="/sdk" aria-current="page">EN</a>');
+    expect(response.body).toContain('<a href="/zh/sdk">中文</a>');
   });
 
   it("supports custom third-party markdown renderer and keeps toc output", async () => {
@@ -114,8 +114,8 @@ This is **important**.
     expect(response.status).toBe(200);
     expect(response.body).toContain('<html lang="zh">');
     expect(response.body).toContain("本页目录");
-    expect(response.body).toContain('<a href="/docs/sdk">EN</a>');
-    expect(response.body).toContain('<a href="/zh/docs/sdk" aria-current="page">中文</a>');
+    expect(response.body).toContain('<a href="/sdk">EN</a>');
+    expect(response.body).toContain('<a href="/zh/sdk" aria-current="page">中文</a>');
     expect(response.body).toContain("搜索文档...");
   });
 });

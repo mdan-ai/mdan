@@ -15,4 +15,13 @@ cd examples/vue-starter
 npm start
 ```
 
+Or with Bun for install/build work:
+
+```bash
+bun install
+bun run build
+cd examples/vue-starter
+npm start
+```
+
 Then open [http://127.0.0.1:4324/](http://127.0.0.1:4324/).

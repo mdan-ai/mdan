@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createNodeHost } from "@mdsnai/sdk/server";
+import { createHost } from "@mdsnai/sdk/server/node";
 
 import { createGuestbookServer } from "./dist/server.js";
 
@@ -40,7 +40,7 @@ const source = await readFile(guestbookPagePath, "utf8");
 const mdsn = createGuestbookServer({ source });
 
 const server = http.createServer(
-  createNodeHost(mdsn, {
+  createHost(mdsn, {
     transformHtml: injectEnhancement,
     staticFiles: {
       "/app/client.js": join(exampleRoot, "dist", "client.js")

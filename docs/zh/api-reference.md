@@ -75,7 +75,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 ## `@mdsnai/sdk/server`
 
-这一组主要是服务端运行时和 Node 托管入口。
+这一组主要是共享服务端运行时。
 
 ### `createHostedApp({ pages, actions, ...options })`
 
@@ -129,18 +129,6 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 构造失败 action result，适合需要显式返回 4xx/5xx 且仍返回 `md + mdsn` 片段的场景。
 
-### `createNodeHost(server, options?)`
-
-当前唯一推荐的 Node `http` 入口。
-
-支持：
-
-- `rootRedirect`
-- `ignoreFavicon`
-- `transformHtml`
-- `staticFiles`
-- `staticMounts`
-
 ### `signIn(session)`
 
 创建登录 session mutation。
@@ -152,6 +140,47 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 ### `refreshSession(session)`
 
 创建续期 session mutation。
+
+## `@mdsnai/sdk/server/node`
+
+这一组主要是 Node host 适配器。
+
+### `createHost(server, options?)`
+
+推荐的 Node `http` 入口。
+
+支持：
+
+- `rootRedirect`
+- `ignoreFavicon`
+- `transformHtml`
+- `staticFiles`
+- `staticMounts`
+
+### `createNodeHost(server, options?)`
+
+`createHost(...)` 的显式 Node 命名别名。
+
+### `createNodeRequestListener(server, options?)`
+
+更底层的 Node `RequestListener` 适配器，适合你想自己包 `http.createServer(...)` 外壳时使用。
+
+## `@mdsnai/sdk/server/bun`
+
+这一组主要是 Bun host 适配器。
+
+### `createHost(server, options?)`
+
+推荐的 Bun `fetch` 入口，适合直接接到 `Bun.serve(...)`。
+
+支持：
+
+- `rootRedirect`
+- `ignoreFavicon`
+- `transformHtml`
+- `staticFiles`
+- `staticMounts`
+- `maxBodyBytes`
 
 ## `@mdsnai/sdk/web`
 

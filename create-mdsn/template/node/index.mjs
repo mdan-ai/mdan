@@ -9,7 +9,6 @@ import { createAppServer } from "./dist/server.js";
 
 const port = Number(process.env.PORT || 3000);
 const projectRoot = fileURLToPath(new URL("./", import.meta.url));
-const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const sourcePath = join(projectRoot, "app", "index.md");
 const assetVersion = Date.now().toString(36);
 
@@ -19,9 +18,9 @@ function withVersion(path) {
 
 const importMap = {
   imports: {
-    "@mdsnai/sdk/core": withVersion("/sdk/dist/core/index.js"),
-    "@mdsnai/sdk/web": withVersion("/sdk/dist/web/index.js"),
-    "@mdsnai/sdk/elements": withVersion("/sdk/dist/elements/index.js"),
+    "@mdsnai/sdk/core": withVersion("/node_modules/@mdsnai/sdk/dist/core/index.js"),
+    "@mdsnai/sdk/web": withVersion("/node_modules/@mdsnai/sdk/dist/web/index.js"),
+    "@mdsnai/sdk/elements": withVersion("/node_modules/@mdsnai/sdk/dist/elements/index.js"),
     "lit": withVersion("/node_modules/lit/index.js"),
     "lit-html": withVersion("/node_modules/lit-html/lit-html.js"),
     "lit-html/is-server.js": withVersion("/node_modules/lit-html/is-server.js"),
@@ -51,17 +50,13 @@ const server = http.createServer(
     },
     staticMounts: [
       {
-        urlPrefix: "/sdk/",
-        directory: join(repoRoot, "sdk")
-      },
-      {
         urlPrefix: "/node_modules/",
-        directory: join(repoRoot, "node_modules")
+        directory: join(projectRoot, "node_modules")
       }
     ]
   })
 );
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(`Starter demo running at http://127.0.0.1:${port}/`);
+  console.log(`MDSN starter running at http://127.0.0.1:${port}/`);
 });

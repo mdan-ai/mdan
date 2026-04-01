@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b tsconfig.json",
-    "start": "npm run build && node index.mjs"
+    "start": "tsc -b tsconfig.json && node index.mjs"
   },
   "dependencies": {
     "@mdsnai/sdk": "0.3.0"

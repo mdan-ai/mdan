@@ -5,7 +5,7 @@ description: Responsibilities, entry points, and common usage of @mdsnai/sdk/ser
 
 # Server Runtime
 
-`@mdsnai/sdk/server` is the main entry point when you want to host an MDSN app on the server.
+`@mdsnai/sdk/server` is the main entry point when you want to model an MDSN app on the server.
 
 It registers and handles operations by the explicit HTTP paths written in the MDSN page.
 
@@ -13,7 +13,7 @@ It registers and handles operations by the explicit HTTP paths written in the MD
 
 ```ts
 import { composePage } from "@mdsnai/sdk/core";
-import { createHostedApp, createNodeHost } from "@mdsnai/sdk/server";
+import { createHostedApp } from "@mdsnai/sdk/server";
 
 const server = createHostedApp({
   pages: {
@@ -107,11 +107,13 @@ The returned object contains:
 - `headers`
 - `body`
 
-If you are on Node `http`, use the built-in host:
+If you are on Node `http`, use the Node adapter:
 
 ```ts
+import { createHost } from "@mdsnai/sdk/server/node";
+
 http.createServer(
-  createNodeHost(server, {
+  createHost(server, {
     rootRedirect: "/guestbook",
     transformHtml: injectEnhancement,
     staticFiles: {
@@ -120,6 +122,20 @@ http.createServer(
     staticMounts: [{ urlPrefix: "/sdk/", directory: join(repoRoot, "sdk") }]
   })
 );
+```
+
+If you are on Bun, use the Bun adapter:
+
+```ts
+import { createHost } from "@mdsnai/sdk/server/bun";
+
+Bun.serve({
+  port: 3000,
+  fetch: createHost(server, {
+    rootRedirect: "/guestbook",
+    transformHtml: injectEnhancement
+  })
+});
 ```
 
 ## Built-In Responsibilities
@@ -131,7 +147,8 @@ http.createServer(
 - POST Markdown body parsing
 - `415 Unsupported Media Type` for non-Markdown direct POST writes
 - recoverable `400` responses for malformed Markdown bodies
-- Node `http` hosting when you use `createNodeHost()`
+- Node `http` hosting when you use `@mdsnai/sdk/server/node`
+- Bun hosting when you use `@mdsnai/sdk/server/bun`
 - cookie forwarding into `request.cookies`
 - session injection
 - Markdown vs HTML negotiation

@@ -1,13 +1,13 @@
-import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createNodeHost } from "@mdsnai/sdk/server";
+import { createHost } from "@mdsnai/sdk/server/bun";
 
 import { createAppServer } from "./dist/server.js";
 
 const port = Number(process.env.PORT || 3000);
+const hostname = process.env.HOST || "127.0.0.1";
 const projectRoot = fileURLToPath(new URL("./", import.meta.url));
 const sourcePath = join(projectRoot, "app", "index.md");
 const assetVersion = Date.now().toString(36);
@@ -42,8 +42,11 @@ function injectEnhancement(html) {
 
 const source = await readFile(sourcePath, "utf8");
 const mdsn = createAppServer({ source });
-const server = http.createServer(
-  createNodeHost(mdsn, {
+
+Bun.serve({
+  hostname,
+  port,
+  fetch: createHost(mdsn, {
     transformHtml: injectEnhancement,
     staticFiles: {
       "/app/client.js": join(projectRoot, "dist", "client.js")
@@ -55,8 +58,6 @@ const server = http.createServer(
       }
     ]
   })
-);
-
-server.listen(port, "127.0.0.1", () => {
-  console.log(`MDSN starter running at http://127.0.0.1:${port}/`);
 });
+
+console.log(`MDSN starter running at http://${hostname}:${port}/`);

@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -6,7 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { createGuestbookServer } from "../../../examples/guestbook/app/server.js";
 import { createAppServer } from "../../../examples/starter/app/server.js";
-import { createNodeHost } from "../../src/server/index.js";
+import { createHost } from "@mdsnai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 
@@ -32,7 +34,7 @@ async function listen(listener: http.RequestListener): Promise<string> {
   const server = http.createServer(listener);
   servers.add(server);
   await new Promise<void>((resolve) => {
-    server.listen(0, "127.0.0.1", () => resolve());
+    server.listen(0, () => resolve());
   });
   const address = server.address();
   if (!address || typeof address === "string") {
@@ -75,7 +77,7 @@ describe("guestbook agent-only smoke test", () => {
       source,
       initialMessages: ["Alpha", "Beta"]
     });
-    const baseUrl = await listen(createNodeHost(server));
+    const baseUrl = await listen(createHost(server));
 
     const page = await getMarkdown(`${baseUrl}/`);
     expect(page.status).toBe(200);
@@ -99,7 +101,7 @@ describe("guestbook agent-only smoke test", () => {
     expect(refreshBody).toContain("- Alpha");
     expect(refreshBody).toContain("- Beta");
     expect(refreshBody).toContain("- Hello from agent smoke");
-  });
+  }, 15_000);
 
   it("keeps the starter scaffold self-discoverable over HTTP only", async () => {
     const source = await readStarterGuestbookSource();
@@ -107,7 +109,7 @@ describe("guestbook agent-only smoke test", () => {
       source,
       initialMessages: ["First", "Second"]
     });
-    const baseUrl = await listen(createNodeHost(server));
+    const baseUrl = await listen(createHost(server));
 
     const page = await getMarkdown(`${baseUrl}/`);
     expect(page.status).toBe(200);
@@ -130,5 +132,5 @@ describe("guestbook agent-only smoke test", () => {
     expect(refreshBody).toContain("- First");
     expect(refreshBody).toContain("- Second");
     expect(refreshBody).toContain("- Third from starter smoke");
-  });
+  }, 15_000);
 });

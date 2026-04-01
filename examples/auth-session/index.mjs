@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createNodeHost } from "@mdsnai/sdk/server";
+import { createHost } from "@mdsnai/sdk/server/node";
 
 import { createAuthServer } from "./dist/server.js";
 
@@ -51,7 +51,7 @@ const [loginSource, registerSource, vaultSource] = await Promise.all([
 const mdsn = createAuthServer({ loginSource, registerSource, vaultSource });
 
 const server = http.createServer(
-  createNodeHost(mdsn, {
+  createHost(mdsn, {
     rootRedirect: "/login",
     transformHtml: injectEnhancement,
     staticFiles: {

@@ -9,11 +9,29 @@ This page does one thing: get your first MDSN app running in a few minutes.
 
 ## 1. Create and Start a Project
 
+Node starter:
+
 ```bash
 npm create mdsn@latest agent-app
 cd agent-app
 npm install
 npm start
+```
+
+Bun starter:
+
+```bash
+bunx create-mdsn agent-app
+cd agent-app
+bun install
+bun start
+```
+
+You can force either runtime with:
+
+```bash
+npm create mdsn@latest agent-app -- --runtime bun
+bunx create-mdsn agent-app --runtime node
 ```
 
 Open `http://127.0.0.1:3000/` by default.
@@ -35,7 +53,7 @@ npx create-mdsn agent-app
 - `app/client.ts`
   Browser runtime and default UI mounting live here
 - `index.mjs`
-  Local Node entry point lives here
+  Local runtime host entry lives here
 
 ## 3. Common Places To Start Editing
 
@@ -50,10 +68,18 @@ You can usually leave `app/client.ts` alone until you want to bring your own UI.
 
 If you are browsing the [MDSN repository](https://github.com/mdsn-ai/mdsn), you can also run the starter example in `examples/starter/`.
 
+That in-repo example keeps its current Node host shell, even though the published starter can now target Node or Bun.
+
 First run this once from the repository root:
 
 ```bash
 npm install
+```
+
+Or:
+
+```bash
+bun install
 ```
 
 Then start the example from its directory:
@@ -61,6 +87,13 @@ Then start the example from its directory:
 ```bash
 cd examples/starter
 npm start
+```
+
+You can still use Bun for the install/build side:
+
+```bash
+bun install
+bun run build
 ```
 
 ## 5. Next

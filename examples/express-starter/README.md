@@ -25,6 +25,14 @@ cd examples/express-starter
 npm start
 ```
 
+Or with Bun for install/build work:
+
+```bash
+bun install
+cd examples/express-starter
+npm start
+```
+
 Open:
 
 - `http://127.0.0.1:4330/`

@@ -9,11 +9,29 @@ description: 用 @mdsnai/sdk 快速跑起你的第一个 MDSN 应用。
 
 ## 1. 创建并启动项目
 
+Node starter：
+
 ```bash
 npm create mdsn@latest agent-app
 cd agent-app
 npm install
 npm start
+```
+
+Bun starter：
+
+```bash
+bunx create-mdsn agent-app
+cd agent-app
+bun install
+bun start
+```
+
+如果你想显式指定运行时，也可以：
+
+```bash
+npm create mdsn@latest agent-app -- --runtime bun
+bunx create-mdsn agent-app --runtime node
 ```
 
 启动后默认打开 `http://127.0.0.1:3000/`。
@@ -35,7 +53,7 @@ npx create-mdsn agent-app
 - `app/client.ts`
   浏览器侧运行时和默认 UI 挂载在这里
 - `index.mjs`
-  本地 Node 入口在这里
+  本地运行时 host 入口在这里
 
 ## 3. 常见修改入口
 
@@ -50,10 +68,18 @@ npx create-mdsn agent-app
 
 如果你正在查看 [MDSN 仓库](https://github.com/mdsn-ai/mdsn)，也可以直接运行仓库里的 `examples/starter/`。
 
+不过仓库里的这个示例目前仍然保留 Node host 外壳；发布出去的 starter 才会按 Node/Bun 两条线生成。
+
 先在仓库根目录执行一次：
 
 ```bash
 npm install
+```
+
+或者：
+
+```bash
+bun install
 ```
 
 然后进入示例目录启动：
@@ -61,6 +87,13 @@ npm install
 ```bash
 cd examples/starter
 npm start
+```
+
+如果你只是想用 Bun 做依赖安装和构建，也可以：
+
+```bash
+bun install
+bun run build
 ```
 
 ## 5. 下一步

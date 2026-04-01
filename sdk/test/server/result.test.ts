@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { composePage } from "@mdsnai/sdk/core";
+import * as serverBunApi from "@mdsnai/sdk/server/bun";
+import * as serverNodeApi from "@mdsnai/sdk/server/node";
 
 import * as serverApi from "../../src/server/index.js";
 import { block, fail, ok, signIn, signOut } from "../../src/server/index.js";
@@ -9,7 +11,10 @@ describe("result helpers", () => {
   it("keeps low-level node and html helpers out of the main server package entry", () => {
     expect("createNodeRequestListener" in serverApi).toBe(false);
     expect("renderHtmlDocument" in serverApi).toBe(false);
-    expect("createNodeHost" in serverApi).toBe(true);
+    expect("createNodeHost" in serverApi).toBe(false);
+    expect("createHost" in serverNodeApi).toBe(true);
+    expect("createNodeRequestListener" in serverNodeApi).toBe(true);
+    expect("createHost" in serverBunApi).toBe(true);
   });
 
   it("wraps successful fragments", () => {

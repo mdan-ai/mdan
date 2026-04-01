@@ -2,7 +2,7 @@
   "name": "create-mdsn",
   "version": "0.3.4",
   "private": false,
-  "description": "Create a minimal MDSN app with npm create.",
+  "description": "Create a minimal MDSN app with npm create or bunx.",
   "license": "MIT",
   "homepage": "https://docs.mdsn.ai",
   "bugs": {
@@ -23,7 +23,8 @@
     "workflow",
     "skills-app",
     "agent-app",
-    "cli"
+    "cli",
+    "bun"
   ],
   "type": "module",
   "main": "./dist/index.js",
@@ -35,7 +36,9 @@
     "dist",
     "README.md",
     "LICENSE",
-    "template/starter"
+    "template/shared",
+    "template/node",
+    "template/bun"
   ],
   "bin": {
     "create-mdsn": "./dist/cli.js"

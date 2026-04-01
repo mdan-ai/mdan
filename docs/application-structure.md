@@ -16,7 +16,7 @@ The smallest useful structure is usually:
 - `app/*.md`: page source
 - `app/server.ts`: page composition and action handlers
 - `app/client.ts`: browser runtime and UI mounting
-- `index.mjs`: local Node host entry
+- `index.mjs`: local runtime host entry
 
 You can think of that as three layers:
 
@@ -24,7 +24,7 @@ You can think of that as three layers:
 - `app/server.ts` connects pages to real application state
 - `app/client.ts` handles follow-up interaction in the browser
 
-`index.mjs` only hosts the app so you can run it locally or deploy it in a Node environment.
+`index.mjs` only hosts the app so you can run it locally or deploy it in Node or Bun.
 
 ## Keep Responsibilities Clear
 
@@ -35,7 +35,7 @@ A clean split usually looks like this:
 - Markdown defines content and operations
 - `composePage()` attaches runtime block content to the page
 - `createHostedApp({ pages, actions })` registers pages and operations as an app
-- `createNodeHost()` hosts that app in Node
+- `createHost()` from the runtime adapter hosts that app in Node or Bun
 - `createHeadlessHost()` handles follow-up interaction in the browser
 
 That way, the page layer, the server layer, and the browser layer each do one thing.
@@ -62,7 +62,7 @@ When those three line up, behavior tends to stay predictable.
 Shared HTML shell logic should usually live in server-side wrapping:
 
 - use `renderHtml` to build the global shell
-- or use `transformHtml` in the Node host entry for final injection
+- or use `transformHtml` in the runtime host entry for final injection
 
 Typical responsibilities look like this:
 
@@ -108,7 +108,7 @@ If a write also needs to carry new state, an error, or the next available operat
 1. Decide your route list and page files.
 2. Write the Markdown for each page, then build a `renderPage()`-style composition function.
 3. Register each page operation as an explicit action.
-4. Wire up the Node entry, static assets, and HTML shell.
+4. Wire up the runtime entry, static assets, and HTML shell.
 5. Add the browser runtime and verify local updates and page transitions.
 
 ## Common Pitfalls

@@ -75,7 +75,7 @@ When `text/markdown` is explicitly present, it wins over `html`.
 
 ## `@mdsnai/sdk/server`
 
-This group contains the server runtime and Node host entry.
+This group contains the shared server runtime.
 
 ### `createHostedApp({ pages, actions, ...options })`
 
@@ -129,18 +129,6 @@ Builds a successful action result for cases where you want to handcraft the frag
 
 Builds a failed action result for cases where you want an explicit 4xx/5xx status and still return a Markdown fragment.
 
-### `createNodeHost(server, options?)`
-
-The current recommended Node `http` entry point.
-
-Supported options:
-
-- `rootRedirect`
-- `ignoreFavicon`
-- `transformHtml`
-- `staticFiles`
-- `staticMounts`
-
 ### `signIn(session)`
 
 Creates a sign-in session mutation.
@@ -152,6 +140,47 @@ Creates a sign-out session mutation.
 ### `refreshSession(session)`
 
 Creates a session refresh mutation.
+
+## `@mdsnai/sdk/server/node`
+
+This group contains the Node host adapter.
+
+### `createHost(server, options?)`
+
+The recommended Node `http` entry point.
+
+Supported options:
+
+- `rootRedirect`
+- `ignoreFavicon`
+- `transformHtml`
+- `staticFiles`
+- `staticMounts`
+
+### `createNodeHost(server, options?)`
+
+An explicit Node-named alias for `createHost(...)`.
+
+### `createNodeRequestListener(server, options?)`
+
+Lower-level Node `RequestListener` adapter when you want to wrap your own `http.createServer(...)` shell.
+
+## `@mdsnai/sdk/server/bun`
+
+This group contains the Bun host adapter.
+
+### `createHost(server, options?)`
+
+The recommended Bun `fetch` entry point for `Bun.serve(...)`.
+
+Supported options:
+
+- `rootRedirect`
+- `ignoreFavicon`
+- `transformHtml`
+- `staticFiles`
+- `staticMounts`
+- `maxBodyBytes`
 
 ## `@mdsnai/sdk/web`
 
