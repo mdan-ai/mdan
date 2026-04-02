@@ -13,6 +13,11 @@ MDSN officially supports Node and Bun.
 - choose Bun if you want a Bun-native starter and toolchain entry
 - the app model stays the same across both runtimes
 
+Current npm releases:
+
+- `create-mdsn@0.4.5`
+- `@mdsnai/sdk@0.4.2`
+
 ## 1. Create and Start a Project
 
 Node starter:

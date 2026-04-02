@@ -78,6 +78,10 @@ function buildBindings(
     }
 
     for (const method of uniqueMethods) {
+      if (method === "GET" && pages[action.target]) {
+        throw new Error(`GET ${action.target} cannot share the same path as a hosted page route.`);
+      }
+
       const key = createBindingKey(method, action.target);
       if (bindings.has(key)) {
         throw new Error(`${method} ${action.target} must bind to one stable block context.`);

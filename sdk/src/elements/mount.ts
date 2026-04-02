@@ -85,6 +85,20 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
     getFormValues(formKey)[name] = value;
   }
 
+  function getInputValue(input: { type: string; name: string; options?: string[] }, formValues: Record<string, string>): string {
+    const value = formValues[input.name];
+    if (value !== undefined) {
+      return value;
+    }
+    if (input.type === "choice") {
+      return input.options?.[0] ?? "";
+    }
+    if (input.type === "boolean") {
+      return "false";
+    }
+    return "";
+  }
+
   function renderSnapshot(snapshot: HeadlessSnapshot): void {
     render(
       html`
@@ -106,26 +120,145 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
               <mdsn-block data-mdsn-block=${block.name}>
                 ${block.markdown ? renderMarkdown(block.markdown, markdownRenderer) : ""}
 
-                ${getOperations.length
-                  ? html`
+                ${getOperations.map((operation) => {
+                  const formKey = getFormKey(block.name, operation);
+                  const formValues = getFormValues(formKey);
+                  const renderableInputs = operation.inputs
+                    .map((name) => inputsByName.get(name))
+                    .filter((input): input is NonNullable<typeof input> => Boolean(input));
+
+                  if (renderableInputs.length === 0) {
+                    return html`
                       <div class="mdsn-elements-actions">
-                        ${getOperations.map(
-                          (operation) => html`
-                              <mdsn-action>
-                                <button
-                                  type="button"
-                                  @click=${() => {
-                                    void host.submit(operation, {});
+                        <mdsn-action>
+                          <button
+                            type="button"
+                            @click=${() => {
+                              void host.submit(operation, {});
+                            }}
+                          >
+                            ${operation.label ?? operation.name ?? operation.target}
+                          </button>
+                        </mdsn-action>
+                      </div>
+                    `;
+                  }
+
+                  return html`
+                    <mdsn-form>
+                      <form
+                        @submit=${(event: Event) => {
+                          event.preventDefault();
+                          const form = event.currentTarget as HTMLFormElement;
+                          if (typeof form.reportValidity === "function" && !form.reportValidity()) {
+                            return;
+                          }
+                          const payload: Record<string, string> = {};
+                          for (const name of operation.inputs) {
+                            const input = inputsByName.get(name);
+                            payload[name] = input ? getInputValue(input, formValues) : formValues[name] ?? "";
+                          }
+                          void host.submit(operation, payload);
+                        }}
+                      >
+                        ${renderableInputs.map((input) => {
+                          const label = html`<span class="mdsn-label-text">
+                            ${humanizeLabel(input.name)}
+                            ${input.required ? html`<span class="mdsn-required" aria-hidden="true">*</span>` : ""}
+                          </span>`;
+
+                          if (input.type === "choice") {
+                            return html`
+                              <mdsn-field>
+                                <label>
+                                  ${label}
+                                  <select
+                                    name=${input.name}
+                                    ?required=${input.required}
+                                    .value=${getInputValue(input, formValues)}
+                                    @change=${(event: Event) => {
+                                      onInput(formKey, input.name, (event.currentTarget as HTMLSelectElement).value);
+                                    }}
+                                  >
+                                    ${(input.options ?? []).map(
+                                      (option) => html`<option value=${option}>${option}</option>`
+                                    )}
+                                  </select>
+                                </label>
+                              </mdsn-field>
+                            `;
+                          }
+
+                          if (input.type === "boolean") {
+                            return html`
+                              <mdsn-field>
+                                <label>
+                                  ${label}
+                                  <input
+                                    name=${input.name}
+                                    type="checkbox"
+                                    ?required=${input.required}
+                                    .checked=${formValues[input.name] === "true"}
+                                    @change=${(event: Event) => {
+                                      onInput(
+                                        formKey,
+                                        input.name,
+                                        (event.currentTarget as HTMLInputElement).checked ? "true" : "false"
+                                      );
+                                    }}
+                                  >
+                                </label>
+                              </mdsn-field>
+                            `;
+                          }
+
+                          if (input.type === "asset") {
+                            return html`
+                              <mdsn-field>
+                                <label>
+                                  ${label}
+                                  <input
+                                    name=${input.name}
+                                    type="file"
+                                    ?required=${input.required}
+                                    @change=${(event: Event) => {
+                                      onInput(
+                                        formKey,
+                                        input.name,
+                                        (event.currentTarget as HTMLInputElement).files?.[0]?.name ?? ""
+                                      );
+                                    }}
+                                  >
+                                </label>
+                              </mdsn-field>
+                            `;
+                          }
+
+                          return html`
+                            <mdsn-field>
+                              <label>
+                                ${label}
+                                <input
+                                  name=${input.name}
+                                  type=${input.secret ? "password" : input.type === "number" ? "number" : "text"}
+                                  ?required=${input.required}
+                                  .value=${formValues[input.name] ?? ""}
+                                  placeholder=${input.name === "message" ? "Write something worth keeping" : ""}
+                                  @input=${(event: Event) => {
+                                    onInput(formKey, input.name, (event.currentTarget as HTMLInputElement).value);
                                   }}
                                 >
-                                  ${operation.label ?? operation.name ?? operation.target}
-                                </button>
-                              </mdsn-action>
-                            `
-                        )}
-                      </div>
-                    `
-                  : ""}
+                              </label>
+                            </mdsn-field>
+                          `;
+                        })}
+                        <mdsn-action>
+                          <button type="submit">${operation.label ?? operation.name ?? operation.target}</button>
+                        </mdsn-action>
+                      </form>
+                    </mdsn-form>
+                  `;
+                })}
 
                 ${postOperations.map((operation) => {
                   const formKey = getFormKey(block.name, operation);
@@ -145,7 +278,8 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                           }
                           const payload: Record<string, string> = {};
                           for (const name of operation.inputs) {
-                            payload[name] = formValues[name] ?? "";
+                            const input = inputsByName.get(name);
+                            payload[name] = input ? getInputValue(input, formValues) : formValues[name] ?? "";
                           }
                           void host.submit(operation, payload);
                           valuesByForm[formKey] = {};
@@ -165,7 +299,7 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                       <select
                                         name=${input.name}
                                         ?required=${input.required}
-                                        .value=${formValues[input.name] ?? ""}
+                                        .value=${getInputValue(input, formValues)}
                                         @change=${(event: Event) => {
                                           onInput(formKey, input.name, (event.currentTarget as HTMLSelectElement).value);
                                         }}

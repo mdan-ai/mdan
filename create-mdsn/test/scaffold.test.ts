@@ -108,4 +108,9 @@ describe("create-mdsn starter scaffold", () => {
     expect(toCompatibleSdkRange("1.3.7")).toBe("^1.3.0");
     expect(toCompatibleSdkRange("0.5.0-beta.1")).toBe("^0.5.0");
   });
+
+  it("rejects invalid package versions when deriving sdk ranges", () => {
+    expect(() => toCompatibleSdkRange("latest")).toThrow(/Unsupported package version/);
+    expect(() => toCompatibleSdkRange("0.4")).toThrow(/Unsupported package version/);
+  });
 });

@@ -232,6 +232,53 @@ describe("createHeadlessHost", () => {
     }
   });
 
+  it("pushes the resolved page route when visit lands on a different final route", async () => {
+    const root = createRootWithBootstrap({
+      kind: "page",
+      route: "/",
+      markdown: "# Home",
+      blocks: []
+    });
+
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      new Response(
+        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          kind: "page",
+          route: "/login",
+          markdown: "# Login",
+          blocks: []
+        })}</script></body></html>`,
+        { headers: { "content-type": "text/html" } }
+      )
+    );
+
+    const pushState = vi.fn();
+    const originalHistory = window.history;
+    Object.defineProperty(window, "history", {
+      configurable: true,
+      value: {
+        ...originalHistory,
+        pushState
+      }
+    });
+
+    try {
+      const host = createHeadlessHost({ root, fetchImpl });
+      await host.visit("/vault");
+      await flushAsync();
+
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      expect(pushState).toHaveBeenCalledWith({}, "", "/login");
+      expect(host.getSnapshot().route).toBe("/login");
+      expect(host.getSnapshot().markdown).toBe("# Login");
+    } finally {
+      Object.defineProperty(window, "history", {
+        configurable: true,
+        value: originalHistory
+      });
+    }
+  });
+
   it("uses the root-scoped bootstrap when multiple apps share one document", () => {
     document.body.innerHTML = "";
     const first = document.createElement("div");

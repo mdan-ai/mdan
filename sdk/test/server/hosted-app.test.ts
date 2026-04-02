@@ -335,5 +335,32 @@ BLOCK guestbook {
         ]
       })
     ).toThrow(/cannot declare duplicate methods/);
+
+    expect(() =>
+      createHostedApp({
+        pages: {
+          "/account": () =>
+            composePage(`# Account
+
+<!-- mdsn:block account -->
+
+\`\`\`mdsn
+BLOCK account {
+  GET "/account" -> refresh
+}
+\`\`\`
+`)
+        },
+        actions: [
+          {
+            target: "/account",
+            methods: ["GET"],
+            routePath: "/account",
+            blockName: "account",
+            handler: ({ block }) => block()
+          }
+        ]
+      })
+    ).toThrow(/GET \/account cannot share the same path as a hosted page route/);
   });
 });

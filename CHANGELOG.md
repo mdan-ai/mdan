@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 This changelog starts at `0.4.0`. Earlier releases were not backfilled.
 
+## 0.4.5 - 2026-04-02
+
+### Changed
+
+- `@mdsnai/sdk` is now published as `0.4.2`, adding explicit `auto` operations that are resolved by the server host before returning the final result
+- `auto` resolution now stays consistent across agent and browser consumers, and `label` no longer carries implicit execution behavior
+- `create-mdsn` is now published as `0.4.5` and continues to generate `@mdsnai/sdk: ^0.4.0` for the current `0.4.x` starter line
+- `create-mdsn` no longer pins `@mdsnai/sdk` as its own direct runtime dependency
+
 ## 0.4.4 - 2026-04-02
 
 ### Changed

@@ -185,6 +185,139 @@ describe("registerMdsnElements", () => {
     }
   });
 
+  it("submits declared GET input values through the default elements UI", async () => {
+    document.body.innerHTML = `
+      <div id="root">
+        <script id="mdsn-bootstrap" type="application/json">
+          {"kind":"page","route":"/search","markdown":"# Search","blocks":[{"name":"search","markdown":"## Find a note","inputs":[{"name":"query","type":"text","required":true,"secret":false}],"operations":[{"method":"GET","target":"/search","name":"search","inputs":["query"],"label":"Search"}]}]}
+        </script>
+      </div>
+    `;
+
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      new Response(
+        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          kind: "page",
+          route: "/search?query=hello",
+          markdown: "# Search",
+          blocks: [
+            {
+              name: "search",
+              markdown: "## Results for hello",
+              inputs: [{ name: "query", type: "text", required: true, secret: false }],
+              operations: [{ method: "GET", target: "/search", name: "search", inputs: ["query"], label: "Search" }]
+            }
+          ]
+        })}</script></body></html>`,
+        { headers: { "content-type": "text/html" } }
+      )
+    );
+
+    const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
+    const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+
+    runtime.mount();
+    await Promise.resolve();
+
+    const input = document.querySelector("input[name='query']") as HTMLInputElement | null;
+    expect(input).toBeTruthy();
+    input!.value = "hello";
+    input!.dispatchEvent(new Event("input", { bubbles: true }));
+
+    const form = document.querySelector("form") as HTMLFormElement;
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "/search?query=hello",
+      expect.objectContaining({
+        method: "GET"
+      })
+    );
+    expect(document.getElementById("root")?.textContent).toContain("Results for hello");
+  });
+
+  it("submits the first choice option when the user leaves the default selection unchanged", async () => {
+    document.body.innerHTML = `
+      <div id="root">
+        <script id="mdsn-bootstrap" type="application/json">
+          {"kind":"page","route":"/compose","markdown":"# Compose","blocks":[{"name":"compose","markdown":"## Draft","inputs":[{"name":"status","type":"choice","required":false,"secret":false,"options":["draft","published"]}],"operations":[{"method":"POST","target":"/compose","name":"save","inputs":["status"],"label":"Save"}]}]}
+        </script>
+      </div>
+    `;
+
+    const seenBodies: string[] = [];
+    const fetchImpl = vi.fn(async (_target, init) => {
+      seenBodies.push(String(init?.body ?? ""));
+      return new Response(
+        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          kind: "fragment",
+          block: {
+            name: "compose",
+            markdown: "## Saved",
+            inputs: [{ name: "status", type: "choice", required: false, secret: false, options: ["draft", "published"] }],
+            operations: [{ method: "POST", target: "/compose", name: "save", inputs: ["status"], label: "Save" }]
+          }
+        })}</script></body></html>`,
+        { headers: { "content-type": "text/html" } }
+      );
+    });
+
+    const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
+    const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+
+    runtime.mount();
+    await Promise.resolve();
+
+    const form = document.querySelector("form") as HTMLFormElement;
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+
+    expect(seenBodies[0]).toBe('status: "draft"');
+  });
+
+  it("submits false for unchecked boolean inputs by default", async () => {
+    document.body.innerHTML = `
+      <div id="root">
+        <script id="mdsn-bootstrap" type="application/json">
+          {"kind":"page","route":"/compose","markdown":"# Compose","blocks":[{"name":"compose","markdown":"## Draft","inputs":[{"name":"published","type":"boolean","required":false,"secret":false}],"operations":[{"method":"POST","target":"/compose","name":"save","inputs":["published"],"label":"Save"}]}]}
+        </script>
+      </div>
+    `;
+
+    const seenBodies: string[] = [];
+    const fetchImpl = vi.fn(async (_target, init) => {
+      seenBodies.push(String(init?.body ?? ""));
+      return new Response(
+        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          kind: "fragment",
+          block: {
+            name: "compose",
+            markdown: "## Saved",
+            inputs: [{ name: "published", type: "boolean", required: false, secret: false }],
+            operations: [{ method: "POST", target: "/compose", name: "save", inputs: ["published"], label: "Save" }]
+          }
+        })}</script></body></html>`,
+        { headers: { "content-type": "text/html" } }
+      );
+    });
+
+    const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
+    const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+
+    runtime.mount();
+    await Promise.resolve();
+
+    const form = document.querySelector("form") as HTMLFormElement;
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+
+    expect(seenBodies[0]).toBe('published: "false"');
+  });
+
   it("uses an injected markdown renderer for default elements output", async () => {
     document.body.innerHTML = `
       <script id="mdsn-bootstrap" type="application/json">

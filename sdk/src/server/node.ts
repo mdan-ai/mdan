@@ -145,11 +145,14 @@ async function tryServeStaticFile(request: IncomingMessage, response: ServerResp
 }
 
 function resolveMountedFile(directory: string, urlPrefix: string, pathname: string): string | null {
-  if (!pathname.startsWith(urlPrefix)) {
+  const normalizedPrefix =
+    urlPrefix.length > 1 && urlPrefix.endsWith("/") ? urlPrefix.slice(0, -1) : urlPrefix;
+
+  if (pathname !== normalizedPrefix && !pathname.startsWith(`${normalizedPrefix}/`)) {
     return null;
   }
 
-  const relativePath = pathname.slice(urlPrefix.length);
+  const relativePath = pathname.slice(normalizedPrefix.length).replace(/^\/+/, "");
   const baseDirectory = resolve(directory);
   const target = resolve(baseDirectory, relativePath);
   if (target !== baseDirectory && !target.startsWith(`${baseDirectory}/`)) {

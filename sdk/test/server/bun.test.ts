@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -107,5 +107,25 @@ describe("bun host adapter", () => {
     const body = await streamResponse.text();
     expect(body).toContain("data: ## Tick");
     expect(body).toContain("data: ## Tock");
+  });
+
+  it("does not serve files for lookalike static mount prefixes", async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-bun-host-prefix-"));
+    const publicDir = join(tempRoot, "public");
+    await mkdir(join(publicDir, "-evil"), { recursive: true });
+    await writeFile(join(publicDir, "-evil", "secret.txt"), "secret", "utf8");
+
+    const server = createMdsnServer();
+    const host = createHost(server, {
+      staticMounts: [{ urlPrefix: "/public", directory: publicDir }]
+    });
+
+    const response = await host(
+      new Request("https://example.test/public-evil/secret.txt", {
+        headers: { accept: "text/markdown" }
+      })
+    );
+
+    expect(response.status).toBe(404);
   });
 });

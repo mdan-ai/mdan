@@ -151,6 +151,12 @@ function applySessionMutation(
   return mutation.session;
 }
 
+interface AutoPageResolution {
+  page: MdsnPage;
+  route?: string;
+  session?: MdsnActionResult["session"];
+}
+
 function createImplicitGetRequest(target: string, request: MdsnRequest): MdsnRequest {
   const targetUrl = new URL(target, request.url);
   return {
@@ -256,9 +262,11 @@ async function resolveAutoDependencies(
   request: MdsnRequest,
   session: MdsnSessionSnapshot | null,
   router: MdsnRouter
-): Promise<MdsnPage> {
+): Promise<AutoPageResolution> {
   let currentPage = page;
   let currentSession = session;
+  let currentMutation: MdsnActionResult["session"] | undefined;
+  let currentRoute: string | undefined;
 
   for (let pass = 0; pass < 10; pass += 1) {
     let resolved = false;
@@ -275,6 +283,12 @@ async function resolveAutoDependencies(
       }
 
       currentSession = applySessionMutation(currentSession, result.session);
+      if (result.session) {
+        currentMutation = result.session;
+      }
+      if (result.route) {
+        currentRoute = result.route;
+      }
 
       if (result.page) {
         currentPage = result.page;
@@ -289,11 +303,19 @@ async function resolveAutoDependencies(
     }
 
     if (!resolved) {
-      return currentPage;
+      return {
+        page: currentPage,
+        ...(currentRoute ? { route: currentRoute } : {}),
+        ...(currentMutation ? { session: currentMutation } : {})
+      };
     }
   }
 
-  return currentPage;
+  return {
+    page: currentPage,
+    ...(currentRoute ? { route: currentRoute } : {}),
+    ...(currentMutation ? { session: currentMutation } : {})
+  };
 }
 
 async function resolveAutoActionResult(
@@ -303,9 +325,12 @@ async function resolveAutoActionResult(
   router: MdsnRouter
 ): Promise<MdsnActionResult> {
   if (result.page) {
+    const resolvedPage = await resolveAutoDependencies(result.page, request, session, router);
     return {
       ...result,
-      page: await resolveAutoDependencies(result.page, request, session, router)
+      ...(resolvedPage.route ? { route: resolvedPage.route } : result.route ? { route: result.route } : {}),
+      ...(resolvedPage.session ? { session: resolvedPage.session } : {}),
+      page: resolvedPage.page
     };
   }
 
@@ -328,10 +353,18 @@ async function resolveAutoActionResult(
     }
 
     if (resolved.page) {
+      const resolvedPage = await resolveAutoDependencies(resolved.page, request, currentSession, router);
       return {
         ...current,
-        ...(resolved.route ? { route: resolved.route } : current.route ? { route: current.route } : {}),
-        page: await resolveAutoDependencies(resolved.page, request, currentSession, router)
+        ...(resolvedPage.session ? { session: resolvedPage.session } : resolved.session ? { session: resolved.session } : {}),
+        ...(resolvedPage.route
+          ? { route: resolvedPage.route }
+          : resolved.route
+            ? { route: resolved.route }
+            : current.route
+              ? { route: current.route }
+              : {}),
+        page: resolvedPage.page
       };
     }
 
@@ -352,7 +385,8 @@ async function resolveAutoActionResult(
 }
 
 function getRenderablePage(page: MdsnPage) {
-  const visibleBlockNames = page.visibleBlockNames ? new Set(page.visibleBlockNames) : null;
+  const visibleBlockNames =
+    page.visibleBlockNames && page.visibleBlockNames.length > 0 ? new Set(page.visibleBlockNames) : null;
   const blocks = visibleBlockNames ? page.blocks.filter((block) => visibleBlockNames.has(block.name)) : page.blocks;
   const blockContent =
     page.blockContent && visibleBlockNames
@@ -601,7 +635,28 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
           }
           if (page) {
             const resolvedPage = await resolveAutoDependencies(page, request, session, router);
-            return createPageResponse(resolvedPage, representation, htmlRenderer, request, options.htmlDiscovery, pathname);
+            const response = createPageResponse(
+              resolvedPage.page,
+              representation,
+              htmlRenderer,
+              request,
+              options.htmlDiscovery,
+              resolvedPage.route ?? pathname
+            );
+
+            if (sessionProvider && resolvedPage.session) {
+              try {
+                if (resolvedPage.session.type === "sign-out") {
+                  await sessionProvider.clear(session, response, request);
+                } else {
+                  await sessionProvider.commit(resolvedPage.session, response);
+                }
+              } catch {
+                return createResponse(createInternalServerErrorResult(), representation, htmlRenderer, request, options.htmlDiscovery);
+              }
+            }
+
+            return response;
           }
         }
       }

@@ -536,4 +536,24 @@ describe("createNodeRequestListener", () => {
     });
     expect(escaped.status).toBe(404);
   });
+
+  it("does not serve files for lookalike static mount prefixes", async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-node-host-prefix-"));
+    const publicDir = join(tempRoot, "public");
+    await mkdir(join(publicDir, "-evil"), { recursive: true });
+    await writeFile(join(publicDir, "-evil", "secret.txt"), "secret");
+
+    const mdsn = createMdsnServer();
+    const baseUrl = await listen(
+      createHost(mdsn, {
+        staticMounts: [{ urlPrefix: "/public", directory: publicDir }]
+      })
+    );
+
+    const response = await fetch(`${baseUrl}/public-evil/secret.txt`, {
+      headers: { accept: "text/markdown" }
+    });
+
+    expect(response.status).toBe(404);
+  });
 });

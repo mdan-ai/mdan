@@ -338,11 +338,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
         }
       });
       const content = await response.text();
-      snapshot = toSnapshot(parseBootstrapFromHtml(content), snapshot);
-      if (updateHistory) {
-        pushHistory(target);
-      }
-      setStatus({ status: "idle" });
+      await applyResponse(content, updateHistory);
     } catch (error) {
       setStatus({ status: "error", error: error instanceof Error ? error.message : String(error) });
     }

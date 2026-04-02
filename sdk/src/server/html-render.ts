@@ -88,7 +88,11 @@ function renderOperation(operation: MdsnOperation, inputs: MdsnInput[]): string 
     if (operation.accept === "text/event-stream") {
       return `<mdsn-stream data-mdsn-stream-target="${escapeHtml(operation.target)}"></mdsn-stream>`;
     }
-    return `<mdsn-form><form method="GET" action="${escapeHtml(operation.target)}" data-mdsn-method="GET" data-mdsn-target="${escapeHtml(operation.target)}" ${actionAttrs}><mdsn-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name ?? operation.target)}</button></mdsn-action></form></mdsn-form>`;
+    const fields = inputs
+      .filter((input) => operation.inputs.includes(input.name))
+      .map(renderInput)
+      .join("");
+    return `<mdsn-form><form method="GET" action="${escapeHtml(operation.target)}" data-mdsn-method="GET" data-mdsn-target="${escapeHtml(operation.target)}" ${actionAttrs}>${fields}<mdsn-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name ?? operation.target)}</button></mdsn-action></form></mdsn-form>`;
   }
 
   const fields = inputs

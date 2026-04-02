@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { composePage } from "../../src/core/index.js";
 import { createMdsnServer, ok, signIn, stream } from "../../src/server/index.js";
 
 async function readBody(body: string | AsyncIterable<string>): Promise<string> {
@@ -97,6 +98,30 @@ describe("createMdsnServer", () => {
       'text/markdown; profile="https://mdsn.ai/protocol/v1"'
     );
     expect(response.body).toContain("## Hi Guest");
+  });
+
+  it("uses the last repeated query value when parsing GET inputs", async () => {
+    const server = createMdsnServer();
+
+    server.get("/search", async (ctx) =>
+      ok({
+        fragment: {
+          markdown: `## Query ${ctx.inputs.query ?? "none"}`,
+          blocks: []
+        }
+      })
+    );
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/search?query=first&query=second",
+      headers: { accept: "text/markdown" },
+      query: {},
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain("## Query second");
   });
 
   it("matches POST handlers by target, parses markdown body, and commits session", async () => {
@@ -205,6 +230,384 @@ describe("createMdsnServer", () => {
       expect.objectContaining({ status: 200 }),
       expect.objectContaining({ url: "https://example.test/logout" })
     );
+  });
+
+  it("commits the final session mutation after an action auto-resolves into a page", async () => {
+    const commit = vi.fn(async () => undefined);
+    const server = createMdsnServer({
+      session: {
+        read: async () => null,
+        commit,
+        clear: async () => undefined
+      }
+    });
+
+    server.post("/start", async () =>
+      ok({
+        fragment: {
+          markdown: "## Starting",
+          blocks: [
+            {
+              name: "session",
+              markdown: "## Starting",
+              inputs: [],
+              operations: [{ method: "GET", target: "/finish", name: "finish", inputs: [], auto: true }]
+            }
+          ]
+        },
+        session: signIn({ userId: "draft-user" })
+      })
+    );
+
+    server.get("/finish", async () =>
+      ok({
+        page: composePage("# Final", {}),
+        session: signIn({ userId: "final-user" })
+      })
+    );
+
+    const response = await server.handle({
+      method: "POST",
+      url: "https://example.test/start",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain("# Final");
+    expect(commit).toHaveBeenCalledWith(
+      {
+        type: "sign-in",
+        session: { userId: "final-user" }
+      },
+      expect.objectContaining({ status: 200 })
+    );
+  });
+
+  it("commits the deepest session mutation when an action resolves through multiple auto page steps", async () => {
+    const commit = vi.fn(async () => undefined);
+    const server = createMdsnServer({
+      session: {
+        read: async () => null,
+        commit,
+        clear: async () => undefined
+      }
+    });
+
+    server.post("/start", async () =>
+      ok({
+        fragment: {
+          markdown: "## Starting",
+          blocks: [
+            {
+              name: "session",
+              markdown: "## Starting",
+              inputs: [],
+              operations: [{ method: "GET", target: "/step-1", name: "step_1", inputs: [], auto: true }]
+            }
+          ]
+        },
+        session: signIn({ userId: "draft-user" })
+      })
+    );
+
+    server.get("/step-1", async () =>
+      ok({
+        page: composePage(
+          `# Step 1
+
+<!-- mdsn:block gate -->
+
+\`\`\`mdsn
+BLOCK gate {
+  GET "/step-2" -> step_2 auto
+}
+\`\`\`
+`,
+          {
+            blocks: {
+              gate: "## Passing through"
+            }
+          }
+        ),
+        session: signIn({ userId: "middle-user" })
+      })
+    );
+
+    server.get("/step-2", async () =>
+      ok({
+        page: composePage("# Final", {}),
+        session: signIn({ userId: "final-user" })
+      })
+    );
+
+    const response = await server.handle({
+      method: "POST",
+      url: "https://example.test/start",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain("# Final");
+    expect(commit).toHaveBeenCalledWith(
+      {
+        type: "sign-in",
+        session: { userId: "final-user" }
+      },
+      expect.objectContaining({ status: 200 })
+    );
+  });
+
+  it("commits session mutations produced by auto resolution on page routes", async () => {
+    const commit = vi.fn(async () => undefined);
+    const server = createMdsnServer({
+      session: {
+        read: async () => null,
+        commit,
+        clear: async () => undefined
+      }
+    });
+
+    server.page("/welcome", async () =>
+      composePage(
+        `# Welcome
+
+<!-- mdsn:block auth -->
+
+\`\`\`mdsn
+BLOCK auth {
+  GET "/bootstrap-session" -> bootstrap_session auto
+}
+\`\`\`
+`,
+        {
+          blocks: {
+            auth: "## Loading session"
+          }
+        }
+      )
+    );
+
+    server.get("/bootstrap-session", async () =>
+      ok({
+        page: composePage("# Ready", {}),
+        session: signIn({ userId: "page-user" })
+      })
+    );
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/welcome",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain("# Ready");
+    expect(commit).toHaveBeenCalledWith(
+      {
+        type: "sign-in",
+        session: { userId: "page-user" }
+      },
+      expect.objectContaining({ status: 200 })
+    );
+  });
+
+  it("uses the resolved page route when a page route auto-navigates to another page", async () => {
+    const server = createMdsnServer();
+
+    server.page("/vault", async () =>
+      composePage(
+        `# Vault
+
+<!-- mdsn:block gate -->
+
+\`\`\`mdsn
+BLOCK gate {
+  GET "/login" -> open_login auto
+}
+\`\`\`
+`,
+        {
+          blocks: {
+            gate: "## Checking access"
+          }
+        }
+      )
+    );
+
+    server.page("/login", async () => composePage("# Login", {}));
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/vault",
+      headers: {
+        accept: "text/html"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toBe("text/html");
+    expect(response.body).toContain('"route":"/login"');
+    expect(response.body).toContain("# Login");
+  });
+
+  it("clears the current session when page-route auto resolution signs out", async () => {
+    const clear = vi.fn(async () => undefined);
+    const server = createMdsnServer({
+      session: {
+        read: async () => ({ sessionId: "s1", userId: "ada" }),
+        commit: async () => undefined,
+        clear
+      }
+    });
+
+    server.page("/vault", async () =>
+      composePage(
+        `# Vault
+
+<!-- mdsn:block gate -->
+
+\`\`\`mdsn
+BLOCK gate {
+  GET "/logout-bootstrap" -> logout_bootstrap auto
+}
+\`\`\`
+`,
+        {
+          blocks: {
+            gate: "## Closing session"
+          }
+        }
+      )
+    );
+
+    server.get("/logout-bootstrap", async () =>
+      ok({
+        page: composePage("# Signed Out", {}),
+        session: { type: "sign-out" }
+      })
+    );
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/vault",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {
+        mdsn_session: "s1"
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain("# Signed Out");
+    expect(clear).toHaveBeenCalledWith(
+      { sessionId: "s1", userId: "ada" },
+      expect.objectContaining({ status: 200 }),
+      expect.objectContaining({ url: "https://example.test/vault" })
+    );
+  });
+
+  it("keeps the current page when an auto dependency target is missing", async () => {
+    const server = createMdsnServer();
+
+    server.page("/vault", async () =>
+      composePage(
+        `# Vault
+
+<!-- mdsn:block gate -->
+
+\`\`\`mdsn
+BLOCK gate {
+  GET "/missing" -> missing auto
+}
+\`\`\`
+`,
+        {
+          blocks: {
+            gate: "## Still here"
+          }
+        }
+      )
+    );
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/vault",
+      headers: {
+        accept: "text/html"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain('"route":"/vault"');
+    expect(response.body).toContain("Still here");
+    expect(response.body).not.toContain("# Login");
+  });
+
+  it("stops auto resolution after 10 passes instead of looping forever", async () => {
+    const server = createMdsnServer();
+    const loop = vi.fn(async () =>
+      ok({
+        fragment: {
+          markdown: "## Looping",
+          blocks: [
+            {
+              name: "gate",
+              markdown: "## Looping",
+              inputs: [],
+              operations: [{ method: "GET", target: "/loop-step", name: "loop_step", inputs: [], auto: true }]
+            }
+          ]
+        }
+      })
+    );
+
+    server.page("/loop", async () =>
+      composePage(
+        `# Loop
+
+<!-- mdsn:block gate -->
+
+\`\`\`mdsn
+BLOCK gate {
+  GET "/loop-step" -> loop_step auto
+}
+\`\`\`
+`,
+        {
+          blocks: {
+            gate: "## Start"
+          }
+        }
+      )
+    );
+
+    server.get("/loop-step", loop);
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/loop",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(loop).toHaveBeenCalledTimes(10);
+    expect(response.body).toContain("GET \"/loop-step\" -> loop_step auto");
+    expect(response.body).toContain("## Looping");
   });
 
   it("allows empty POST actions without an explicit content type", async () => {

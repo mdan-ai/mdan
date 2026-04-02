@@ -58,6 +58,15 @@ function cookieValueFromSetCookie(setCookie: string | null): string {
   return setCookie.split(";", 1)[0] ?? "";
 }
 
+function readBootstrap(html: string): { kind: string; route?: string; markdown: string } {
+  const match = html.match(/<script id="mdsn-bootstrap" type="application\/json">([\s\S]*?)<\/script>/);
+  if (!match?.[1]) {
+    throw new Error("Expected mdsn bootstrap script.");
+  }
+
+  return JSON.parse(match[1]) as { kind: string; route?: string; markdown: string };
+}
+
 describe("auth-session example over real node http", () => {
   it("keeps the full markdown flow intact across login/register pages, vault, logout, and recovery", async () => {
     const sources = await readAuthSources();
@@ -209,5 +218,39 @@ describe("auth-session example over real node http", () => {
     expect(registerBody).toContain("# Vault");
     expect(registerBody).toContain("## Welcome 哈哈");
     expect(registerBody).not.toContain("Account created for 哈哈");
+  }, 15_000);
+
+  it("keeps markdown and html aligned for the locked vault page when no session is present", async () => {
+    const sources = await readAuthSources();
+    const server = createAuthServer(sources);
+    const baseUrl = await listen(createHost(server, { rootRedirect: "/login" }));
+
+    const markdownResponse = await fetch(`${baseUrl}/vault`, {
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+    expect(markdownResponse.status).toBe(200);
+    const markdownBody = await markdownResponse.text();
+    expect(markdownBody).toContain("# Vault");
+    expect(markdownBody).toContain("Private notes are locked");
+    expect(markdownBody).not.toContain('GET "/login" -> recover');
+
+    const htmlResponse = await fetch(`${baseUrl}/vault`, {
+      headers: {
+        accept: "text/html"
+      }
+    });
+    expect(htmlResponse.status).toBe(200);
+    const htmlBody = await htmlResponse.text();
+    const bootstrap = readBootstrap(htmlBody);
+
+    expect(htmlBody).toContain("# Vault");
+    expect(htmlBody).toContain("Private notes are locked");
+    expect(htmlBody).toContain('action="/vault"');
+    expect(bootstrap.kind).toBe("page");
+    expect(bootstrap.route).toBe("/vault");
+    expect(bootstrap.markdown).toContain("# Vault");
+    expect(bootstrap.markdown).toContain("Open `/login` to sign in if this page is locked.");
   }, 15_000);
 });

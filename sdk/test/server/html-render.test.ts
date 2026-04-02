@@ -57,6 +57,32 @@ describe("renderHtmlDocument", () => {
     expect(html).toContain('data-mdsn-action-variant="secondary"');
   });
 
+  it("renders declared GET inputs before the submit action", () => {
+    const html = renderHtmlDocument({
+      markdown: "# Search",
+      blocks: [
+        {
+          name: "search",
+          inputs: [{ name: "query", type: "text", required: true, secret: false }],
+          operations: [
+            {
+              method: "GET",
+              target: "/search",
+              name: "search",
+              inputs: ["query"],
+              label: "Search"
+            }
+          ]
+        }
+      ]
+    });
+
+    expect(html).toContain('<form method="GET" action="/search"');
+    expect(html).toContain('name="query"');
+    expect(html).toContain('type="text"');
+    expect(html).toContain("Search");
+  });
+
   it("renders stream GET declarations as non-interactive stream markers", () => {
     const html = renderHtmlDocument({
       markdown: "# Guestbook",
