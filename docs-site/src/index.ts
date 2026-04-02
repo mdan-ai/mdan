@@ -1,6 +1,6 @@
 import { composePage } from "@mdsnai/sdk/core";
 import type { MdsnFrontmatter, MdsnMarkdownRenderer } from "@mdsnai/sdk/core";
-import { createHostedApp } from "@mdsnai/sdk/server";
+import { createHostedApp, renderProtocolHeadLinks } from "@mdsnai/sdk/server";
 
 import { extractToc, injectHeadingIds, renderDocsMarkdown } from "./markdown.js";
 import { docsNav } from "./nav.js";
@@ -224,6 +224,12 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
   const availableRoutes = new Set(records.map((record) => record.route));
 
   return createHostedApp({
+    htmlDiscovery(context) {
+      return {
+        markdownHref: canonicalRoute(context.route ?? new URL(context.request.url).pathname),
+        llmsTxtHref: "/llms.txt"
+      };
+    },
     pages: Object.fromEntries(
       records.map(({ route }) => [
         route,
@@ -287,6 +293,7 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    ${renderProtocolHeadLinks(renderOptions?.protocol?.discovery ?? { markdownHref: route })}
     <script defer src="/docs-site/docs.js${assetSuffix}"></script>
   </head>
   <body>

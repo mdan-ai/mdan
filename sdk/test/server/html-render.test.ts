@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { renderHtmlDocument } from "../../src/server/html-render.js";
+import { renderHtmlDocument, renderProtocolHeadLinks } from "../../src/server/html-render.js";
 
 describe("renderHtmlDocument", () => {
   it("renders fragments into readable html", () => {
@@ -222,6 +222,16 @@ describe("renderHtmlDocument", () => {
     );
 
     expect(html).toContain('<link rel="alternate" type="text/markdown" href="/guides/guestbook.md">');
+    expect(html).toContain('<link rel="llms-txt" href="/llms.txt">');
+  });
+
+  it("renders protocol head links from the public discovery shape", () => {
+    const html = renderProtocolHeadLinks({
+      markdownHref: "/guestbook",
+      llmsTxtHref: "/llms.txt"
+    });
+
+    expect(html).toContain('<link rel="alternate" type="text/markdown" href="/guestbook">');
     expect(html).toContain('<link rel="llms-txt" href="/llms.txt">');
   });
 

@@ -79,6 +79,8 @@ The smallest path first.
     expect(response.body).toContain('>中文</a>');
     expect(response.body).toContain('href="/getting-started"');
     expect(response.body).not.toContain('href="/docs/getting-started"');
+    expect(response.body).toContain('<link rel="alternate" type="text/markdown" href="/getting-started">');
+    expect(response.body).toContain('<link rel="llms-txt" href="/llms.txt">');
   });
 
   it("renders links and code spans correctly inside docs headings and toc entries", async () => {

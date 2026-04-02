@@ -8,6 +8,7 @@ import type {
   MdsnOperation
 } from "../core/index.js";
 import { basicMarkdownRenderer } from "../core/index.js";
+import type { MdsnProtocolDiscovery } from "./types.js";
 
 interface MdsnRenderableDocument extends MdsnFragment {
   blockContent?: Record<string, string>;
@@ -21,6 +22,9 @@ export interface RenderHtmlDocumentOptions {
   route?: string;
   alternateMarkdownHref?: string;
   llmsTxtHref?: string;
+  protocol?: {
+    discovery?: MdsnProtocolDiscovery;
+  };
   markdownRenderer?: MdsnMarkdownRenderer;
 }
 
@@ -170,28 +174,50 @@ function createHeadlessBootstrap(
   return bootstrap;
 }
 
-export function renderHtmlDiscoveryLinks(options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref">): string {
+function resolveProtocolDiscovery(
+  options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref" | "protocol">
+): Partial<MdsnProtocolDiscovery> {
+  return {
+    ...(options.protocol?.discovery?.markdownHref
+      ? { markdownHref: options.protocol.discovery.markdownHref }
+      : options.alternateMarkdownHref
+        ? { markdownHref: options.alternateMarkdownHref }
+        : {}),
+    ...(options.protocol?.discovery?.llmsTxtHref
+      ? { llmsTxtHref: options.protocol.discovery.llmsTxtHref }
+      : options.llmsTxtHref
+        ? { llmsTxtHref: options.llmsTxtHref }
+        : {})
+  };
+}
+
+export function renderProtocolHeadLinks(discovery: Partial<MdsnProtocolDiscovery>): string {
   return [
-    options.alternateMarkdownHref
-      ? `<link rel="alternate" type="text/markdown" href="${escapeHtml(options.alternateMarkdownHref)}">`
+    discovery.markdownHref
+      ? `<link rel="alternate" type="text/markdown" href="${escapeHtml(discovery.markdownHref)}">`
       : "",
-    options.llmsTxtHref ? `<link rel="llms-txt" href="${escapeHtml(options.llmsTxtHref)}">` : ""
+    discovery.llmsTxtHref ? `<link rel="llms-txt" href="${escapeHtml(discovery.llmsTxtHref)}">` : ""
   ]
     .filter(Boolean)
     .join("\n    ");
 }
 
+export function renderHtmlDiscoveryLinks(options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref" | "protocol">): string {
+  return renderProtocolHeadLinks(resolveProtocolDiscovery(options));
+}
+
 export function injectHtmlDiscoveryLinks(
   html: string,
-  options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref">
+  options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref" | "protocol">
 ): string {
+  const discovery = resolveProtocolDiscovery(options);
   const links = {
-    ...(options.alternateMarkdownHref && !html.includes('rel="alternate" type="text/markdown"')
-      ? { alternateMarkdownHref: options.alternateMarkdownHref }
+    ...(discovery.markdownHref && !html.includes('rel="alternate" type="text/markdown"')
+      ? { markdownHref: discovery.markdownHref }
       : {}),
-    ...(options.llmsTxtHref && !html.includes('rel="llms-txt"') ? { llmsTxtHref: options.llmsTxtHref } : {})
+    ...(discovery.llmsTxtHref && !html.includes('rel="llms-txt"') ? { llmsTxtHref: discovery.llmsTxtHref } : {})
   };
-  const tags = renderHtmlDiscoveryLinks(links);
+  const tags = renderProtocolHeadLinks(links);
 
   if (!tags || !html.includes("</head>")) {
     return html;

@@ -148,11 +148,28 @@ function getRenderablePage(page: MdsnPage) {
       };
 }
 
+function toProtocolRenderOptions(discoveryLinks: MdsnHtmlDiscoveryLinks | null, fallbackMarkdownHref?: string) {
+  const markdownHref = discoveryLinks?.markdownHref ?? fallbackMarkdownHref;
+  if (!markdownHref) {
+    return {};
+  }
+
+  return {
+    protocol: {
+      discovery: {
+        markdownHref,
+        ...(discoveryLinks?.llmsTxtHref ? { llmsTxtHref: discoveryLinks.llmsTxtHref } : {})
+      }
+    }
+  };
+}
+
 function resolveResponseBody(
   result: MdsnActionResult,
   representation: "markdown" | "html",
   renderHtml: typeof renderHtmlDocument,
-  discoveryLinks: MdsnHtmlDiscoveryLinks | null
+  discoveryLinks: MdsnHtmlDiscoveryLinks | null,
+  request: MdsnRequest
 ): string {
   if (result.page) {
     return representation === "markdown"
@@ -162,6 +179,7 @@ function resolveResponseBody(
           {
             kind: "page",
             ...(result.route ? { route: result.route } : {}),
+            ...toProtocolRenderOptions(discoveryLinks, result.route ?? getPathname(request)),
             ...(discoveryLinks?.markdownHref ? { alternateMarkdownHref: discoveryLinks.markdownHref } : {}),
             ...(discoveryLinks?.llmsTxtHref ? { llmsTxtHref: discoveryLinks.llmsTxtHref } : {}),
             ...(result.navigation?.target ? { continueTarget: result.navigation.target } : {})
@@ -178,6 +196,7 @@ function resolveResponseBody(
     : renderHtml(result.fragment, {
         kind: "fragment",
         ...(result.route ? { route: result.route } : {}),
+        ...toProtocolRenderOptions(discoveryLinks, result.route ?? getPathname(request)),
         ...(discoveryLinks?.markdownHref ? { alternateMarkdownHref: discoveryLinks.markdownHref } : {}),
         ...(discoveryLinks?.llmsTxtHref ? { llmsTxtHref: discoveryLinks.llmsTxtHref } : {}),
         ...(result.navigation?.target ? { continueTarget: result.navigation.target } : {})
@@ -244,9 +263,9 @@ function createResponse(
 
   const body =
     representation === "markdown"
-      ? resolveResponseBody(result as MdsnActionResult, "markdown", renderHtml, discoveryLinks)
+      ? resolveResponseBody(result as MdsnActionResult, "markdown", renderHtml, discoveryLinks, request)
       : representation === "html"
-        ? resolveResponseBody(result as MdsnActionResult, "html", renderHtml, discoveryLinks)
+        ? resolveResponseBody(result as MdsnActionResult, "html", renderHtml, discoveryLinks, request)
         : createStreamBody(result);
 
   return {
@@ -284,6 +303,7 @@ function createPageResponse(
         : renderHtml(getRenderablePage(page), {
             kind: "page",
             ...(route ? { route } : {}),
+            ...toProtocolRenderOptions(discoveryLinks, route ?? getPathname(request)),
             ...(discoveryLinks?.markdownHref ? { alternateMarkdownHref: discoveryLinks.markdownHref } : {}),
             ...(discoveryLinks?.llmsTxtHref ? { llmsTxtHref: discoveryLinks.llmsTxtHref } : {})
           })

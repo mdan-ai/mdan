@@ -34,10 +34,12 @@ export interface MdsnNavigation {
   target: string;
 }
 
-export interface MdsnHtmlDiscoveryLinks {
-  markdownHref?: string;
+export interface MdsnProtocolDiscovery {
+  markdownHref: string;
   llmsTxtHref?: string;
 }
+
+export interface MdsnHtmlDiscoveryLinks extends Partial<MdsnProtocolDiscovery> {}
 
 export interface MdsnHtmlDiscoveryContext {
   request: MdsnRequest;

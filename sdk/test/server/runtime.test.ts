@@ -382,14 +382,21 @@ describe("createMdsnServer", () => {
   });
 
   it("injects discovery links into custom html shells when htmlDiscovery is configured", async () => {
+    const renderHtml = vi.fn((fragment, options) => {
+      expect(options.protocol?.discovery).toEqual({
+        markdownHref: "/list",
+        llmsTxtHref: "/llms.txt"
+      });
+
+      return `<!doctype html><html lang="en"><head><title>Custom Shell</title></head><body><main>${fragment.markdown}</main></body></html>`;
+    });
+
     const server = createMdsnServer({
       htmlDiscovery: {
         markdownHref: "/list",
         llmsTxtHref: "/llms.txt"
       },
-      renderHtml(fragment) {
-        return `<!doctype html><html lang="en"><head><title>Custom Shell</title></head><body><main>${fragment.markdown}</main></body></html>`;
-      }
+      renderHtml
     });
 
     server.get("/list", async () =>
@@ -412,6 +419,7 @@ describe("createMdsnServer", () => {
     expect(response.body).toContain('<link rel="alternate" type="text/markdown" href="/list">');
     expect(response.body).toContain('<link rel="llms-txt" href="/llms.txt">');
     expect(response.body).toContain("<title>Custom Shell</title>");
+    expect(renderHtml).toHaveBeenCalledTimes(1);
   });
 
   it("returns markdown when accept explicitly includes text/markdown alongside html", async () => {
