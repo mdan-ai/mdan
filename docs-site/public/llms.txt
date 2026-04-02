@@ -9,7 +9,7 @@ It keeps content, operations, and follow-up interaction in the same page model s
 - https://docs.mdsn.ai/getting-started
 - https://docs.mdsn.ai/what-is-mdsn
 - https://docs.mdsn.ai/mdsn-vs-mcp
-- https://docs.mdsn.ai/protocol/v1
+- https://mdsn.ai/protocol/v1
 - https://docs.mdsn.ai/understanding-mdsn
 - https://docs.mdsn.ai/shared-interaction
 - https://docs.mdsn.ai/application-structure

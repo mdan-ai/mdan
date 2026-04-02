@@ -84,7 +84,7 @@ What changes is the returned form, not the underlying app.
 - Want to get something running in five minutes: [Getting Started](/docs/getting-started)
 - Want a crisp definition and best-fit use cases: [What is MDSN?](/docs/what-is-mdsn)
 - Want to compare MDSN with MCP: [MDSN vs MCP](/docs/mdsn-vs-mcp)
-- Want the protocol-level definition behind MDSN Markdown responses: [Protocol v1](/docs/protocol/v1)
+- Want the protocol-level definition behind MDSN Markdown responses: [Protocol v1](https://mdsn.ai/protocol/v1)
 - Want to understand pages, blocks, and updates: [Understanding MDSN](/docs/understanding-mdsn)
 - Want to understand how one app serves both agents and browsers: [HTTP Content Negotiation](/docs/shared-interaction)
 - Want to start building a real app: [Application Structure](/docs/application-structure)

@@ -84,7 +84,7 @@ MDSN 的工作方式可以先概括成三步：
 - 想先在 5 分钟内跑起来：看 [快速开始](/zh/docs/getting-started)
 - 想先快速理解定义、适用场景和边界：看 [什么是 MDSN？](/zh/docs/what-is-mdsn)
 - 想理解 MDSN 和 MCP 的关系：看 [MDSN 与 MCP](/zh/docs/mdsn-vs-mcp)
-- 想看协议层面对 Markdown 响应的正式定义：看 [协议 v1](/zh/docs/protocol/v1)
+- 想看协议层面对 Markdown 响应的正式定义：看 [协议 v1](https://mdsn.ai/protocol/v1)
 - 想理解页面、block 和更新方式：看 [理解 MDSN](/zh/docs/understanding-mdsn)
 - 想理解为什么同一个应用可以同时服务 Agent 和浏览器：看 [HTTP 内容协商](/zh/docs/shared-interaction)
 - 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
