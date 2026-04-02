@@ -76,6 +76,28 @@ function run(command, args, options = {}) {
   });
 }
 
+async function readRegistryPackageMeta(packageSpec) {
+  const { stdout } = await run("npm", ["view", packageSpec, "version", "license", "readme", "--json"], {
+    cwd: repoRoot,
+    env: { npm_config_cache: cacheDir }
+  });
+  const parsed = JSON.parse(stdout);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`Unexpected npm view payload for ${packageSpec}`);
+  }
+  return parsed;
+}
+
+function assertRegistryMetadata(packageName, meta) {
+  const version = typeof meta.version === "string" ? meta.version : "unknown";
+  if (typeof meta.license !== "string" || !meta.license.trim()) {
+    throw new Error(`${packageName}@${version} is missing a registry license field`);
+  }
+  if (typeof meta.readme !== "string" || !meta.readme.trim()) {
+    throw new Error(`${packageName}@${version} is missing a registry readme`);
+  }
+}
+
 async function packWorkspace(workdir) {
   const { stdout } = await run("npm", ["pack", "--json", "--cache", cacheDir], { cwd: workdir });
   const result = JSON.parse(stdout);
@@ -342,14 +364,28 @@ async function main() {
     }
 
     const createVersion = args["create-version"] ?? "latest";
-    const sdkVersion = args["sdk-version"] ?? "latest";
+    const createMeta = await readRegistryPackageMeta(`create-mdsn@${createVersion}`);
+    const resolvedCreateVersion = createMeta.version;
+    if (typeof resolvedCreateVersion !== "string" || !resolvedCreateVersion.trim()) {
+      throw new Error(`Unable to resolve published create-mdsn version for ${createVersion}`);
+    }
+    const sdkVersion = args["sdk-version"] ?? toCompatibleSdkRange(resolvedCreateVersion);
+    const sdkMeta = await readRegistryPackageMeta(`@mdsnai/sdk@${sdkVersion}`);
+    const resolvedSdkVersion = sdkMeta.version;
+    if (typeof resolvedSdkVersion !== "string" || !resolvedSdkVersion.trim()) {
+      throw new Error(`Unable to resolve published @mdsnai/sdk version for ${sdkVersion}`);
+    }
+
+    assertRegistryMetadata("create-mdsn", createMeta);
+    assertRegistryMetadata("@mdsnai/sdk", sdkMeta);
+
     const projectDir = await createProject({
       mode,
       runtime,
       tempRoot,
-      createVersion
+      createVersion: resolvedCreateVersion
     });
-    await assertFlow(projectDir, toCompatibleSdkRange(createVersion), runtime);
+    await assertFlow(projectDir, toCompatibleSdkRange(resolvedCreateVersion), runtime);
     console.log(`release smoke (${mode}, ${runtime}) passed`);
   } finally {
     await rm(tempRoot, { recursive: true, force: true });

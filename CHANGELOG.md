@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This changelog starts at `0.4.0`. Earlier releases were not backfilled.
 
+## 0.4.4 - 2026-04-02
+
+### Changed
+
+- Published `create-mdsn` metadata is being refreshed in a standalone patch release so npm package-page behavior can be verified independently of SDK changes
+
 ## 0.4.3 - 2026-04-01
 
 ### Changed
