@@ -5,9 +5,11 @@ node_modules/
 dist/
 sdk/*/dist/
 examples/*/dist/
+demo/*/dist/
 *.tsbuildinfo
 sdk/*/tsconfig.tsbuildinfo
 examples/*/tsconfig.tsbuildinfo
+demo/*/tsconfig.tsbuildinfo
 
 # Test and tooling outputs
 .vitest-cache/

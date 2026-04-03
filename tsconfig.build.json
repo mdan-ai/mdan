@@ -4,6 +4,7 @@
     { "path": "./docs-site" },
     { "path": "./create-mdsn" },
     { "path": "./sdk" },
+    { "path": "./demo/agent-tasks" },
     { "path": "./examples/guestbook" },
     { "path": "./examples/auth-session" },
     { "path": "./examples/starter" },

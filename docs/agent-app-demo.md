@@ -50,6 +50,24 @@ Typical transitions:
 
 That means the agent does not have to guess where to go next. The returned content already carries the next path.
 
+## Example C: Agent Task Handoff
+
+Reference: [demo/agent-tasks/app/server.ts](/Users/hencoo/projects/mdsn/demo/agent-tasks/app/server.ts)
+
+This demo pushes the same model into a multi-step delegation flow:
+
+- `GET /tasks/new` returns a task-creation page
+- `POST /tasks` creates a task and returns a stable task detail page
+- `GET /tasks/:id` returns the long-lived task definition plus the current runtime block
+- follow-up writes such as accept, submit, request revision, and complete return the updated runtime block fragment
+
+The important pattern is the split between:
+
+- stable task context in page Markdown
+- current-step continuation in the runtime block
+
+That lets one agent create a task, another agent continue from the same page URL, and the reviewer return to the same page to close or re-open the loop.
+
 ## Agent-Facing Error Strategy
 
 Avoid opaque errors. Return actionable Markdown fragments that include the next legal operation.
@@ -62,6 +80,7 @@ In `auth-session`, unauthenticated writes to `vault` return a recoverable fragme
 - failure states still return Markdown that allows recovery
 - session-changing operations also return clear follow-up actions
 - write operations return updated block Markdown rather than stale content
+- task handoff pages keep long-lived task context stable while block fragments carry the next step
 
 ## Related Docs
 

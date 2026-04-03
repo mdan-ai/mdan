@@ -1,0 +1,17 @@
+{
+  "name": "agent-tasks-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "start": "tsc -b tsconfig.json && node index.mjs"
+  },
+  "dependencies": {
+    "@mdsnai/sdk": "file:../../sdk"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.3"
+  }
+}

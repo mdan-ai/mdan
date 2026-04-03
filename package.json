@@ -6,7 +6,8 @@
   "workspaces": [
     "sdk",
     "create-mdsn",
-    "examples/*"
+    "examples/*",
+    "demo/*"
   ],
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
