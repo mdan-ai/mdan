@@ -13,6 +13,19 @@ export interface MountMdsnElementsOptions {
 
 export interface MdsnElementsRuntime extends MdsnHeadlessHost {}
 
+interface DebugMessageRecord {
+  direction: string;
+  method: string;
+  url: string;
+  markdown: string;
+}
+
+interface WindowWithMdsnDebug extends Window {
+  __MDSN_DEBUG__?: {
+    messages: DebugMessageRecord[];
+  };
+}
+
 function humanizeLabel(value: string): string {
   return value
     .replace(/[_-]+/g, " ")
@@ -71,6 +84,25 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
 
   let unsubscribe: (() => void) | null = null;
   const valuesByForm: Record<string, Record<string, string>> = {};
+  let debugDrawerOpen = false;
+
+  function getDebugMessages(): DebugMessageRecord[] {
+    if (typeof window === "undefined") {
+      return [];
+    }
+    const debugWindow = window as WindowWithMdsnDebug;
+    return debugWindow.__MDSN_DEBUG__?.messages ?? [];
+  }
+
+  function clearDebugMessages(): void {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const debugWindow = window as WindowWithMdsnDebug;
+    if (debugWindow.__MDSN_DEBUG__) {
+      debugWindow.__MDSN_DEBUG__.messages = [];
+    }
+  }
 
   function getFormKey(blockName: string, operation: { method: string; target: string; name?: string }): string {
     return `${blockName}:${operation.method}:${operation.target}:${operation.name ?? ""}`;
@@ -100,6 +132,7 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
   }
 
   function renderSnapshot(snapshot: HeadlessSnapshot): void {
+    const debugMessages = getDebugMessages();
     render(
       html`
         <mdsn-page>
@@ -387,6 +420,62 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
             `;
           })}
         </mdsn-page>
+        ${debugMessages.length > 0
+          ? html`
+              <aside
+                data-mdsn-debug-panel
+                style="position:fixed;right:1rem;bottom:1rem;z-index:9999;display:grid;gap:0.75rem;max-width:min(28rem,calc(100vw - 2rem));font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;"
+              >
+                <button
+                  type="button"
+                  data-mdsn-debug-toggle
+                  style="justify-self:end;border:1px solid #cbd5e1;background:#0f172a;color:#f8fafc;border-radius:999px;padding:0.6rem 0.9rem;box-shadow:0 10px 30px rgba(15,23,42,0.2);cursor:pointer;"
+                  @click=${() => {
+                    debugDrawerOpen = !debugDrawerOpen;
+                    renderSnapshot(host.getSnapshot());
+                  }}
+                >
+                  Debug ${debugMessages.length}
+                </button>
+                ${debugDrawerOpen
+                  ? html`
+                      <section
+                        data-mdsn-debug-drawer
+                        style="background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:1rem;padding:0.9rem;box-shadow:0 16px 40px rgba(15,23,42,0.35);max-height:min(32rem,70vh);overflow:auto;"
+                      >
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;margin-bottom:0.75rem;">
+                          <strong style="font-size:12px;letter-spacing:0.04em;text-transform:uppercase;">MDSN Debug</strong>
+                          <button
+                            type="button"
+                            style="border:1px solid #334155;background:transparent;color:#cbd5e1;border-radius:999px;padding:0.35rem 0.7rem;cursor:pointer;"
+                            @click=${() => {
+                              clearDebugMessages();
+                              renderSnapshot(host.getSnapshot());
+                            }}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                        <div style="display:grid;gap:0.75rem;">
+                          ${[...debugMessages].reverse().map(
+                            (message) => html`
+                              <article style="border:1px solid #1e293b;border-radius:0.75rem;padding:0.75rem;background:#0f172a;">
+                                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;color:#93c5fd;">
+                                  <span>${message.direction}</span>
+                                  <span>${message.method}</span>
+                                  <span>${message.url}</span>
+                                </div>
+                                <pre style="margin:0;white-space:pre-wrap;word-break:break-word;color:#e2e8f0;">${message.markdown}</pre>
+                              </article>
+                            `
+                          )}
+                        </div>
+                      </section>
+                    `
+                  : null}
+              </aside>
+            `
+          : null}
       `,
       container
     );

@@ -9,6 +9,12 @@ These examples all use the same MDSN model, but each one answers a different que
 
 ## When To Read Each Example
 
+### [`demo/agent-tasks`](https://github.com/mdsn-ai/mdsn/tree/main/demo/agent-tasks)
+
+A fuller agent-first application demo.
+
+Use this when you want to see a complete handoff loop: login, task creation, a stable task URL, agent-to-agent continuation, revision requests, completion, and a work-queue style overview page. This is the best place to study how MDSN holds long-lived task context in page Markdown while block fragments carry the current step.
+
 ### [`examples/starter`](https://github.com/mdsn-ai/mdsn/tree/main/examples/starter)
 
 The smallest starting point.
@@ -59,6 +65,7 @@ Use this to see how a set of content pages, navigation, and a docs shell can be 
 
 ## Viewing Suggestions
 
+- want to see the strongest end-to-end agent app example: start with `demo/agent-tasks`
 - want the shortest path first: start with `examples/starter`
 - want to see how agents continue across steps: look at `examples/guestbook` and `examples/auth-session`
 - want custom UI with Vue: look at `examples/vue-starter`

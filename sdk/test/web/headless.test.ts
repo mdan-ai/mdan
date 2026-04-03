@@ -405,4 +405,74 @@ describe("createHeadlessHost", () => {
     streamController?.close();
     await flushAsync();
   });
+
+  it("records raw markdown send and receive messages when debug tracing is enabled", async () => {
+    const root = createRootWithBootstrap({
+      kind: "page",
+      route: "/vault",
+      markdown: "# Vault",
+      blocks: [
+        {
+          name: "vault",
+          markdown: "## Add note",
+          inputs: [{ name: "message", type: "text", required: true, secret: false }],
+          operations: [{ method: "POST", target: "/vault", name: "save", inputs: ["message"], label: "Save Note" }]
+        }
+      ]
+    });
+
+    const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
+    const fetchImpl = vi.fn(async (_target, init) =>
+      new Response(
+        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          kind: "fragment",
+          block: {
+            name: "vault",
+            markdown: "## Saved\n\n- Hello",
+            inputs: [{ name: "message", type: "text", required: true, secret: false }],
+            operations: [{ method: "POST", target: "/vault", name: "save", inputs: ["message"], label: "Save Note" }]
+          }
+        })}</script></body></html>`,
+        { headers: { "content-type": "text/html" } }
+      )
+    );
+
+    delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+
+    try {
+      const host = createHeadlessHost({
+        root,
+        fetchImpl,
+        debugMessages: true
+      });
+
+      await host.submit(host.getSnapshot().blocks[0]!.operations[0]!, { message: "Hello" });
+      await flushAsync();
+
+      const debugState = (window as typeof window & {
+        __MDSN_DEBUG__?: {
+          messages: Array<{ direction: string; method: string; url: string; markdown: string }>;
+        };
+      }).__MDSN_DEBUG__;
+
+      expect(debugState?.messages).toEqual([
+        {
+          direction: "send",
+          method: "POST",
+          url: "/vault",
+          markdown: 'message: "Hello"'
+        },
+        {
+          direction: "receive",
+          method: "POST",
+          url: "/vault",
+          markdown: "## Saved\n\n- Hello"
+        }
+      ]);
+      expect(consoleInfo).toHaveBeenCalled();
+    } finally {
+      consoleInfo.mockRestore();
+      delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+    }
+  });
 });

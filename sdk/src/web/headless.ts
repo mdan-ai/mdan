@@ -10,6 +10,7 @@ import {
 export interface CreateHeadlessHostOptions {
   root: ParentNode;
   fetchImpl?: typeof fetch;
+  debugMessages?: boolean;
 }
 
 export interface HeadlessRuntimeState {
@@ -25,6 +26,13 @@ export interface HeadlessSnapshot extends HeadlessRuntimeState {
 
 export type HeadlessListener = (snapshot: HeadlessSnapshot) => void;
 
+export interface HeadlessDebugMessage {
+  direction: "send" | "receive";
+  method: string;
+  url: string;
+  markdown: string;
+}
+
 export interface MdsnHeadlessHost {
   mount(): void;
   unmount(): void;
@@ -32,6 +40,12 @@ export interface MdsnHeadlessHost {
   getSnapshot(): HeadlessSnapshot;
   submit(operation: MdsnOperation, values?: Record<string, string>): Promise<void>;
   visit(target: string): Promise<void>;
+}
+
+interface WindowWithMdsnDebug extends Window {
+  __MDSN_DEBUG__?: {
+    messages: HeadlessDebugMessage[];
+  };
 }
 
 function findBootstrapScript(root: ParentNode): HTMLScriptElement | null {
@@ -224,12 +238,32 @@ function pushHistory(target: string): void {
   window.history.pushState({}, "", target);
 }
 
+function extractBootstrapMarkdown(bootstrap: MdsnHeadlessBootstrap): string {
+  if (bootstrap.kind === "page") {
+    return bootstrap.markdown;
+  }
+  return bootstrap.block.markdown;
+}
+
 export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHeadlessHost {
   const fetchImpl = options.fetchImpl ?? fetch;
+  const debugMessages = options.debugMessages === true;
   let mounted = false;
   let snapshot = toSnapshot(parseBootstrap(options.root), null);
   let status: HeadlessRuntimeState = { status: "idle" };
   const listeners = new Set<HeadlessListener>();
+
+  function recordDebugMessage(message: HeadlessDebugMessage): void {
+    if (!debugMessages) {
+      return;
+    }
+    if (typeof window !== "undefined") {
+      const debugWindow = window as WindowWithMdsnDebug;
+      debugWindow.__MDSN_DEBUG__ ??= { messages: [] };
+      debugWindow.__MDSN_DEBUG__.messages.push(message);
+    }
+    console.info("[mdsn]", message);
+  }
 
   function publish(): void {
     const next: HeadlessSnapshot = {
@@ -254,8 +288,16 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
     publish();
   }
 
-  async function applyResponse(content: string, updateHistory = false): Promise<void> {
+  async function applyResponse(content: string, updateHistory = false, source?: { method: string; url: string }): Promise<void> {
     const bootstrap = parseBootstrapFromHtml(content);
+    if (source) {
+      recordDebugMessage({
+        direction: "receive",
+        method: source.method,
+        url: source.url,
+        markdown: extractBootstrapMarkdown(bootstrap)
+      });
+    }
     const previousRoute = snapshot.route;
     snapshot = toSnapshot(bootstrap, snapshot);
     if (updateHistory && bootstrap.kind === "page" && bootstrap.route && bootstrap.route !== previousRoute) {
@@ -267,9 +309,16 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
   async function request(target: string, init: RequestInit): Promise<void> {
     setStatus({ status: "loading" });
     try {
+      const method = typeof init.method === "string" ? init.method : "GET";
+      recordDebugMessage({
+        direction: "send",
+        method,
+        url: target,
+        markdown: typeof init.body === "string" ? init.body : ""
+      });
       const response = await fetchImpl(target, init);
       const content = await response.text();
-      await applyResponse(content, true);
+      await applyResponse(content, true, { method, url: target });
     } catch (error) {
       setStatus({ status: "error", error: error instanceof Error ? error.message : String(error) });
     }
@@ -280,6 +329,12 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
     setStatus({ status: "loading" });
 
     try {
+      recordDebugMessage({
+        direction: "send",
+        method: "GET",
+        url: target,
+        markdown: ""
+      });
       const response = await fetchImpl(target, {
         method: "GET",
         headers: {
@@ -287,6 +342,12 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
         }
       });
       const applyMessage = (message: string) => {
+        recordDebugMessage({
+          direction: "receive",
+          method: "GET",
+          url: target,
+          markdown: message
+        });
         const nextBlock = fragmentBlockFromMarkdown(message, fallbackBlock);
         if (!nextBlock) {
           return;
@@ -331,6 +392,12 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
   async function visit(target: string, updateHistory = false): Promise<void> {
     setStatus({ status: "loading" });
     try {
+      recordDebugMessage({
+        direction: "send",
+        method: "GET",
+        url: target,
+        markdown: ""
+      });
       const response = await fetchImpl(target, {
         method: "GET",
         headers: {
@@ -338,7 +405,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
         }
       });
       const content = await response.text();
-      await applyResponse(content, updateHistory);
+      await applyResponse(content, updateHistory, { method: "GET", url: target });
     } catch (error) {
       setStatus({ status: "error", error: error instanceof Error ? error.message : String(error) });
     }

@@ -9,6 +9,12 @@ description: 仓库内示例说明与适合查看的时机。
 
 ## 每个示例适合什么时候看
 
+### [`demo/agent-tasks`](https://github.com/mdsn-ai/mdsn/tree/main/demo/agent-tasks)
+
+一个更完整的 agent-first 应用 demo。
+
+适合看一条完整的交接闭环：登录、创建任务、稳定任务 URL、Agent 到 Agent 的继续执行、要求修改、完成任务，以及 work queue 风格的总览页。它最适合用来理解 MDSN 如何把长期任务上下文留在页面 Markdown 里，把当前步骤放进 block 片段里。
+
 ### [`examples/starter`](https://github.com/mdsn-ai/mdsn/tree/main/examples/starter)
 
 最小起点。
@@ -59,6 +65,7 @@ React 接管 UI 的版本。
 
 ## 查看建议
 
+- 想先看最完整的 Agent 应用 demo：从 `demo/agent-tasks` 开始
 - 想先看最短路径：从 `examples/starter` 开始
 - 想看 Agent 如何连续交互：看 `examples/guestbook` 和 `examples/auth-session`
 - 想看 Vue 自定义 UI：看 `examples/vue-starter`

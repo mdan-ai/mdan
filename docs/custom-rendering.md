@@ -25,6 +25,17 @@ Whether you use Vue or React, the recommended pattern is the same:
 
 That avoids duplicate subscriptions, stale runtime instances, and memory leaks.
 
+If you want to inspect raw protocol traffic while building a custom UI, you can also enable browser-side debug messages on the host:
+
+```ts
+const host = createHeadlessHost({
+  root: document,
+  debugMessages: true
+});
+```
+
+That keeps a browser-visible log of raw Markdown send/receive messages at `window.__MDSN_DEBUG__.messages`.
+
 ## Forms and Operations
 
 - `GET` operations send an empty payload

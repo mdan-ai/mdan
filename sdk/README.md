@@ -102,4 +102,25 @@ import { createHost } from "@mdsnai/sdk/server/bun";
 - [Understanding MDSN](https://docs.mdsn.ai/understanding-mdsn)
 - [SDK Overview](https://docs.mdsn.ai/sdk)
 - [Custom Rendering](https://docs.mdsn.ai/custom-rendering)
+- [Web Runtime](https://docs.mdsn.ai/web-runtime)
 - [API Reference](https://docs.mdsn.ai/api-reference)
+
+## Browser Debugging
+
+If you want to inspect raw browser-side MDSN traffic while using the default UI or your own custom renderer, enable debug messages on the headless host:
+
+```ts
+import { createHeadlessHost } from "@mdsnai/sdk/web";
+
+const host = createHeadlessHost({
+  root: document,
+  debugMessages: true
+});
+```
+
+When enabled:
+
+- the browser records outgoing and incoming MDSN messages
+- each record keeps the raw Markdown payload
+- messages are available at `window.__MDSN_DEBUG__.messages`
+- the default `elements` UI also shows a small debug drawer in the browser

@@ -89,6 +89,8 @@ What changes is the returned form, not the underlying app.
 - Want to understand how one app serves both agents and browsers: [HTTP Content Negotiation](/docs/shared-interaction)
 - Want to start building a real app: [Application Structure](/docs/application-structure)
 - Want to understand SDK boundaries: [SDK Overview](/docs/sdk)
+- Want to see a real agent-to-agent app flow: [Agent App Demo](/docs/agent-app-demo)
+- Want runnable repository demos: [Examples](/docs/examples)
 
 ## Recommended Reading Order
 

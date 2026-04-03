@@ -346,4 +346,151 @@ describe("registerMdsnElements", () => {
 
     expect(document.querySelector("[data-renderer='custom']")?.textContent).toContain("GUESTBOOK");
   });
+
+  it("can expose raw markdown request and response messages through the mounted browser runtime", async () => {
+    document.body.innerHTML = `
+      <script id="mdsn-bootstrap" type="application/json">
+        {"kind":"page","route":"/guestbook","markdown":"# Guestbook","blocks":[{"name":"guestbook","markdown":"## 1 live message","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/post","name":"submit","inputs":["message"],"label":"Submit"}]}]}
+      </script>
+      <div id="root"></div>
+    `;
+
+    const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
+    const fetchImpl = vi.fn(async (_target, init) =>
+      new Response(
+        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          kind: "fragment",
+          block: {
+            name: "guestbook",
+            markdown: "## 2 live messages\n\n- Hello",
+            inputs: [{ name: "message", type: "text", required: true, secret: false }],
+            operations: [{ method: "POST", target: "/post", name: "submit", inputs: ["message"], label: "Submit" }]
+          }
+        })}</script></body></html>`,
+        { headers: { "content-type": "text/html" } }
+      )
+    );
+
+    delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+
+    try {
+      const host = createHeadlessHost({
+        root: document,
+        fetchImpl,
+        debugMessages: true
+      });
+      const runtime = mountMdsnElements({
+        root: document.getElementById("root")!,
+        host
+      });
+
+      runtime.mount();
+      await Promise.resolve();
+
+      const input = document.querySelector("input[name='message']") as HTMLInputElement;
+      input.value = "Hello";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+
+      const form = document.querySelector("form") as HTMLFormElement;
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await Promise.resolve();
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const debugState = (window as typeof window & {
+        __MDSN_DEBUG__?: {
+          messages: Array<{ direction: string; method: string; url: string; markdown: string }>;
+        };
+      }).__MDSN_DEBUG__;
+
+      expect(debugState?.messages).toEqual([
+        {
+          direction: "send",
+          method: "POST",
+          url: "/post",
+          markdown: 'message: "Hello"'
+        },
+        {
+          direction: "receive",
+          method: "POST",
+          url: "/post",
+          markdown: "## 2 live messages\n\n- Hello"
+        }
+      ]);
+      expect(consoleInfo).toHaveBeenCalled();
+    } finally {
+      consoleInfo.mockRestore();
+      delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+    }
+  });
+
+  it("renders a collapsible debug drawer when debug messages are enabled", async () => {
+    document.body.innerHTML = `
+      <script id="mdsn-bootstrap" type="application/json">
+        {"kind":"page","route":"/guestbook","markdown":"# Guestbook","blocks":[{"name":"guestbook","markdown":"## 1 live message","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/post","name":"submit","inputs":["message"],"label":"Submit"}]}]}
+      </script>
+      <div id="root"></div>
+    `;
+
+    const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          kind: "fragment",
+          block: {
+            name: "guestbook",
+            markdown: "## 2 live messages\n\n- Hello",
+            inputs: [{ name: "message", type: "text", required: true, secret: false }],
+            operations: [{ method: "POST", target: "/post", name: "submit", inputs: ["message"], label: "Submit" }]
+          }
+        })}</script></body></html>`,
+        { headers: { "content-type": "text/html" } }
+      )
+    );
+
+    delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+
+    try {
+      const host = createHeadlessHost({
+        root: document,
+        fetchImpl,
+        debugMessages: true
+      });
+      const runtime = mountMdsnElements({
+        root: document.getElementById("root")!,
+        host
+      });
+
+      runtime.mount();
+      await Promise.resolve();
+
+      const input = document.querySelector("input[name='message']") as HTMLInputElement;
+      input.value = "Hello";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+
+      const form = document.querySelector("form") as HTMLFormElement;
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await Promise.resolve();
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const toggle = document.querySelector("[data-mdsn-debug-toggle]") as HTMLButtonElement | null;
+      expect(toggle).toBeTruthy();
+      expect(toggle?.textContent).toContain("2");
+
+      toggle?.click();
+      await Promise.resolve();
+
+      const drawer = document.querySelector("[data-mdsn-debug-drawer]") as HTMLElement | null;
+      expect(drawer).toBeTruthy();
+      expect(drawer?.textContent).toContain("send");
+      expect(drawer?.textContent).toContain("receive");
+      expect(drawer?.textContent).toContain('/post');
+      expect(drawer?.textContent).toContain('message: "Hello"');
+      expect(drawer?.textContent).toContain("## 2 live messages");
+    } finally {
+      consoleInfo.mockRestore();
+      delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+    }
+  });
 });

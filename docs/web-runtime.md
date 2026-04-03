@@ -70,3 +70,28 @@ Current states are:
 - if you want Vue, React, or another framework to own the UI, keep only `createHeadlessHost()`
 
 You can think of it as: `web` runs the interaction, `elements` displays it.
+
+## Browser Debug Messages
+
+If you want to inspect the raw Markdown traffic that the browser sends and receives, enable debug messages when creating the host:
+
+```ts
+const host = createHeadlessHost({
+  root: document,
+  fetchImpl: window.fetch,
+  debugMessages: true
+});
+```
+
+When enabled, the runtime records a small message envelope for each browser-side interaction:
+
+- `send` or `receive`
+- `GET` or `POST`
+- request `url`
+- raw `markdown`
+
+The messages are exposed at:
+
+- `window.__MDSN_DEBUG__.messages`
+
+If you also use the default `elements` renderer, the browser will show a small debug drawer so you can inspect those messages without opening devtools state manually.

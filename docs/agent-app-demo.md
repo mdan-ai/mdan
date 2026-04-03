@@ -1,11 +1,11 @@
 ---
 title: Agent App Demo
-description: Walk through agent-driven flows using the current guestbook and auth-session examples.
+description: Walk through agent-driven flows, from small examples up to the agent task handoff demo.
 ---
 
 # Agent App Demo
 
-This page shows how an agent actually moves through an MDSN app using the current repository examples.
+This page shows how an agent actually moves through an MDSN app, starting from the small examples and ending with the full `agent-tasks` demo.
 
 ## Basic Flow
 
@@ -54,6 +54,8 @@ That means the agent does not have to guess where to go next. The returned conte
 
 Reference: [demo/agent-tasks/app/server.ts](/Users/hencoo/projects/mdsn/demo/agent-tasks/app/server.ts)
 
+Message walkthrough: [demo/agent-tasks/README.md](/Users/hencoo/projects/mdsn/demo/agent-tasks/README.md)
+
 This demo pushes the same model into a multi-step delegation flow:
 
 - `GET /tasks/new` returns a task-creation page
@@ -67,6 +69,8 @@ The important pattern is the split between:
 - current-step continuation in the runtime block
 
 That lets one agent create a task, another agent continue from the same page URL, and the reviewer return to the same page to close or re-open the loop.
+
+If you want the most complete runnable example in the repository, start here.
 
 ## Agent-Facing Error Strategy
 
