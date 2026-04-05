@@ -27,6 +27,7 @@ export const docsNav: DocsNavSection[] = [
       { href: "/docs/mdan-vs-mcp", label: { en: "MDAN vs MCP", zh: "MDAN 与 MCP" } },
       { href: "/docs/understanding-mdan", label: { en: "Understanding MDAN", zh: "理解 MDAN" } },
       { href: "/docs/shared-interaction", label: { en: "HTTP Content Negotiation", zh: "HTTP 内容协商" } },
+      { href: "/docs/agent-consumption", label: { en: "Direct Agent Consumption", zh: "Agent 直接消费" } },
       { href: "/docs/agent-app-demo", label: { en: "Agent App Demo", zh: "Agent App Demo 讲解" } }
     ]
   },

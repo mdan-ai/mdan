@@ -87,6 +87,7 @@ What changes is the returned form, not the underlying app.
 - Want the protocol-level definition behind MDAN Markdown responses: [Protocol v1](https://mdan.ai/protocol/v1)
 - Want to understand pages, blocks, and updates: [Understanding MDAN](/docs/understanding-mdan)
 - Want to understand how one app serves both agents and browsers: [HTTP Content Negotiation](/docs/shared-interaction)
+- Want to see how an agent consumes MDAN directly over HTTP: [Direct Agent Consumption](/docs/agent-consumption)
 - Want to start building a real app: [Application Structure](/docs/application-structure)
 - Want to choose the right integration style first: [Developer Paths](/docs/developer-paths)
 - Want to understand SDK boundaries: [SDK Overview](/docs/sdk)
