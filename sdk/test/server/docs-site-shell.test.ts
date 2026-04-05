@@ -121,13 +121,13 @@ The smallest path first.
       pages: {
         "/docs": `# Docs Home`,
         "/zh/docs": `# 文档首页`,
-        "/docs/build-with-mdan": `---
-title: Build with MDAN
+        "/docs/custom-rendering": `---
+title: Custom Rendering
 ---
 
-# Build with MDAN
+# Custom Rendering
 
-Build a docs site.
+Bring your own renderer.
 
 ## Shell
 
@@ -138,14 +138,14 @@ Keep docs and shell aligned.
 
     const response = await server.handle({
       method: "GET",
-      url: "https://example.test/zh/build-with-mdan",
+      url: "https://example.test/zh/custom-rendering",
       headers: { accept: "text/html" },
       cookies: {}
     });
 
     expect(response.status).toBe(200);
     expect(response.body).toContain('<html lang="zh">');
-    expect(response.body).toContain("Build a docs site.");
+    expect(response.body).toContain("Bring your own renderer.");
     expect(response.body).toContain("本页目录");
     expect(response.body).toContain("搜索");
     expect(response.body).toContain("/zh");

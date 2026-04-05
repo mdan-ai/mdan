@@ -96,4 +96,3 @@ That keeps the server-rendered HTML and the default UI aligned.
 
 - [Web Runtime](/docs/web-runtime)
 - [Examples](/docs/examples)
-- [Third-Party Renderer](/docs/third-party-markdown-renderer)

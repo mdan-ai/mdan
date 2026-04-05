@@ -31,6 +31,9 @@ async function collectMarkdownFiles(rootDir, relativeDir = "") {
       if (relativePath === "superpowers") {
         continue;
       }
+      if (relativePath === "releases") {
+        continue;
+      }
       files.push(...(await collectMarkdownFiles(rootDir, relativePath)));
       continue;
     }

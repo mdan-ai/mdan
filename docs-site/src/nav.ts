@@ -26,7 +26,8 @@ export const docsNav: DocsNavSection[] = [
       { href: "/docs/what-is-mdan", label: { en: "What is MDAN?", zh: "什么是 MDAN？" } },
       { href: "/docs/mdan-vs-mcp", label: { en: "MDAN vs MCP", zh: "MDAN 与 MCP" } },
       { href: "/docs/understanding-mdan", label: { en: "Understanding MDAN", zh: "理解 MDAN" } },
-      { href: "/docs/shared-interaction", label: { en: "HTTP Content Negotiation", zh: "HTTP 内容协商" } }
+      { href: "/docs/shared-interaction", label: { en: "HTTP Content Negotiation", zh: "HTTP 内容协商" } },
+      { href: "/docs/agent-app-demo", label: { en: "Agent App Demo", zh: "Agent App Demo 讲解" } }
     ]
   },
   {
@@ -37,6 +38,7 @@ export const docsNav: DocsNavSection[] = [
     items: [
       { href: "/docs/application-structure", label: { en: "Application Structure", zh: "应用结构" } },
       { href: "/docs/server-integration", label: { en: "Server Integration", zh: "服务端接入" } },
+      { href: "/docs/developer-paths", label: { en: "Developer Paths", zh: "开发者路线图" } },
       { href: "/docs/custom-rendering", label: { en: "Custom Rendering", zh: "自定义渲染" } },
       { href: "/docs/session-provider", label: { en: "Session Provider", zh: "Session Provider" } }
     ]

@@ -12,9 +12,17 @@ It keeps content, operations, and follow-up interaction in the same page model s
 - https://mdan.ai/protocol/v1
 - https://docs.mdan.ai/understanding-mdan
 - https://docs.mdan.ai/shared-interaction
+- https://docs.mdan.ai/agent-app-demo
 - https://docs.mdan.ai/application-structure
+- https://docs.mdan.ai/developer-paths
+- https://docs.mdan.ai/server-integration
+- https://docs.mdan.ai/custom-rendering
+- https://docs.mdan.ai/session-provider
 - https://docs.mdan.ai/sdk
 - https://docs.mdan.ai/server-runtime
+- https://docs.mdan.ai/web-runtime
+- https://docs.mdan.ai/elements
+- https://docs.mdan.ai/api-reference
 - https://docs.mdan.ai/examples
 
 ## Packages

@@ -88,6 +88,7 @@ What changes is the returned form, not the underlying app.
 - Want to understand pages, blocks, and updates: [Understanding MDAN](/docs/understanding-mdan)
 - Want to understand how one app serves both agents and browsers: [HTTP Content Negotiation](/docs/shared-interaction)
 - Want to start building a real app: [Application Structure](/docs/application-structure)
+- Want to choose the right integration style first: [Developer Paths](/docs/developer-paths)
 - Want to understand SDK boundaries: [SDK Overview](/docs/sdk)
 - Want to see a real agent-to-agent app flow: [Agent App Demo](/docs/agent-app-demo)
 - Want runnable repository demos: [Examples](/docs/examples)

@@ -88,7 +88,9 @@ MDAN 的工作方式可以先概括成三步：
 - 想理解页面、block 和更新方式：看 [理解 MDAN](/zh/docs/understanding-mdan)
 - 想理解为什么同一个应用可以同时服务 Agent 和浏览器：看 [HTTP 内容协商](/zh/docs/shared-interaction)
 - 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
+- 想先判断该走哪条接入路线：看 [开发者路线图](/zh/docs/developer-paths)
 - 想理解 SDK 边界：看 [SDK 概览](/zh/docs/sdk)
+- 想看一个真实的 agent-to-agent 应用流程：看 [Agent App Demo 讲解](/zh/docs/agent-app-demo)
 
 ## 推荐阅读顺序
 
