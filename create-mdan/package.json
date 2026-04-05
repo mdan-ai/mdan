@@ -1,0 +1,56 @@
+{
+  "name": "create-mdan",
+  "version": "0.5.0",
+  "private": false,
+  "description": "Create a minimal MDAN app with npm create or bunx.",
+  "license": "MIT",
+  "homepage": "https://docs.mdan.ai",
+  "bugs": {
+    "url": "https://github.com/mdan-ai/mdan/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdan-ai/mdan.git"
+  },
+  "keywords": [
+    "mdan",
+    "create",
+    "scaffold",
+    "markdown",
+    "ai",
+    "agent",
+    "agentic",
+    "workflow",
+    "skills-app",
+    "agent-app",
+    "cli",
+    "bun"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "template/shared",
+    "template/node",
+    "template/bun"
+  ],
+  "bin": {
+    "create-mdan": "./dist/cli-bin.js"
+  },
+  "scripts": {
+    "prepack": "node ../scripts/sync-package-license.mjs",
+    "postpack": "node ../scripts/sync-package-license.mjs --cleanup"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
+}

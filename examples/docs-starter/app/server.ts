@@ -1,10 +1,10 @@
-import { createHostedApp } from "@mdsnai/sdk/server";
-import { composePage } from "@mdsnai/sdk/core";
-import type { MdsnFrontmatter, MdsnMarkdownRenderer } from "@mdsnai/sdk/core";
+import { createHostedApp } from "@mdanai/sdk/server";
+import { composePage } from "@mdanai/sdk/core";
+import type { MdanFrontmatter, MdanMarkdownRenderer } from "@mdanai/sdk/core";
 
 export interface CreateDocsSiteServerOptions {
   pages: Record<string, string>;
-  markdownRenderer?: MdsnMarkdownRenderer;
+  markdownRenderer?: MdanMarkdownRenderer;
 }
 
 interface DocsPageRecord {
@@ -119,7 +119,7 @@ function renderDocsMarkdown(markdown: string): { html: string; toc: TocItem[] } 
   };
 }
 
-function toTitle(frontmatter: MdsnFrontmatter, route: string): string {
+function toTitle(frontmatter: MdanFrontmatter, route: string): string {
   const title = frontmatter.title;
   if (typeof title === "string" && title.trim()) {
     return title.trim();
@@ -201,7 +201,7 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
   </head>
   <body>
     <header class="docs-topbar">
-      <a class="docs-brand" href="/docs">MDSN Docs</a>
+      <a class="docs-brand" href="/docs">MDAN Docs</a>
     </header>
     <main class="docs-shell">
       <aside class="docs-nav">

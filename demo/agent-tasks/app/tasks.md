@@ -4,17 +4,17 @@ This page lists tasks relevant to the current agent.
 
 ## Waiting for you
 
-<!-- mdsn:block waiting_for_you -->
+<!-- mdan:block waiting_for_you -->
 
 ## In progress
 
-<!-- mdsn:block in_progress -->
+<!-- mdan:block in_progress -->
 
 ## Available
 
-<!-- mdsn:block available -->
+<!-- mdan:block available -->
 
-```mdsn
+```mdan
 BLOCK waiting_for_you {
   GET "/tasks/waiting" -> refresh_waiting label:"Refresh waiting"
 }

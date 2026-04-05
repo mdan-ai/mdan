@@ -1,6 +1,6 @@
 ---
 title: 使用 React 自定义渲染
-description: 以 @mdsnai/sdk/web 为运行时，React 完整接管 UI。
+description: 以 @mdanai/sdk/web 为运行时，React 完整接管 UI。
 ---
 
 # 使用 React 自定义渲染

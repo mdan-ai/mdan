@@ -1,28 +1,28 @@
 ---
 title: Elements
-description: @mdsnai/sdk/elements provides the official default UI.
+description: @mdanai/sdk/elements provides the official default UI.
 ---
 
 # Elements
 
-`@mdsnai/sdk/elements` provides the official default UI for MDSN, built on Web Components.
+`@mdanai/sdk/elements` provides the official default UI for MDAN, built on Web Components.
 
 It now sits directly on top of the browser runtime state instead of only styling raw server-rendered HTML.
 
 If you do not want to build your own UI, this is the most direct browser-side option.
 
-The main path is `mountMdsnElements({ root, host, ... })`. `registerMdsnElements()` is a lower-level primitive that is mostly useful in tests or special integrations.
+The main path is `mountMdanElements({ root, host, ... })`. `registerMdanElements()` is a lower-level primitive that is mostly useful in tests or special integrations.
 
 ## Basic Usage
 
 ```ts
-import { mountMdsnElements } from "@mdsnai/sdk/elements";
-import { createHeadlessHost } from "@mdsnai/sdk/web";
+import { mountMdanElements } from "@mdanai/sdk/elements";
+import { createHeadlessHost } from "@mdanai/sdk/web";
 ```
 
 ```ts
 const host = createHeadlessHost({ root: document, fetchImpl: window.fetch });
-mountMdsnElements({
+mountMdanElements({
   root: document,
   host
 }).mount();
@@ -31,7 +31,7 @@ mountMdsnElements({
 If you want a third-party Markdown renderer, inject the same renderer here:
 
 ```ts
-mountMdsnElements({
+mountMdanElements({
   root: document,
   host,
   markdownRenderer: {
@@ -42,16 +42,16 @@ mountMdsnElements({
 }).mount();
 ```
 
-If you only want to register the custom elements, you can still call `registerMdsnElements()` on its own.
+If you only want to register the custom elements, you can still call `registerMdanElements()` on its own.
 
 By default it registers:
 
-- `mdsn-page`
-- `mdsn-block`
-- `mdsn-form`
-- `mdsn-field`
-- `mdsn-action`
-- `mdsn-error`
+- `mdan-page`
+- `mdan-block`
+- `mdan-form`
+- `mdan-field`
+- `mdan-action`
+- `mdan-error`
 
 ## When This Package Fits
 
@@ -59,4 +59,4 @@ By default it registers:
 - you want framework-neutral Web Components
 - you want a thin official view layer on top of the same browser runtime
 
-If you only want the browser runtime and plan to render everything yourself, use `@mdsnai/sdk/web` without `@mdsnai/sdk/elements`.
+If you only want the browser runtime and plan to render everything yourself, use `@mdanai/sdk/web` without `@mdanai/sdk/elements`.

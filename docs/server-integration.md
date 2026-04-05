@@ -1,11 +1,11 @@
 ---
 title: Server Integration
-description: Integrate the MDSN runtime into an existing Express, Hono, Fastify, Koa, or Next backend.
+description: Integrate the MDAN runtime into an existing Express, Hono, Fastify, Koa, or Next backend.
 ---
 
 # Server Integration
 
-This page is for the case where you already have a backend and want to plug MDSN into it.
+This page is for the case where you already have a backend and want to plug MDAN into it.
 
 The short version is: do a thin HTTP adaptation layer, then let the runtime handle the real work.
 
@@ -14,9 +14,9 @@ The short version is: do a thin HTTP adaptation layer, then let the runtime hand
 Keep the boundary clear:
 
 - the framework layer only adapts transport details
-- the MDSN runtime handles routing, negotiation, body semantics, and action execution
+- the MDAN runtime handles routing, negotiation, body semantics, and action execution
 
-In practice, that means adapting requests and responses to `server.handle()`, not re-implementing MDSN logic in middleware or controllers.
+In practice, that means adapting requests and responses to `server.handle()`, not re-implementing MDAN logic in middleware or controllers.
 
 ## A Typical Adapter Shape
 

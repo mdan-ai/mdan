@@ -1,6 +1,6 @@
 ---
 title: Developer Paths
-description: Choose the MDSN integration path that best fits your use case.
+description: Choose the MDAN integration path that best fits your use case.
 ---
 
 # Developer Paths
@@ -11,9 +11,9 @@ Use this page to quickly pick the right integration path for your situation.
 
 Use:
 
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/web`
-- `@mdsnai/sdk/elements`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/web`
+- `@mdanai/sdk/elements`
 
 This is the best path when you want a working product quickly with the official UI.
 
@@ -27,11 +27,11 @@ See:
 
 Use:
 
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/web`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/web`
 - your own UI framework
 
-This is the best path when you want your own design system while keeping MDSN runtime behavior.
+This is the best path when you want your own design system while keeping MDAN runtime behavior.
 
 See:
 
@@ -42,7 +42,7 @@ See:
 
 Use:
 
-- `createMdsnServer()` or `createHostedApp()`
+- `createMdanServer()` or `createHostedApp()`
 - your own framework adapter around `server.handle()`
 
 This is the best path when you already have an Express, Hono, or Next backend and need controlled integration.
@@ -56,7 +56,7 @@ See:
 
 Use:
 
-- `@mdsnai/sdk/core`
+- `@mdanai/sdk/core`
 
 This is the best path when you only need parse, validate, and serialize utilities.
 

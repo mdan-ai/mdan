@@ -5,14 +5,14 @@ description: Server-side session read, write, and clear hooks.
 
 # Session Provider
 
-This page is about where to connect an existing login or cookie setup into MDSN.
+This page is about where to connect an existing login or cookie setup into MDAN.
 
-Session is a runtime concern. `@mdsnai/sdk/server` integrates it through a thin provider interface:
+Session is a runtime concern. `@mdanai/sdk/server` integrates it through a thin provider interface:
 
 ```ts
 type Session = Record<string, unknown>;
 
-type MdsnSessionProvider = {
+type MdanSessionProvider = {
   read(request): Promise<Session | null>;
   commit(mutation, response): Promise<void>;
   clear(response): Promise<void>;
@@ -31,22 +31,22 @@ This lets the SDK work with your existing session approach without hard-coding o
 - `commit`: persist a login or refresh mutation onto the outgoing response
 - `clear`: remove the current session from the outgoing response
 
-Those three methods are enough. MDSN does not ask you to rebuild your auth system. It only asks you to plug in read, write, and clear.
+Those three methods are enough. MDAN does not ask you to rebuild your auth system. It only asks you to plug in read, write, and clear.
 
 ## Typical Cookie-Backed Shape
 
 ```ts
 const session = {
   async read(request) {
-    return request.cookies.mdsn_session ? { userId: request.cookies.mdsn_session } : null;
+    return request.cookies.mdan_session ? { userId: request.cookies.mdan_session } : null;
   },
   async commit(mutation, response) {
     if (mutation?.type === "sign-in" || mutation?.type === "refresh") {
-      response.headers["set-cookie"] = `mdsn_session=${mutation.session.userId}; Path=/; HttpOnly`;
+      response.headers["set-cookie"] = `mdan_session=${mutation.session.userId}; Path=/; HttpOnly`;
     }
   },
   async clear(response) {
-    response.headers["set-cookie"] = "mdsn_session=; Path=/; Max-Age=0";
+    response.headers["set-cookie"] = "mdan_session=; Path=/; Max-Age=0";
   }
 };
 ```

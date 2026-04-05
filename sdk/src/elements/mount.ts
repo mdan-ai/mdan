@@ -1,17 +1,17 @@
-import { basicMarkdownRenderer, type MdsnMarkdownRenderer } from "../core/index.js";
-import { type MdsnHeadlessHost, type HeadlessSnapshot } from "../web/index.js";
+import { basicMarkdownRenderer, type MdanMarkdownRenderer } from "../core/index.js";
+import { type MdanHeadlessHost, type HeadlessSnapshot } from "../web/index.js";
 import { html, render } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
-import { registerMdsnElements } from "./register.js";
+import { registerMdanElements } from "./register.js";
 
-export interface MountMdsnElementsOptions {
+export interface MountMdanElementsOptions {
   root: ParentNode;
-  host: MdsnHeadlessHost;
-  markdownRenderer?: MdsnMarkdownRenderer;
+  host: MdanHeadlessHost;
+  markdownRenderer?: MdanMarkdownRenderer;
 }
 
-export interface MdsnElementsRuntime extends MdsnHeadlessHost {}
+export interface MdanElementsRuntime extends MdanHeadlessHost {}
 
 interface DebugMessageRecord {
   direction: string;
@@ -20,8 +20,8 @@ interface DebugMessageRecord {
   markdown: string;
 }
 
-interface WindowWithMdsnDebug extends Window {
-  __MDSN_DEBUG__?: {
+interface WindowWithMdanDebug extends Window {
+  __MDAN_DEBUG__?: {
     messages: DebugMessageRecord[];
   };
 }
@@ -34,18 +34,18 @@ function humanizeLabel(value: string): string {
     .replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
-function renderMarkdown(markdown: string, markdownRenderer: MdsnMarkdownRenderer) {
+function renderMarkdown(markdown: string, markdownRenderer: MdanMarkdownRenderer) {
   return unsafeHTML(markdownRenderer.render(markdown));
 }
 
 function ensureContainer(root: ParentNode): HTMLElement {
   if (root instanceof Document) {
-    const existing = root.querySelector("[data-mdsn-elements-root]");
+    const existing = root.querySelector("[data-mdan-elements-root]");
     if (existing instanceof HTMLElement) {
       return existing;
     }
     const host = root.createElement("div");
-    host.setAttribute("data-mdsn-elements-root", "");
+    host.setAttribute("data-mdan-elements-root", "");
     root.body.append(host);
     return host;
   }
@@ -53,16 +53,16 @@ function ensureContainer(root: ParentNode): HTMLElement {
 }
 
 function ensureGlobalStyle(document: Document): void {
-  if (document.getElementById("mdsn-elements-headless-style")) {
+  if (document.getElementById("mdan-elements-headless-style")) {
     return;
   }
   const style = document.createElement("style");
-  style.id = "mdsn-elements-headless-style";
+  style.id = "mdan-elements-headless-style";
   style.textContent = `
-    mdsn-page {
+    mdan-page {
       display: none !important;
     }
-    [data-mdsn-elements-root] {
+    [data-mdan-elements-root] {
       display: block;
     }
   `;
@@ -73,8 +73,8 @@ function getDocument(root: ParentNode): Document {
   return root instanceof Document ? root : root.ownerDocument ?? document;
 }
 
-export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElementsRuntime {
-  registerMdsnElements();
+export function mountMdanElements(options: MountMdanElementsOptions): MdanElementsRuntime {
+  registerMdanElements();
 
   const document = getDocument(options.root);
   const container = ensureContainer(options.root);
@@ -90,17 +90,17 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
     if (typeof window === "undefined") {
       return [];
     }
-    const debugWindow = window as WindowWithMdsnDebug;
-    return debugWindow.__MDSN_DEBUG__?.messages ?? [];
+    const debugWindow = window as WindowWithMdanDebug;
+    return debugWindow.__MDAN_DEBUG__?.messages ?? [];
   }
 
   function clearDebugMessages(): void {
     if (typeof window === "undefined") {
       return;
     }
-    const debugWindow = window as WindowWithMdsnDebug;
-    if (debugWindow.__MDSN_DEBUG__) {
-      debugWindow.__MDSN_DEBUG__.messages = [];
+    const debugWindow = window as WindowWithMdanDebug;
+    if (debugWindow.__MDAN_DEBUG__) {
+      debugWindow.__MDAN_DEBUG__.messages = [];
     }
   }
 
@@ -135,7 +135,7 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
     const debugMessages = getDebugMessages();
     render(
       html`
-        <mdsn-page>
+        <mdan-page>
           ${snapshot.markdown ? renderMarkdown(snapshot.markdown, markdownRenderer) : ""}
           ${snapshot.blocks.map((block) => {
             const getOperations = [];
@@ -150,7 +150,7 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
             const inputsByName = new Map(block.inputs.map((input) => [input.name, input]));
 
             return html`
-              <mdsn-block data-mdsn-block=${block.name}>
+              <mdan-block data-mdan-block=${block.name}>
                 ${block.markdown ? renderMarkdown(block.markdown, markdownRenderer) : ""}
 
                 ${getOperations.map((operation) => {
@@ -162,8 +162,8 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
 
                   if (renderableInputs.length === 0) {
                     return html`
-                      <div class="mdsn-elements-actions">
-                        <mdsn-action>
+                      <div class="mdan-elements-actions">
+                        <mdan-action>
                           <button
                             type="button"
                             @click=${() => {
@@ -172,13 +172,13 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                           >
                             ${operation.label ?? operation.name ?? operation.target}
                           </button>
-                        </mdsn-action>
+                        </mdan-action>
                       </div>
                     `;
                   }
 
                   return html`
-                    <mdsn-form>
+                    <mdan-form>
                       <form
                         @submit=${(event: Event) => {
                           event.preventDefault();
@@ -195,14 +195,14 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                         }}
                       >
                         ${renderableInputs.map((input) => {
-                          const label = html`<span class="mdsn-label-text">
+                          const label = html`<span class="mdan-label-text">
                             ${humanizeLabel(input.name)}
-                            ${input.required ? html`<span class="mdsn-required" aria-hidden="true">*</span>` : ""}
+                            ${input.required ? html`<span class="mdan-required" aria-hidden="true">*</span>` : ""}
                           </span>`;
 
                           if (input.type === "choice") {
                             return html`
-                              <mdsn-field>
+                              <mdan-field>
                                 <label>
                                   ${label}
                                   <select
@@ -218,13 +218,13 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                     )}
                                   </select>
                                 </label>
-                              </mdsn-field>
+                              </mdan-field>
                             `;
                           }
 
                           if (input.type === "boolean") {
                             return html`
-                              <mdsn-field>
+                              <mdan-field>
                                 <label>
                                   ${label}
                                   <input
@@ -241,13 +241,13 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                     }}
                                   >
                                 </label>
-                              </mdsn-field>
+                              </mdan-field>
                             `;
                           }
 
                           if (input.type === "asset") {
                             return html`
-                              <mdsn-field>
+                              <mdan-field>
                                 <label>
                                   ${label}
                                   <input
@@ -263,12 +263,12 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                     }}
                                   >
                                 </label>
-                              </mdsn-field>
+                              </mdan-field>
                             `;
                           }
 
                           return html`
-                            <mdsn-field>
+                            <mdan-field>
                               <label>
                                 ${label}
                                 <input
@@ -282,14 +282,14 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                   }}
                                 >
                               </label>
-                            </mdsn-field>
+                            </mdan-field>
                           `;
                         })}
-                        <mdsn-action>
+                        <mdan-action>
                           <button type="submit">${operation.label ?? operation.name ?? operation.target}</button>
-                        </mdsn-action>
+                        </mdan-action>
                       </form>
-                    </mdsn-form>
+                    </mdan-form>
                   `;
                 })}
 
@@ -301,7 +301,7 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                     .filter((input): input is NonNullable<typeof input> => Boolean(input));
 
                   return html`
-                    <mdsn-form>
+                    <mdan-form>
                       <form
                         @submit=${(event: Event) => {
                           event.preventDefault();
@@ -319,14 +319,14 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                         }}
                       >
                         ${renderableInputs.map((input) => {
-                              const label = html`<span class="mdsn-label-text">
+                              const label = html`<span class="mdan-label-text">
                                 ${humanizeLabel(input.name)}
-                                ${input.required ? html`<span class="mdsn-required" aria-hidden="true">*</span>` : ""}
+                                ${input.required ? html`<span class="mdan-required" aria-hidden="true">*</span>` : ""}
                               </span>`;
 
                               if (input.type === "choice") {
                                 return html`
-                                  <mdsn-field>
+                                  <mdan-field>
                                     <label>
                                       ${label}
                                       <select
@@ -342,13 +342,13 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                         )}
                                       </select>
                                     </label>
-                                  </mdsn-field>
+                                  </mdan-field>
                                 `;
                               }
 
                               if (input.type === "boolean") {
                                 return html`
-                                  <mdsn-field>
+                                  <mdan-field>
                                     <label>
                                       ${label}
                                       <input
@@ -365,13 +365,13 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                         }}
                                       >
                                     </label>
-                                  </mdsn-field>
+                                  </mdan-field>
                                 `;
                               }
 
                               if (input.type === "asset") {
                                 return html`
-                                  <mdsn-field>
+                                  <mdan-field>
                                     <label>
                                       ${label}
                                       <input
@@ -387,12 +387,12 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                         }}
                                       >
                                     </label>
-                                  </mdsn-field>
+                                  </mdan-field>
                                 `;
                               }
 
                               return html`
-                                <mdsn-field>
+                                <mdan-field>
                                   <label>
                                     ${label}
                                     <input
@@ -406,29 +406,29 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                                       }}
                                     >
                                   </label>
-                                </mdsn-field>
+                                </mdan-field>
                               `;
                             })}
-                        <mdsn-action>
+                        <mdan-action>
                           <button type="submit">${operation.label ?? operation.name ?? operation.target}</button>
-                        </mdsn-action>
+                        </mdan-action>
                       </form>
-                    </mdsn-form>
+                    </mdan-form>
                   `;
                 })}
-              </mdsn-block>
+              </mdan-block>
             `;
           })}
-        </mdsn-page>
+        </mdan-page>
         ${debugMessages.length > 0
           ? html`
               <aside
-                data-mdsn-debug-panel
+                data-mdan-debug-panel
                 style="position:fixed;right:1rem;bottom:1rem;z-index:9999;display:grid;gap:0.75rem;max-width:min(28rem,calc(100vw - 2rem));font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;"
               >
                 <button
                   type="button"
-                  data-mdsn-debug-toggle
+                  data-mdan-debug-toggle
                   style="justify-self:end;border:1px solid #cbd5e1;background:#0f172a;color:#f8fafc;border-radius:999px;padding:0.6rem 0.9rem;box-shadow:0 10px 30px rgba(15,23,42,0.2);cursor:pointer;"
                   @click=${() => {
                     debugDrawerOpen = !debugDrawerOpen;
@@ -440,11 +440,11 @@ export function mountMdsnElements(options: MountMdsnElementsOptions): MdsnElemen
                 ${debugDrawerOpen
                   ? html`
                       <section
-                        data-mdsn-debug-drawer
+                        data-mdan-debug-drawer
                         style="background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:1rem;padding:0.9rem;box-shadow:0 16px 40px rgba(15,23,42,0.35);max-height:min(32rem,70vh);overflow:auto;"
                       >
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;margin-bottom:0.75rem;">
-                          <strong style="font-size:12px;letter-spacing:0.04em;text-transform:uppercase;">MDSN Debug</strong>
+                          <strong style="font-size:12px;letter-spacing:0.04em;text-transform:uppercase;">MDAN Debug</strong>
                           <button
                             type="button"
                             style="border:1px solid #334155;background:transparent;color:#cbd5e1;border-radius:999px;padding:0.35rem 0.7rem;cursor:pointer;"

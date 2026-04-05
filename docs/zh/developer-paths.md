@@ -1,6 +1,6 @@
 ---
 title: 开发者路线图
-description: 根据你的场景选择最合适的 MDSN 集成路径。
+description: 根据你的场景选择最合适的 MDAN 集成路径。
 ---
 
 # 开发者路线图
@@ -11,9 +11,9 @@ description: 根据你的场景选择最合适的 MDSN 集成路径。
 
 使用：
 
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/web`
-- `@mdsnai/sdk/elements`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/web`
+- `@mdanai/sdk/elements`
 
 适合想尽快做出可运行产品，并直接使用官方默认 UI 的场景。
 
@@ -27,11 +27,11 @@ description: 根据你的场景选择最合适的 MDSN 集成路径。
 
 使用：
 
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/web`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/web`
 - Vue / React 等框架层
 
-适合已经有自己的设计系统，但仍想保留 MDSN 运行时行为的场景。
+适合已经有自己的设计系统，但仍想保留 MDAN 运行时行为的场景。
 
 参见：
 
@@ -42,7 +42,7 @@ description: 根据你的场景选择最合适的 MDSN 集成路径。
 
 使用：
 
-- 通过 `createMdsnServer()` 或 `createHostedApp()`
+- 通过 `createMdanServer()` 或 `createHostedApp()`
 - 在适配层调用 `server.handle()`
 
 适合已经有 Express、Hono、Next 等后端，需要受控集成方式的场景。
@@ -56,7 +56,7 @@ description: 根据你的场景选择最合适的 MDSN 集成路径。
 
 使用：
 
-- `@mdsnai/sdk/core`
+- `@mdanai/sdk/core`
 
 适合只需要解析、校验、序列化这些协议工具的场景。
 

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 
 import { createExpressStarterServer } from "./dist/server.js";
-import { createExpressMdsnHandler } from "./dist/express-adapter.js";
+import { createExpressMdanHandler } from "./dist/express-adapter.js";
 
 const port = Number(process.env.PORT || 4330);
 const exampleRoot = fileURLToPath(new URL("./", import.meta.url));
@@ -19,9 +19,9 @@ function withVersion(path) {
 
 const importMap = {
   imports: {
-    "@mdsnai/sdk/core": withVersion("/sdk/dist/core/index.js"),
-    "@mdsnai/sdk/web": withVersion("/sdk/dist/web/index.js"),
-    "@mdsnai/sdk/elements": withVersion("/sdk/dist/elements/index.js"),
+    "@mdanai/sdk/core": withVersion("/sdk/dist/core/index.js"),
+    "@mdanai/sdk/web": withVersion("/sdk/dist/web/index.js"),
+    "@mdanai/sdk/elements": withVersion("/sdk/dist/elements/index.js"),
     "lit": withVersion("/node_modules/lit/index.js"),
     "lit-html": withVersion("/node_modules/lit-html/lit-html.js"),
     "lit-html/is-server.js": withVersion("/node_modules/lit-html/is-server.js"),
@@ -42,9 +42,9 @@ function injectEnhancement(html) {
 }
 
 const source = await readFile(sourcePath, "utf8");
-const mdsn = createExpressStarterServer({ source });
+const mdan = createExpressStarterServer({ source });
 const app = express();
-const expressMdsnHandler = createExpressMdsnHandler(mdsn, { transformHtml: injectEnhancement });
+const expressMdanHandler = createExpressMdanHandler(mdan, { transformHtml: injectEnhancement });
 
 app.use(express.urlencoded({ extended: false }));
 
@@ -60,7 +60,7 @@ app.use("/sdk", express.static(join(repoRoot, "sdk")));
 app.use("/node_modules", express.static(join(repoRoot, "node_modules")));
 
 app.use(async (request, response) => {
-  await expressMdsnHandler(request, response);
+  await expressMdanHandler(request, response);
 });
 
 app.listen(port, "127.0.0.1", () => {

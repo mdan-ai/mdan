@@ -1,6 +1,6 @@
-import { MdsnParseError } from "../errors.js";
+import { MdanParseError } from "../errors.js";
 
-const anchorPattern = /<!--\s*mdsn:block\s+([a-zA-Z_][\w-]*)\s*-->/g;
+const anchorPattern = /<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->/g;
 
 export function parseAnchors(markdown: string): string[] {
   const anchors: string[] = [];
@@ -21,7 +21,7 @@ export function parseAnchors(markdown: string): string[] {
     for (const match of matches) {
       const name = match[1];
       if (!name) {
-        throw new MdsnParseError("Encountered malformed block anchor.");
+        throw new MdanParseError("Encountered malformed block anchor.");
       }
       anchors.push(name);
     }

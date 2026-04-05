@@ -1,4 +1,4 @@
-import { composePage } from "@mdsnai/sdk/core";
+import { composePage } from "@mdanai/sdk/core";
 import { describe, expect, it } from "vitest";
 
 import { createHostedApp, stream } from "../../src/server/index.js";
@@ -12,9 +12,9 @@ title: Guestbook
 
 # Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   INPUT text required -> message
   GET "/list" -> refresh label:"Refresh"
@@ -90,9 +90,9 @@ BLOCK guestbook {
   it("binds stream GET targets and preserves event-stream behavior", async () => {
     const source = `# Updates
 
-<!-- mdsn:block updates -->
+<!-- mdan:block updates -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK updates {
   GET "/stream" accept:"text/event-stream"
 }
@@ -147,9 +147,9 @@ BLOCK updates {
     const signedOutSource = `# Sign In`;
     const signedInSource = `# Secret
 
-<!-- mdsn:block secure -->
+<!-- mdan:block secure -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK secure {
   INPUT text -> message
   POST "/shared" (message) -> save
@@ -159,7 +159,7 @@ BLOCK secure {
     const app = createHostedApp({
       session: {
         async read(request) {
-          return request.cookies.mdsn_session ? { userId: "Ada" } : null;
+          return request.cookies.mdan_session ? { userId: "Ada" } : null;
         },
         async commit() {},
         async clear() {}
@@ -194,7 +194,7 @@ BLOCK secure {
       },
       body: 'message: "hi"',
       cookies: {
-        mdsn_session: "session-1"
+        mdan_session: "session-1"
       }
     });
 
@@ -210,9 +210,9 @@ title: Guestbook
 
 # Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   INPUT text required -> message
   POST "/post" (message) -> submit label:"Submit"
@@ -342,9 +342,9 @@ BLOCK guestbook {
           "/account": () =>
             composePage(`# Account
 
-<!-- mdsn:block account -->
+<!-- mdan:block account -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK account {
   GET "/account" -> refresh
 }

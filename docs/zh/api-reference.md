@@ -1,6 +1,6 @@
 ---
 title: API 参考
-description: @mdsnai/sdk 各子路径公共 API 总览。
+description: @mdanai/sdk 各子路径公共 API 总览。
 ---
 
 # API 参考
@@ -11,7 +11,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 这页更适合查入口和查名字，不负责展开讲原理或最佳实践。
 
-## `@mdsnai/sdk/core`
+## `@mdanai/sdk/core`
 
 这一组主要是协议和 Markdown 处理工具。
 
@@ -54,13 +54,13 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 把 block 级片段序列化成 Markdown 片段。
 
-### `MdsnMarkdownRenderer`
+### `MdanMarkdownRenderer`
 
 统一的 Markdown 渲染扩展接口。同一个渲染器可以同时注入给：
 
-- `createMdsnServer({ markdownRenderer })`
+- `createMdanServer({ markdownRenderer })`
 - `createHostedApp({ markdownRenderer })`
-- `mountMdsnElements({ markdownRenderer })`
+- `mountMdanElements({ markdownRenderer })`
 
 ### `negotiateRepresentation(acceptHeader)`
 
@@ -73,7 +73,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 显式包含 `text/markdown` 时优先返回 `markdown`。
 
-## `@mdsnai/sdk/server`
+## `@mdanai/sdk/server`
 
 这一组主要是共享服务端运行时。
 
@@ -96,7 +96,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 - `page()`
 - `block()`
 
-### `createMdsnServer(options?)`
+### `createMdanServer(options?)`
 
 创建服务端运行时。
 
@@ -127,7 +127,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 ### `fail(result)`
 
-构造失败 action result，适合需要显式返回 4xx/5xx 且仍返回 `md + mdsn` 片段的场景。
+构造失败 action result，适合需要显式返回 4xx/5xx 且仍返回 `md + mdan` 片段的场景。
 
 ### `signIn(session)`
 
@@ -141,7 +141,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 创建续期 session mutation。
 
-## `@mdsnai/sdk/server/node`
+## `@mdanai/sdk/server/node`
 
 这一组主要是 Node host 适配器。
 
@@ -165,7 +165,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 
 更底层的 Node `RequestListener` 适配器，适合你想自己包 `http.createServer(...)` 外壳时使用。
 
-## `@mdsnai/sdk/server/bun`
+## `@mdanai/sdk/server/bun`
 
 这一组主要是 Bun host 适配器。
 
@@ -182,7 +182,7 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 - `staticMounts`
 - `maxBodyBytes`
 
-## `@mdsnai/sdk/web`
+## `@mdanai/sdk/web`
 
 这一组主要是浏览器侧运行时。
 
@@ -199,27 +199,27 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 - `host.mount()`
 - `host.unmount()`
 
-## `@mdsnai/sdk/elements`
+## `@mdanai/sdk/elements`
 
 这一组主要是默认 UI 和自定义元素注册器。
 
-### `mountMdsnElements({ root, host, markdownRenderer? })`
+### `mountMdanElements({ root, host, markdownRenderer? })`
 
 默认 UI 的推荐入口。它会：
 
 - 注册官方 Web Components
 - 基于当前状态渲染默认的页面、block 和表单 UI
 
-### `registerMdsnElements()`
+### `registerMdanElements()`
 
 会注册这些默认 Web Components：
 
-- `mdsn-page`
-- `mdsn-block`
-- `mdsn-form`
-- `mdsn-field`
-- `mdsn-action`
-- `mdsn-error`
+- `mdan-page`
+- `mdan-block`
+- `mdan-form`
+- `mdan-field`
+- `mdan-action`
+- `mdan-error`
 
 ## 不再推荐依赖的旧路径
 
@@ -228,4 +228,4 @@ description: @mdsnai/sdk 各子路径公共 API 总览。
 - `fragmentForBlock()` 包根调用
 - `createNodeRequestListener()` 包根调用
 - `renderHtmlDocument()` 包根调用
-- `@mdsnai/sdk/elements/register` 子路径
+- `@mdanai/sdk/elements/register` 子路径

@@ -1,20 +1,20 @@
 import type {
-  MdsnMarkdownRenderer,
-  MdsnBlock,
-  MdsnFragment,
-  MdsnHeadlessBlock,
-  MdsnHeadlessBootstrap,
-  MdsnInput,
-  MdsnOperation
+  MdanMarkdownRenderer,
+  MdanBlock,
+  MdanFragment,
+  MdanHeadlessBlock,
+  MdanHeadlessBootstrap,
+  MdanInput,
+  MdanOperation
 } from "../core/index.js";
 import { basicMarkdownRenderer } from "../core/index.js";
-import type { MdsnProtocolDiscovery } from "./types.js";
+import type { MdanProtocolDiscovery } from "./types.js";
 
-interface MdsnRenderableDocument extends MdsnFragment {
+interface MdanRenderableDocument extends MdanFragment {
   blockContent?: Record<string, string>;
 }
 
-const blockAnchorPattern = /^<!--\s*mdsn:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
+const blockAnchorPattern = /^<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
 
 export interface RenderHtmlDocumentOptions {
   kind?: "page" | "fragment";
@@ -22,9 +22,9 @@ export interface RenderHtmlDocumentOptions {
   alternateMarkdownHref?: string;
   llmsTxtHref?: string;
   protocol?: {
-    discovery?: MdsnProtocolDiscovery;
+    discovery?: MdanProtocolDiscovery;
   };
-  markdownRenderer?: MdsnMarkdownRenderer;
+  markdownRenderer?: MdanMarkdownRenderer;
 }
 
 function escapeHtml(value: string): string {
@@ -42,7 +42,7 @@ function humanizeLabel(value: string): string {
     .trim();
 }
 
-function resolveActionVariant(operation: MdsnOperation): "primary" | "secondary" | "quiet" {
+function resolveActionVariant(operation: MdanOperation): "primary" | "secondary" | "quiet" {
   const signature = `${operation.name ?? ""} ${operation.label ?? ""} ${operation.target}`.toLowerCase();
   if (signature.includes("logout") || signature.includes("log out")) {
     return "quiet";
@@ -53,46 +53,46 @@ function resolveActionVariant(operation: MdsnOperation): "primary" | "secondary"
   return "primary";
 }
 
-function renderInput(input: MdsnInput): string {
+function renderInput(input: MdanInput): string {
   const required = input.required ? ' required aria-required="true" data-required="true"' : "";
   const placeholder = input.name === "message" ? ` placeholder="Write something worth keeping"` : "";
   const name = escapeHtml(input.name);
   const labelText = humanizeLabel(name);
   const label = input.required
-    ? `<span class="mdsn-label-text">${escapeHtml(labelText)} <span class="mdsn-required" aria-hidden="true">*</span></span>`
-    : `<span class="mdsn-label-text">${escapeHtml(labelText)}</span>`;
+    ? `<span class="mdan-label-text">${escapeHtml(labelText)} <span class="mdan-required" aria-hidden="true">*</span></span>`
+    : `<span class="mdan-label-text">${escapeHtml(labelText)}</span>`;
 
   if (input.type === "choice") {
     const options = (input.options ?? [])
       .map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`)
       .join("");
-    return `<mdsn-field><label>${label}<select name="${name}"${required}>${options}</select></label></mdsn-field>`;
+    return `<mdan-field><label>${label}<select name="${name}"${required}>${options}</select></label></mdan-field>`;
   }
 
   if (input.type === "boolean") {
-    return `<mdsn-field><label>${label}<input name="${name}" type="checkbox"${required}></label></mdsn-field>`;
+    return `<mdan-field><label>${label}<input name="${name}" type="checkbox"${required}></label></mdan-field>`;
   }
 
   if (input.type === "asset") {
-    return `<mdsn-field><label>${label}<input name="${name}" type="file"${required}></label></mdsn-field>`;
+    return `<mdan-field><label>${label}<input name="${name}" type="file"${required}></label></mdan-field>`;
   }
 
   const type = input.secret ? "password" : input.type === "number" ? "number" : "text";
-  return `<mdsn-field><label>${label}<input name="${name}" type="${type}"${required}${placeholder}></label></mdsn-field>`;
+  return `<mdan-field><label>${label}<input name="${name}" type="${type}"${required}${placeholder}></label></mdan-field>`;
 }
 
-function renderOperation(operation: MdsnOperation, inputs: MdsnInput[]): string {
+function renderOperation(operation: MdanOperation, inputs: MdanInput[]): string {
   const variant = resolveActionVariant(operation);
-  const actionAttrs = `data-mdsn-action-variant="${variant}"`;
+  const actionAttrs = `data-mdan-action-variant="${variant}"`;
   if (operation.method === "GET") {
     if (operation.accept === "text/event-stream") {
-      return `<mdsn-stream data-mdsn-stream-target="${escapeHtml(operation.target)}"></mdsn-stream>`;
+      return `<mdan-stream data-mdan-stream-target="${escapeHtml(operation.target)}"></mdan-stream>`;
     }
     const fields = inputs
       .filter((input) => operation.inputs.includes(input.name))
       .map(renderInput)
       .join("");
-    return `<mdsn-form><form method="GET" action="${escapeHtml(operation.target)}" data-mdsn-method="GET" data-mdsn-target="${escapeHtml(operation.target)}" ${actionAttrs}>${fields}<mdsn-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name ?? operation.target)}</button></mdsn-action></form></mdsn-form>`;
+    return `<mdan-form><form method="GET" action="${escapeHtml(operation.target)}" data-mdan-method="GET" data-mdan-target="${escapeHtml(operation.target)}" ${actionAttrs}>${fields}<mdan-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name ?? operation.target)}</button></mdan-action></form></mdan-form>`;
   }
 
   const fields = inputs
@@ -100,12 +100,12 @@ function renderOperation(operation: MdsnOperation, inputs: MdsnInput[]): string 
     .map(renderInput)
     .join("");
 
-  return `<mdsn-form><form method="POST" action="${escapeHtml(operation.target)}" data-mdsn-method="POST" data-mdsn-target="${escapeHtml(operation.target)}" ${actionAttrs}>${fields}<mdsn-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name)}</button></mdsn-action></form></mdsn-form>`;
+  return `<mdan-form><form method="POST" action="${escapeHtml(operation.target)}" data-mdan-method="POST" data-mdan-target="${escapeHtml(operation.target)}" ${actionAttrs}>${fields}<mdan-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name)}</button></mdan-action></form></mdan-form>`;
 }
 
-function renderBlock(block: MdsnBlock, innerHtml = ""): string {
+function renderBlock(block: MdanBlock, innerHtml = ""): string {
   const operations = block.operations.map((operation) => renderOperation(operation, block.inputs)).join("");
-  return `<mdsn-block data-mdsn-block="${escapeHtml(block.name)}">${innerHtml}${operations}</mdsn-block>`;
+  return `<mdan-block data-mdan-block="${escapeHtml(block.name)}">${innerHtml}${operations}</mdan-block>`;
 }
 
 function escapeScriptJson(value: string): string {
@@ -113,7 +113,7 @@ function escapeScriptJson(value: string): string {
 }
 
 function resolveBlockMarkdown(
-  fragment: MdsnRenderableDocument,
+  fragment: MdanRenderableDocument,
   blockName: string,
   hasAnchors: boolean,
   isSingleBlockResponse: boolean
@@ -127,7 +127,7 @@ function resolveBlockMarkdown(
   return "";
 }
 
-function createHeadlessBlockSnapshot(block: MdsnBlock, markdown: string): MdsnHeadlessBlock {
+function createHeadlessBlockSnapshot(block: MdanBlock, markdown: string): MdanHeadlessBlock {
   return {
     name: block.name,
     markdown,
@@ -137,11 +137,11 @@ function createHeadlessBlockSnapshot(block: MdsnBlock, markdown: string): MdsnHe
 }
 
 function createHeadlessBootstrap(
-  fragment: MdsnRenderableDocument,
+  fragment: MdanRenderableDocument,
   options: RenderHtmlDocumentOptions,
   hasAnchors: boolean,
   isSingleBlockResponse: boolean
-): MdsnHeadlessBootstrap | null {
+): MdanHeadlessBootstrap | null {
   if (options.kind === "page") {
     return {
       kind: "page",
@@ -162,7 +162,7 @@ function createHeadlessBootstrap(
     return null;
   }
 
-  const bootstrap: MdsnHeadlessBootstrap = {
+  const bootstrap: MdanHeadlessBootstrap = {
     kind: "fragment",
     block: createHeadlessBlockSnapshot(
       block,
@@ -175,7 +175,7 @@ function createHeadlessBootstrap(
 
 function resolveProtocolDiscovery(
   options: Pick<RenderHtmlDocumentOptions, "alternateMarkdownHref" | "llmsTxtHref" | "protocol">
-): Partial<MdsnProtocolDiscovery> {
+): Partial<MdanProtocolDiscovery> {
   return {
     ...(options.protocol?.discovery?.markdownHref
       ? { markdownHref: options.protocol.discovery.markdownHref }
@@ -190,7 +190,7 @@ function resolveProtocolDiscovery(
   };
 }
 
-export function renderProtocolHeadLinks(discovery: Partial<MdsnProtocolDiscovery>): string {
+export function renderProtocolHeadLinks(discovery: Partial<MdanProtocolDiscovery>): string {
   return [
     discovery.markdownHref
       ? `<link rel="alternate" type="text/markdown" href="${escapeHtml(discovery.markdownHref)}">`
@@ -227,9 +227,9 @@ export function injectHtmlDiscoveryLinks(
 
 function renderMarkdownWithAnchors(
   markdown: string,
-  blocks: MdsnBlock[],
+  blocks: MdanBlock[],
   blockContent: Record<string, string> | undefined,
-  markdownRenderer: MdsnMarkdownRenderer
+  markdownRenderer: MdanMarkdownRenderer
 ): string {
   const rendered: string[] = [];
   const buffer: string[] = [];
@@ -262,9 +262,9 @@ function renderMarkdownWithAnchors(
   return rendered.join("\n");
 }
 
-export function renderHtmlDocument(fragment: MdsnRenderableDocument, options: RenderHtmlDocumentOptions = {}): string {
+export function renderHtmlDocument(fragment: MdanRenderableDocument, options: RenderHtmlDocumentOptions = {}): string {
   const markdownRenderer = options.markdownRenderer ?? basicMarkdownRenderer;
-  const hasAnchors = fragment.markdown.includes("<!-- mdsn:block");
+  const hasAnchors = fragment.markdown.includes("<!-- mdan:block");
   const isSingleBlockResponse = !hasAnchors && fragment.blocks.length === 1 && fragment.markdown.trim().length > 0;
   const markdown = hasAnchors
     ? renderMarkdownWithAnchors(fragment.markdown, fragment.blocks, fragment.blockContent, markdownRenderer)
@@ -278,7 +278,7 @@ export function renderHtmlDocument(fragment: MdsnRenderableDocument, options: Re
       : fragment.blocks.map((block) => renderBlock(block)).join("\n");
   const bootstrap = createHeadlessBootstrap(fragment, options, hasAnchors, isSingleBlockResponse);
   const bootstrapScript = bootstrap
-    ? `\n    <script id="mdsn-bootstrap" type="application/json">${escapeScriptJson(JSON.stringify(bootstrap))}</script>`
+    ? `\n    <script id="mdan-bootstrap" type="application/json">${escapeScriptJson(JSON.stringify(bootstrap))}</script>`
     : "";
   const discoveryLinks = renderHtmlDiscoveryLinks(options);
   const discoveryHead = discoveryLinks ? `\n    ${discoveryLinks}` : "";
@@ -298,7 +298,7 @@ ${discoveryHead}
         margin: 0;
         padding: 32px 16px;
       }
-      main[data-mdsn-root] {
+      main[data-mdan-root] {
         max-width: 760px;
         margin: 0 auto;
         background: rgba(255, 255, 255, 0.85);
@@ -320,10 +320,10 @@ ${discoveryHead}
         text-transform: uppercase;
         color: #0f766e;
       }
-      mdsn-block, mdsn-form, mdsn-field, mdsn-action {
+      mdan-block, mdan-form, mdan-field, mdan-action {
         display: block;
       }
-      mdsn-block {
+      mdan-block {
         margin-top: 20px;
         padding: 20px;
         border-radius: 22px;
@@ -345,12 +345,12 @@ ${discoveryHead}
         color: #475569;
         font-weight: 700;
       }
-      .mdsn-label-text {
+      .mdan-label-text {
         display: inline-flex;
         align-items: center;
         gap: 6px;
       }
-      .mdsn-required {
+      .mdan-required {
         color: #dc2626;
         font-size: 1rem;
         line-height: 1;
@@ -368,7 +368,7 @@ ${discoveryHead}
         border-color: rgba(220, 38, 38, 0.58);
         box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.08);
       }
-      mdsn-action {
+      mdan-action {
         display: flex;
         align-items: center;
         gap: 10px;
@@ -384,13 +384,13 @@ ${discoveryHead}
         box-shadow: 0 12px 24px rgba(15, 118, 110, 0.22);
         cursor: pointer;
       }
-      button[data-mdsn-action-variant="secondary"] {
+      button[data-mdan-action-variant="secondary"] {
         color: #0f766e;
         background: rgba(240, 253, 250, 0.92);
         border: 1px solid rgba(15, 118, 110, 0.18);
         box-shadow: none;
       }
-      button[data-mdsn-action-variant="quiet"] {
+      button[data-mdan-action-variant="quiet"] {
         color: #334155;
         background: rgba(241, 245, 249, 0.92);
         border: 1px solid rgba(148, 163, 184, 0.22);
@@ -429,12 +429,12 @@ ${discoveryHead}
     </style>
   </head>
   <body>
-    <mdsn-page>
-      <main data-mdsn-root>
+    <mdan-page>
+      <main data-mdan-root>
         ${markdown}
         ${blocks}
       </main>
-    </mdsn-page>
+    </mdan-page>
 ${bootstrapScript}
   </body>
 </html>`;

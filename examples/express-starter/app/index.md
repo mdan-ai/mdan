@@ -4,11 +4,11 @@ title: Guestbook
 
 # Guestbook
 
-Use this starter as the smallest end-to-end MDSN app on Express.
+Use this starter as the smallest end-to-end MDAN app on Express.
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-```mdsn
+```mdan
 BLOCK guestbook {
   INPUT text required -> message
   GET "/list" -> refresh label:"Refresh"

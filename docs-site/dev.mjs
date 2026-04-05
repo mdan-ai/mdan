@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 
-import { createNodeHost } from "@mdsnai/sdk/server/node";
+import { createNodeHost } from "@mdanai/sdk/server/node";
 
 import { createDocsSiteServer } from "./dist/index.js";
 
@@ -69,14 +69,14 @@ if (!pages["/zh"]) {
   pages["/zh"] = pages["/"];
 }
 
-const mdsn = createDocsSiteServer({
-  siteTitle: "MDSN Docs",
+const mdan = createDocsSiteServer({
+  siteTitle: "MDAN Docs",
   assetVersion,
   pages
 });
 
 const server = http.createServer(
-  createNodeHost(mdsn, {
+  createNodeHost(mdan, {
     staticFiles: {
       "/docs-site/site.css": join(docsRoot, "public", "site.css"),
       "/docs-site/docs.js": join(docsRoot, "public", "docs.js"),
@@ -89,5 +89,5 @@ const server = http.createServer(
 );
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(`MDSN docs site running at http://127.0.0.1:${port}/`);
+  console.log(`MDAN docs site running at http://127.0.0.1:${port}/`);
 });

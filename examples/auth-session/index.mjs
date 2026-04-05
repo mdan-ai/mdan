@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 import { createAuthServer } from "./dist/server.js";
 
@@ -21,9 +21,9 @@ function withVersion(path) {
 
 const importMap = {
   imports: {
-    "@mdsnai/sdk/core": withVersion("/sdk/dist/core/index.js"),
-    "@mdsnai/sdk/web": withVersion("/sdk/dist/web/index.js"),
-    "@mdsnai/sdk/elements": withVersion("/sdk/dist/elements/index.js"),
+    "@mdanai/sdk/core": withVersion("/sdk/dist/core/index.js"),
+    "@mdanai/sdk/web": withVersion("/sdk/dist/web/index.js"),
+    "@mdanai/sdk/elements": withVersion("/sdk/dist/elements/index.js"),
     "lit": withVersion("/node_modules/lit/index.js"),
     "lit-html": withVersion("/node_modules/lit-html/lit-html.js"),
     "lit-html/is-server.js": withVersion("/node_modules/lit-html/is-server.js"),
@@ -48,10 +48,10 @@ const [loginSource, registerSource, vaultSource] = await Promise.all([
   readFile(registerSourcePath, "utf8"),
   readFile(vaultSourcePath, "utf8")
 ]);
-const mdsn = createAuthServer({ loginSource, registerSource, vaultSource });
+const mdan = createAuthServer({ loginSource, registerSource, vaultSource });
 
 const server = http.createServer(
-  createHost(mdsn, {
+  createHost(mdan, {
     rootRedirect: "/login",
     transformHtml: injectEnhancement,
     staticFiles: {

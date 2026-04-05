@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createAuthServer } from "../../../examples/auth-session/app/server.js";
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 
@@ -59,9 +59,9 @@ function cookieValueFromSetCookie(setCookie: string | null): string {
 }
 
 function readBootstrap(html: string): { kind: string; route?: string; markdown: string } {
-  const match = html.match(/<script id="mdsn-bootstrap" type="application\/json">([\s\S]*?)<\/script>/);
+  const match = html.match(/<script id="mdan-bootstrap" type="application\/json">([\s\S]*?)<\/script>/);
   if (!match?.[1]) {
-    throw new Error("Expected mdsn bootstrap script.");
+    throw new Error("Expected mdan bootstrap script.");
   }
 
   return JSON.parse(match[1]) as { kind: string; route?: string; markdown: string };
@@ -149,9 +149,9 @@ describe("auth-session example over real node http", () => {
     });
     expect(saveHtml.status).toBe(200);
     const saveHtmlBody = await saveHtml.text();
-    expect(saveHtmlBody).toContain('data-mdsn-block="vault"');
+    expect(saveHtmlBody).toContain('data-mdan-block="vault"');
     expect(saveHtmlBody).toContain('action="/vault"');
-    expect(saveHtmlBody).not.toContain('data-mdsn-continue-target="/vault"');
+    expect(saveHtmlBody).not.toContain('data-mdan-continue-target="/vault"');
 
     const logout = await fetch(`${baseUrl}/vault/logout`, {
       method: "POST",
@@ -186,7 +186,7 @@ describe("auth-session example over real node http", () => {
       headers: {
         accept: "text/markdown",
         "content-type": "text/markdown",
-        cookie: "mdsn_session=stale-user"
+        cookie: "mdan_session=stale-user"
       },
       body: 'message: "Should fail"'
     });
@@ -211,7 +211,7 @@ describe("auth-session example over real node http", () => {
 
     expect(register.status).toBe(200);
     const setCookie = register.headers.get("set-cookie");
-    expect(setCookie).toContain("mdsn_session=");
+    expect(setCookie).toContain("mdan_session=");
     expect(setCookie).not.toContain("%E5%93%88%E5%93%88");
     expect(setCookie).not.toContain("哈哈");
     const registerBody = await register.text();

@@ -1,8 +1,8 @@
-import type { MdsnBlock, MdsnFragment, MdsnFrontmatter, MdsnInput, MdsnOperation, MdsnPage } from "./types.js";
+import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanInput, MdanOperation, MdanPage } from "./types.js";
 
-const blockAnchorPattern = /^<!--\s*mdsn:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
+const blockAnchorPattern = /^<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
 
-function serializeFrontmatter(frontmatter: MdsnFrontmatter): string {
+function serializeFrontmatter(frontmatter: MdanFrontmatter): string {
   const entries = Object.entries(frontmatter);
   if (entries.length === 0) {
     return "";
@@ -24,7 +24,7 @@ function serializeScalar(value: string | number | boolean | null): string {
   return String(value);
 }
 
-function serializeInput(input: MdsnInput): string {
+function serializeInput(input: MdanInput): string {
   const parts = ["INPUT", input.type];
   if (input.required) {
     parts.push("required");
@@ -39,7 +39,7 @@ function serializeInput(input: MdsnInput): string {
   return `  ${parts.join(" ")}`;
 }
 
-function serializeOperation(operation: MdsnOperation): string {
+function serializeOperation(operation: MdanOperation): string {
   const parts = [operation.method, JSON.stringify(operation.target)];
   if (operation.inputs.length > 0 || operation.method === "POST") {
     parts.push(`(${operation.inputs.join(", ")})`);
@@ -59,29 +59,29 @@ function serializeOperation(operation: MdsnOperation): string {
   return `  ${parts.join(" ")}`;
 }
 
-function serializeBlock(block: MdsnBlock): string {
+function serializeBlock(block: MdanBlock): string {
   const body = [...block.inputs.map(serializeInput), ...block.operations.map(serializeOperation)];
   const lines = [`BLOCK ${block.name} {`, ...body, `}`];
   return lines.join("\n");
 }
 
-function serializeBlocks(blocks: MdsnBlock[]): string {
+function serializeBlocks(blocks: MdanBlock[]): string {
   if (blocks.length === 0) {
     return "";
   }
 
   const content = blocks.map(serializeBlock).join("\n\n");
-  return `\`\`\`mdsn\n${content}\n\`\`\`\n`;
+  return `\`\`\`mdan\n${content}\n\`\`\`\n`;
 }
 
-function getVisibleBlockNames(page: MdsnPage): Set<string> | null {
+function getVisibleBlockNames(page: MdanPage): Set<string> | null {
   if (!page.visibleBlockNames || page.visibleBlockNames.length === 0) {
     return null;
   }
   return new Set(page.visibleBlockNames);
 }
 
-function getVisibleBlocks(page: MdsnPage): MdsnBlock[] {
+function getVisibleBlocks(page: MdanPage): MdanBlock[] {
   const visibleBlockNames = getVisibleBlockNames(page);
   if (!visibleBlockNames) {
     return page.blocks;
@@ -89,7 +89,7 @@ function getVisibleBlocks(page: MdsnPage): MdsnBlock[] {
   return page.blocks.filter((block) => visibleBlockNames.has(block.name));
 }
 
-function getVisibleBlockContent(page: MdsnPage): Record<string, string> | undefined {
+function getVisibleBlockContent(page: MdanPage): Record<string, string> | undefined {
   if (!page.blockContent) {
     return undefined;
   }
@@ -121,7 +121,7 @@ function injectBlockContent(markdown: string, blockContent: Record<string, strin
   return lines.join("\n");
 }
 
-export function serializePage(page: MdsnPage): string {
+export function serializePage(page: MdanPage): string {
   const frontmatter = serializeFrontmatter(page.frontmatter);
   const visibleBlockNames = getVisibleBlockNames(page);
   const markdown = injectBlockContent(
@@ -142,7 +142,7 @@ export function serializePage(page: MdsnPage): string {
   return `${frontmatter}${markdown}${blocks ? `\n\n${blocks}` : "\n"}`;
 }
 
-export function serializeFragment(fragment: MdsnFragment): string {
+export function serializeFragment(fragment: MdanFragment): string {
   const markdown = fragment.markdown.trim();
   const blocks = serializeBlocks(fragment.blocks);
   return `${markdown}${blocks ? `\n\n${blocks}` : "\n"}`;

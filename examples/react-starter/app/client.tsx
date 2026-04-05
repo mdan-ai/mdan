@@ -1,4 +1,4 @@
-import { createHeadlessHost, type HeadlessSnapshot, type MdsnHeadlessHost } from "@mdsnai/sdk/web";
+import { createHeadlessHost, type HeadlessSnapshot, type MdanHeadlessHost } from "@mdanai/sdk/web";
 import { marked } from "marked";
 import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -20,8 +20,8 @@ function RenderMarkdown({ markdown }: { markdown: string }) {
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-function ReactMdsnHeadlessHost() {
-  const [host, setHost] = useState<MdsnHeadlessHost | null>(null);
+function ReactMdanHeadlessHost() {
+  const [host, setHost] = useState<MdanHeadlessHost | null>(null);
   const [snapshot, setSnapshot] = useState<HeadlessSnapshot | null>(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
@@ -196,5 +196,5 @@ function ReactMdsnHeadlessHost() {
 }
 
 export function mountApp(host: HTMLElement): void {
-  createRoot(host).render(<ReactMdsnHeadlessHost />);
+  createRoot(host).render(<ReactMdanHeadlessHost />);
 }

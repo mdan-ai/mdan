@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { build } from "esbuild";
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 import { createAppServer } from "./dist/server.js";
 
@@ -23,7 +23,7 @@ function injectEnhancement(html) {
   const shell = `
 <div id="react-starter-root"></div>
 <style>
-  mdsn-page {
+  mdan-page {
     display: none !important;
   }
   body {
@@ -201,9 +201,9 @@ await build({
 });
 
 const source = await readFile(sourcePath, "utf8");
-const mdsn = createAppServer({ source });
+const mdan = createAppServer({ source });
 const server = http.createServer(
-  createHost(mdsn, {
+  createHost(mdan, {
     transformHtml: injectEnhancement,
     staticFiles: {
       "/app/client.js": browserClientPath

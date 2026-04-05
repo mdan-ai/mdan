@@ -1,6 +1,6 @@
 ---
 title: Custom Rendering with Vue
-description: Use @mdsnai/sdk/web as the runtime while Vue owns the UI.
+description: Use @mdanai/sdk/web as the runtime while Vue owns the UI.
 ---
 
 # Custom Rendering with Vue

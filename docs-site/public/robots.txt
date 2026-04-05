@@ -4,4 +4,4 @@ Allow: /
 User-agent: OAI-SearchBot
 Allow: /
 
-Sitemap: https://docs.mdsn.ai/sitemap.xml
+Sitemap: https://docs.mdan.ai/sitemap.xml

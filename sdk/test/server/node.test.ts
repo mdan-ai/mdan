@@ -7,8 +7,8 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createMdsnServer, ok, stream } from "../../src/server/index.js";
-import { createHost, createNodeRequestListener } from "@mdsnai/sdk/server/node";
+import { createMdanServer, ok, stream } from "../../src/server/index.js";
+import { createHost, createNodeRequestListener } from "@mdanai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 
@@ -45,9 +45,9 @@ async function listen(listener: http.RequestListener): Promise<string> {
 
 describe("createNodeRequestListener", () => {
   it("writes event-stream responses through the Node host", async () => {
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
 
-    mdsn.get("/stream", async () =>
+    mdan.get("/stream", async () =>
       stream(
         (async function* () {
           yield {
@@ -62,7 +62,7 @@ describe("createNodeRequestListener", () => {
       )
     );
 
-    const baseUrl = await listen(createNodeRequestListener(mdsn));
+    const baseUrl = await listen(createNodeRequestListener(mdan));
     const response = await fetch(`${baseUrl}/stream`, {
       headers: {
         accept: "text/event-stream"
@@ -76,9 +76,9 @@ describe("createNodeRequestListener", () => {
   });
 
   it("bridges Node form posts into markdown action handlers", async () => {
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
 
-    mdsn.post("/post", async (ctx) =>
+    mdan.post("/post", async (ctx) =>
       ok({
         fragment: {
           markdown: `## Saved ${ctx.inputs.message ?? ""}`,
@@ -87,7 +87,7 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createNodeRequestListener(mdsn));
+    const baseUrl = await listen(createNodeRequestListener(mdan));
     const response = await fetch(`${baseUrl}/post`, {
       method: "POST",
       headers: {
@@ -102,9 +102,9 @@ describe("createNodeRequestListener", () => {
   });
 
   it("preserves unsupported POST media types so the runtime can return 415", async () => {
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
 
-    mdsn.post("/post", async () =>
+    mdan.post("/post", async () =>
       ok({
         fragment: {
           markdown: "# Should not run",
@@ -113,7 +113,7 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createNodeRequestListener(mdsn));
+    const baseUrl = await listen(createNodeRequestListener(mdan));
     const response = await fetch(`${baseUrl}/post`, {
       method: "POST",
       headers: {
@@ -129,9 +129,9 @@ describe("createNodeRequestListener", () => {
 
   it("normalizes urlencoded form data into comma-separated markdown body", async () => {
     let seenBody = "";
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
 
-    mdsn.post("/post", async (ctx) => {
+    mdan.post("/post", async (ctx) => {
       seenBody = ctx.request.body ?? "";
       return ok({
         fragment: {
@@ -141,7 +141,7 @@ describe("createNodeRequestListener", () => {
       });
     });
 
-    const baseUrl = await listen(createNodeRequestListener(mdsn));
+    const baseUrl = await listen(createNodeRequestListener(mdan));
     await fetch(`${baseUrl}/post`, {
       method: "POST",
       headers: {
@@ -155,11 +155,11 @@ describe("createNodeRequestListener", () => {
   });
 
   it("can transform rendered html responses before writing them", async () => {
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
 
-    mdsn.page("/guestbook", async () => ({
+    mdan.page("/guestbook", async () => ({
       frontmatter: { title: "Guestbook" },
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blockContent: {
         guestbook: "## 1 live message\n\n- Welcome"
       },
@@ -174,9 +174,9 @@ describe("createNodeRequestListener", () => {
     }));
 
     const baseUrl = await listen(
-      createNodeRequestListener(mdsn, {
+      createNodeRequestListener(mdan, {
         transformHtml(html) {
-          return html.replace("</body>", "<script>window.__mdsn = true</script></body>");
+          return html.replace("</body>", "<script>window.__mdan = true</script></body>");
         }
       })
     );
@@ -187,15 +187,15 @@ describe("createNodeRequestListener", () => {
     });
 
     expect(response.headers.get("content-type")).toContain("text/html");
-    await expect(response.text()).resolves.toContain("window.__mdsn = true");
+    await expect(response.text()).resolves.toContain("window.__mdan = true");
   });
 
   it("forwards incoming cookies into the neutral request for session providers", async () => {
     let seenSession: unknown = null;
-    const mdsn = createMdsnServer({
+    const mdan = createMdanServer({
       session: {
         async read(request) {
-          seenSession = request.cookies.mdsn_session ?? null;
+          seenSession = request.cookies.mdan_session ?? null;
           return null;
         },
         async commit() {},
@@ -203,7 +203,7 @@ describe("createNodeRequestListener", () => {
       }
     });
 
-    mdsn.get("/list", async () =>
+    mdan.get("/list", async () =>
       ok({
         fragment: {
           markdown: "# Demo",
@@ -212,11 +212,11 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createNodeRequestListener(mdsn));
+    const baseUrl = await listen(createNodeRequestListener(mdan));
     await fetch(`${baseUrl}/list`, {
       headers: {
         accept: "text/markdown",
-        cookie: "mdsn_session=user-1; theme=light"
+        cookie: "mdan_session=user-1; theme=light"
       }
     });
 
@@ -225,7 +225,7 @@ describe("createNodeRequestListener", () => {
 
   it("ignores malformed cookie encoding instead of failing the request", async () => {
     let seenBadCookie: string | null = null;
-    const mdsn = createMdsnServer({
+    const mdan = createMdanServer({
       session: {
         async read(request) {
           seenBadCookie = request.cookies.bad ?? null;
@@ -236,7 +236,7 @@ describe("createNodeRequestListener", () => {
       }
     });
 
-    mdsn.get("/list", async () =>
+    mdan.get("/list", async () =>
       ok({
         fragment: {
           markdown: "# Demo",
@@ -245,11 +245,11 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createNodeRequestListener(mdsn));
+    const baseUrl = await listen(createNodeRequestListener(mdan));
     const response = await fetch(`${baseUrl}/list`, {
       headers: {
         accept: "text/markdown",
-        cookie: "bad=%E0%A4%A; mdsn_session=user-1"
+        cookie: "bad=%E0%A4%A; mdan_session=user-1"
       }
     });
 
@@ -259,9 +259,9 @@ describe("createNodeRequestListener", () => {
 
   it("rejects request bodies that exceed maxBodyBytes with 413", async () => {
     let called = false;
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
 
-    mdsn.post("/post", async () => {
+    mdan.post("/post", async () => {
       called = true;
       return ok({
         fragment: {
@@ -272,7 +272,7 @@ describe("createNodeRequestListener", () => {
     });
 
     const baseUrl = await listen(
-      createNodeRequestListener(mdsn, {
+      createNodeRequestListener(mdan, {
         maxBodyBytes: 16
       })
     );
@@ -293,14 +293,14 @@ describe("createNodeRequestListener", () => {
   });
 
   it("can create a higher-level Node host with redirects and static mounts", async () => {
-    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-node-host-"));
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdan-node-host-"));
     const publicDir = join(tempRoot, "public");
     await mkdir(publicDir, { recursive: true });
     await writeFile(join(tempRoot, "hello.js"), 'console.log("hello")');
     await writeFile(join(publicDir, "page.js"), 'console.log("page")');
 
-    const mdsn = createMdsnServer();
-    mdsn.get("/list", async () =>
+    const mdan = createMdanServer();
+    mdan.get("/list", async () =>
       ok({
         fragment: {
           markdown: "# Demo",
@@ -310,7 +310,7 @@ describe("createNodeRequestListener", () => {
     );
 
     const baseUrl = await listen(
-      createHost(mdsn, {
+      createHost(mdan, {
         rootRedirect: "/guestbook",
         staticFiles: {
           "/hello.js": join(tempRoot, "hello.js")
@@ -361,12 +361,12 @@ describe("createNodeRequestListener", () => {
   });
 
   it("serves html static files with text/html content type", async () => {
-    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-node-host-html-"));
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdan-node-host-html-"));
     await writeFile(join(tempRoot, "index.html"), "<!doctype html><h1>Hello</h1>");
 
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
     const baseUrl = await listen(
-      createHost(mdsn, {
+      createHost(mdan, {
         staticFiles: {
           "/index.html": join(tempRoot, "index.html")
         }
@@ -380,23 +380,23 @@ describe("createNodeRequestListener", () => {
   });
 
   it("supports a real cookie-backed session roundtrip through the Node host", async () => {
-    const mdsn = createMdsnServer({
+    const mdan = createMdanServer({
       session: {
         async read(request) {
-          return request.cookies.mdsn_session ? { userId: request.cookies.mdsn_session } : null;
+          return request.cookies.mdan_session ? { userId: request.cookies.mdan_session } : null;
         },
         async commit(mutation, response) {
           if (mutation?.type === "sign-in") {
-            response.headers["set-cookie"] = `mdsn_session=${mutation.session.userId}; Path=/; HttpOnly`;
+            response.headers["set-cookie"] = `mdan_session=${mutation.session.userId}; Path=/; HttpOnly`;
           }
         },
         async clear(_session, response) {
-          response.headers["set-cookie"] = "mdsn_session=; Path=/; Max-Age=0";
+          response.headers["set-cookie"] = "mdan_session=; Path=/; Max-Age=0";
         }
       }
     });
 
-    mdsn.get("/account", async (ctx) =>
+    mdan.get("/account", async (ctx) =>
       ok({
         fragment: {
           markdown: ctx.session ? `## Welcome ${(ctx.session as { userId: string }).userId}` : "## Please sign in",
@@ -404,7 +404,7 @@ describe("createNodeRequestListener", () => {
         }
       })
     );
-    mdsn.post("/login", async (ctx) =>
+    mdan.post("/login", async (ctx) =>
       ok({
         fragment: {
           markdown: `## Welcome ${ctx.inputs.nickname ?? "guest"}`,
@@ -414,7 +414,7 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createHost(mdsn));
+    const baseUrl = await listen(createHost(mdan));
     const login = await fetch(`${baseUrl}/login`, {
       method: "POST",
       headers: {
@@ -425,7 +425,7 @@ describe("createNodeRequestListener", () => {
     });
 
     const cookie = login.headers.get("set-cookie");
-    expect(cookie).toContain("mdsn_session=Guest");
+    expect(cookie).toContain("mdan_session=Guest");
 
     const account = await fetch(`${baseUrl}/account`, {
       headers: {
@@ -439,23 +439,23 @@ describe("createNodeRequestListener", () => {
   });
 
   it("clears the session cookie on sign-out and returns to the signed-out state", async () => {
-    const mdsn = createMdsnServer({
+    const mdan = createMdanServer({
       session: {
         async read(request) {
-          return request.cookies.mdsn_session ? { userId: request.cookies.mdsn_session } : null;
+          return request.cookies.mdan_session ? { userId: request.cookies.mdan_session } : null;
         },
         async commit(mutation, response) {
           if (mutation?.type === "sign-in") {
-            response.headers["set-cookie"] = `mdsn_session=${mutation.session.userId}; Path=/; HttpOnly`;
+            response.headers["set-cookie"] = `mdan_session=${mutation.session.userId}; Path=/; HttpOnly`;
           }
         },
         async clear(_session, response) {
-          response.headers["set-cookie"] = "mdsn_session=; Path=/; Max-Age=0";
+          response.headers["set-cookie"] = "mdan_session=; Path=/; Max-Age=0";
         }
       }
     });
 
-    mdsn.get("/account", async (ctx) =>
+    mdan.get("/account", async (ctx) =>
       ok({
         fragment: {
           markdown: ctx.session ? `## Welcome ${(ctx.session as { userId: string }).userId}` : "## Please sign in",
@@ -463,7 +463,7 @@ describe("createNodeRequestListener", () => {
         }
       })
     );
-    mdsn.post("/login", async (ctx) =>
+    mdan.post("/login", async (ctx) =>
       ok({
         fragment: {
           markdown: `## Welcome ${ctx.inputs.nickname ?? "guest"}`,
@@ -472,7 +472,7 @@ describe("createNodeRequestListener", () => {
         session: { type: "sign-in", session: { userId: ctx.inputs.nickname ?? "guest" } }
       })
     );
-    mdsn.post("/logout", async () =>
+    mdan.post("/logout", async () =>
       ok({
         fragment: {
           markdown: "## Signed out",
@@ -482,7 +482,7 @@ describe("createNodeRequestListener", () => {
       })
     );
 
-    const baseUrl = await listen(createHost(mdsn));
+    const baseUrl = await listen(createHost(mdan));
     const login = await fetch(`${baseUrl}/login`, {
       method: "POST",
       headers: {
@@ -515,15 +515,15 @@ describe("createNodeRequestListener", () => {
   });
 
   it("does not serve files outside a mounted static directory", async () => {
-    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-node-host-safe-"));
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdan-node-host-safe-"));
     const publicDir = join(tempRoot, "public");
     await mkdir(publicDir, { recursive: true });
     await writeFile(join(tempRoot, "secret.txt"), "secret");
     await writeFile(join(publicDir, "page.txt"), "public");
 
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
     const baseUrl = await listen(
-      createHost(mdsn, {
+      createHost(mdan, {
         staticMounts: [{ urlPrefix: "/public/", directory: publicDir }]
       })
     );
@@ -538,14 +538,14 @@ describe("createNodeRequestListener", () => {
   });
 
   it("does not serve files for lookalike static mount prefixes", async () => {
-    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-node-host-prefix-"));
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdan-node-host-prefix-"));
     const publicDir = join(tempRoot, "public");
     await mkdir(join(publicDir, "-evil"), { recursive: true });
     await writeFile(join(publicDir, "-evil", "secret.txt"), "secret");
 
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
     const baseUrl = await listen(
-      createHost(mdsn, {
+      createHost(mdan, {
         staticMounts: [{ urlPrefix: "/public", directory: publicDir }]
       })
     );
@@ -558,12 +558,12 @@ describe("createNodeRequestListener", () => {
   });
 
   it("serves root-mounted static files from top-level paths", async () => {
-    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-node-host-root-"));
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdan-node-host-root-"));
     await writeFile(join(tempRoot, "site.css"), "body { color: red; }");
 
-    const mdsn = createMdsnServer();
+    const mdan = createMdanServer();
     const baseUrl = await listen(
-      createHost(mdsn, {
+      createHost(mdan, {
         staticMounts: [{ urlPrefix: "/", directory: tempRoot }]
       })
     );

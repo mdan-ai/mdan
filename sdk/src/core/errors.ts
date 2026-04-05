@@ -1,18 +1,18 @@
-export interface MdsnSourceLocation {
+export interface MdanSourceLocation {
   line: number;
   column: number;
 }
 
-class MdsnBaseError extends Error {
-  readonly location: MdsnSourceLocation | undefined;
+class MdanBaseError extends Error {
+  readonly location: MdanSourceLocation | undefined;
 
-  constructor(message: string, location?: MdsnSourceLocation) {
+  constructor(message: string, location?: MdanSourceLocation) {
     super(message);
     this.name = new.target.name;
     this.location = location;
   }
 }
 
-export class MdsnParseError extends MdsnBaseError {}
+export class MdanParseError extends MdanBaseError {}
 
-export class MdsnValidationError extends MdsnBaseError {}
+export class MdanValidationError extends MdanBaseError {}

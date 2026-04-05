@@ -10,9 +10,9 @@ title: Guestbook
 
 # Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
 
   INPUT text -> nickname
@@ -30,11 +30,11 @@ BLOCK guestbook {
     expect(page.blockAnchors).toEqual(["guestbook"]);
   });
 
-  it("ignores mdsn-src blocks and anchor-like comments inside fenced code", () => {
+  it("ignores mdan-src blocks and anchor-like comments inside fenced code", () => {
     const page = parsePage(`# Demo
 
-\`\`\`mdsn-src
-\`\`\`mdsn
+\`\`\`mdan-src
+\`\`\`mdan
 BLOCK fake {
   INPUT text -> value
 }
@@ -42,12 +42,12 @@ BLOCK fake {
 \`\`\`
 
 \`\`\`ts
-const value = "<!-- mdsn:block fake -->";
+const value = "<!-- mdan:block fake -->";
 \`\`\`
 
-<!-- mdsn:block real -->
+<!-- mdan:block real -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK real {
   INPUT text -> value
   GET "/read" -> refresh
@@ -63,9 +63,9 @@ BLOCK real {
   it("parses every supported input type and modifier combination", () => {
     const page = parsePage(`# Compose
 
-<!-- mdsn:block compose -->
+<!-- mdan:block compose -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK compose {
   INPUT text -> title
   INPUT number required -> quantity
@@ -91,9 +91,9 @@ BLOCK compose {
   it("parses choice options with commas and escaped quotes using JSON semantics", () => {
     const page = parsePage(`# Compose
 
-<!-- mdsn:block compose -->
+<!-- mdan:block compose -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK compose {
   INPUT choice ["draft,alpha", "say \\"hello\\""] -> status
   POST "/submit" (status) -> submit label:"Submit"
@@ -110,9 +110,9 @@ BLOCK compose {
     expect(() =>
       parsePage(`# Compose
 
-<!-- mdsn:block compose -->
+<!-- mdan:block compose -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK compose {
   INPUT choice ["draft", 1] -> status
   POST "/submit" (status) -> submit label:"Submit"
@@ -125,9 +125,9 @@ BLOCK compose {
   it("accepts POST operations with an explicit empty input list", () => {
     const page = parsePage(`# Account
 
-<!-- mdsn:block auth -->
+<!-- mdan:block auth -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK auth {
   POST "/logout" () -> logout label:"Log Out"
 }
@@ -150,9 +150,9 @@ BLOCK auth {
   it("parses explicit auto GET operations", () => {
     const page = parsePage(`# Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> load_messages auto
 }

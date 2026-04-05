@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createAuthServer } from "../../../examples/auth-session/app/server.js";
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 
@@ -107,7 +107,7 @@ describe("auth-session agent-only smoke test", () => {
     expect(registerResult).toContain(`## Welcome ${nickname}`);
     expect(registerResult).toContain('POST "/vault" (message) -> save');
     expect(registerResult).not.toContain('GET "/vault" -> open_vault auto');
-    expect(sessionCookie).toMatch(/^mdsn_session=[0-9a-f-]+$/);
+    expect(sessionCookie).toMatch(/^mdan_session=[0-9a-f-]+$/);
     expect(sessionCookie).not.toContain(nickname);
 
     const vaultPage = await getMarkdown(`${baseUrl}/vault`, sessionCookie);

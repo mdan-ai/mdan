@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { MdsnValidationError, parsePage, validatePage } from "../../src/core/index.js";
+import { MdanValidationError, parsePage, validatePage } from "../../src/core/index.js";
 
 describe("validatePage", () => {
   it("rejects duplicate block names", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> refresh
 }
@@ -15,15 +15,15 @@ BLOCK guestbook {
 \`\`\`
 `);
 
-    expect(() => validatePage(page)).toThrow(MdsnValidationError);
+    expect(() => validatePage(page)).toThrow(MdanValidationError);
   });
 
   it("rejects missing anchor mappings when anchors exist", () => {
     const page = parsePage(`# Demo
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK other {
   GET "/list" -> refresh
 }
@@ -34,7 +34,7 @@ BLOCK other {
   });
 
   it("rejects invalid stream naming", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK updates {
   GET "/stream" -> refresh accept:"text/event-stream"
 }
@@ -45,7 +45,7 @@ BLOCK updates {
   });
 
   it("rejects empty choice option lists", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK compose {
   INPUT choice [] -> status
   GET "/list" -> refresh
@@ -57,7 +57,7 @@ BLOCK compose {
   });
 
   it("rejects options on non-choice inputs", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK compose {
   INPUT text ["draft"] -> status
   GET "/list" -> refresh
@@ -69,7 +69,7 @@ BLOCK compose {
   });
 
   it("accepts POST operations with an explicit empty input list", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK auth {
   POST "/logout" () -> logout label:"Log Out"
 }
@@ -80,7 +80,7 @@ BLOCK auth {
   });
 
   it("accepts a zero-input auto GET operation", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> load_messages auto
 }
@@ -91,7 +91,7 @@ BLOCK guestbook {
   });
 
   it("rejects auto GET operations with inputs", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK guestbook {
   INPUT text -> cursor
   GET "/list" (cursor) -> load_messages auto
@@ -103,7 +103,7 @@ BLOCK guestbook {
   });
 
   it("rejects POST operations marked auto", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK guestbook {
   POST "/post" () -> submit auto
 }
@@ -114,7 +114,7 @@ BLOCK guestbook {
   });
 
   it("rejects auto GET operations with an accept override", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK guestbook {
   GET "/stream" -> watch auto accept:"text/plain"
 }
@@ -125,7 +125,7 @@ BLOCK guestbook {
   });
 
   it("rejects multiple auto GET operations in the same block", () => {
-    const page = parsePage(`\`\`\`mdsn
+    const page = parsePage(`\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> load_messages auto
   GET "/summary" -> load_summary auto

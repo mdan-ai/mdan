@@ -1,13 +1,13 @@
-import { composePage } from "@mdsnai/sdk/core";
-import type { MdsnFrontmatter, MdsnMarkdownRenderer } from "@mdsnai/sdk/core";
-import { createHostedApp, renderProtocolHeadLinks } from "@mdsnai/sdk/server";
+import { composePage } from "@mdanai/sdk/core";
+import type { MdanFrontmatter, MdanMarkdownRenderer } from "@mdanai/sdk/core";
+import { createHostedApp, renderProtocolHeadLinks } from "@mdanai/sdk/server";
 
 import { extractToc, injectHeadingIds, renderDocsMarkdown } from "./markdown.js";
 import { docsNav } from "./nav.js";
 
 export interface CreateDocsSiteServerOptions {
   pages: Record<string, string>;
-  markdownRenderer?: MdsnMarkdownRenderer;
+  markdownRenderer?: MdanMarkdownRenderer;
   siteTitle?: string;
   siteOrigin?: string;
   assetVersion?: string;
@@ -28,7 +28,7 @@ function escapeHtml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
-function toTitle(frontmatter: MdsnFrontmatter, route: string): string {
+function toTitle(frontmatter: MdanFrontmatter, route: string): string {
   const frontmatterTitle = frontmatter.title;
   if (typeof frontmatterTitle === "string" && frontmatterTitle.trim()) {
     return frontmatterTitle.trim();
@@ -37,7 +37,7 @@ function toTitle(frontmatter: MdsnFrontmatter, route: string): string {
   return fallback.replaceAll("-", " ");
 }
 
-function toDescription(frontmatter: MdsnFrontmatter, fallback: string): string {
+function toDescription(frontmatter: MdanFrontmatter, fallback: string): string {
   const frontmatterDescription = frontmatter.description;
   if (typeof frontmatterDescription === "string" && frontmatterDescription.trim()) {
     return frontmatterDescription.trim();
@@ -182,10 +182,10 @@ function renderToc(items: ReturnType<typeof extractToc>, locale: DocsLocale): st
 
 export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
   const markdownRenderer = options.markdownRenderer;
-  const siteTitle = options.siteTitle ?? "MDSN Docs";
-  const siteOrigin = trimTrailingSlash(options.siteOrigin ?? "https://docs.mdsn.ai");
+  const siteTitle = options.siteTitle ?? "MDAN Docs";
+  const siteOrigin = trimTrailingSlash(options.siteOrigin ?? "https://docs.mdan.ai");
   const siteDescription =
-    "MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.";
+    "MDAN is a Markdown-first framework for building apps that humans and AI agents can both use.";
   const assetVersion = options.assetVersion?.trim();
   const assetSuffix = assetVersion ? `?v=${encodeURIComponent(assetVersion)}` : "";
 
@@ -303,12 +303,12 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
       <a class="docs-brand" href="${homeRoute}" aria-label="${escapeHtml(siteTitle)}">
         <img src="/docs-site/logo-mark.svg${assetSuffix}" alt="" width="36" height="36">
         <span class="docs-brand-lockup">
-          <span class="docs-brand-mark">MDSN</span>
+          <span class="docs-brand-mark">MDAN</span>
           <span class="docs-brand-copy">${escapeHtml(siteTitle)}</span>
         </span>
       </a>
       <div class="docs-topbar-actions">
-        <a class="docs-site-link" href="https://mdsn.ai" target="_blank" rel="noreferrer">${locale === "zh" ? "官网" : "Site"}</a>
+        <a class="docs-site-link" href="https://mdan.ai" target="_blank" rel="noreferrer">${locale === "zh" ? "官网" : "Site"}</a>
         <div class="docs-lang-switch" aria-label="Language">
           <a href="${escapeHtml(enRoute)}"${locale === "en" ? ' aria-current="page"' : ""}>EN</a>
           <a href="${escapeHtml(zhRoute)}"${locale === "zh" ? ' aria-current="page"' : ""}>中文</a>
@@ -330,11 +330,11 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
     </main>
     <footer class="docs-footer">
       <div class="docs-footer-inner">
-        <p class="docs-footer-copy">${locale === "zh" ? "MDSN 文档站" : "MDSN Docs"}</p>
+        <p class="docs-footer-copy">${locale === "zh" ? "MDAN 文档站" : "MDAN Docs"}</p>
         <nav class="docs-footer-links" aria-label="Footer links">
           <a class="docs-footer-link" href="${homeRoute}">${locale === "zh" ? "首页" : "Home"}</a>
           <a class="docs-footer-link" href="${locale === "zh" ? "/zh/getting-started" : "/getting-started"}">${locale === "zh" ? "快速开始" : "Getting Started"}</a>
-          <a class="docs-footer-link" href="https://github.com/mdsn-ai/mdsn" rel="noreferrer" target="_blank">GitHub</a>
+          <a class="docs-footer-link" href="https://github.com/mdan-ai/mdan" rel="noreferrer" target="_blank">GitHub</a>
         </nav>
       </div>
     </footer>

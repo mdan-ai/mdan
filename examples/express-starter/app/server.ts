@@ -1,5 +1,5 @@
-import { composePage } from "@mdsnai/sdk/core";
-import { createHostedApp } from "@mdsnai/sdk/server";
+import { composePage } from "@mdanai/sdk/core";
+import { createHostedApp } from "@mdanai/sdk/server";
 
 export interface CreateExpressStarterServerOptions {
   source: string;
@@ -7,7 +7,7 @@ export interface CreateExpressStarterServerOptions {
 }
 
 export function createExpressStarterServer(options: CreateExpressStarterServerOptions) {
-  const messages = [...(options.initialMessages ?? ["Welcome to MDSN"])];
+  const messages = [...(options.initialMessages ?? ["Welcome to MDAN"])];
 
   function renderGuestbookBlock(): string {
     const count = `${messages.length} live ${messages.length === 1 ? "message" : "messages"}`;

@@ -5,14 +5,14 @@ description: 服务端 session 读写与清理接口说明。
 
 # Session Provider
 
-这页讲的是：如果你想把现有的登录态或 cookie 方案接进 MDSN，应该从哪里接。
+这页讲的是：如果你想把现有的登录态或 cookie 方案接进 MDAN，应该从哪里接。
 
-Session 是运行时层能力，`@mdsnai/sdk/server` 通过一个很薄的 provider 接口来接入它：
+Session 是运行时层能力，`@mdanai/sdk/server` 通过一个很薄的 provider 接口来接入它：
 
 ```ts
 type Session = Record<string, unknown>;
 
-type MdsnSessionProvider = {
+type MdanSessionProvider = {
   read(request): Promise<Session | null>;
   commit(mutation, response): Promise<void>;
   clear(response): Promise<void>;
@@ -31,22 +31,22 @@ type MdsnSessionProvider = {
 - `commit`：把登录或续期 mutation 持久化到出站响应上
 - `clear`：从出站响应上移除当前 session
 
-这三个方法就够了。MDSN 不要求你重写鉴权系统，只要求你把“读取、写入、清理”这三个动作接进来。
+这三个方法就够了。MDAN 不要求你重写鉴权系统，只要求你把“读取、写入、清理”这三个动作接进来。
 
 ## 典型的 Cookie 方案
 
 ```ts
 const session = {
   async read(request) {
-    return request.cookies.mdsn_session ? { userId: request.cookies.mdsn_session } : null;
+    return request.cookies.mdan_session ? { userId: request.cookies.mdan_session } : null;
   },
   async commit(mutation, response) {
     if (mutation?.type === "sign-in" || mutation?.type === "refresh") {
-      response.headers["set-cookie"] = `mdsn_session=${mutation.session.userId}; Path=/; HttpOnly`;
+      response.headers["set-cookie"] = `mdan_session=${mutation.session.userId}; Path=/; HttpOnly`;
     }
   },
   async clear(response) {
-    response.headers["set-cookie"] = "mdsn_session=; Path=/; Max-Age=0";
+    response.headers["set-cookie"] = "mdan_session=; Path=/; Max-Age=0";
   }
 };
 ```

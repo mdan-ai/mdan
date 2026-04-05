@@ -1,4 +1,4 @@
-import type { MdsnRepresentation } from "./types.js";
+import type { MdanRepresentation } from "./types.js";
 
 interface AcceptEntry {
   mediaType: string;
@@ -21,13 +21,13 @@ function parseAcceptHeader(acceptHeader: string): AcceptEntry[] {
     });
 }
 
-export function negotiateRepresentation(acceptHeader?: string): MdsnRepresentation {
+export function negotiateRepresentation(acceptHeader?: string): MdanRepresentation {
   if (!acceptHeader) {
     return "html";
   }
 
   const accepted = parseAcceptHeader(acceptHeader);
-  const weightByRepresentation: Record<Exclude<MdsnRepresentation, "not-acceptable">, number> = {
+  const weightByRepresentation: Record<Exclude<MdanRepresentation, "not-acceptable">, number> = {
     "event-stream": 0,
     markdown: 0,
     html: 0
@@ -54,13 +54,13 @@ export function negotiateRepresentation(acceptHeader?: string): MdsnRepresentati
   }
 
   const candidates = (Object.entries(weightByRepresentation) as Array<
-    [Exclude<MdsnRepresentation, "not-acceptable">, number]
+    [Exclude<MdanRepresentation, "not-acceptable">, number]
   >).filter(([, weight]) => weight > 0);
   if (candidates.length === 0) {
     return "not-acceptable";
   }
 
-  const tieBreaker: Record<Exclude<MdsnRepresentation, "not-acceptable">, number> = {
+  const tieBreaker: Record<Exclude<MdanRepresentation, "not-acceptable">, number> = {
     "event-stream": 3,
     markdown: 2,
     html: 1

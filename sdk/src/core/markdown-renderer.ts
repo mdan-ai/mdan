@@ -1,4 +1,4 @@
-export interface MdsnMarkdownRenderer {
+export interface MdanMarkdownRenderer {
   render(markdown: string): string;
 }
 
@@ -39,7 +39,7 @@ function parseRenderableMarkdown(markdown: string): RenderNode[] {
       inCode = !inCode;
       continue;
     }
-    if (inCode || trimmed.startsWith("<!-- mdsn:block")) {
+    if (inCode || trimmed.startsWith("<!-- mdan:block")) {
       continue;
     }
     visible.push(line);
@@ -68,7 +68,7 @@ function parseRenderableMarkdown(markdown: string): RenderNode[] {
     });
 }
 
-export const basicMarkdownRenderer: MdsnMarkdownRenderer = {
+export const basicMarkdownRenderer: MdanMarkdownRenderer = {
   render(markdown: string): string {
     return parseRenderableMarkdown(markdown)
       .map((node) => {

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { createExpressStarterServer } from "../../../examples/express-starter/app/server.js";
-import { createExpressMdsnHandler } from "../../../examples/express-starter/app/express-adapter.js";
+import { createExpressMdanHandler } from "../../../examples/express-starter/app/express-adapter.js";
 
 async function readExpressStarterSource(): Promise<string> {
   return readFile(join(process.cwd(), "examples", "express-starter", "app", "index.md"), "utf8");
@@ -33,10 +33,10 @@ describe("express starter example", () => {
     expect(postResponse.body).toContain("- Second");
   });
 
-  it("bridges Express urlencoded bodies into mdsn markdown writes", async () => {
+  it("bridges Express urlencoded bodies into mdan markdown writes", async () => {
     const source = await readExpressStarterSource();
     const server = createExpressStarterServer({ source });
-    const handler = createExpressMdsnHandler(server);
+    const handler = createExpressMdanHandler(server);
 
     let statusCode = 200;
     const headers = new Map<string, string>();
@@ -79,7 +79,7 @@ describe("express starter example", () => {
 
     expect(statusCode).toBe(200);
     expect(headers.get("content-type")).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(body).toContain("From Express");
   });
@@ -89,7 +89,7 @@ describe("express starter example", () => {
 
     expect(devSource).toContain('from "express"');
     expect(devSource).toContain("express.urlencoded");
-    expect(devSource).toContain("createExpressMdsnHandler");
+    expect(devSource).toContain("createExpressMdanHandler");
     expect(devSource).toContain('"/app/client.js"');
   });
 });

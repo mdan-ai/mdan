@@ -1,26 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createHeadlessHost } from "@mdsnai/sdk/web";
-import { mountMdsnElements, registerMdsnElements } from "../../src/elements/index.js";
+import { createHeadlessHost } from "@mdanai/sdk/web";
+import { mountMdanElements, registerMdanElements } from "../../src/elements/index.js";
 
-describe("registerMdsnElements", () => {
+describe("registerMdanElements", () => {
   it("registers the default custom elements", async () => {
-    registerMdsnElements();
+    registerMdanElements();
 
-    const block = document.createElement("mdsn-block");
+    const block = document.createElement("mdan-block");
     block.innerHTML = `<button>Submit</button>`;
     document.body.append(block);
 
     await Promise.resolve();
 
-    expect(customElements.get("mdsn-block")).toBeDefined();
+    expect(customElements.get("mdan-block")).toBeDefined();
     expect(block.shadowRoot?.textContent).toContain("Submit");
   });
 
   it("renders error content through slots", async () => {
-    registerMdsnElements();
+    registerMdanElements();
 
-    const error = document.createElement("mdsn-error");
+    const error = document.createElement("mdan-error");
     error.textContent = "Bad credentials";
     document.body.append(error);
 
@@ -30,9 +30,9 @@ describe("registerMdsnElements", () => {
   });
 
   it("renders page shell content with stronger hierarchy", async () => {
-    registerMdsnElements();
+    registerMdanElements();
 
-    const page = document.createElement("mdsn-page");
+    const page = document.createElement("mdan-page");
     page.innerHTML = `<h1>Guestbook</h1><p>Shared notes for the team.</p>`;
     document.body.append(page);
 
@@ -43,8 +43,8 @@ describe("registerMdsnElements", () => {
 
   it("mounts the default UI from headless bootstrap data", async () => {
     document.body.innerHTML = `
-      <script id="mdsn-bootstrap" type="application/json">
-        {"kind":"page","route":"/guestbook","markdown":"# Guestbook\\n\\nA shared log.\\n\\n<!-- mdsn:block guestbook -->","blocks":[{"name":"guestbook","markdown":"## 1 live message\\n\\n- Welcome","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/post","name":"submit","inputs":["message"],"label":"Submit"}]}]}
+      <script id="mdan-bootstrap" type="application/json">
+        {"kind":"page","route":"/guestbook","markdown":"# Guestbook\\n\\nA shared log.\\n\\n<!-- mdan:block guestbook -->","blocks":[{"name":"guestbook","markdown":"## 1 live message\\n\\n- Welcome","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/post","name":"submit","inputs":["message"],"label":"Submit"}]}]}
       </script>
       <div id="root"></div>
     `;
@@ -54,7 +54,7 @@ describe("registerMdsnElements", () => {
       root: document,
       fetchImpl
     });
-    const runtime = mountMdsnElements({
+    const runtime = mountMdanElements({
       root: document.getElementById("root")!,
       host
     });
@@ -70,7 +70,7 @@ describe("registerMdsnElements", () => {
   it("keeps form state isolated per block even when input names match", async () => {
     document.body.innerHTML = `
       <div id="root">
-        <script id="mdsn-bootstrap" type="application/json">
+        <script id="mdan-bootstrap" type="application/json">
           {"kind":"page","route":"/duo","markdown":"# Duo","blocks":[
             {"name":"alpha","markdown":"## Alpha","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/alpha","name":"save_alpha","inputs":["message"],"label":"Save Alpha"}]},
             {"name":"beta","markdown":"## Beta","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/beta","name":"save_beta","inputs":["message"],"label":"Save Beta"}]}
@@ -83,7 +83,7 @@ describe("registerMdsnElements", () => {
     const fetchImpl = vi.fn(async (_target, init) => {
       seenBodies.push(String(init?.body ?? ""));
       return new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "fragment",
           block: {
             name: "alpha",
@@ -96,7 +96,7 @@ describe("registerMdsnElements", () => {
       );
     });
     const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
-    const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+    const runtime = mountMdanElements({ root: document.getElementById("root")!, host });
 
     runtime.mount();
     await Promise.resolve();
@@ -117,7 +117,7 @@ describe("registerMdsnElements", () => {
   it("renders the target page when a form submit returns a page transition", async () => {
     document.body.innerHTML = `
       <div id="root">
-        <script id="mdsn-bootstrap" type="application/json">
+        <script id="mdan-bootstrap" type="application/json">
           {"kind":"page","route":"/login","markdown":"# Sign In","blocks":[{"name":"login","markdown":"## Welcome back","inputs":[{"name":"nickname","type":"text","required":true,"secret":false},{"name":"password","type":"text","required":true,"secret":true}],"operations":[{"method":"POST","target":"/login","name":"login","inputs":["nickname","password"],"label":"Sign In"}]}]}
         </script>
       </div>
@@ -127,7 +127,7 @@ describe("registerMdsnElements", () => {
       .fn()
       .mockResolvedValueOnce(
         new Response(
-          `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
             kind: "page",
             route: "/vault",
             markdown: "# Vault",
@@ -156,7 +156,7 @@ describe("registerMdsnElements", () => {
 
     try {
       const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
-      const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+      const runtime = mountMdanElements({ root: document.getElementById("root")!, host });
 
       runtime.mount();
       await Promise.resolve();
@@ -188,7 +188,7 @@ describe("registerMdsnElements", () => {
   it("submits declared GET input values through the default elements UI", async () => {
     document.body.innerHTML = `
       <div id="root">
-        <script id="mdsn-bootstrap" type="application/json">
+        <script id="mdan-bootstrap" type="application/json">
           {"kind":"page","route":"/search","markdown":"# Search","blocks":[{"name":"search","markdown":"## Find a note","inputs":[{"name":"query","type":"text","required":true,"secret":false}],"operations":[{"method":"GET","target":"/search","name":"search","inputs":["query"],"label":"Search"}]}]}
         </script>
       </div>
@@ -196,7 +196,7 @@ describe("registerMdsnElements", () => {
 
     const fetchImpl = vi.fn().mockResolvedValueOnce(
       new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "page",
           route: "/search?query=hello",
           markdown: "# Search",
@@ -214,7 +214,7 @@ describe("registerMdsnElements", () => {
     );
 
     const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
-    const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+    const runtime = mountMdanElements({ root: document.getElementById("root")!, host });
 
     runtime.mount();
     await Promise.resolve();
@@ -243,7 +243,7 @@ describe("registerMdsnElements", () => {
   it("submits the first choice option when the user leaves the default selection unchanged", async () => {
     document.body.innerHTML = `
       <div id="root">
-        <script id="mdsn-bootstrap" type="application/json">
+        <script id="mdan-bootstrap" type="application/json">
           {"kind":"page","route":"/compose","markdown":"# Compose","blocks":[{"name":"compose","markdown":"## Draft","inputs":[{"name":"status","type":"choice","required":false,"secret":false,"options":["draft","published"]}],"operations":[{"method":"POST","target":"/compose","name":"save","inputs":["status"],"label":"Save"}]}]}
         </script>
       </div>
@@ -253,7 +253,7 @@ describe("registerMdsnElements", () => {
     const fetchImpl = vi.fn(async (_target, init) => {
       seenBodies.push(String(init?.body ?? ""));
       return new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "fragment",
           block: {
             name: "compose",
@@ -267,7 +267,7 @@ describe("registerMdsnElements", () => {
     });
 
     const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
-    const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+    const runtime = mountMdanElements({ root: document.getElementById("root")!, host });
 
     runtime.mount();
     await Promise.resolve();
@@ -282,7 +282,7 @@ describe("registerMdsnElements", () => {
   it("submits false for unchecked boolean inputs by default", async () => {
     document.body.innerHTML = `
       <div id="root">
-        <script id="mdsn-bootstrap" type="application/json">
+        <script id="mdan-bootstrap" type="application/json">
           {"kind":"page","route":"/compose","markdown":"# Compose","blocks":[{"name":"compose","markdown":"## Draft","inputs":[{"name":"published","type":"boolean","required":false,"secret":false}],"operations":[{"method":"POST","target":"/compose","name":"save","inputs":["published"],"label":"Save"}]}]}
         </script>
       </div>
@@ -292,7 +292,7 @@ describe("registerMdsnElements", () => {
     const fetchImpl = vi.fn(async (_target, init) => {
       seenBodies.push(String(init?.body ?? ""));
       return new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "fragment",
           block: {
             name: "compose",
@@ -306,7 +306,7 @@ describe("registerMdsnElements", () => {
     });
 
     const host = createHeadlessHost({ root: document.getElementById("root")!, fetchImpl });
-    const runtime = mountMdsnElements({ root: document.getElementById("root")!, host });
+    const runtime = mountMdanElements({ root: document.getElementById("root")!, host });
 
     runtime.mount();
     await Promise.resolve();
@@ -320,7 +320,7 @@ describe("registerMdsnElements", () => {
 
   it("uses an injected markdown renderer for default elements output", async () => {
     document.body.innerHTML = `
-      <script id="mdsn-bootstrap" type="application/json">
+      <script id="mdan-bootstrap" type="application/json">
         {"kind":"page","route":"/guestbook","markdown":"# Guestbook","blocks":[]}
       </script>
       <div id="root"></div>
@@ -331,7 +331,7 @@ describe("registerMdsnElements", () => {
       root: document,
       fetchImpl
     });
-    const runtime = mountMdsnElements({
+    const runtime = mountMdanElements({
       root: document.getElementById("root")!,
       host,
       markdownRenderer: {
@@ -349,7 +349,7 @@ describe("registerMdsnElements", () => {
 
   it("can expose raw markdown request and response messages through the mounted browser runtime", async () => {
     document.body.innerHTML = `
-      <script id="mdsn-bootstrap" type="application/json">
+      <script id="mdan-bootstrap" type="application/json">
         {"kind":"page","route":"/guestbook","markdown":"# Guestbook","blocks":[{"name":"guestbook","markdown":"## 1 live message","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/post","name":"submit","inputs":["message"],"label":"Submit"}]}]}
       </script>
       <div id="root"></div>
@@ -358,7 +358,7 @@ describe("registerMdsnElements", () => {
     const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
     const fetchImpl = vi.fn(async (_target, init) =>
       new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "fragment",
           block: {
             name: "guestbook",
@@ -371,7 +371,7 @@ describe("registerMdsnElements", () => {
       )
     );
 
-    delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+    delete (window as typeof window & { __MDAN_DEBUG__?: unknown }).__MDAN_DEBUG__;
 
     try {
       const host = createHeadlessHost({
@@ -379,7 +379,7 @@ describe("registerMdsnElements", () => {
         fetchImpl,
         debugMessages: true
       });
-      const runtime = mountMdsnElements({
+      const runtime = mountMdanElements({
         root: document.getElementById("root")!,
         host
       });
@@ -398,10 +398,10 @@ describe("registerMdsnElements", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       const debugState = (window as typeof window & {
-        __MDSN_DEBUG__?: {
+        __MDAN_DEBUG__?: {
           messages: Array<{ direction: string; method: string; url: string; markdown: string }>;
         };
-      }).__MDSN_DEBUG__;
+      }).__MDAN_DEBUG__;
 
       expect(debugState?.messages).toEqual([
         {
@@ -420,13 +420,13 @@ describe("registerMdsnElements", () => {
       expect(consoleInfo).toHaveBeenCalled();
     } finally {
       consoleInfo.mockRestore();
-      delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+      delete (window as typeof window & { __MDAN_DEBUG__?: unknown }).__MDAN_DEBUG__;
     }
   });
 
   it("renders a collapsible debug drawer when debug messages are enabled", async () => {
     document.body.innerHTML = `
-      <script id="mdsn-bootstrap" type="application/json">
+      <script id="mdan-bootstrap" type="application/json">
         {"kind":"page","route":"/guestbook","markdown":"# Guestbook","blocks":[{"name":"guestbook","markdown":"## 1 live message","inputs":[{"name":"message","type":"text","required":true,"secret":false}],"operations":[{"method":"POST","target":"/post","name":"submit","inputs":["message"],"label":"Submit"}]}]}
       </script>
       <div id="root"></div>
@@ -435,7 +435,7 @@ describe("registerMdsnElements", () => {
     const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
     const fetchImpl = vi.fn(async () =>
       new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "fragment",
           block: {
             name: "guestbook",
@@ -448,7 +448,7 @@ describe("registerMdsnElements", () => {
       )
     );
 
-    delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+    delete (window as typeof window & { __MDAN_DEBUG__?: unknown }).__MDAN_DEBUG__;
 
     try {
       const host = createHeadlessHost({
@@ -456,7 +456,7 @@ describe("registerMdsnElements", () => {
         fetchImpl,
         debugMessages: true
       });
-      const runtime = mountMdsnElements({
+      const runtime = mountMdanElements({
         root: document.getElementById("root")!,
         host
       });
@@ -474,14 +474,14 @@ describe("registerMdsnElements", () => {
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      const toggle = document.querySelector("[data-mdsn-debug-toggle]") as HTMLButtonElement | null;
+      const toggle = document.querySelector("[data-mdan-debug-toggle]") as HTMLButtonElement | null;
       expect(toggle).toBeTruthy();
       expect(toggle?.textContent).toContain("2");
 
       toggle?.click();
       await Promise.resolve();
 
-      const drawer = document.querySelector("[data-mdsn-debug-drawer]") as HTMLElement | null;
+      const drawer = document.querySelector("[data-mdan-debug-drawer]") as HTMLElement | null;
       expect(drawer).toBeTruthy();
       expect(drawer?.textContent).toContain("send");
       expect(drawer?.textContent).toContain("receive");
@@ -490,7 +490,7 @@ describe("registerMdsnElements", () => {
       expect(drawer?.textContent).toContain("## 2 live messages");
     } finally {
       consoleInfo.mockRestore();
-      delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+      delete (window as typeof window & { __MDAN_DEBUG__?: unknown }).__MDAN_DEBUG__;
     }
   });
 });

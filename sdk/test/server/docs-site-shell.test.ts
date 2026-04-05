@@ -48,7 +48,7 @@ title: Examples
 
 ## Starter Paths
 
-### [\`examples/starter\`](https://github.com/mdsn-ai/mdsn/tree/main/examples/starter)
+### [\`examples/starter\`](https://github.com/mdan-ai/mdan/tree/main/examples/starter)
 
 The smallest path first.
 `
@@ -64,7 +64,7 @@ The smallest path first.
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe("text/html");
-    expect(response.body).toContain("MDSN Docs");
+    expect(response.body).toContain("MDAN Docs");
     expect(response.body).toContain("Getting Started");
     expect(response.body).toContain('aria-current="page"');
     expect(response.body).toContain('id="docs-nav-filter"');
@@ -95,7 +95,7 @@ title: Examples
 
 ## Starter Paths
 
-### [\`examples/starter\`](https://github.com/mdsn-ai/mdsn/tree/main/examples/starter)
+### [\`examples/starter\`](https://github.com/mdan-ai/mdan/tree/main/examples/starter)
 
 The smallest path first.
 `
@@ -110,7 +110,7 @@ The smallest path first.
     });
 
     expect(response.status).toBe(200);
-    expect(response.body).toContain('href="https://github.com/mdsn-ai/mdsn/tree/main/examples/starter"');
+    expect(response.body).toContain('href="https://github.com/mdan-ai/mdan/tree/main/examples/starter"');
     expect(response.body).toContain("<code>examples/starter</code>");
     expect(response.body).not.toContain("[`examples/starter`]");
     expect(response.body).toContain('href="#examplesstarter"');
@@ -121,11 +121,11 @@ The smallest path first.
       pages: {
         "/docs": `# Docs Home`,
         "/zh/docs": `# 文档首页`,
-        "/docs/build-with-mdsn": `---
-title: Build with MDSN
+        "/docs/build-with-mdan": `---
+title: Build with MDAN
 ---
 
-# Build with MDSN
+# Build with MDAN
 
 Build a docs site.
 
@@ -138,7 +138,7 @@ Keep docs and shell aligned.
 
     const response = await server.handle({
       method: "GET",
-      url: "https://example.test/zh/build-with-mdsn",
+      url: "https://example.test/zh/build-with-mdan",
       headers: { accept: "text/html" },
       cookies: {}
     });
@@ -173,42 +173,42 @@ Keep docs and shell aligned.
 
   it("renders canonical, description, and social metadata for docs pages", async () => {
     const server = createDocsSiteServer({
-      siteTitle: "MDSN Docs",
+      siteTitle: "MDAN Docs",
       pages: {
         "/": `# Docs Home`,
-        "/what-is-mdsn": `---
-title: What is MDSN?
-description: Understand what MDSN is, who it is for, and when to use it.
+        "/what-is-mdan": `---
+title: What is MDAN?
+description: Understand what MDAN is, who it is for, and when to use it.
 ---
 
-# What is MDSN?
+# What is MDAN?
 
-MDSN is a Markdown-first framework.
+MDAN is a Markdown-first framework.
 `
       }
     });
 
     const response = await server.handle({
       method: "GET",
-      url: "https://example.test/what-is-mdsn",
+      url: "https://example.test/what-is-mdan",
       headers: { accept: "text/html" },
       cookies: {}
     });
 
     expect(response.status).toBe(200);
     expect(response.body).toContain(
-      '<meta name="description" content="Understand what MDSN is, who it is for, and when to use it.">'
+      '<meta name="description" content="Understand what MDAN is, who it is for, and when to use it.">'
     );
-    expect(response.body).toContain('<link rel="canonical" href="https://docs.mdsn.ai/what-is-mdsn">');
-    expect(response.body).toContain('<meta property="og:title" content="What is MDSN? · MDSN Docs">');
+    expect(response.body).toContain('<link rel="canonical" href="https://docs.mdan.ai/what-is-mdan">');
+    expect(response.body).toContain('<meta property="og:title" content="What is MDAN? · MDAN Docs">');
     expect(response.body).toContain(
-      '<meta property="og:description" content="Understand what MDSN is, who it is for, and when to use it.">'
+      '<meta property="og:description" content="Understand what MDAN is, who it is for, and when to use it.">'
     );
-    expect(response.body).toContain('<meta property="og:url" content="https://docs.mdsn.ai/what-is-mdsn">');
+    expect(response.body).toContain('<meta property="og:url" content="https://docs.mdan.ai/what-is-mdan">');
     expect(response.body).toContain('<meta name="twitter:card" content="summary">');
-    expect(response.body).toContain('<link rel="alternate" hreflang="en" href="https://docs.mdsn.ai/what-is-mdsn">');
+    expect(response.body).toContain('<link rel="alternate" hreflang="en" href="https://docs.mdan.ai/what-is-mdan">');
     expect(response.body).toContain(
-      '<link rel="alternate" hreflang="zh" href="https://docs.mdsn.ai/zh/what-is-mdsn">'
+      '<link rel="alternate" hreflang="zh" href="https://docs.mdan.ai/zh/what-is-mdan">'
     );
   });
 });

@@ -1,25 +1,25 @@
-# MDSN
+# MDAN
 
-MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.
+MDAN is a Markdown-first framework for building apps that humans and AI agents can both use.
 
 It keeps content, operations, and follow-up interaction in the same page model so one app can serve both browsers and agents.
 
 ## Recommended starting points
-- https://docs.mdsn.ai/
-- https://docs.mdsn.ai/getting-started
-- https://docs.mdsn.ai/what-is-mdsn
-- https://docs.mdsn.ai/mdsn-vs-mcp
-- https://mdsn.ai/protocol/v1
-- https://docs.mdsn.ai/understanding-mdsn
-- https://docs.mdsn.ai/shared-interaction
-- https://docs.mdsn.ai/application-structure
-- https://docs.mdsn.ai/sdk
-- https://docs.mdsn.ai/server-runtime
-- https://docs.mdsn.ai/examples
+- https://docs.mdan.ai/
+- https://docs.mdan.ai/getting-started
+- https://docs.mdan.ai/what-is-mdan
+- https://docs.mdan.ai/mdan-vs-mcp
+- https://mdan.ai/protocol/v1
+- https://docs.mdan.ai/understanding-mdan
+- https://docs.mdan.ai/shared-interaction
+- https://docs.mdan.ai/application-structure
+- https://docs.mdan.ai/sdk
+- https://docs.mdan.ai/server-runtime
+- https://docs.mdan.ai/examples
 
 ## Packages
-- https://www.npmjs.com/package/@mdsnai/sdk
-- https://www.npmjs.com/package/create-mdsn
+- https://www.npmjs.com/package/@mdanai/sdk
+- https://www.npmjs.com/package/create-mdan
 
 ## Source
-- https://github.com/mdsn-ai/mdsn
+- https://github.com/mdan-ai/mdan

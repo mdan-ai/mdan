@@ -1,11 +1,11 @@
 ---
 title: HTTP Content Negotiation
-description: How MDSN serves agents and browsers from the same page and operation definitions.
+description: How MDAN serves agents and browsers from the same page and operation definitions.
 ---
 
 # HTTP Content Negotiation
 
-MDSN uses HTTP content negotiation so the same app can serve both agents and browsers.
+MDAN uses HTTP content negotiation so the same app can serve both agents and browsers.
 
 The core rule is simple:
 
@@ -26,7 +26,7 @@ returns HTML.
 Agents need Markdown.  
 Browsers need HTML.
 
-MDSN does not want two separate application surfaces for that, so it returns the same underlying result in the form each caller needs.
+MDAN does not want two separate application surfaces for that, so it returns the same underlying result in the form each caller needs.
 
 ## Typical Requests
 
@@ -69,7 +69,7 @@ That keeps the app simpler and less likely to drift over time.
 
 ## Related Docs
 
-- [Understanding MDSN](/docs/understanding-mdsn)
+- [Understanding MDAN](/docs/understanding-mdan)
 - [Application Structure](/docs/application-structure)
 - [Server Runtime](/docs/server-runtime)
 - [Agent App Demo](/docs/agent-app-demo)

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { composePage } from "@mdsnai/sdk/core";
-import * as serverBunApi from "@mdsnai/sdk/server/bun";
-import * as serverNodeApi from "@mdsnai/sdk/server/node";
+import { composePage } from "@mdanai/sdk/core";
+import * as serverBunApi from "@mdanai/sdk/server/bun";
+import * as serverNodeApi from "@mdanai/sdk/server/node";
 
 import * as serverApi from "../../src/server/index.js";
 import { block, fail, ok, signIn, signOut } from "../../src/server/index.js";
@@ -55,9 +55,9 @@ describe("result helpers", () => {
     const page = composePage(
       `# Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> refresh label:"Refresh"
 }

@@ -2,7 +2,7 @@
 
 ## Fixed
 
-`@mdsnai/sdk@0.4.3` fixes static asset serving for host adapters when files are mounted at the root path.
+`@mdanai/sdk@0.4.3` fixes static asset serving for host adapters when files are mounted at the root path.
 
 Both the Node and Bun adapters now resolve requests like `/favicon.ico` or `/robots.txt` correctly when the static mount prefix is `/`.
 

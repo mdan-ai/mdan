@@ -6,9 +6,9 @@ title: "Marked Starter"
 
 A **shared** log rendered through a third-party Markdown engine.
 
-<!-- mdsn:block main -->
+<!-- mdan:block main -->
 
-```mdsn
+```mdan
 BLOCK main {
   INPUT text required -> message
   GET "/list" -> refresh label:"Refresh"

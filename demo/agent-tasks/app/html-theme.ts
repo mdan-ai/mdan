@@ -62,7 +62,7 @@ export function transformAgentTasksHtml(html: string): string {
 
   const chrome = `
     <div class="agent-demo-chrome" aria-hidden="true">
-      <div class="agent-demo-badge">MDSN Agent Tasks</div>
+      <div class="agent-demo-badge">MDAN Agent Tasks</div>
       <div class="agent-demo-meta">
         <span class="agent-demo-eyebrow">${escapeHtml(eyebrow)}</span>
         <span class="agent-demo-route">${escapeHtml(route)}</span>
@@ -92,7 +92,7 @@ export function transformAgentTasksHtml(html: string): string {
           linear-gradient(180deg, #f7f3ec 0%, #eee7dc 100%);
         color: var(--agent-ink);
       }
-      body[data-agent-demo] main[data-mdsn-root] {
+      body[data-agent-demo] main[data-mdan-root] {
         max-width: 980px;
         border-radius: 30px;
         border: 1px solid rgba(89, 78, 65, 0.14);
@@ -100,8 +100,8 @@ export function transformAgentTasksHtml(html: string): string {
         box-shadow: 0 28px 80px rgba(48, 35, 24, 0.11);
         padding: 24px;
       }
-      body[data-agent-demo-route="/login"] main[data-mdsn-root],
-      body[data-agent-demo-route="/register"] main[data-mdsn-root] {
+      body[data-agent-demo-route="/login"] main[data-mdan-root],
+      body[data-agent-demo-route="/register"] main[data-mdan-root] {
         max-width: 640px;
       }
       .agent-demo-chrome {
@@ -161,7 +161,7 @@ export function transformAgentTasksHtml(html: string): string {
         max-width: 66ch;
         color: #4f4841;
       }
-      body[data-agent-demo] mdsn-block {
+      body[data-agent-demo] mdan-block {
         margin-top: 16px;
         padding: 22px;
         border-radius: 24px;
@@ -193,12 +193,12 @@ export function transformAgentTasksHtml(html: string): string {
         background: linear-gradient(180deg, #c8643d 0%, #8f3d1f 100%);
         box-shadow: 0 14px 30px rgba(127, 52, 25, 0.2);
       }
-      body[data-agent-demo] button[data-mdsn-action-variant="secondary"] {
+      body[data-agent-demo] button[data-mdan-action-variant="secondary"] {
         color: var(--agent-accent-deep);
         background: rgba(255, 244, 238, 0.96);
         border: 1px solid rgba(127, 52, 25, 0.14);
       }
-      body[data-agent-demo] button[data-mdsn-action-variant="quiet"] {
+      body[data-agent-demo] button[data-mdan-action-variant="quiet"] {
         background: rgba(242, 235, 226, 0.96);
       }
       body[data-agent-demo] ul {
@@ -219,14 +219,14 @@ export function transformAgentTasksHtml(html: string): string {
         background: linear-gradient(180deg, #d47a57 0%, #944121 100%);
         box-shadow: 0 0 0 5px rgba(182, 83, 47, 0.1);
       }
-      body[data-agent-demo-route="/tasks"] h2 + mdsn-block p:first-child,
-      body[data-agent-demo-route="/tasks"] h2 + mdsn-block h3 {
+      body[data-agent-demo-route="/tasks"] h2 + mdan-block p:first-child,
+      body[data-agent-demo-route="/tasks"] h2 + mdan-block h3 {
         margin-top: 0;
       }
     </style>`;
 
   let next = html.replace("<body>", `<body data-agent-demo data-agent-demo-route="${escapeHtml(route)}">`);
   next = next.replace("</head>", `${theme}\n  </head>`);
-  next = next.replace('<main data-mdsn-root>', `<main data-mdsn-root>${chrome}`);
+  next = next.replace('<main data-mdan-root>', `<main data-mdan-root>${chrome}`);
   return next;
 }

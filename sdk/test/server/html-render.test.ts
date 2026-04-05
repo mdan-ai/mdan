@@ -25,10 +25,10 @@ describe("renderHtmlDocument", () => {
       ]
     });
 
-    expect(html).toContain("<mdsn-block");
+    expect(html).toContain("<mdan-block");
     expect(html).toContain('action="/post"');
     expect(html).toContain("Submit");
-    expect(html).toContain('id="mdsn-bootstrap"');
+    expect(html).toContain('id="mdan-bootstrap"');
     expect(html).toContain('"kind":"fragment"');
   });
 
@@ -54,7 +54,7 @@ describe("renderHtmlDocument", () => {
 
     expect(html).toContain('<form method="GET" action="/list"');
     expect(html).toContain("Refresh");
-    expect(html).toContain('data-mdsn-action-variant="secondary"');
+    expect(html).toContain('data-mdan-action-variant="secondary"');
   });
 
   it("renders declared GET inputs before the submit action", () => {
@@ -103,7 +103,7 @@ describe("renderHtmlDocument", () => {
     });
 
     expect(html).not.toContain('<form method="GET" action="/stream"');
-    expect(html).toContain('data-mdsn-stream-target="/stream"');
+    expect(html).toContain('data-mdan-stream-target="/stream"');
   });
 
   it("renders markdown bullet lists as structured message items", () => {
@@ -119,7 +119,7 @@ describe("renderHtmlDocument", () => {
 
   it("does not render block anchor comments as visible page text", () => {
     const html = renderHtmlDocument({
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blockContent: {
         guestbook: "## 2 live messages\n\n- Welcome\n- Hello"
       },
@@ -140,15 +140,15 @@ describe("renderHtmlDocument", () => {
       ]
     });
 
-    expect(html).not.toContain("&lt;!-- mdsn:block guestbook --&gt;");
-    expect(html).toContain('data-mdsn-block="guestbook"');
+    expect(html).not.toContain("&lt;!-- mdan:block guestbook --&gt;");
+    expect(html).toContain('data-mdan-block="guestbook"');
     expect(html).toContain("2 live messages");
     expect(html).toContain("<li>Hello</li>");
   });
 
   it("omits hidden block anchors and controls when a page only exposes a subset of blocks", () => {
     const html = renderHtmlDocument({
-      markdown: "# Account\n\n<!-- mdsn:block auth -->\n\n<!-- mdsn:block vault -->",
+      markdown: "# Account\n\n<!-- mdan:block auth -->\n\n<!-- mdan:block vault -->",
       blockContent: {
         auth: "## Please sign in",
         vault: "## 0 saved notes"
@@ -172,9 +172,9 @@ describe("renderHtmlDocument", () => {
       ]
     });
 
-    expect(html).toContain('data-mdsn-block="auth"');
+    expect(html).toContain('data-mdan-block="auth"');
     expect(html).toContain('action="/login"');
-    expect(html).not.toContain('data-mdsn-block="vault"');
+    expect(html).not.toContain('data-mdan-block="vault"');
     expect(html).not.toContain('action="/notes"');
   });
 
@@ -198,7 +198,7 @@ describe("renderHtmlDocument", () => {
       ]
     });
 
-    expect(html).toContain('data-mdsn-block="guestbook"');
+    expect(html).toContain('data-mdan-block="guestbook"');
     expect(html).toContain("2 live messages");
     expect(html).toContain("<li>Still usable</li>");
   });
@@ -223,7 +223,7 @@ describe("renderHtmlDocument", () => {
       ]
     });
 
-    expect(html).not.toContain("data-mdsn-continue-target");
+    expect(html).not.toContain("data-mdan-continue-target");
     expect(html).not.toContain('"continueTarget":');
   });
 
@@ -258,7 +258,7 @@ describe("renderHtmlDocument", () => {
   it("renders page bootstrap data for headless framework hosts", () => {
     const html = renderHtmlDocument(
       {
-        markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+        markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
         blockContent: {
           guestbook: "## 1 live message\n\n- Hello"
         },
@@ -284,7 +284,7 @@ describe("renderHtmlDocument", () => {
       }
     );
 
-    expect(html).toContain('id="mdsn-bootstrap"');
+    expect(html).toContain('id="mdan-bootstrap"');
     expect(html).toContain('"kind":"page"');
     expect(html).toContain('"route":"/guestbook"');
     expect(html).toContain('"name":"guestbook"');
@@ -321,8 +321,8 @@ describe("renderHtmlDocument", () => {
     expect(html).toContain('input name="title" type="text"');
     expect(html).toContain('input name="quantity" type="number" required');
     expect(html).toContain('data-required="true"');
-    expect(html).toContain('class="mdsn-label-text"');
-    expect(html).toContain('class="mdsn-required"');
+    expect(html).toContain('class="mdan-label-text"');
+    expect(html).toContain('class="mdan-required"');
     expect(html).toContain('input name="published" type="checkbox"');
     expect(html).toContain('<select name="status">');
     expect(html).toContain('<option value="draft">draft</option>');
@@ -351,7 +351,7 @@ describe("renderHtmlDocument", () => {
       ]
     });
 
-    expect(html).toContain('data-mdsn-action-variant="quiet"');
+    expect(html).toContain('data-mdan-action-variant="quiet"');
     expect(html).toContain("Log Out");
   });
 

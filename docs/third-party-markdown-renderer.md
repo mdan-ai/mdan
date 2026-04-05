@@ -9,8 +9,8 @@ If you do not want to use the built-in Markdown rendering behavior, you can inje
 
 In most cases, the best approach is to pass the same renderer to both:
 
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/elements`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/elements`
 
 That keeps the server-rendered HTML and the default UI aligned.
 

@@ -1,22 +1,22 @@
 ---
 title: 服务端接入
-description: 将 MDSN 运行时接入 Express、Hono、Fastify、Koa 或 Next 等现有后端。
+description: 将 MDAN 运行时接入 Express、Hono、Fastify、Koa 或 Next 等现有后端。
 ---
 
 # 服务端接入
 
-这页适合已经有现成后端，需要把 MDSN 接进去的场景。
+这页适合已经有现成后端，需要把 MDAN 接进去的场景。
 
-先说结论：接 MDSN 时，最重要的不是“怎么把每个细节都包起来”，而是只做一层很薄的 HTTP 适配，然后把真正的处理交给运行时。
+先说结论：接 MDAN 时，最重要的不是“怎么把每个细节都包起来”，而是只做一层很薄的 HTTP 适配，然后把真正的处理交给运行时。
 
 ## 集成边界
 
 保持一个清晰边界：
 
 - 框架层只做传输适配
-- MDSN 运行时层负责路由、协商、body 语义和 action 执行
+- MDAN 运行时层负责路由、协商、body 语义和 action 执行
 
-在实践里就是：把请求和响应适配到 `server.handle()`，不要在中间件或控制器里再重复实现一遍 MDSN 的逻辑。
+在实践里就是：把请求和响应适配到 `server.handle()`，不要在中间件或控制器里再重复实现一遍 MDAN 的逻辑。
 
 ## 一个典型接法
 

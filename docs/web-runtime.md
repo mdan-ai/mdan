@@ -1,11 +1,11 @@
 ---
 title: Web Runtime
-description: The browser-side runtime model in @mdsnai/sdk/web.
+description: The browser-side runtime model in @mdanai/sdk/web.
 ---
 
 # Web Runtime
 
-`@mdsnai/sdk/web` is the browser-side runtime. It does not render your UI.
+`@mdanai/sdk/web` is the browser-side runtime. It does not render your UI.
 
 It reads the initial state written into HTML by the server, sends requests, maintains page and block state, and exposes that state to any rendering layer.
 
@@ -14,7 +14,7 @@ If you want one sentence to remember, use this: `web` is responsible for how int
 ## Basic Usage
 
 ```ts
-import { createHeadlessHost } from "@mdsnai/sdk/web";
+import { createHeadlessHost } from "@mdanai/sdk/web";
 
 const host = createHeadlessHost({ root: document, fetchImpl: window.fetch });
 host.mount();
@@ -26,7 +26,7 @@ host.subscribe((snapshot) => {
 
 This is the recommended browser-side path:
 
-- default UI: `createHeadlessHost()` + `mountMdsnElements()`
+- default UI: `createHeadlessHost()` + `mountMdanElements()`
 - framework UI: `createHeadlessHost()` + Vue, React, or Svelte rendering
 
 When a framework owns the UI, the recommended interface is:
@@ -66,7 +66,7 @@ Current states are:
 
 ## Relationship to `elements`
 
-- if you want the official default UI, combine `createHeadlessHost()` with `mountMdsnElements()`
+- if you want the official default UI, combine `createHeadlessHost()` with `mountMdanElements()`
 - if you want Vue, React, or another framework to own the UI, keep only `createHeadlessHost()`
 
 You can think of it as: `web` runs the interaction, `elements` displays it.
@@ -92,6 +92,6 @@ When enabled, the runtime records a small message envelope for each browser-side
 
 The messages are exposed at:
 
-- `window.__MDSN_DEBUG__.messages`
+- `window.__MDAN_DEBUG__.messages`
 
 If you also use the default `elements` renderer, the browser will show a small debug drawer so you can inspect those messages without opening devtools state manually.

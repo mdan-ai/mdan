@@ -4,10 +4,10 @@ import { extname, resolve } from "node:path";
 import { serializeMarkdownBody } from "../core/index.js";
 
 import { toMarkdownContentType } from "./content-type.js";
-import type { MdsnRequest, MdsnResponse } from "./types.js";
+import type { MdanRequest, MdanResponse } from "./types.js";
 
-interface MdsnRequestHandler {
-  handle(request: MdsnRequest): Promise<MdsnResponse>;
+interface MdanRequestHandler {
+  handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
 export interface CreateBunHostOptions {
@@ -147,7 +147,7 @@ async function tryServeStaticFile(filePath: string): Promise<Response | null> {
   }
 }
 
-function toMdsnRequest(request: Request, body: string | undefined): MdsnRequest {
+function toMdanRequest(request: Request, body: string | undefined): MdanRequest {
   const headers: Record<string, string | undefined> = {};
   request.headers.forEach((value, key) => {
     headers[key] = value;
@@ -187,7 +187,7 @@ function toReadableStream(body: AsyncIterable<string>): ReadableStream<Uint8Arra
   });
 }
 
-function toResponse(result: MdsnResponse, transformHtml?: (html: string) => string): Response {
+function toResponse(result: MdanResponse, transformHtml?: (html: string) => string): Response {
   const headers = new Headers(result.headers);
   const contentType = headers.get("content-type") ?? "";
 
@@ -204,7 +204,7 @@ function toResponse(result: MdsnResponse, transformHtml?: (html: string) => stri
   });
 }
 
-export function createHost(handler: MdsnRequestHandler, options: CreateBunHostOptions = {}) {
+export function createHost(handler: MdanRequestHandler, options: CreateBunHostOptions = {}) {
   return async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
 
@@ -256,7 +256,7 @@ export function createHost(handler: MdsnRequestHandler, options: CreateBunHostOp
       throw error;
     }
 
-    const result = await handler.handle(toMdsnRequest(request, normalizedBody));
+    const result = await handler.handle(toMdanRequest(request, normalizedBody));
     return toResponse(result, options.transformHtml);
   };
 }

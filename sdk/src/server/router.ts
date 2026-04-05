@@ -1,30 +1,30 @@
-import type { MdsnHandler, MdsnPageHandler } from "./types.js";
+import type { MdanHandler, MdanPageHandler } from "./types.js";
 
-export class MdsnRouter {
-  private readonly getHandlers = new Map<string, MdsnHandler>();
-  private readonly postHandlers = new Map<string, MdsnHandler>();
-  private readonly pageHandlers = new Map<string, MdsnPageHandler>();
+export class MdanRouter {
+  private readonly getHandlers = new Map<string, MdanHandler>();
+  private readonly postHandlers = new Map<string, MdanHandler>();
+  private readonly pageHandlers = new Map<string, MdanPageHandler>();
 
-  get(path: string, handler: MdsnHandler): void {
+  get(path: string, handler: MdanHandler): void {
     this.getHandlers.set(path, handler);
   }
 
-  post(path: string, handler: MdsnHandler): void {
+  post(path: string, handler: MdanHandler): void {
     this.postHandlers.set(path, handler);
   }
 
-  page(path: string, handler: MdsnPageHandler): void {
+  page(path: string, handler: MdanPageHandler): void {
     this.pageHandlers.set(path, handler);
   }
 
-  resolve(method: "GET" | "POST", path: string): MdsnHandler | undefined {
+  resolve(method: "GET" | "POST", path: string): MdanHandler | undefined {
     if (method === "GET") {
       return this.getHandlers.get(path);
     }
     return this.postHandlers.get(path);
   }
 
-  resolvePage(path: string): MdsnPageHandler | undefined {
+  resolvePage(path: string): MdanPageHandler | undefined {
     return this.pageHandlers.get(path);
   }
 }

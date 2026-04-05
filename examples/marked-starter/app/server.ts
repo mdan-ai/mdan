@@ -1,5 +1,5 @@
-import { composePage } from "@mdsnai/sdk/core";
-import { createHostedApp } from "@mdsnai/sdk/server";
+import { composePage } from "@mdanai/sdk/core";
+import { createHostedApp } from "@mdanai/sdk/server";
 import { marked } from "marked";
 
 export interface CreateAppServerOptions {
@@ -14,7 +14,7 @@ export const markedMarkdownRenderer = {
 };
 
 export function createAppServer(options: CreateAppServerOptions) {
-  const messages = [...(options.initialMessages ?? ["**Welcome** to MDSN"])];
+  const messages = [...(options.initialMessages ?? ["**Welcome** to MDAN"])];
 
   function renderMainBlock(): string {
     const count = `${messages.length} live ${messages.length === 1 ? "message" : "messages"}`;

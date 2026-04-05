@@ -1,48 +1,48 @@
 import {
-  MdsnParseError,
+  MdanParseError,
   negotiateRepresentation,
   parseMarkdownBody,
   serializeFragment,
   serializePage,
-  type MdsnBlock,
-  type MdsnFragment,
-  type MdsnMarkdownRenderer,
-  type MdsnOperation,
-  type MdsnPage
+  type MdanBlock,
+  type MdanFragment,
+  type MdanMarkdownRenderer,
+  type MdanOperation,
+  type MdanPage
 } from "../core/index.js";
 
 import { toMarkdownContentType } from "./content-type.js";
 import { injectHtmlDiscoveryLinks, renderHtmlDocument } from "./html-render.js";
-import { MdsnRouter } from "./router.js";
+import { MdanRouter } from "./router.js";
 import { fail } from "./result.js";
 import type {
-  MdsnActionResult,
-  MdsnHandler,
-  MdsnHandlerResult,
-  MdsnHtmlDiscoveryContext,
-  MdsnHtmlDiscoveryLinks,
-  MdsnHtmlDiscoveryResolver,
-  MdsnPageHandler,
-  MdsnRequest,
-  MdsnResponse,
-  MdsnSessionProvider,
-  MdsnSessionSnapshot,
-  MdsnStreamChunk,
-  MdsnStreamResult
+  MdanActionResult,
+  MdanHandler,
+  MdanHandlerResult,
+  MdanHtmlDiscoveryContext,
+  MdanHtmlDiscoveryLinks,
+  MdanHtmlDiscoveryResolver,
+  MdanPageHandler,
+  MdanRequest,
+  MdanResponse,
+  MdanSessionProvider,
+  MdanSessionSnapshot,
+  MdanStreamChunk,
+  MdanStreamResult
 } from "./types.js";
 
-export interface CreateMdsnServerOptions {
-  session?: MdsnSessionProvider;
+export interface CreateMdanServerOptions {
+  session?: MdanSessionProvider;
   renderHtml?: typeof renderHtmlDocument;
-  markdownRenderer?: MdsnMarkdownRenderer;
-  htmlDiscovery?: MdsnHtmlDiscoveryResolver;
+  markdownRenderer?: MdanMarkdownRenderer;
+  htmlDiscovery?: MdanHtmlDiscoveryResolver;
 }
 
-function getPathname(request: MdsnRequest): string {
+function getPathname(request: MdanRequest): string {
   return new URL(request.url).pathname;
 }
 
-function getInputs(request: MdsnRequest): Record<string, string> {
+function getInputs(request: MdanRequest): Record<string, string> {
   if (request.method === "GET") {
     const url = new URL(request.url);
     return Object.fromEntries(url.searchParams.entries());
@@ -57,7 +57,7 @@ function isSupportedWriteContentType(contentType: string | undefined): boolean {
   return contentType.includes("text/markdown");
 }
 
-function hasRequestBody(request: MdsnRequest): boolean {
+function hasRequestBody(request: MdanRequest): boolean {
   return typeof request.body === "string" && request.body.trim().length > 0;
 }
 
@@ -84,9 +84,9 @@ function normalizeDiscoveryLink(value: string | undefined): string | undefined {
 }
 
 function resolveHtmlDiscoveryLinks(
-  htmlDiscovery: MdsnHtmlDiscoveryResolver | undefined,
-  context: MdsnHtmlDiscoveryContext
-): MdsnHtmlDiscoveryLinks | null {
+  htmlDiscovery: MdanHtmlDiscoveryResolver | undefined,
+  context: MdanHtmlDiscoveryContext
+): MdanHtmlDiscoveryLinks | null {
   if (!htmlDiscovery) {
     return null;
   }
@@ -108,7 +108,7 @@ function resolveHtmlDiscoveryLinks(
   };
 }
 
-function discoveryLinksToHeader(links: MdsnHtmlDiscoveryLinks | null): string | undefined {
+function discoveryLinksToHeader(links: MdanHtmlDiscoveryLinks | null): string | undefined {
   if (!links) {
     return undefined;
   }
@@ -132,14 +132,14 @@ function mergeLinkHeader(headers: Record<string, string>, linkHeader: string | u
   };
 }
 
-function isAutoDependency(operation: MdsnOperation): boolean {
+function isAutoDependency(operation: MdanOperation): boolean {
   return operation.method === "GET" && operation.auto === true;
 }
 
 function applySessionMutation(
-  session: MdsnSessionSnapshot | null,
-  mutation: MdsnActionResult["session"] | undefined
-): MdsnSessionSnapshot | null {
+  session: MdanSessionSnapshot | null,
+  mutation: MdanActionResult["session"] | undefined
+): MdanSessionSnapshot | null {
   if (!mutation) {
     return session;
   }
@@ -152,12 +152,12 @@ function applySessionMutation(
 }
 
 interface AutoPageResolution {
-  page: MdsnPage;
+  page: MdanPage;
   route?: string;
-  session?: MdsnActionResult["session"];
+  session?: MdanActionResult["session"];
 }
 
-function createImplicitGetRequest(target: string, request: MdsnRequest): MdsnRequest {
+function createImplicitGetRequest(target: string, request: MdanRequest): MdanRequest {
   const targetUrl = new URL(target, request.url);
   return {
     ...request,
@@ -172,11 +172,11 @@ function createImplicitGetRequest(target: string, request: MdsnRequest): MdsnReq
 }
 
 function applyImplicitFragmentToPage(
-  page: MdsnPage,
+  page: MdanPage,
   blockName: string,
-  operation: MdsnOperation,
-  fragment: MdsnFragment
-): MdsnPage {
+  operation: MdanOperation,
+  fragment: MdanFragment
+): MdanPage {
   const existingBlock = page.blocks.find((block) => block.name === blockName);
   const returnedBlock = fragment.blocks.find((block) => block.name === blockName) ?? fragment.blocks[0];
   const nextBlock =
@@ -200,10 +200,10 @@ function applyImplicitFragmentToPage(
 
 async function resolveAutoTarget(
   target: string,
-  request: MdsnRequest,
-  session: MdsnSessionSnapshot | null,
-  router: MdsnRouter
-): Promise<MdsnActionResult | null> {
+  request: MdanRequest,
+  session: MdanSessionSnapshot | null,
+  router: MdanRouter
+): Promise<MdanActionResult | null> {
   const implicitRequest = createImplicitGetRequest(target, request);
   const pathname = getPathname(implicitRequest);
   const pageHandler = router.resolvePage(pathname);
@@ -243,7 +243,7 @@ async function resolveAutoTarget(
   return result;
 }
 
-function findAutoDependency(blocks: MdsnBlock[]): { blockName: string; operation: MdsnOperation } | null {
+function findAutoDependency(blocks: MdanBlock[]): { blockName: string; operation: MdanOperation } | null {
   for (const block of blocks) {
     const operation = block.operations.find(isAutoDependency);
     if (operation) {
@@ -258,14 +258,14 @@ function findAutoDependency(blocks: MdsnBlock[]): { blockName: string; operation
 }
 
 async function resolveAutoDependencies(
-  page: MdsnPage,
-  request: MdsnRequest,
-  session: MdsnSessionSnapshot | null,
-  router: MdsnRouter
+  page: MdanPage,
+  request: MdanRequest,
+  session: MdanSessionSnapshot | null,
+  router: MdanRouter
 ): Promise<AutoPageResolution> {
   let currentPage = page;
   let currentSession = session;
-  let currentMutation: MdsnActionResult["session"] | undefined;
+  let currentMutation: MdanActionResult["session"] | undefined;
   let currentRoute: string | undefined;
 
   for (let pass = 0; pass < 10; pass += 1) {
@@ -319,11 +319,11 @@ async function resolveAutoDependencies(
 }
 
 async function resolveAutoActionResult(
-  result: MdsnActionResult,
-  request: MdsnRequest,
-  session: MdsnSessionSnapshot | null,
-  router: MdsnRouter
-): Promise<MdsnActionResult> {
+  result: MdanActionResult,
+  request: MdanRequest,
+  session: MdanSessionSnapshot | null,
+  router: MdanRouter
+): Promise<MdanActionResult> {
   if (result.page) {
     const resolvedPage = await resolveAutoDependencies(result.page, request, session, router);
     return {
@@ -384,7 +384,7 @@ async function resolveAutoActionResult(
   return current;
 }
 
-function getRenderablePage(page: MdsnPage) {
+function getRenderablePage(page: MdanPage) {
   const visibleBlockNames =
     page.visibleBlockNames && page.visibleBlockNames.length > 0 ? new Set(page.visibleBlockNames) : null;
   const blocks = visibleBlockNames ? page.blocks.filter((block) => visibleBlockNames.has(block.name)) : page.blocks;
@@ -405,7 +405,7 @@ function getRenderablePage(page: MdsnPage) {
       };
 }
 
-function toProtocolRenderOptions(discoveryLinks: MdsnHtmlDiscoveryLinks | null, fallbackMarkdownHref?: string) {
+function toProtocolRenderOptions(discoveryLinks: MdanHtmlDiscoveryLinks | null, fallbackMarkdownHref?: string) {
   const markdownHref = discoveryLinks?.markdownHref ?? fallbackMarkdownHref;
   if (!markdownHref) {
     return {};
@@ -422,11 +422,11 @@ function toProtocolRenderOptions(discoveryLinks: MdsnHtmlDiscoveryLinks | null, 
 }
 
 function resolveResponseBody(
-  result: MdsnActionResult,
+  result: MdanActionResult,
   representation: "markdown" | "html",
   renderHtml: typeof renderHtmlDocument,
-  discoveryLinks: MdsnHtmlDiscoveryLinks | null,
-  request: MdsnRequest
+  discoveryLinks: MdanHtmlDiscoveryLinks | null,
+  request: MdanRequest
 ): string {
   if (result.page) {
     return representation === "markdown"
@@ -458,17 +458,17 @@ function resolveResponseBody(
       });
 }
 
-function isStreamResult(result: MdsnHandlerResult): result is MdsnStreamResult {
+function isStreamResult(result: MdanHandlerResult): result is MdanStreamResult {
   return "stream" in result;
 }
 
-function toAsyncIterable(stream: AsyncIterable<MdsnStreamChunk> | Iterable<MdsnStreamChunk>): AsyncIterable<MdsnStreamChunk> {
+function toAsyncIterable(stream: AsyncIterable<MdanStreamChunk> | Iterable<MdanStreamChunk>): AsyncIterable<MdanStreamChunk> {
   if (Symbol.asyncIterator in stream) {
-    return stream as AsyncIterable<MdsnStreamChunk>;
+    return stream as AsyncIterable<MdanStreamChunk>;
   }
 
   return (async function* () {
-    yield* stream as Iterable<MdsnStreamChunk>;
+    yield* stream as Iterable<MdanStreamChunk>;
   })();
 }
 
@@ -478,7 +478,7 @@ function serializeSseMessage(markdown: string): string {
   return `${lines.map((line) => `data: ${line}`).join("\n")}\n\n`;
 }
 
-function createStreamBody(result: MdsnHandlerResult): string | AsyncIterable<string> {
+function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<string> {
   if (!isStreamResult(result)) {
     if (!result.fragment) {
       throw new Error("Non-stream event-stream responses must include a fragment.");
@@ -495,12 +495,12 @@ function createStreamBody(result: MdsnHandlerResult): string | AsyncIterable<str
 }
 
 function createResponse(
-  result: MdsnHandlerResult,
+  result: MdanHandlerResult,
   representation: "markdown" | "html" | "event-stream",
   renderHtml: typeof renderHtmlDocument,
-  request: MdsnRequest,
-  htmlDiscovery: MdsnHtmlDiscoveryResolver | undefined
-): MdsnResponse {
+  request: MdanRequest,
+  htmlDiscovery: MdanHtmlDiscoveryResolver | undefined
+): MdanResponse {
   const discoveryLinks =
     representation === "html"
       ? resolveHtmlDiscoveryLinks(htmlDiscovery, {
@@ -518,9 +518,9 @@ function createResponse(
 
   const body =
     representation === "markdown"
-      ? resolveResponseBody(result as MdsnActionResult, "markdown", renderHtml, discoveryLinks, request)
+      ? resolveResponseBody(result as MdanActionResult, "markdown", renderHtml, discoveryLinks, request)
       : representation === "html"
-        ? resolveResponseBody(result as MdsnActionResult, "html", renderHtml, discoveryLinks, request)
+        ? resolveResponseBody(result as MdanActionResult, "html", renderHtml, discoveryLinks, request)
         : createStreamBody(result);
 
   return {
@@ -531,13 +531,13 @@ function createResponse(
 }
 
 function createPageResponse(
-  page: MdsnPage,
+  page: MdanPage,
   representation: "markdown" | "html",
   renderHtml: typeof renderHtmlDocument,
-  request: MdsnRequest,
-  htmlDiscovery: MdsnHtmlDiscoveryResolver | undefined,
+  request: MdanRequest,
+  htmlDiscovery: MdanHtmlDiscoveryResolver | undefined,
   route?: string
-): MdsnResponse {
+): MdanResponse {
   const discoveryLinks =
     representation === "html"
       ? resolveHtmlDiscoveryLinks(htmlDiscovery, {
@@ -565,8 +565,8 @@ function createPageResponse(
   };
 }
 
-export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
-  const router = new MdsnRouter();
+export function createMdanServer(options: CreateMdanServerOptions = {}) {
+  const router = new MdanRouter();
   const sessionProvider = options.session;
   const baseHtmlRenderer =
     options.renderHtml ??
@@ -579,16 +579,16 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
     injectHtmlDiscoveryLinks(baseHtmlRenderer(fragment, renderOptions), renderOptions);
 
   return {
-    get(path: string, handler: MdsnHandler): void {
+    get(path: string, handler: MdanHandler): void {
       router.get(path, handler);
     },
-    page(path: string, handler: MdsnPageHandler): void {
+    page(path: string, handler: MdanPageHandler): void {
       router.page(path, handler);
     },
-    post(path: string, handler: MdsnHandler): void {
+    post(path: string, handler: MdanHandler): void {
       router.post(path, handler);
     },
-    async handle(request: MdsnRequest): Promise<MdsnResponse> {
+    async handle(request: MdanRequest): Promise<MdanResponse> {
       const representation = negotiateRepresentation(request.headers.accept);
       if (representation === "not-acceptable") {
         return createResponse(
@@ -624,7 +624,7 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
               options.htmlDiscovery
             );
           }
-          let page: MdsnPage | null;
+          let page: MdanPage | null;
           try {
             page = await pageHandler({
               request,
@@ -698,7 +698,7 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
       try {
         inputs = getInputs(request);
       } catch (error) {
-        if (error instanceof MdsnParseError) {
+        if (error instanceof MdanParseError) {
           return createResponse(
             fail({
               status: 400,
@@ -713,7 +713,7 @@ export function createMdsnServer(options: CreateMdsnServerOptions = {}) {
         throw error;
       }
 
-      let result: MdsnHandlerResult;
+      let result: MdanHandlerResult;
       try {
         result = await handler({
           request,

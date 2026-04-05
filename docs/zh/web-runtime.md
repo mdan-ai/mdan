@@ -1,11 +1,11 @@
 ---
 title: Web 运行时
-description: @mdsnai/sdk/web 在浏览器侧的运行时模型。
+description: @mdanai/sdk/web 在浏览器侧的运行时模型。
 ---
 
 # Web 运行时
 
-`@mdsnai/sdk/web` 是浏览器侧运行时，本身不负责 UI 渲染。
+`@mdanai/sdk/web` 是浏览器侧运行时，本身不负责 UI 渲染。
 
 它读取服务端写进 HTML 的初始状态，负责发请求、维护页面和 block 状态，并把这些状态暴露给任意渲染层。
 
@@ -14,7 +14,7 @@ description: @mdsnai/sdk/web 在浏览器侧的运行时模型。
 ## 基本用法
 
 ```ts
-import { createHeadlessHost } from "@mdsnai/sdk/web";
+import { createHeadlessHost } from "@mdanai/sdk/web";
 
 const host = createHeadlessHost({ root: document, fetchImpl: window.fetch });
 host.mount();
@@ -26,7 +26,7 @@ host.subscribe((snapshot) => {
 
 这是浏览器侧推荐的主线路径：
 
-- 默认 UI：`createHeadlessHost()` + `mountMdsnElements()`
+- 默认 UI：`createHeadlessHost()` + `mountMdanElements()`
 - 框架 UI：`createHeadlessHost()` + Vue、React、Svelte 自己渲染
 
 当框架接管 UI 时，推荐直接使用这组接口：
@@ -66,7 +66,7 @@ host.subscribe((snapshot) => {
 
 ## 和 `elements` 的关系
 
-- 如果你想要官方默认 UI，就把 `createHeadlessHost()` 和 `mountMdsnElements()` 组合使用
+- 如果你想要官方默认 UI，就把 `createHeadlessHost()` 和 `mountMdanElements()` 组合使用
 - 如果你想自己用 Vue、React 或别的框架接管界面，就只保留 `createHeadlessHost()`
 
 可以把它们理解成：`web` 负责跑，`elements` 负责显示。

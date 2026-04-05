@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 
 const repoRoot = resolve(new URL("..", import.meta.url).pathname);
-const cacheDir = "/tmp/mdsn-release-smoke-cache";
+const cacheDir = "/tmp/mdan-release-smoke-cache";
 const defaultBunBin = process.env.HOME ? join(process.env.HOME, ".bun", "bin", "bun") : "bun";
 const bunBin = process.env.BUN_BIN ?? (existsSync(defaultBunBin) ? defaultBunBin : "bun");
 
@@ -216,7 +216,7 @@ async function stopApp(handle) {
 async function rewriteSdkDependency(projectDir, spec) {
   const packageJsonPath = join(projectDir, "package.json");
   const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8"));
-  packageJson.dependencies["@mdsnai/sdk"] = spec;
+  packageJson.dependencies["@mdanai/sdk"] = spec;
   await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
 }
 
@@ -225,7 +225,7 @@ async function createProject({ mode, runtime, tempRoot, createVersion, sdkTarbal
   await mkdir(cwd, { recursive: true });
 
   if (mode === "prepublish") {
-    const cliPath = join(repoRoot, "create-mdsn", "dist", "cli-bin.js");
+    const cliPath = join(repoRoot, "create-mdan", "dist", "cli-bin.js");
     if (runtime === "bun") {
       await run(bunBin, ["run", cliPath, "agent-app", "--runtime", "bun"], { cwd });
     } else {
@@ -236,11 +236,11 @@ async function createProject({ mode, runtime, tempRoot, createVersion, sdkTarbal
   }
 
   if (runtime === "bun") {
-    await run(bunBin, ["x", `create-mdsn@${createVersion}`, "agent-app"], { cwd });
+    await run(bunBin, ["x", `create-mdan@${createVersion}`, "agent-app"], { cwd });
     return join(cwd, "agent-app");
   }
 
-  await run("npm", ["create", `mdsn@${createVersion}`, "agent-app"], {
+  await run("npm", ["create", `mdan@${createVersion}`, "agent-app"], {
     cwd,
     env: { npm_config_cache: cacheDir }
   });
@@ -249,9 +249,9 @@ async function createProject({ mode, runtime, tempRoot, createVersion, sdkTarbal
 
 async function assertFlow(projectDir, expectedSdkSpec, runtime) {
   const packageJson = JSON.parse(await readFile(join(projectDir, "package.json"), "utf8"));
-  if (packageJson.dependencies?.["@mdsnai/sdk"] !== expectedSdkSpec) {
+  if (packageJson.dependencies?.["@mdanai/sdk"] !== expectedSdkSpec) {
     throw new Error(
-      `Expected @mdsnai/sdk dependency ${expectedSdkSpec}, received ${packageJson.dependencies?.["@mdsnai/sdk"]}`
+      `Expected @mdanai/sdk dependency ${expectedSdkSpec}, received ${packageJson.dependencies?.["@mdanai/sdk"]}`
     );
   }
 
@@ -280,7 +280,7 @@ async function assertFlow(projectDir, expectedSdkSpec, runtime) {
       headers: { Accept: "text/markdown" }
     });
     const markdown = await markdownResponse.text();
-    if (!markdownResponse.ok || !markdown.includes("Welcome to MDSN")) {
+    if (!markdownResponse.ok || !markdown.includes("Welcome to MDAN")) {
       throw new Error(`Markdown page flow failed\n${markdown}`);
     }
 
@@ -342,7 +342,7 @@ async function main() {
     throw new Error(`Unsupported runtime: ${runtime}`);
   }
 
-  const tempRoot = await mkdtemp(join(tmpdir(), `mdsn-release-smoke-${mode}-`));
+  const tempRoot = await mkdtemp(join(tmpdir(), `mdan-release-smoke-${mode}-`));
 
   try {
     if (mode === "prepublish") {
@@ -364,20 +364,20 @@ async function main() {
     }
 
     const createVersion = args["create-version"] ?? "latest";
-    const createMeta = await readRegistryPackageMeta(`create-mdsn@${createVersion}`);
+    const createMeta = await readRegistryPackageMeta(`create-mdan@${createVersion}`);
     const resolvedCreateVersion = createMeta.version;
     if (typeof resolvedCreateVersion !== "string" || !resolvedCreateVersion.trim()) {
-      throw new Error(`Unable to resolve published create-mdsn version for ${createVersion}`);
+      throw new Error(`Unable to resolve published create-mdan version for ${createVersion}`);
     }
     const sdkVersion = args["sdk-version"] ?? toCompatibleSdkRange(resolvedCreateVersion);
-    const sdkMeta = await readRegistryPackageMeta(`@mdsnai/sdk@${sdkVersion}`);
+    const sdkMeta = await readRegistryPackageMeta(`@mdanai/sdk@${sdkVersion}`);
     const resolvedSdkVersion = sdkMeta.version;
     if (typeof resolvedSdkVersion !== "string" || !resolvedSdkVersion.trim()) {
-      throw new Error(`Unable to resolve published @mdsnai/sdk version for ${sdkVersion}`);
+      throw new Error(`Unable to resolve published @mdanai/sdk version for ${sdkVersion}`);
     }
 
-    assertRegistryMetadata("create-mdsn", createMeta);
-    assertRegistryMetadata("@mdsnai/sdk", sdkMeta);
+    assertRegistryMetadata("create-mdan", createMeta);
+    assertRegistryMetadata("@mdanai/sdk", sdkMeta);
 
     const projectDir = await createProject({
       mode,

@@ -1,26 +1,26 @@
-import type { MdsnComposedPage } from "../core/index.js";
+import type { MdanComposedPage } from "../core/index.js";
 
 import { block as createBlockResult } from "./result.js";
-import { createMdsnServer, type CreateMdsnServerOptions } from "./runtime.js";
-import type { MdsnActionResult, MdsnHandlerContext, MdsnHandlerResult, MdsnPageHandlerContext } from "./types.js";
+import { createMdanServer, type CreateMdanServerOptions } from "./runtime.js";
+import type { MdanActionResult, MdanHandlerContext, MdanHandlerResult, MdanPageHandlerContext } from "./types.js";
 
-export interface HostedPageContext extends MdsnPageHandlerContext {
+export interface HostedPageContext extends MdanPageHandlerContext {
   routePath: string;
 }
 
 export interface HostedPageFactory {
-  (context: HostedPageContext): MdsnComposedPage;
+  (context: HostedPageContext): MdanComposedPage;
 }
 
-export interface HostedActionContext extends MdsnHandlerContext, HostedPageContext {
+export interface HostedActionContext extends MdanHandlerContext, HostedPageContext {
   routePath: string;
   blockName: string;
-  page(routePath?: string): MdsnComposedPage;
-  pageResult(pageOrRoute?: string | MdsnComposedPage, result?: Omit<MdsnActionResult, "page" | "fragment">): MdsnActionResult;
-  block(result?: Omit<MdsnActionResult, "fragment">): MdsnActionResult;
+  page(routePath?: string): MdanComposedPage;
+  pageResult(pageOrRoute?: string | MdanComposedPage, result?: Omit<MdanActionResult, "page" | "fragment">): MdanActionResult;
+  block(result?: Omit<MdanActionResult, "fragment">): MdanActionResult;
 }
 
-export type HostedAction = (context: HostedActionContext) => Promise<MdsnHandlerResult> | MdsnHandlerResult;
+export type HostedAction = (context: HostedActionContext) => Promise<MdanHandlerResult> | MdanHandlerResult;
 
 export interface HostedActionDefinition {
   target: string;
@@ -30,7 +30,7 @@ export interface HostedActionDefinition {
   handler: HostedAction;
 }
 
-export interface CreateHostedAppOptions extends CreateMdsnServerOptions {
+export interface CreateHostedAppOptions extends CreateMdanServerOptions {
   pages: Record<string, HostedPageFactory>;
   actions?: HostedActionDefinition[];
 }
@@ -47,7 +47,7 @@ function createBindingKey(method: "GET" | "POST", target: string): string {
   return `${method}:${target}`;
 }
 
-function renderPage(factory: HostedPageFactory, context: HostedPageContext): MdsnComposedPage {
+function renderPage(factory: HostedPageFactory, context: HostedPageContext): MdanComposedPage {
   const page = factory(context);
   if (typeof page.fragment !== "function") {
     throw new Error(`Hosted page "${context.routePath}" must return a composed page created by composePage().`);
@@ -101,7 +101,7 @@ function buildBindings(
 }
 
 export function createHostedApp(options: CreateHostedAppOptions) {
-  const server = createMdsnServer(options);
+  const server = createMdanServer(options);
   const bindings = buildBindings(options.pages, options.actions);
 
   for (const [routePath, factory] of Object.entries(options.pages)) {

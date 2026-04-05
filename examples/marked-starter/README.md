@@ -1,12 +1,12 @@
-# MDSN Marked Starter
+# MDAN Marked Starter
 
-This is the smallest runnable example of plugging a third-party Markdown renderer into MDSN.
+This is the smallest runnable example of plugging a third-party Markdown renderer into MDAN.
 
 It does a few simple things:
 
 - `server` uses the same `markdownRenderer` for browser HTML output
 - `elements` uses the same `markdownRenderer` for the default UI
-- the agent path still stays on raw `md + mdsn`
+- the agent path still stays on raw `md + mdan`
 - the third-party library is `marked`
 
 ## Run It

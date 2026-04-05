@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { composePage } from "../../src/core/index.js";
-import { createMdsnServer, ok, signIn, stream } from "../../src/server/index.js";
+import { createMdanServer, ok, signIn, stream } from "../../src/server/index.js";
 
 async function readBody(body: string | AsyncIterable<string>): Promise<string> {
   if (typeof body === "string") {
@@ -15,9 +15,9 @@ async function readBody(body: string | AsyncIterable<string>): Promise<string> {
   return result;
 }
 
-describe("createMdsnServer", () => {
+describe("createMdanServer", () => {
   it("returns a single server-sent event when event-stream is requested for a regular fragment", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/updates", async () =>
       ok({
@@ -42,7 +42,7 @@ describe("createMdsnServer", () => {
   });
 
   it("streams multiple fragment updates when a handler returns an event stream", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/updates", async () =>
       stream(
@@ -74,7 +74,7 @@ describe("createMdsnServer", () => {
   });
 
   it("matches GET handlers by target and returns markdown", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/list", async (ctx) =>
       ok({
@@ -95,13 +95,13 @@ describe("createMdsnServer", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(response.body).toContain("## Hi Guest");
   });
 
   it("uses the last repeated query value when parsing GET inputs", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/search", async (ctx) =>
       ok({
@@ -126,7 +126,7 @@ describe("createMdsnServer", () => {
 
   it("matches POST handlers by target, parses markdown body, and commits session", async () => {
     const commit = vi.fn(async () => undefined);
-    const server = createMdsnServer({
+    const server = createMdanServer({
       session: {
         read: async () => null,
         commit,
@@ -158,14 +158,14 @@ describe("createMdsnServer", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(response.body).toContain("# Welcome Guest");
     expect(commit).toHaveBeenCalledTimes(1);
   });
 
   it("returns 415 for unsupported POST content types", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.post("/login", async () =>
       ok({
@@ -189,14 +189,14 @@ describe("createMdsnServer", () => {
 
     expect(response.status).toBe(415);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(response.body).toContain("Unsupported Media Type");
   });
 
   it("passes the current session into sessionProvider.clear during sign-out", async () => {
     const clear = vi.fn(async () => undefined);
-    const server = createMdsnServer({
+    const server = createMdanServer({
       session: {
         read: async () => ({ sessionId: "s1", userId: "ada" }),
         commit: async () => undefined,
@@ -221,7 +221,7 @@ describe("createMdsnServer", () => {
         accept: "text/markdown"
       },
       cookies: {
-        mdsn_session: "s1"
+        mdan_session: "s1"
       }
     });
 
@@ -234,7 +234,7 @@ describe("createMdsnServer", () => {
 
   it("commits the final session mutation after an action auto-resolves into a page", async () => {
     const commit = vi.fn(async () => undefined);
-    const server = createMdsnServer({
+    const server = createMdanServer({
       session: {
         read: async () => null,
         commit,
@@ -288,7 +288,7 @@ describe("createMdsnServer", () => {
 
   it("commits the deepest session mutation when an action resolves through multiple auto page steps", async () => {
     const commit = vi.fn(async () => undefined);
-    const server = createMdsnServer({
+    const server = createMdanServer({
       session: {
         read: async () => null,
         commit,
@@ -318,9 +318,9 @@ describe("createMdsnServer", () => {
         page: composePage(
           `# Step 1
 
-<!-- mdsn:block gate -->
+<!-- mdan:block gate -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK gate {
   GET "/step-2" -> step_2 auto
 }
@@ -365,7 +365,7 @@ BLOCK gate {
 
   it("commits session mutations produced by auto resolution on page routes", async () => {
     const commit = vi.fn(async () => undefined);
-    const server = createMdsnServer({
+    const server = createMdanServer({
       session: {
         read: async () => null,
         commit,
@@ -377,9 +377,9 @@ BLOCK gate {
       composePage(
         `# Welcome
 
-<!-- mdsn:block auth -->
+<!-- mdan:block auth -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK auth {
   GET "/bootstrap-session" -> bootstrap_session auto
 }
@@ -421,15 +421,15 @@ BLOCK auth {
   });
 
   it("uses the resolved page route when a page route auto-navigates to another page", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/vault", async () =>
       composePage(
         `# Vault
 
-<!-- mdsn:block gate -->
+<!-- mdan:block gate -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK gate {
   GET "/login" -> open_login auto
 }
@@ -462,7 +462,7 @@ BLOCK gate {
 
   it("clears the current session when page-route auto resolution signs out", async () => {
     const clear = vi.fn(async () => undefined);
-    const server = createMdsnServer({
+    const server = createMdanServer({
       session: {
         read: async () => ({ sessionId: "s1", userId: "ada" }),
         commit: async () => undefined,
@@ -474,9 +474,9 @@ BLOCK gate {
       composePage(
         `# Vault
 
-<!-- mdsn:block gate -->
+<!-- mdan:block gate -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK gate {
   GET "/logout-bootstrap" -> logout_bootstrap auto
 }
@@ -504,7 +504,7 @@ BLOCK gate {
         accept: "text/markdown"
       },
       cookies: {
-        mdsn_session: "s1"
+        mdan_session: "s1"
       }
     });
 
@@ -518,15 +518,15 @@ BLOCK gate {
   });
 
   it("keeps the current page when an auto dependency target is missing", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/vault", async () =>
       composePage(
         `# Vault
 
-<!-- mdsn:block gate -->
+<!-- mdan:block gate -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK gate {
   GET "/missing" -> missing auto
 }
@@ -556,7 +556,7 @@ BLOCK gate {
   });
 
   it("stops auto resolution after 10 passes instead of looping forever", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
     const loop = vi.fn(async () =>
       ok({
         fragment: {
@@ -577,9 +577,9 @@ BLOCK gate {
       composePage(
         `# Loop
 
-<!-- mdsn:block gate -->
+<!-- mdan:block gate -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK gate {
   GET "/loop-step" -> loop_step auto
 }
@@ -611,7 +611,7 @@ BLOCK gate {
   });
 
   it("allows empty POST actions without an explicit content type", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.post("/logout", async () =>
       ok({
@@ -636,7 +636,7 @@ BLOCK gate {
   });
 
   it("returns a recoverable fragment for malformed markdown bodies instead of throwing", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.post("/login", async () =>
       ok({
@@ -661,13 +661,13 @@ BLOCK gate {
     ).resolves.toMatchObject({
       status: 400,
       headers: {
-        "content-type": 'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+        "content-type": 'text/markdown; profile="https://mdan.ai/protocol/v1"'
       }
     });
   });
 
   it("returns a recoverable 500 fragment when an action handler throws", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.post("/boom", async () => {
       throw new Error("boom");
@@ -686,13 +686,13 @@ BLOCK gate {
 
     expect(response.status).toBe(500);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(response.body).toContain("Internal Server Error");
   });
 
   it("returns a recoverable 500 fragment when session persistence throws", async () => {
-    const server = createMdsnServer({
+    const server = createMdanServer({
       session: {
         read: async () => null,
         commit: async () => {
@@ -725,13 +725,13 @@ BLOCK gate {
 
     expect(response.status).toBe(500);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(response.body).toContain("Internal Server Error");
   });
 
   it("returns html when the client prefers html", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/list", async () =>
       ok({
@@ -755,7 +755,7 @@ BLOCK gate {
   });
 
   it("passes an injected markdown renderer through the html response path", async () => {
-    const server = createMdsnServer({
+    const server = createMdanServer({
       markdownRenderer: {
         render(markdown) {
           return `<section data-renderer="custom">${markdown.toUpperCase()}</section>`;
@@ -794,7 +794,7 @@ BLOCK gate {
       return `<!doctype html><html lang="en"><head><title>Custom Shell</title></head><body><main>${fragment.markdown}</main></body></html>`;
     });
 
-    const server = createMdsnServer({
+    const server = createMdanServer({
       htmlDiscovery: {
         markdownHref: "/list",
         llmsTxtHref: "/llms.txt"
@@ -826,7 +826,7 @@ BLOCK gate {
   });
 
   it("returns markdown when accept explicitly includes text/markdown alongside html", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/list", async () =>
       ok({
@@ -845,13 +845,13 @@ BLOCK gate {
     });
 
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(response.body).toContain("# Demo");
   });
 
   it("returns 404 when no handler matches", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     const response = await server.handle({
       method: "GET",
@@ -866,7 +866,7 @@ BLOCK gate {
   });
 
   it("returns 406 for unsupported accept headers", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/list", async () =>
       ok({
@@ -889,11 +889,11 @@ BLOCK gate {
   });
 
   it("serves canonical page markdown to agent consumers", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/guestbook", async () => ({
       frontmatter: { title: "Guestbook" },
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blockContent: {
         guestbook: "## 2 live messages\n\n- Welcome\n- Hello"
       },
@@ -916,21 +916,21 @@ BLOCK gate {
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     expect(response.body).toContain('title: "Guestbook"');
     expect(response.body).toContain("## 2 live messages");
     expect(response.body).toContain("- Hello");
-    expect(response.body).toContain("```mdsn");
+    expect(response.body).toContain("```mdan");
     expect(response.body).toContain('POST "/post" (message) -> submit');
   });
 
   it("serves rendered html to browser consumers for page routes", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/guestbook", async () => ({
       frontmatter: { title: "Guestbook" },
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blockContent: {
         guestbook: "## 2 live messages\n\n- Welcome\n- Hello"
       },
@@ -960,7 +960,7 @@ BLOCK gate {
   });
 
   it("auto-resolves explicit auto GET block dependencies for html page responses", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
     const listHandler = vi.fn(async () =>
       ok({
         fragment: {
@@ -978,7 +978,7 @@ BLOCK gate {
 
     server.page("/guestbook", async () => ({
       frontmatter: { title: "Guestbook" },
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blocks: [
         {
           name: "guestbook",
@@ -1006,7 +1006,7 @@ BLOCK gate {
   });
 
   it("auto-resolves explicit auto GET block dependencies in markdown page responses", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
     const listHandler = vi.fn(async () =>
       ok({
         fragment: {
@@ -1024,7 +1024,7 @@ BLOCK gate {
 
     server.page("/guestbook", async () => ({
       frontmatter: { title: "Guestbook" },
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blocks: [
         {
           name: "guestbook",
@@ -1045,14 +1045,14 @@ BLOCK gate {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdsn.ai/protocol/v1"');
+    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/protocol/v1"');
     expect(listHandler).toHaveBeenCalledTimes(1);
     expect(response.body).toContain("2 live messages");
     expect(response.body).not.toContain('GET "/list" -> load_messages auto');
   });
 
   it("does not auto-resolve manual labeled GET operations for html page responses", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
     const listHandler = vi.fn(async () =>
       ok({
         fragment: {
@@ -1070,7 +1070,7 @@ BLOCK gate {
 
     server.page("/guestbook", async () => ({
       frontmatter: { title: "Guestbook" },
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blocks: [
         {
           name: "guestbook",
@@ -1097,11 +1097,11 @@ BLOCK gate {
   });
 
   it("auto-resolves explicit auto GET dependencies for html fragment responses", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/vault", async () => ({
       frontmatter: { title: "Vault" },
-      markdown: "# Vault\n\n<!-- mdsn:block vault -->",
+      markdown: "# Vault\n\n<!-- mdan:block vault -->",
       blockContent: {
         vault: "## 0 saved notes\n\n- No private notes yet"
       },
@@ -1151,14 +1151,14 @@ BLOCK gate {
   });
 
   it("propagates session mutations from implicit html GET dependencies to later implicit steps", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
     const sessionAfterLogin = signIn({ userId: "Ada" });
 
     server.page("/vault", async ({ session }) =>
       session
         ? {
             frontmatter: { title: "Vault" },
-            markdown: "# Vault\n\n<!-- mdsn:block vault -->",
+            markdown: "# Vault\n\n<!-- mdan:block vault -->",
             blockContent: {
               vault: "## Welcome Ada"
             },
@@ -1173,7 +1173,7 @@ BLOCK gate {
           }
         : {
             frontmatter: { title: "Vault" },
-            markdown: "# Vault\n\n<!-- mdsn:block vault -->",
+            markdown: "# Vault\n\n<!-- mdan:block vault -->",
             blockContent: {
               vault: "## Please sign in"
             },
@@ -1237,7 +1237,7 @@ BLOCK gate {
   });
 
   it("auto-resolves explicit auto GET dependencies in markdown fragment responses", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/vault", async () => ({
       frontmatter: { title: "Vault" },
@@ -1273,14 +1273,14 @@ BLOCK gate {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdsn.ai/protocol/v1"');
+    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/protocol/v1"');
     expect(response.body).toContain("# Vault");
     expect(response.body).not.toContain('GET "/vault" -> open_vault auto');
     expect(response.body).not.toContain("Welcome Ada");
   });
 
   it("rejects event-stream negotiation on page routes", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/guestbook", async () => ({
       frontmatter: { title: "Guestbook" },
@@ -1298,13 +1298,13 @@ BLOCK gate {
 
     expect(response.status).toBe(406);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     await expect(readBody(response.body)).resolves.toContain("Page routes do not support text/event-stream");
   });
 
   it("returns a recoverable 500 fragment when a page handler throws", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.page("/boom", async () => {
       throw new Error("boom");
@@ -1319,7 +1319,7 @@ BLOCK gate {
 
     expect(response.status).toBe(500);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdsn.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/protocol/v1"'
     );
     await expect(readBody(response.body)).resolves.toContain("Internal Server Error");
   });

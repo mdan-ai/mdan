@@ -34,7 +34,7 @@ describe("marked starter example", () => {
 
     expect(clientSource).toContain('from "marked"');
     expect(clientSource).toContain("markdownRenderer");
-    expect(clientSource).toContain("@mdsnai/sdk/elements");
-    expect(clientSource).not.toContain("@mdsnai/sdk/server");
+    expect(clientSource).toContain("@mdanai/sdk/elements");
+    expect(clientSource).not.toContain("@mdanai/sdk/server");
   });
 });

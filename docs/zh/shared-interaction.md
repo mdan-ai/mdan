@@ -1,11 +1,11 @@
 ---
 title: HTTP 内容协商
-description: 说明 MDSN 如何用同一套页面和操作定义，同时服务 Agent 和浏览器。
+description: 说明 MDAN 如何用同一套页面和操作定义，同时服务 Agent 和浏览器。
 ---
 
 # HTTP 内容协商
 
-MDSN 用 HTTP 内容协商，让同一个应用可以同时服务 Agent 和浏览器。
+MDAN 用 HTTP 内容协商，让同一个应用可以同时服务 Agent 和浏览器。
 
 核心规则很简单：
 
@@ -26,7 +26,7 @@ Accept: text/html
 Agent 需要直接处理 Markdown。  
 浏览器需要直接显示 HTML。
 
-MDSN 不想因此拆成两套系统，所以选择让同一个结果按不同调用方返回不同形式。
+MDAN 不想因此拆成两套系统，所以选择让同一个结果按不同调用方返回不同形式。
 
 ## 常见请求
 
@@ -69,7 +69,7 @@ Content-Type: text/markdown
 
 ## 相关文档
 
-- [理解 MDSN](/zh/docs/understanding-mdsn)
+- [理解 MDAN](/zh/docs/understanding-mdan)
 - [应用结构](/zh/docs/application-structure)
 - [服务端运行时](/zh/docs/server-runtime)
 - [Agent App Demo 讲解](/zh/docs/agent-app-demo)

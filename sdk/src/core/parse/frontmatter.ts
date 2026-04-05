@@ -1,7 +1,7 @@
-import type { MdsnFrontmatter } from "../types.js";
+import type { MdanFrontmatter } from "../types.js";
 
 export interface FrontmatterParseResult {
-  frontmatter: MdsnFrontmatter;
+  frontmatter: MdanFrontmatter;
   body: string;
 }
 
@@ -37,7 +37,7 @@ export function parseFrontmatter(source: string): FrontmatterParseResult {
 
   const frontmatterText = source.slice(4, endMarker);
   const body = source.slice(endMarker + 5);
-  const frontmatter: MdsnFrontmatter = {};
+  const frontmatter: MdanFrontmatter = {};
 
   for (const line of frontmatterText.split("\n")) {
     if (!line.trim()) {

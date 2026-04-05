@@ -4,7 +4,7 @@ import { createHeadlessHost } from "../../src/web/index.js";
 
 function createRootWithBootstrap(bootstrap: object): HTMLElement {
   const root = document.createElement("div");
-  root.innerHTML = `<script id="mdsn-bootstrap" type="application/json">${JSON.stringify(bootstrap)}</script>`;
+  root.innerHTML = `<script id="mdan-bootstrap" type="application/json">${JSON.stringify(bootstrap)}</script>`;
   document.body.innerHTML = "";
   document.body.append(root);
   return root;
@@ -73,7 +73,7 @@ describe("createHeadlessHost", () => {
 
     const fetchImpl = vi.fn(async () =>
       new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "fragment",
           block: {
             name: "vault",
@@ -122,7 +122,7 @@ describe("createHeadlessHost", () => {
       .fn()
       .mockResolvedValueOnce(
         new Response(
-          `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+          `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
             kind: "page",
             route: "/vault",
             markdown: "# Vault",
@@ -186,7 +186,7 @@ describe("createHeadlessHost", () => {
 
     const fetchImpl = vi.fn().mockResolvedValueOnce(
       new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "page",
           route: "/vault",
           markdown: "# Vault",
@@ -242,7 +242,7 @@ describe("createHeadlessHost", () => {
 
     const fetchImpl = vi.fn().mockResolvedValueOnce(
       new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "page",
           route: "/login",
           markdown: "# Login",
@@ -284,7 +284,7 @@ describe("createHeadlessHost", () => {
     const first = document.createElement("div");
     const second = document.createElement("div");
     const firstScript = document.createElement("script");
-    firstScript.id = "mdsn-bootstrap";
+    firstScript.id = "mdan-bootstrap";
     firstScript.type = "application/json";
     firstScript.textContent = JSON.stringify({
       kind: "page",
@@ -293,7 +293,7 @@ describe("createHeadlessHost", () => {
       blocks: []
     });
     const secondScript = document.createElement("script");
-    secondScript.id = "mdsn-bootstrap";
+    secondScript.id = "mdan-bootstrap";
     secondScript.type = "application/json";
     secondScript.textContent = JSON.stringify({
       kind: "page",
@@ -424,7 +424,7 @@ describe("createHeadlessHost", () => {
     const consoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
     const fetchImpl = vi.fn(async (_target, init) =>
       new Response(
-        `<!doctype html><html><body><script id="mdsn-bootstrap" type="application/json">${JSON.stringify({
+        `<!doctype html><html><body><script id="mdan-bootstrap" type="application/json">${JSON.stringify({
           kind: "fragment",
           block: {
             name: "vault",
@@ -437,7 +437,7 @@ describe("createHeadlessHost", () => {
       )
     );
 
-    delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+    delete (window as typeof window & { __MDAN_DEBUG__?: unknown }).__MDAN_DEBUG__;
 
     try {
       const host = createHeadlessHost({
@@ -450,10 +450,10 @@ describe("createHeadlessHost", () => {
       await flushAsync();
 
       const debugState = (window as typeof window & {
-        __MDSN_DEBUG__?: {
+        __MDAN_DEBUG__?: {
           messages: Array<{ direction: string; method: string; url: string; markdown: string }>;
         };
-      }).__MDSN_DEBUG__;
+      }).__MDAN_DEBUG__;
 
       expect(debugState?.messages).toEqual([
         {
@@ -472,7 +472,7 @@ describe("createHeadlessHost", () => {
       expect(consoleInfo).toHaveBeenCalled();
     } finally {
       consoleInfo.mockRestore();
-      delete (window as typeof window & { __MDSN_DEBUG__?: unknown }).__MDSN_DEBUG__;
+      delete (window as typeof window & { __MDAN_DEBUG__?: unknown }).__MDAN_DEBUG__;
     }
   });
 });

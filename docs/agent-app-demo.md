@@ -5,11 +5,11 @@ description: Walk through agent-driven flows, from small examples up to the agen
 
 # Agent App Demo
 
-This page shows how an agent actually moves through an MDSN app, starting from the small examples and ending with the full `agent-tasks` demo.
+This page shows how an agent actually moves through an MDAN app, starting from the small examples and ending with the full `agent-tasks` demo.
 
 ## Basic Flow
 
-In MDSN, an agent loop is not “call a JSON API, then rebuild the next step yourself”.
+In MDAN, an agent loop is not “call a JSON API, then rebuild the next step yourself”.
 
 It looks like this:
 

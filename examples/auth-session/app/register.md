@@ -6,9 +6,9 @@ title: "Create Account"
 
 Create a new account, then start saving private notes.
 
-<!-- mdsn:block register -->
+<!-- mdan:block register -->
 
-```mdsn
+```mdan
 BLOCK register {
   INPUT text required -> nickname
   INPUT text required secret -> password

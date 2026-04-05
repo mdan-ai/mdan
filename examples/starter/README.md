@@ -1,6 +1,6 @@
-# MDSN Starter
+# MDAN Starter
 
-This is the smallest runnable MDSN starter.
+This is the smallest runnable MDAN starter.
 
 ## Files
 
@@ -15,7 +15,7 @@ This is the smallest runnable MDSN starter.
 
 ## Start
 
-If you are browsing the [MDSN repository](https://github.com/mdsn-ai/mdsn), this example is the in-repo version of the published starter.
+If you are browsing the [MDAN repository](https://github.com/mdan-ai/mdan), this example is the in-repo version of the published starter.
 
 Run once from the repository root:
 

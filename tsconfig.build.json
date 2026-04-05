@@ -2,7 +2,7 @@
   "files": [],
   "references": [
     { "path": "./docs-site" },
-    { "path": "./create-mdsn" },
+    { "path": "./create-mdan" },
     { "path": "./sdk" },
     { "path": "./demo/agent-tasks" },
     { "path": "./examples/guestbook" },

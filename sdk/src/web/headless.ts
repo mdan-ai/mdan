@@ -1,10 +1,10 @@
 import {
   parsePage,
   serializeMarkdownBody,
-  type MdsnBlock,
-  type MdsnHeadlessBlock,
-  type MdsnHeadlessBootstrap,
-  type MdsnOperation
+  type MdanBlock,
+  type MdanHeadlessBlock,
+  type MdanHeadlessBootstrap,
+  type MdanOperation
 } from "../core/index.js";
 
 export interface CreateHeadlessHostOptions {
@@ -21,7 +21,7 @@ export interface HeadlessRuntimeState {
 export interface HeadlessSnapshot extends HeadlessRuntimeState {
   route?: string;
   markdown: string;
-  blocks: MdsnHeadlessBlock[];
+  blocks: MdanHeadlessBlock[];
 }
 
 export type HeadlessListener = (snapshot: HeadlessSnapshot) => void;
@@ -33,29 +33,29 @@ export interface HeadlessDebugMessage {
   markdown: string;
 }
 
-export interface MdsnHeadlessHost {
+export interface MdanHeadlessHost {
   mount(): void;
   unmount(): void;
   subscribe(listener: HeadlessListener): () => void;
   getSnapshot(): HeadlessSnapshot;
-  submit(operation: MdsnOperation, values?: Record<string, string>): Promise<void>;
+  submit(operation: MdanOperation, values?: Record<string, string>): Promise<void>;
   visit(target: string): Promise<void>;
 }
 
-interface WindowWithMdsnDebug extends Window {
-  __MDSN_DEBUG__?: {
+interface WindowWithMdanDebug extends Window {
+  __MDAN_DEBUG__?: {
     messages: HeadlessDebugMessage[];
   };
 }
 
 function findBootstrapScript(root: ParentNode): HTMLScriptElement | null {
   if (root instanceof Document) {
-    const element = root.getElementById("mdsn-bootstrap");
+    const element = root.getElementById("mdan-bootstrap");
     return element instanceof HTMLScriptElement ? element : null;
   }
 
   for (const child of Array.from(root.childNodes)) {
-    if (child instanceof HTMLScriptElement && child.id === "mdsn-bootstrap") {
+    if (child instanceof HTMLScriptElement && child.id === "mdan-bootstrap") {
       return child;
     }
     if (child instanceof Element) {
@@ -76,20 +76,20 @@ function getDocument(root: ParentNode): Document {
   return root.ownerDocument ?? document;
 }
 
-function parseBootstrap(root: ParentNode): MdsnHeadlessBootstrap {
+function parseBootstrap(root: ParentNode): MdanHeadlessBootstrap {
   const element = findBootstrapScript(root);
   if (!(element instanceof HTMLScriptElement) || !element.textContent?.trim()) {
-    throw new Error("Missing mdsn bootstrap data.");
+    throw new Error("Missing mdan bootstrap data.");
   }
-  return JSON.parse(element.textContent) as MdsnHeadlessBootstrap;
+  return JSON.parse(element.textContent) as MdanHeadlessBootstrap;
 }
 
-function parseBootstrapFromHtml(content: string): MdsnHeadlessBootstrap {
+function parseBootstrapFromHtml(content: string): MdanHeadlessBootstrap {
   const document = new DOMParser().parseFromString(content, "text/html");
   return parseBootstrap(document);
 }
 
-function toHeadlessBlock(block: MdsnBlock, markdown: string): MdsnHeadlessBlock {
+function toHeadlessBlock(block: MdanBlock, markdown: string): MdanHeadlessBlock {
   return {
     name: block.name,
     markdown,
@@ -98,7 +98,7 @@ function toHeadlessBlock(block: MdsnBlock, markdown: string): MdsnHeadlessBlock 
   };
 }
 
-function findOperationBlock(blocks: MdsnHeadlessBlock[], operation: MdsnOperation): MdsnHeadlessBlock | null {
+function findOperationBlock(blocks: MdanHeadlessBlock[], operation: MdanOperation): MdanHeadlessBlock | null {
   return (
     blocks.find((block) =>
       block.operations.some(
@@ -111,7 +111,7 @@ function findOperationBlock(blocks: MdsnHeadlessBlock[], operation: MdsnOperatio
   );
 }
 
-function fragmentBlockFromMarkdown(markdown: string, fallbackBlock: MdsnHeadlessBlock | null): MdsnHeadlessBlock | null {
+function fragmentBlockFromMarkdown(markdown: string, fallbackBlock: MdanHeadlessBlock | null): MdanHeadlessBlock | null {
   const page = parsePage(markdown);
   const trimmedMarkdown = page.markdown.trim();
   const block = page.blocks[0];
@@ -176,7 +176,7 @@ function drainSseBuffer(
   return cursor;
 }
 
-function replaceBlock(blocks: MdsnHeadlessBlock[], nextBlock: MdsnHeadlessBlock): MdsnHeadlessBlock[] {
+function replaceBlock(blocks: MdanHeadlessBlock[], nextBlock: MdanHeadlessBlock): MdanHeadlessBlock[] {
   let replaced = false;
   const next = blocks.map((block) => {
     if (block.name !== nextBlock.name) {
@@ -191,7 +191,7 @@ function replaceBlock(blocks: MdsnHeadlessBlock[], nextBlock: MdsnHeadlessBlock)
   return next;
 }
 
-function toSnapshot(bootstrap: MdsnHeadlessBootstrap, current: HeadlessSnapshot | null): HeadlessSnapshot {
+function toSnapshot(bootstrap: MdanHeadlessBootstrap, current: HeadlessSnapshot | null): HeadlessSnapshot {
   if (bootstrap.kind === "page") {
     const next: HeadlessSnapshot = {
       status: current?.status ?? "idle",
@@ -238,14 +238,14 @@ function pushHistory(target: string): void {
   window.history.pushState({}, "", target);
 }
 
-function extractBootstrapMarkdown(bootstrap: MdsnHeadlessBootstrap): string {
+function extractBootstrapMarkdown(bootstrap: MdanHeadlessBootstrap): string {
   if (bootstrap.kind === "page") {
     return bootstrap.markdown;
   }
   return bootstrap.block.markdown;
 }
 
-export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHeadlessHost {
+export function createHeadlessHost(options: CreateHeadlessHostOptions): MdanHeadlessHost {
   const fetchImpl = options.fetchImpl ?? fetch;
   const debugMessages = options.debugMessages === true;
   let mounted = false;
@@ -258,11 +258,11 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
       return;
     }
     if (typeof window !== "undefined") {
-      const debugWindow = window as WindowWithMdsnDebug;
-      debugWindow.__MDSN_DEBUG__ ??= { messages: [] };
-      debugWindow.__MDSN_DEBUG__.messages.push(message);
+      const debugWindow = window as WindowWithMdanDebug;
+      debugWindow.__MDAN_DEBUG__ ??= { messages: [] };
+      debugWindow.__MDAN_DEBUG__.messages.push(message);
     }
-    console.info("[mdsn]", message);
+    console.info("[mdan]", message);
   }
 
   function publish(): void {
@@ -324,7 +324,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
     }
   }
 
-  async function requestStream(target: string, operation: MdsnOperation): Promise<void> {
+  async function requestStream(target: string, operation: MdanOperation): Promise<void> {
     const fallbackBlock = findOperationBlock(snapshot.blocks, operation);
     setStatus({ status: "loading" });
 
@@ -454,7 +454,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdsnHead
       }
       return next;
     },
-    async submit(operation: MdsnOperation, values: Record<string, string> = {}): Promise<void> {
+    async submit(operation: MdanOperation, values: Record<string, string> = {}): Promise<void> {
       if (operation.method === "GET") {
         const target = `${operation.target}${toQueryString(values)}`;
         if (operation.accept === "text/event-stream") {

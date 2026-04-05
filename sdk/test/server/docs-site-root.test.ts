@@ -123,22 +123,22 @@ This is **important**.
     const server = createDocsSiteServer({
       pages: {
         "/": `# Docs`,
-        "/what-is-mdsn": `# What is MDSN?`,
-        "/mdsn-vs-mcp": `# MDSN vs MCP`
+        "/what-is-mdan": `# What is MDAN?`,
+        "/mdan-vs-mcp": `# MDAN vs MCP`
       }
     });
 
     const response = await server.handle({
       method: "GET",
-      url: "https://example.test/what-is-mdsn",
+      url: "https://example.test/what-is-mdan",
       headers: { accept: "text/html" },
       cookies: {}
     });
 
     expect(response.status).toBe(200);
-    expect(response.body).toContain('href="/what-is-mdsn"');
-    expect(response.body).toContain("What is MDSN?");
-    expect(response.body).toContain('href="/mdsn-vs-mcp"');
-    expect(response.body).toContain("MDSN vs MCP");
+    expect(response.body).toContain('href="/what-is-mdan"');
+    expect(response.body).toContain("What is MDAN?");
+    expect(response.body).toContain('href="/mdan-vs-mcp"');
+    expect(response.body).toContain("MDAN vs MCP");
   });
 });

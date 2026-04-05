@@ -6,9 +6,9 @@ title: "Sign In"
 
 Access your private vault with your existing account.
 
-<!-- mdsn:block login -->
+<!-- mdan:block login -->
 
-```mdsn
+```mdan
 BLOCK login {
   INPUT text required -> nickname
   INPUT text required secret -> password

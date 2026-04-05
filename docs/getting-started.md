@@ -1,13 +1,13 @@
 ---
 title: Getting Started
-description: Get your first MDSN app running with @mdsnai/sdk.
+description: Get your first MDAN app running with @mdanai/sdk.
 ---
 
 # Getting Started
 
-This page does one thing: get your first MDSN app running in a few minutes.
+This page does one thing: get your first MDAN app running in a few minutes.
 
-MDSN officially supports Node and Bun.
+MDAN officially supports Node and Bun.
 
 - choose Node if you want the most established host baseline
 - choose Bun if you want a Bun-native starter and toolchain entry
@@ -15,15 +15,15 @@ MDSN officially supports Node and Bun.
 
 Current npm releases:
 
-- `create-mdsn@0.4.5`
-- `@mdsnai/sdk@0.4.3`
+- `create-mdan@0.5.0`
+- `@mdanai/sdk@0.5.0`
 
 ## 1. Create and Start a Project
 
 Node starter:
 
 ```bash
-npm create mdsn@latest agent-app
+npm create mdan@latest agent-app
 cd agent-app
 npm install
 npm start
@@ -32,7 +32,7 @@ npm start
 Bun starter:
 
 ```bash
-bunx create-mdsn agent-app
+bunx create-mdan agent-app
 cd agent-app
 bun install
 bun start
@@ -41,8 +41,8 @@ bun start
 You can force either runtime with:
 
 ```bash
-npm create mdsn@latest agent-app -- --runtime bun
-bunx create-mdsn agent-app --runtime node
+npm create mdan@latest agent-app -- --runtime bun
+bunx create-mdan agent-app --runtime node
 ```
 
 Open `http://127.0.0.1:3000/` by default.
@@ -52,7 +52,7 @@ If you set the `PORT` environment variable yourself, use that port instead.
 If you prefer, you can also use:
 
 ```bash
-npx create-mdsn agent-app
+npx create-mdan agent-app
 ```
 
 ## 2. Key Files
@@ -77,7 +77,7 @@ You can usually leave `app/client.ts` alone until you want to bring your own UI.
 
 ## 4. See More Examples
 
-If you are browsing the [MDSN repository](https://github.com/mdsn-ai/mdsn), you can also run the starter example in `examples/starter/`.
+If you are browsing the [MDAN repository](https://github.com/mdan-ai/mdan), you can also run the starter example in `examples/starter/`.
 
 That in-repo example keeps its current Node host shell, even though the published starter can now target Node or Bun.
 
@@ -109,7 +109,7 @@ bun run build
 
 ## 5. Next
 
-- Want a clearer definition before going deeper: [What is MDSN?](/docs/what-is-mdsn)
-- Want to understand how it works: [Understanding MDSN](/docs/understanding-mdsn)
+- Want a clearer definition before going deeper: [What is MDAN?](/docs/what-is-mdan)
+- Want to understand how it works: [Understanding MDAN](/docs/understanding-mdan)
 - Want to start building a real app: [Application Structure](/docs/application-structure)
 - Want to browse more examples: [Examples](/docs/examples)

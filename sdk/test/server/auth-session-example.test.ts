@@ -18,7 +18,7 @@ function cookieValueFromSetCookie(setCookie: string | undefined): string {
   if (!setCookie) {
     throw new Error("Expected Set-Cookie header.");
   }
-  return (setCookie.split(";", 1)[0] ?? "").replace(/^mdsn_session=/, "");
+  return (setCookie.split(";", 1)[0] ?? "").replace(/^mdan_session=/, "");
 }
 
 describe("auth-session example", () => {
@@ -96,7 +96,7 @@ describe("auth-session example", () => {
       },
       body: 'message: "First private note"',
       cookies: {
-        mdsn_session: sessionCookie
+        mdan_session: sessionCookie
       }
     });
 
@@ -112,7 +112,7 @@ describe("auth-session example", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: sessionCookie
+        mdan_session: sessionCookie
       }
     });
 
@@ -131,7 +131,7 @@ describe("auth-session example", () => {
       },
       body: 'message: "Replay should fail"',
       cookies: {
-        mdsn_session: sessionCookie
+        mdan_session: sessionCookie
       }
     });
 
@@ -168,7 +168,7 @@ describe("auth-session example", () => {
       url: "https://example.test/login",
       headers: { accept: "text/markdown" },
       cookies: {
-        mdsn_session: "missing-user"
+        mdan_session: "missing-user"
       }
     });
 
@@ -184,7 +184,7 @@ describe("auth-session example", () => {
       },
       body: 'message: "Should still fail"',
       cookies: {
-        mdsn_session: "missing-user"
+        mdan_session: "missing-user"
       }
     });
 
@@ -269,7 +269,7 @@ describe("auth-session example", () => {
       },
       body: 'message: ""',
       cookies: {
-        mdsn_session: sessionCookie
+        mdan_session: sessionCookie
       }
     });
 
@@ -319,7 +319,7 @@ describe("auth-session example", () => {
       },
       body: 'message: "Retry after recover"',
       cookies: {
-        mdsn_session: sessionCookie
+        mdan_session: sessionCookie
       }
     });
 

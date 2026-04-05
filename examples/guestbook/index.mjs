@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 import { createGuestbookServer } from "./dist/server.js";
 
@@ -14,9 +14,9 @@ const guestbookPagePath = join(exampleRoot, "app", "index.md");
 
 const importMap = {
   imports: {
-    "@mdsnai/sdk/core": "/sdk/dist/core/index.js",
-    "@mdsnai/sdk/web": "/sdk/dist/web/index.js",
-    "@mdsnai/sdk/elements": "/sdk/dist/elements/index.js",
+    "@mdanai/sdk/core": "/sdk/dist/core/index.js",
+    "@mdanai/sdk/web": "/sdk/dist/web/index.js",
+    "@mdanai/sdk/elements": "/sdk/dist/elements/index.js",
     "lit": "/node_modules/lit/index.js",
     "lit-html": "/node_modules/lit-html/lit-html.js",
     "lit-html/is-server.js": "/node_modules/lit-html/is-server.js",
@@ -37,10 +37,10 @@ function injectEnhancement(html) {
 }
 
 const source = await readFile(guestbookPagePath, "utf8");
-const mdsn = createGuestbookServer({ source });
+const mdan = createGuestbookServer({ source });
 
 const server = http.createServer(
-  createHost(mdsn, {
+  createHost(mdan, {
     transformHtml: injectEnhancement,
     staticFiles: {
       "/app/client.js": join(exampleRoot, "dist", "client.js")

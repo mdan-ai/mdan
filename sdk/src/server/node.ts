@@ -7,10 +7,10 @@ import { pipeline } from "node:stream/promises";
 import { serializeMarkdownBody } from "../core/index.js";
 
 import { toMarkdownContentType } from "./content-type.js";
-import type { MdsnRequest, MdsnResponse } from "./types.js";
+import type { MdanRequest, MdanResponse } from "./types.js";
 
-interface MdsnRequestHandler {
-  handle(request: MdsnRequest): Promise<MdsnResponse>;
+interface MdanRequestHandler {
+  handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
 export interface CreateNodeRequestListenerOptions {
@@ -170,7 +170,7 @@ function resolveMountedFile(directory: string, urlPrefix: string, pathname: stri
   return target;
 }
 
-function toMdsnRequest(request: IncomingMessage, body: string | undefined): MdsnRequest {
+function toMdanRequest(request: IncomingMessage, body: string | undefined): MdanRequest {
   const method = request.method === "POST" ? "POST" : "GET";
   const host = request.headers.host ?? "127.0.0.1";
   const headers = Object.fromEntries(
@@ -190,7 +190,7 @@ function toMdsnRequest(request: IncomingMessage, body: string | undefined): Mdsn
   };
 }
 
-async function writeResponse(response: ServerResponse, result: MdsnResponse, transformHtml?: (html: string) => string): Promise<void> {
+async function writeResponse(response: ServerResponse, result: MdanResponse, transformHtml?: (html: string) => string): Promise<void> {
   response.statusCode = result.status;
   for (const [key, value] of Object.entries(result.headers)) {
     response.setHeader(key, value);
@@ -208,7 +208,7 @@ async function writeResponse(response: ServerResponse, result: MdsnResponse, tra
 }
 
 export function createNodeRequestListener(
-  handler: MdsnRequestHandler,
+  handler: MdanRequestHandler,
   options: CreateNodeRequestListenerOptions = {}
 ): RequestListener {
   return async (request, response) => {
@@ -226,12 +226,12 @@ export function createNodeRequestListener(
       }
       throw error;
     }
-    const result = await handler.handle(toMdsnRequest(request, normalizedBody));
+    const result = await handler.handle(toMdanRequest(request, normalizedBody));
     await writeResponse(response, result, options.transformHtml);
   };
 }
 
-export function createNodeHost(handler: MdsnRequestHandler, options: CreateNodeHostOptions = {}): RequestListener {
+export function createNodeHost(handler: MdanRequestHandler, options: CreateNodeHostOptions = {}): RequestListener {
   const requestListener = createNodeRequestListener(handler, options);
 
   return async (request, response) => {

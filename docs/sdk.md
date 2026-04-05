@@ -1,11 +1,11 @@
 ---
 title: SDK Overview
-description: Package structure, protocol boundaries, and recommended usage in the MDSN SDK.
+description: Package structure, protocol boundaries, and recommended usage in the MDAN SDK.
 ---
 
 # SDK Overview
 
-`@mdsnai/sdk` is the official SDK for MDSN.
+`@mdanai/sdk` is the official SDK for MDAN.
 
 This page answers three questions:
 
@@ -15,7 +15,7 @@ This page answers three questions:
 
 If you only remember one thing, remember this:
 
-- `core` handles MDSN pages and Markdown
+- `core` handles MDAN pages and Markdown
 - `server` turns pages and operations into a runnable server-side app
 - `web` handles follow-up interaction in the browser
 - `elements` provides the default UI
@@ -24,16 +24,16 @@ If you only remember one thing, remember this:
 
 The current release model is **one package with subpath exports**.
 
-- `@mdsnai/sdk/core`
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/web`
-- `@mdsnai/sdk/elements`
+- `@mdanai/sdk/core`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/web`
+- `@mdanai/sdk/elements`
 
-You can also import from the root `@mdsnai/sdk` entry.
+You can also import from the root `@mdanai/sdk` entry.
 
 Import guidance:
 
-- prefer subpath imports to keep boundaries clear, such as `@mdsnai/sdk/server`
+- prefer subpath imports to keep boundaries clear, such as `@mdanai/sdk/server`
 - only use the root entry when you explicitly want one import surface
 - do not depend on deep internal paths such as `dist/*`
 
@@ -74,8 +74,8 @@ The current release line is one package with subpath exports. Older multi-packag
 
 The supported public entries are:
 
-- `@mdsnai/sdk`
-- `@mdsnai/sdk/core`
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/web`
-- `@mdsnai/sdk/elements`
+- `@mdanai/sdk`
+- `@mdanai/sdk/core`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/web`
+- `@mdanai/sdk/elements`

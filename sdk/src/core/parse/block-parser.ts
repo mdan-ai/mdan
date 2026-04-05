@@ -1,5 +1,5 @@
-import { MdsnParseError } from "../errors.js";
-import type { MdsnBlock, MdsnInput, MdsnOperation } from "../types.js";
+import { MdanParseError } from "../errors.js";
+import type { MdanBlock, MdanInput, MdanOperation } from "../types.js";
 
 const identifierPattern = /^[a-zA-Z_][\w-]*$/;
 
@@ -8,30 +8,30 @@ function parseChoiceOptions(text: string): string[] {
   try {
     value = JSON.parse(text);
   } catch {
-    throw new MdsnParseError(`Invalid choice options ${text}.`);
+    throw new MdanParseError(`Invalid choice options ${text}.`);
   }
 
   if (!Array.isArray(value)) {
-    throw new MdsnParseError(`Invalid choice options ${text}.`);
+    throw new MdanParseError(`Invalid choice options ${text}.`);
   }
 
   if (!value.every((option) => typeof option === "string")) {
-    throw new MdsnParseError(`Invalid choice option in ${text}.`);
+    throw new MdanParseError(`Invalid choice option in ${text}.`);
   }
 
   return value;
 }
 
-function parseInput(line: string): MdsnInput {
+function parseInput(line: string): MdanInput {
   const match = line.match(/^INPUT\s+(text|number|boolean|choice|asset)(?:\s+(required))?(?:\s+(secret))?(?:\s+(\[[^\]]*\]))?\s+->\s+([a-zA-Z_][\w-]*)$/);
   if (!match) {
-    throw new MdsnParseError(`Invalid INPUT syntax: ${line}`);
+    throw new MdanParseError(`Invalid INPUT syntax: ${line}`);
   }
 
   const [, type, required, secret, optionText, name] = match;
   return {
     name: name!,
-    type: type as MdsnInput["type"],
+    type: type as MdanInput["type"],
     required: required === "required",
     secret: secret === "secret",
     ...(optionText ? { options: parseChoiceOptions(optionText) } : {})
@@ -49,39 +49,39 @@ function parseInputList(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
-function parseOperation(line: string): MdsnOperation {
+function parseOperation(line: string): MdanOperation {
   const match = line.match(
     /^(GET|POST)\s+"([^"]+)"(?:\s+\(([^)]*)\))?(?:\s+->\s+([a-zA-Z_][\w-]*))?(?:\s+(auto))?(?:\s+label:"([^"]+)")?(?:\s+accept:"([^"]+)")?$/
   );
   if (!match) {
-    throw new MdsnParseError(`Invalid operation syntax: ${line}`);
+    throw new MdanParseError(`Invalid operation syntax: ${line}`);
   }
 
   const [, method, target, inputsRaw, name, auto, label, accept] = match;
   const inputs = parseInputList(inputsRaw);
   if (method === "POST" && inputsRaw === undefined) {
-    throw new MdsnParseError("POST operations must declare an input list.");
+    throw new MdanParseError("POST operations must declare an input list.");
   }
   if (method === "POST" && !name) {
-    throw new MdsnParseError("POST operations must declare an operation name.");
+    throw new MdanParseError("POST operations must declare an operation name.");
   }
   return {
-    method: method as MdsnOperation["method"],
+    method: method as MdanOperation["method"],
     target,
     name: name || undefined,
     inputs,
     auto: auto === "auto" ? true : undefined,
     label: label || undefined,
     accept: accept || undefined
-  } as MdsnOperation;
+  } as MdanOperation;
 }
 
-export function parseBlocks(source: string): MdsnBlock[] {
+export function parseBlocks(source: string): MdanBlock[] {
   if (!source.trim()) {
     return [];
   }
 
-  const blocks: MdsnBlock[] = [];
+  const blocks: MdanBlock[] = [];
   const lines = source.split("\n");
   let index = 0;
 
@@ -94,16 +94,16 @@ export function parseBlocks(source: string): MdsnBlock[] {
 
     const blockMatch = line.match(/^BLOCK\s+([a-zA-Z_][\w-]*)\s*\{$/);
     if (!blockMatch) {
-      throw new MdsnParseError(`Expected BLOCK declaration, received: ${line}`);
+      throw new MdanParseError(`Expected BLOCK declaration, received: ${line}`);
     }
 
     const name = blockMatch[1]!;
     if (!identifierPattern.test(name)) {
-      throw new MdsnParseError(`Invalid block name ${name}.`);
+      throw new MdanParseError(`Invalid block name ${name}.`);
     }
 
-    const inputs: MdsnInput[] = [];
-    const operations: MdsnOperation[] = [];
+    const inputs: MdanInput[] = [];
+    const operations: MdanOperation[] = [];
     index += 1;
 
     while (index < lines.length) {
@@ -120,13 +120,13 @@ export function parseBlocks(source: string): MdsnBlock[] {
       } else if (inner.startsWith("GET ") || inner.startsWith("POST ")) {
         operations.push(parseOperation(inner));
       } else {
-        throw new MdsnParseError(`Unknown block statement: ${inner}`);
+        throw new MdanParseError(`Unknown block statement: ${inner}`);
       }
       index += 1;
     }
 
     if ((lines[index] ?? "").trim() !== "}") {
-      throw new MdsnParseError(`Unclosed block ${name}.`);
+      throw new MdanParseError(`Unclosed block ${name}.`);
     }
 
     blocks.push({ name, inputs, operations });

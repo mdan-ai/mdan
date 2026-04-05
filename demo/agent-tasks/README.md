@@ -1,6 +1,6 @@
 # Agent Tasks Demo
 
-`agent-tasks` is a small MDSN demo for agent-to-agent task handoff.
+`agent-tasks` is a small MDAN demo for agent-to-agent task handoff.
 
 It proves one narrow idea:
 
@@ -151,7 +151,7 @@ Examples:
 Typical result:
 
 - page body for reading
-- embedded block anchors like `<!-- mdsn:block runtime -->`
+- embedded block anchors like `<!-- mdan:block runtime -->`
 - `BLOCK ... { ... }` operations that tell the client what it can do next
 
 ### 2. Action request
@@ -297,7 +297,7 @@ password: "pass-a"
 #### Response
 
 - `200 OK`
-- `Set-Cookie: mdsn_session=...`
+- `Set-Cookie: mdan_session=...`
 - full Markdown page for `/tasks`
 
 Typical response body:
@@ -311,21 +311,21 @@ This page lists tasks relevant to the current agent.
 
 No tasks in waiting for you.
 
-<!-- mdsn:block waiting_for_you -->
+<!-- mdan:block waiting_for_you -->
 
 ## In progress
 
 No tasks in in progress.
 
-<!-- mdsn:block in_progress -->
+<!-- mdan:block in_progress -->
 
 ## Available
 
 No tasks in available.
 
-<!-- mdsn:block available -->
+<!-- mdan:block available -->
 
-```mdsn
+```mdan
 BLOCK waiting_for_you {
   GET "/tasks/waiting?agent_id=agent-a" -> refresh_waiting label:"Refresh waiting"
 }
@@ -384,9 +384,9 @@ Status: open
 
 Review the task and accept it if you will complete it.
 
-<!-- mdsn:block runtime -->
+<!-- mdan:block runtime -->
 
-```mdsn
+```mdan
 BLOCK runtime {
   POST "/tasks/task-1/accept" () -> accept label:"Accept task"
 }
@@ -403,7 +403,7 @@ This is the page URL Agent A can hand to Agent B.
 
 Headers:
 
-- `Cookie: mdsn_session=<agent-b-session>`
+- `Cookie: mdan_session=<agent-b-session>`
 
 #### Response
 
@@ -412,7 +412,7 @@ Headers:
 
 Agent B reads the stable task definition from the page body, then finds the next legal action in the runtime block:
 
-```mdsn
+```mdan
 BLOCK runtime {
   POST "/tasks/task-1/accept" () -> accept label:"Accept task"
 }
@@ -426,7 +426,7 @@ BLOCK runtime {
 
 Headers:
 
-- `Cookie: mdsn_session=<agent-b-session>`
+- `Cookie: mdan_session=<agent-b-session>`
 
 Body:
 
@@ -445,7 +445,7 @@ Status: claimed
 
 Complete the task and submit a result.
 
-```mdsn
+```mdan
 BLOCK runtime {
   INPUT text required -> result
   POST "/tasks/task-1/submit" (result) -> submit label:"Submit result"
@@ -463,7 +463,7 @@ The assignee is inferred from the session. No `actor_id` input is needed.
 
 Headers:
 
-- `Cookie: mdsn_session=<agent-b-session>`
+- `Cookie: mdan_session=<agent-b-session>`
 
 ```md
 result: "pub fn session_sort(mut values: Vec<i32>) -> Vec<i32> { values.sort(); values }"
@@ -485,7 +485,7 @@ Review the submission and either complete the task or request revision.
 
 pub fn session_sort(mut values: Vec<i32>) -> Vec<i32> { values.sort(); values }
 
-```mdsn
+```mdan
 BLOCK runtime {
   INPUT text -> note
   POST "/tasks/task-1/request-revision" (note) -> request_revision label:"Request revision"
@@ -504,7 +504,7 @@ At this point the task is waiting for the reviewer.
 
 Headers:
 
-- `Cookie: mdsn_session=<agent-a-session>`
+- `Cookie: mdan_session=<agent-a-session>`
 
 ```md
 note: "Please sort the values before returning."
@@ -530,7 +530,7 @@ Please sort the values before returning.
 
 pub fn session_sort(mut values: Vec<i32>) -> Vec<i32> { values.sort(); values }
 
-```mdsn
+```mdan
 BLOCK runtime {
   INPUT text required -> result
   POST "/tasks/task-1/submit" (result) -> submit label:"Resubmit result"
@@ -548,7 +548,7 @@ Agent B can now return to the same task URL, read the review note, and resubmit.
 
 Headers:
 
-- `Cookie: mdsn_session=<agent-a-session>`
+- `Cookie: mdan_session=<agent-a-session>`
 
 Body:
 
@@ -571,7 +571,7 @@ This task is complete.
 
 pub fn session_sort(mut values: Vec<i32>) -> Vec<i32> { values.sort(); values }
 
-```mdsn
+```mdan
 BLOCK runtime {
 }
 ```
@@ -592,7 +592,7 @@ If a client tries to open protected task pages without a session, the server ret
 
 Open `/login` to continue.
 
-```mdsn
+```mdan
 BLOCK recover {
   GET "/login" -> recover label:"Open Sign In"
 }
@@ -608,7 +608,7 @@ If a non-reviewer tries to complete a task, the server returns:
 
 Return to the task page and wait for the assigned reviewer to continue.
 
-```mdsn
+```mdan
 BLOCK recover {
   GET "/tasks/task-1" -> recover label:"Open task"
 }
@@ -624,7 +624,7 @@ If a client tries to run an action that is no longer legal for the current state
 
 Refresh the task page to see the current state before continuing.
 
-```mdsn
+```mdan
 BLOCK recover {
   GET "/tasks/task-1" -> recover label:"Open task"
 }
@@ -654,7 +654,7 @@ The main point is not that a task system exists. The main point is that:
 - the runtime block holds the current interaction step
 - agents continue from returned Markdown, not from out-of-band API documentation
 
-That is the core MDSN pattern this demo is meant to show.
+That is the core MDAN pattern this demo is meant to show.
 
 ## Run It
 

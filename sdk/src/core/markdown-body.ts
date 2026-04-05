@@ -1,4 +1,4 @@
-import { MdsnParseError } from "./errors.js";
+import { MdanParseError } from "./errors.js";
 
 function splitMarkdownBody(body: string): string[] {
   const parts: string[] = [];
@@ -50,18 +50,18 @@ export function parseMarkdownBody(body: string): Record<string, string> {
   for (const part of splitMarkdownBody(body)) {
     const match = part.match(/^([a-zA-Z_][\w-]*)\s*:\s*(.+)$/);
     if (!match) {
-      throw new MdsnParseError(`Invalid markdown body line: ${part}`);
+      throw new MdanParseError(`Invalid markdown body line: ${part}`);
     }
 
     let value: unknown;
     try {
       value = JSON.parse(match[2]!.trim());
     } catch {
-      throw new MdsnParseError(`Invalid markdown body line: ${part}`);
+      throw new MdanParseError(`Invalid markdown body line: ${part}`);
     }
 
     if (typeof value !== "string") {
-      throw new MdsnParseError(`Invalid markdown body line: ${part}`);
+      throw new MdanParseError(`Invalid markdown body line: ${part}`);
     }
     result[match[1]!] = value;
   }

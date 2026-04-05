@@ -9,15 +9,15 @@ describe("docs-site discovery files", () => {
     const sitemap = await readFile(resolve(process.cwd(), "docs-site/public/sitemap.xml"), "utf8");
 
     expect(robots).toContain("User-agent: OAI-SearchBot");
-    expect(robots).toContain("Sitemap: https://docs.mdsn.ai/sitemap.xml");
+    expect(robots).toContain("Sitemap: https://docs.mdan.ai/sitemap.xml");
 
-    expect(llms).toContain("MDSN is a Markdown-first framework for building apps that humans and AI agents can both use.");
-    expect(llms).toContain("https://docs.mdsn.ai/getting-started");
-    expect(llms).toContain("https://www.npmjs.com/package/@mdsnai/sdk");
+    expect(llms).toContain("MDAN is a Markdown-first framework for building apps that humans and AI agents can both use.");
+    expect(llms).toContain("https://docs.mdan.ai/getting-started");
+    expect(llms).toContain("https://www.npmjs.com/package/@mdanai/sdk");
 
-    expect(sitemap).toContain("<loc>https://docs.mdsn.ai/</loc>");
-    expect(sitemap).toContain("<loc>https://docs.mdsn.ai/what-is-mdsn</loc>");
-    expect(sitemap).toContain("<loc>https://docs.mdsn.ai/mdsn-vs-mcp</loc>");
-    expect(sitemap).toContain("<loc>https://docs.mdsn.ai/zh/getting-started</loc>");
+    expect(sitemap).toContain("<loc>https://docs.mdan.ai/</loc>");
+    expect(sitemap).toContain("<loc>https://docs.mdan.ai/what-is-mdan</loc>");
+    expect(sitemap).toContain("<loc>https://docs.mdan.ai/mdan-vs-mcp</loc>");
+    expect(sitemap).toContain("<loc>https://docs.mdan.ai/zh/getting-started</loc>");
   });
 });

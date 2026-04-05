@@ -1,4 +1,4 @@
-import { createHeadlessHost, type HeadlessSnapshot } from "@mdsnai/sdk/web";
+import { createHeadlessHost, type HeadlessSnapshot } from "@mdanai/sdk/web";
 import { marked } from "marked";
 import { createApp, computed, defineComponent, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 
@@ -14,8 +14,8 @@ function renderMarkdown(markdown: string): string {
   return marked.parse(markdown) as string;
 }
 
-const VueMdsnHeadlessHost = defineComponent({
-  name: "VueMdsnHost",
+const VueMdanHeadlessHost = defineComponent({
+  name: "VueMdanHost",
   setup() {
     const status = ref("idle");
     const error = ref("");
@@ -176,5 +176,5 @@ const VueMdsnHeadlessHost = defineComponent({
 });
 
 export function mountApp(host: HTMLElement): void {
-  createApp(VueMdsnHeadlessHost).mount(host);
+  createApp(VueMdanHeadlessHost).mount(host);
 }

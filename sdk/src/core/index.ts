@@ -1,10 +1,10 @@
-import { MdsnParseError } from "./errors.js";
+import { MdanParseError } from "./errors.js";
 import { parseAnchors } from "./parse/anchors.js";
 import { parseBlocks } from "./parse/block-parser.js";
 import { extractExecutableBlock } from "./parse/executable-block.js";
 import { parseFrontmatter } from "./parse/frontmatter.js";
 import { validatePage } from "./validate.js";
-import type { MdsnComposedPage, MdsnFragment, MdsnPage } from "./types.js";
+import type { MdanComposedPage, MdanFragment, MdanPage } from "./types.js";
 
 export * from "./errors.js";
 export * from "./markdown-renderer.js";
@@ -19,7 +19,7 @@ export interface ComposePageOptions {
   visibleBlocks?: string[];
 }
 
-export function parsePage(source: string): MdsnPage {
+export function parsePage(source: string): MdanPage {
   const { frontmatter, body } = parseFrontmatter(source);
   const { markdown, executableContent } = extractExecutableBlock(body);
   try {
@@ -33,18 +33,18 @@ export function parsePage(source: string): MdsnPage {
     if (error instanceof Error) {
       throw error;
     }
-    throw new MdsnParseError("Unknown parse failure.");
+    throw new MdanParseError("Unknown parse failure.");
   }
 }
 
-export function parseAndValidatePage(source: string): MdsnPage {
+export function parseAndValidatePage(source: string): MdanPage {
   return validatePage(parsePage(source));
 }
 
-function attachFragmentHelper(page: MdsnPage): MdsnComposedPage {
-  const composed = page as MdsnComposedPage;
+function attachFragmentHelper(page: MdanPage): MdanComposedPage {
+  const composed = page as MdanComposedPage;
   Object.defineProperty(composed, "fragment", {
-    value(blockName: string): MdsnFragment {
+    value(blockName: string): MdanFragment {
       return resolveFragmentForBlock(composed, blockName);
     },
     enumerable: false
@@ -52,7 +52,7 @@ function attachFragmentHelper(page: MdsnPage): MdsnComposedPage {
   return composed;
 }
 
-export function composePage(source: string, options: ComposePageOptions = {}): MdsnComposedPage {
+export function composePage(source: string, options: ComposePageOptions = {}): MdanComposedPage {
   const page = parseAndValidatePage(source);
   if (options.blocks) {
     page.blockContent = { ...options.blocks };
@@ -63,7 +63,7 @@ export function composePage(source: string, options: ComposePageOptions = {}): M
   return attachFragmentHelper(page);
 }
 
-function resolveFragmentForBlock(page: MdsnPage, blockName: string): MdsnFragment {
+function resolveFragmentForBlock(page: MdanPage, blockName: string): MdanFragment {
   const block = page.blocks.find((candidate) => candidate.name === blockName);
   if (!block) {
     throw new Error(`Unknown block "${blockName}".`);

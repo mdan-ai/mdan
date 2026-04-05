@@ -1,27 +1,27 @@
 ---
 title: Server Runtime
-description: Responsibilities, entry points, and common usage of @mdsnai/sdk/server.
+description: Responsibilities, entry points, and common usage of @mdanai/sdk/server.
 ---
 
 # Server Runtime
 
-`@mdsnai/sdk/server` is the main entry point when you want to model an MDSN app on the server.
+`@mdanai/sdk/server` is the main entry point when you want to model an MDAN app on the server.
 
-It registers and handles operations by the explicit HTTP paths written in the MDSN page.
+It registers and handles operations by the explicit HTTP paths written in the MDAN page.
 
-MDSN officially supports Node and Bun with the same server model:
+MDAN officially supports Node and Bun with the same server model:
 
-- shared app logic lives behind `@mdsnai/sdk/server`
-- Node hosting lives behind `@mdsnai/sdk/server/node`
-- Bun hosting lives behind `@mdsnai/sdk/server/bun`
+- shared app logic lives behind `@mdanai/sdk/server`
+- Node hosting lives behind `@mdanai/sdk/server/node`
+- Bun hosting lives behind `@mdanai/sdk/server/bun`
 
 The app model stays the same across both runtimes. What changes is only the outer host adapter.
 
 ## Basic Usage
 
 ```ts
-import { composePage } from "@mdsnai/sdk/core";
-import { createHostedApp } from "@mdsnai/sdk/server";
+import { composePage } from "@mdanai/sdk/core";
+import { createHostedApp } from "@mdanai/sdk/server";
 
 const server = createHostedApp({
   pages: {
@@ -90,7 +90,7 @@ The runtime serializes that into a Markdown fragment ready to return.
 
 `createHostedApp()` does not try to infer action bindings by rendering a page first and guessing from visible state. `actions` must explicitly declare `target / methods / routePath / blockName`, so registration stays stable.
 
-Use `createHostedApp()` when your app is naturally a set of pages plus operations. Drop down to `createMdsnServer()` when you need full manual control.
+Use `createHostedApp()` when your app is naturally a set of pages plus operations. Drop down to `createMdanServer()` when you need full manual control.
 
 ## Request Bridge
 
@@ -118,7 +118,7 @@ The returned object contains:
 If you are on Node `http`, use the Node adapter:
 
 ```ts
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 http.createServer(
   createHost(server, {
@@ -135,7 +135,7 @@ http.createServer(
 If you are on Bun, use the Bun adapter:
 
 ```ts
-import { createHost } from "@mdsnai/sdk/server/bun";
+import { createHost } from "@mdanai/sdk/server/bun";
 
 Bun.serve({
   port: 3000,
@@ -151,30 +151,30 @@ Bun.serve({
 Use the shared server runtime for page and action logic:
 
 ```ts
-import { createHostedApp } from "@mdsnai/sdk/server";
+import { createHostedApp } from "@mdanai/sdk/server";
 ```
 
 Then choose the runtime adapter that matches your deployment target:
 
 ```ts
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 ```
 
 ```ts
-import { createHost } from "@mdsnai/sdk/server/bun";
+import { createHost } from "@mdanai/sdk/server/bun";
 ```
 
 ## Built-In Responsibilities
 
-`@mdsnai/sdk/server` already handles:
+`@mdanai/sdk/server` already handles:
 
 - route matching by target
 - GET query parsing
 - POST Markdown body parsing
 - `415 Unsupported Media Type` for non-Markdown direct POST writes
 - recoverable `400` responses for malformed Markdown bodies
-- Node `http` hosting when you use `@mdsnai/sdk/server/node`
-- Bun hosting when you use `@mdsnai/sdk/server/bun`
+- Node `http` hosting when you use `@mdanai/sdk/server/node`
+- Bun hosting when you use `@mdanai/sdk/server/bun`
 - cookie forwarding into `request.cookies`
 - session injection
 - Markdown vs HTML negotiation
@@ -185,7 +185,7 @@ import { createHost } from "@mdsnai/sdk/server/bun";
 
 ## Custom Markdown Renderer
 
-When the browser goes through the HTML path, `@mdsnai/sdk/server` renders Markdown into HTML. You can inject that renderer:
+When the browser goes through the HTML path, `@mdanai/sdk/server` renders Markdown into HTML. You can inject that renderer:
 
 ```ts
 const server = createHostedApp({
@@ -199,7 +199,7 @@ const server = createHostedApp({
 });
 ```
 
-If you also use the default `@mdsnai/sdk/elements` UI, pass the same `markdownRenderer` object to `mountMdsnElements(...)` so server-side and default UI rendering stay consistent.
+If you also use the default `@mdanai/sdk/elements` UI, pass the same `markdownRenderer` object to `mountMdanElements(...)` so server-side and default UI rendering stay consistent.
 
 ## Auto Resolution
 

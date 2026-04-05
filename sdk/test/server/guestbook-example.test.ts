@@ -28,7 +28,7 @@ describe("guestbook example", () => {
     expect(pageResponse.body).toContain("## 2 live messages");
     expect(pageResponse.body).toContain("- Alpha");
     expect(pageResponse.body).toContain("- Beta");
-    expect(pageResponse.body).toContain("<!-- mdsn:block guestbook -->");
+    expect(pageResponse.body).toContain("<!-- mdan:block guestbook -->");
 
     const postResponse = await server.handle({
       method: "POST",

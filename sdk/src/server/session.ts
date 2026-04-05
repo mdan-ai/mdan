@@ -1,20 +1,20 @@
-import type { MdsnSessionMutation, MdsnSessionSnapshot } from "./types.js";
+import type { MdanSessionMutation, MdanSessionSnapshot } from "./types.js";
 
-export function signIn(session: MdsnSessionSnapshot): MdsnSessionMutation {
+export function signIn(session: MdanSessionSnapshot): MdanSessionMutation {
   return {
     type: "sign-in",
     session
   };
 }
 
-export function refreshSession(session: MdsnSessionSnapshot): MdsnSessionMutation {
+export function refreshSession(session: MdanSessionSnapshot): MdanSessionMutation {
   return {
     type: "refresh",
     session
   };
 }
 
-export function signOut(): MdsnSessionMutation {
+export function signOut(): MdanSessionMutation {
   return {
     type: "sign-out"
   };

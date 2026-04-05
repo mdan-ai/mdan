@@ -27,7 +27,7 @@ sdk/*/test/**/*.d.ts.map
 tmp/
 temp/
 sdk/LICENSE
-create-mdsn/LICENSE
+create-mdan/LICENSE
 
 # Internal docs and local notes
 docs/superpowers/

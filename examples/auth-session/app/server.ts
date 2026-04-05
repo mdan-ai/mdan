@@ -1,17 +1,17 @@
 import { randomUUID } from "node:crypto";
 
-import { composePage } from "@mdsnai/sdk/core";
+import { composePage } from "@mdanai/sdk/core";
 import {
   block,
   createHostedApp,
   fail,
   signIn,
   signOut,
-  type MdsnRequest,
-  type MdsnResponse,
-  type MdsnSessionProvider,
-  type MdsnSessionSnapshot
-} from "@mdsnai/sdk/server";
+  type MdanRequest,
+  type MdanResponse,
+  type MdanSessionProvider,
+  type MdanSessionSnapshot
+} from "@mdanai/sdk/server";
 
 interface UserRecord {
   password: string;
@@ -26,12 +26,12 @@ export interface CreateAuthServerOptions {
 
 type AuthSession = { sessionId: string; userId: string };
 
-function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessionProvider {
+function createMemorySessionProvider(users: Map<string, UserRecord>): MdanSessionProvider {
   const sessions = new Map<string, AuthSession>();
 
   return {
     async read(request) {
-      const rawSessionId = request.cookies.mdsn_session;
+      const rawSessionId = request.cookies.mdan_session;
       const sessionId = rawSessionId ? decodeURIComponent(rawSessionId) : undefined;
       if (!sessionId) {
         return null;
@@ -46,7 +46,7 @@ function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessio
       }
       return session;
     },
-    async commit(mutation, response: MdsnResponse) {
+    async commit(mutation, response: MdanResponse) {
       if (mutation?.type === "sign-in" || mutation?.type === "refresh") {
         const next = mutation.session as Partial<AuthSession> & { userId: string };
         const session: AuthSession = {
@@ -54,7 +54,7 @@ function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessio
           userId: next.userId
         };
         sessions.set(session.sessionId, session);
-        response.headers["set-cookie"] = `mdsn_session=${encodeURIComponent(session.sessionId)}; Path=/; HttpOnly`;
+        response.headers["set-cookie"] = `mdan_session=${encodeURIComponent(session.sessionId)}; Path=/; HttpOnly`;
       }
     },
     async clear(session, response) {
@@ -62,12 +62,12 @@ function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessio
       if (sessionId) {
         sessions.delete(sessionId);
       }
-      response.headers["set-cookie"] = "mdsn_session=; Path=/; Max-Age=0";
+      response.headers["set-cookie"] = "mdan_session=; Path=/; Max-Age=0";
     }
   };
 }
 
-function getSessionUserId(session: MdsnSessionSnapshot | null): string | null {
+function getSessionUserId(session: MdanSessionSnapshot | null): string | null {
   const userId = session && typeof session.userId === "string" ? session.userId : null;
   return userId && userId.trim() ? userId : null;
 }
@@ -334,6 +334,6 @@ export function createAuthServer(options: CreateAuthServerOptions) {
   return server;
 }
 
-export async function requestAccount(server: ReturnType<typeof createAuthServer>, request: MdsnRequest) {
+export async function requestAccount(server: ReturnType<typeof createAuthServer>, request: MdanRequest) {
   return server.handle(request);
 }

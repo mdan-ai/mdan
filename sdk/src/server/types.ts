@@ -1,6 +1,6 @@
-import type { MdsnFragment, MdsnPage } from "../core/index.js";
+import type { MdanFragment, MdanPage } from "../core/index.js";
 
-export interface MdsnRequest {
+export interface MdanRequest {
   method: "GET" | "POST";
   url: string;
   headers: Record<string, string | undefined>;
@@ -9,76 +9,76 @@ export interface MdsnRequest {
   cookies: Record<string, string>;
 }
 
-export interface MdsnResponse {
+export interface MdanResponse {
   status: number;
   headers: Record<string, string>;
   body: string | AsyncIterable<string>;
 }
 
-export interface MdsnSessionSnapshot {
+export interface MdanSessionSnapshot {
   [key: string]: unknown;
 }
 
-export type MdsnSessionMutation =
-  | { type: "sign-in"; session: MdsnSessionSnapshot }
-  | { type: "refresh"; session: MdsnSessionSnapshot }
+export type MdanSessionMutation =
+  | { type: "sign-in"; session: MdanSessionSnapshot }
+  | { type: "refresh"; session: MdanSessionSnapshot }
   | { type: "sign-out" };
 
-export interface MdsnSessionProvider {
-  read(request: MdsnRequest): Promise<MdsnSessionSnapshot | null>;
-  commit(mutation: MdsnSessionMutation | null, response: MdsnResponse): Promise<void>;
-  clear(session: MdsnSessionSnapshot | null, response: MdsnResponse, request: MdsnRequest): Promise<void>;
+export interface MdanSessionProvider {
+  read(request: MdanRequest): Promise<MdanSessionSnapshot | null>;
+  commit(mutation: MdanSessionMutation | null, response: MdanResponse): Promise<void>;
+  clear(session: MdanSessionSnapshot | null, response: MdanResponse, request: MdanRequest): Promise<void>;
 }
 
-export interface MdsnProtocolDiscovery {
+export interface MdanProtocolDiscovery {
   markdownHref: string;
   llmsTxtHref?: string;
 }
 
-export interface MdsnHtmlDiscoveryLinks extends Partial<MdsnProtocolDiscovery> {}
+export interface MdanHtmlDiscoveryLinks extends Partial<MdanProtocolDiscovery> {}
 
-export interface MdsnHtmlDiscoveryContext {
-  request: MdsnRequest;
+export interface MdanHtmlDiscoveryContext {
+  request: MdanRequest;
   kind: "page" | "fragment";
   route?: string;
 }
 
-export type MdsnHtmlDiscoveryResolver =
-  | MdsnHtmlDiscoveryLinks
-  | ((context: MdsnHtmlDiscoveryContext) => MdsnHtmlDiscoveryLinks | null | undefined);
+export type MdanHtmlDiscoveryResolver =
+  | MdanHtmlDiscoveryLinks
+  | ((context: MdanHtmlDiscoveryContext) => MdanHtmlDiscoveryLinks | null | undefined);
 
-export interface MdsnActionResult {
-  fragment?: MdsnFragment;
-  page?: MdsnPage;
+export interface MdanActionResult {
+  fragment?: MdanFragment;
+  page?: MdanPage;
   route?: string;
   status?: number;
   headers?: Record<string, string>;
-  session?: MdsnSessionMutation;
+  session?: MdanSessionMutation;
 }
 
-export type MdsnStreamChunk = string | MdsnFragment;
+export type MdanStreamChunk = string | MdanFragment;
 
-export interface MdsnStreamResult {
-  stream: AsyncIterable<MdsnStreamChunk> | Iterable<MdsnStreamChunk>;
+export interface MdanStreamResult {
+  stream: AsyncIterable<MdanStreamChunk> | Iterable<MdanStreamChunk>;
   route?: string;
   status?: number;
   headers?: Record<string, string>;
-  session?: MdsnSessionMutation;
+  session?: MdanSessionMutation;
 }
 
-export interface MdsnHandlerContext {
-  request: MdsnRequest;
+export interface MdanHandlerContext {
+  request: MdanRequest;
   inputs: Record<string, string>;
-  session: MdsnSessionSnapshot | null;
+  session: MdanSessionSnapshot | null;
 }
 
-export type MdsnHandlerResult = MdsnActionResult | MdsnStreamResult;
+export type MdanHandlerResult = MdanActionResult | MdanStreamResult;
 
-export type MdsnHandler = (context: MdsnHandlerContext) => Promise<MdsnHandlerResult> | MdsnHandlerResult;
+export type MdanHandler = (context: MdanHandlerContext) => Promise<MdanHandlerResult> | MdanHandlerResult;
 
-export interface MdsnPageHandlerContext {
-  request: MdsnRequest;
-  session: MdsnSessionSnapshot | null;
+export interface MdanPageHandlerContext {
+  request: MdanRequest;
+  session: MdanSessionSnapshot | null;
 }
 
-export type MdsnPageHandler = (context: MdsnPageHandlerContext) => Promise<MdsnPage | null> | MdsnPage | null;
+export type MdanPageHandler = (context: MdanPageHandlerContext) => Promise<MdanPage | null> | MdanPage | null;

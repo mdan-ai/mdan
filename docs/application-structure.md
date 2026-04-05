@@ -1,11 +1,11 @@
 ---
 title: Application Structure
-description: Recommended project structure, routing model, and action organization for real MDSN apps and docs sites.
+description: Recommended project structure, routing model, and action organization for real MDAN apps and docs sites.
 ---
 
 # Application Structure
 
-This page is about how to lay out code, pages, and interaction when you build a real MDSN app.
+This page is about how to lay out code, pages, and interaction when you build a real MDAN app.
 
 The short version is: keep page source, server logic, and browser-side code separate, but do not split them into something heavier than the app itself.
 
@@ -28,7 +28,7 @@ You can think of that as three layers:
 
 ## Keep Responsibilities Clear
 
-The easiest way to make an MDSN app hard to maintain is to mix responsibilities.
+The easiest way to make an MDAN app hard to maintain is to mix responsibilities.
 
 A clean split usually looks like this:
 
@@ -42,7 +42,7 @@ That way, the page layer, the server layer, and the browser layer each do one th
 
 ## How Pages and Operations Line Up
 
-MDSN uses explicit page routes and explicit action paths.
+MDAN uses explicit page routes and explicit action paths.
 
 - page route: `pages["/docs"] = () => composedPage`
 - action path: each action declares `target + methods + routePath + blockName`

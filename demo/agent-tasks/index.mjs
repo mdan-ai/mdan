@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 import { transformAgentTasksHtml } from "./dist/html-theme.js";
 import { listenWithFallback } from "./dist/start-server.js";
@@ -21,9 +21,9 @@ const [overviewSource, newTaskSource, detailSource] = await Promise.all([
   readFile(detailSourcePath, "utf8")
 ]);
 
-const mdsn = createAgentTasksServer({ overviewSource, newTaskSource, detailSource });
+const mdan = createAgentTasksServer({ overviewSource, newTaskSource, detailSource });
 const server = http.createServer(
-  createHost(mdsn, {
+  createHost(mdan, {
     rootRedirect: "/tasks",
     transformHtml: transformAgentTasksHtml
   })

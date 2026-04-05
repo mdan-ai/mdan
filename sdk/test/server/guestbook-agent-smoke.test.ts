@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { createGuestbookServer } from "../../../examples/guestbook/app/server.js";
 import { createAppServer } from "../../../examples/starter/app/server.js";
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 const servers = new Set<http.Server>();
 

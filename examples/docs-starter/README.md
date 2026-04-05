@@ -1,13 +1,13 @@
-# MDSN Docs Starter Example
+# MDAN Docs Starter Example
 
-This is a minimal docs website starter built with MDSN runtime primitives.
+This is a minimal docs website starter built with MDAN runtime primitives.
 
 ## What It Demonstrates
 
 - Markdown pages as canonical docs content
 - Route-to-page mapping through `createHostedApp()`
 - Custom docs HTML shell injected via `renderHtml`
-- Static docs CSS served by `createHost()` from `@mdsnai/sdk/server/node`
+- Static docs CSS served by `createHost()` from `@mdanai/sdk/server/node`
 
 ## Run
 

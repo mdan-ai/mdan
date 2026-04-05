@@ -1,11 +1,11 @@
 {
-  "name": "mdsn",
-  "version": "0.4.0",
+  "name": "mdan",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "workspaces": [
     "sdk",
-    "create-mdsn",
+    "create-mdan",
     "examples/*",
     "demo/*"
   ],

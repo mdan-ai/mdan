@@ -16,9 +16,9 @@ title: Guestbook
 
 # Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   INPUT text required -> message
   POST "/post" (message) -> submit label:"Submit"
@@ -43,9 +43,9 @@ BLOCK guestbook {
     expect(() =>
       composePage(`# Demo
 
-<!-- mdsn:block missing -->
+<!-- mdan:block missing -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> refresh
 }
@@ -58,9 +58,9 @@ BLOCK guestbook {
     const page = composePage(
       `# Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> refresh label:"Refresh"
 }
@@ -83,11 +83,11 @@ BLOCK guestbook {
     const page = composePage(
       `# Account
 
-<!-- mdsn:block auth -->
+<!-- mdan:block auth -->
 
-<!-- mdsn:block vault -->
+<!-- mdan:block vault -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK auth {
   INPUT text -> nickname
   INPUT text -> password
@@ -122,9 +122,9 @@ describe("page.fragment", () => {
     const page = composePage(
       `# Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   INPUT text required -> message
   GET "/list" -> refresh label:"Refresh"
@@ -149,9 +149,9 @@ BLOCK guestbook {
     const page = composePage(
       `# Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> refresh label:"Refresh"
 }
@@ -166,9 +166,9 @@ BLOCK guestbook {
     const page = composePage(
       `# Guestbook
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   GET "/list" -> refresh label:"Refresh"
 }

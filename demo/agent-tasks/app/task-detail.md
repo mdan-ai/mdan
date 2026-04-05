@@ -12,9 +12,9 @@
 
 {{acceptance_criteria}}
 
-<!-- mdsn:block runtime -->
+<!-- mdan:block runtime -->
 
-```mdsn
+```mdan
 BLOCK runtime {
   GET "/tasks/{{id}}/runtime" -> refresh label:"Refresh"
 }

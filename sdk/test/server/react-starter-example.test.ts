@@ -51,11 +51,11 @@ describe("react starter example", () => {
     expect(clientSource).toContain('from "react"');
     expect(clientSource).toContain('from "react-dom/client"');
     expect(clientSource).toContain('from "marked"');
-    expect(clientSource).toContain("@mdsnai/sdk/web");
+    expect(clientSource).toContain("@mdanai/sdk/web");
     expect(clientSource).toContain("createHeadlessHost");
     expect(clientSource).toContain("dangerouslySetInnerHTML");
-    expect(clientSource).not.toContain("@mdsnai/sdk/elements");
-    expect(clientSource).not.toContain("@mdsnai/sdk/server");
+    expect(clientSource).not.toContain("@mdanai/sdk/elements");
+    expect(clientSource).not.toContain("@mdanai/sdk/server");
     expect(clientSource).not.toContain("parseRenderableMarkdown");
 
     expect(devSource).toContain('from "esbuild"');

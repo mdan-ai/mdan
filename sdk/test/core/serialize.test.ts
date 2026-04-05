@@ -3,17 +3,17 @@ import { describe, expect, it } from "vitest";
 import {
   serializeFragment,
   serializePage,
-  type MdsnFragment,
-  type MdsnPage
+  type MdanFragment,
+  type MdanPage
 } from "../../src/core/index.js";
 
 describe("serializePage", () => {
   it("serializes frontmatter, markdown, and executable blocks", () => {
-    const page: MdsnPage = {
+    const page: MdanPage = {
       frontmatter: {
         title: "Guestbook"
       },
-      markdown: "# Guestbook\n\n<!-- mdsn:block guestbook -->",
+      markdown: "# Guestbook\n\n<!-- mdan:block guestbook -->",
       blockContent: {
         guestbook: "## 2 live messages\n\n- Welcome\n- Hello"
       },
@@ -56,9 +56,9 @@ title: "Guestbook"
 - Welcome
 - Hello
 
-<!-- mdsn:block guestbook -->
+<!-- mdan:block guestbook -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK guestbook {
   INPUT text -> nickname
   INPUT text required -> message
@@ -70,9 +70,9 @@ BLOCK guestbook {
   });
 
   it("serializes every supported input type with its modifiers", () => {
-    const page: MdsnPage = {
+    const page: MdanPage = {
       frontmatter: {},
-      markdown: "# Compose\n\n<!-- mdsn:block compose -->",
+      markdown: "# Compose\n\n<!-- mdan:block compose -->",
       blockContent: {
         compose: "## Draft"
       },
@@ -110,11 +110,11 @@ BLOCK guestbook {
   });
 
   it("only serializes currently visible blocks for page responses", () => {
-    const page: MdsnPage = {
+    const page: MdanPage = {
       frontmatter: {
         title: "Account"
       },
-      markdown: "# Account\n\n<!-- mdsn:block auth -->\n\n<!-- mdsn:block vault -->",
+      markdown: "# Account\n\n<!-- mdan:block auth -->\n\n<!-- mdan:block vault -->",
       blockContent: {
         auth: "## Please sign in",
         vault: "## 0 saved notes"
@@ -160,13 +160,13 @@ BLOCK guestbook {
     expect(markdown).toContain("BLOCK auth");
     expect(markdown).not.toContain("BLOCK vault");
     expect(markdown).not.toContain('POST "/notes" (message) -> save');
-    expect(markdown).not.toContain("<!-- mdsn:block vault -->");
+    expect(markdown).not.toContain("<!-- mdan:block vault -->");
   });
 });
 
 describe("serializeFragment", () => {
   it("serializes markdown and blocks without frontmatter", () => {
-    const fragment: MdsnFragment = {
+    const fragment: MdanFragment = {
       markdown: "## Messages",
       blocks: [
         {
@@ -187,7 +187,7 @@ describe("serializeFragment", () => {
 
     expect(serializeFragment(fragment)).toBe(`## Messages
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK messages {
   GET "/messages" -> refresh label:"Refresh"
 }
@@ -196,7 +196,7 @@ BLOCK messages {
   });
 
   it("serializes explicit auto GET operations", () => {
-    const fragment: MdsnFragment = {
+    const fragment: MdanFragment = {
       markdown: "## Messages",
       blocks: [
         {
@@ -217,7 +217,7 @@ BLOCK messages {
 
     expect(serializeFragment(fragment)).toBe(`## Messages
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK messages {
   GET "/messages" -> load_messages auto
 }

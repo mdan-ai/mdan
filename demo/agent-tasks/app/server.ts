@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import { composePage, type MdsnBlock, type MdsnFragment, type MdsnInput } from "@mdsnai/sdk/core";
-import { createMdsnServer, fail, signIn, signOut, type MdsnResponse, type MdsnSessionProvider, type MdsnSessionSnapshot } from "@mdsnai/sdk/server";
+import { composePage, type MdanBlock, type MdanFragment, type MdanInput } from "@mdanai/sdk/core";
+import { createMdanServer, fail, signIn, signOut, type MdanResponse, type MdanSessionProvider, type MdanSessionSnapshot } from "@mdanai/sdk/server";
 
 import { createTaskStore } from "./task-store.js";
 import type { TaskRecord } from "./task-types.js";
@@ -22,9 +22,9 @@ const loginSource = `# Sign In
 
 Sign in to open your task queue.
 
-<!-- mdsn:block login -->
+<!-- mdan:block login -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK login {
   INPUT text required -> nickname
   INPUT text required secret -> password
@@ -38,9 +38,9 @@ const registerSource = `# Register
 
 Create an agent identity for this demo.
 
-<!-- mdsn:block register -->
+<!-- mdan:block register -->
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK register {
   INPUT text required -> nickname
   INPUT text required secret -> password
@@ -50,12 +50,12 @@ BLOCK register {
 \`\`\`
 `;
 
-function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessionProvider {
+function createMemorySessionProvider(users: Map<string, UserRecord>): MdanSessionProvider {
   const sessions = new Map<string, AgentSession>();
 
   return {
     async read(request) {
-      const rawSessionId = request.cookies.mdsn_session;
+      const rawSessionId = request.cookies.mdan_session;
       const sessionId = rawSessionId ? decodeURIComponent(rawSessionId) : undefined;
       if (!sessionId) {
         return null;
@@ -71,7 +71,7 @@ function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessio
 
       return session;
     },
-    async commit(mutation, response: MdsnResponse) {
+    async commit(mutation, response: MdanResponse) {
       if (mutation?.type === "sign-in" || mutation?.type === "refresh") {
         const next = mutation.session as Partial<AgentSession> & { userId: string };
         const session: AgentSession = {
@@ -79,7 +79,7 @@ function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessio
           userId: next.userId
         };
         sessions.set(session.sessionId, session);
-        response.headers["set-cookie"] = `mdsn_session=${encodeURIComponent(session.sessionId)}; Path=/; HttpOnly`;
+        response.headers["set-cookie"] = `mdan_session=${encodeURIComponent(session.sessionId)}; Path=/; HttpOnly`;
       }
     },
     async clear(session, response) {
@@ -87,12 +87,12 @@ function createMemorySessionProvider(users: Map<string, UserRecord>): MdsnSessio
       if (sessionId) {
         sessions.delete(sessionId);
       }
-      response.headers["set-cookie"] = "mdsn_session=; Path=/; Max-Age=0";
+      response.headers["set-cookie"] = "mdan_session=; Path=/; Max-Age=0";
     }
   };
 }
 
-function getSessionUserId(session: MdsnSessionSnapshot | null): string | null {
+function getSessionUserId(session: MdanSessionSnapshot | null): string | null {
   const userId = session && typeof session.userId === "string" ? session.userId : null;
   return userId && userId.trim() ? userId : null;
 }
@@ -149,7 +149,7 @@ function renderRuntimeMarkdown(task: TaskRecord): string {
   }
 }
 
-function input(name: string, required = false, secret = false): MdsnInput {
+function input(name: string, required = false, secret = false): MdanInput {
   return {
     name,
     type: "text",
@@ -158,7 +158,7 @@ function input(name: string, required = false, secret = false): MdsnInput {
   };
 }
 
-function renderRuntimeBlock(task: TaskRecord): MdsnFragment {
+function renderRuntimeBlock(task: TaskRecord): MdanFragment {
   if (task.status === "claimed") {
     return {
       markdown: renderRuntimeMarkdown(task),
@@ -277,7 +277,7 @@ Status: ${task.status}
 
 Next step: ${task.status === "open" ? "accept task" : task.status === "submitted" ? "review submission" : task.status === "needs_revision" ? "revise and resubmit" : task.status === "claimed" ? "submit result" : "no action"}
 
-\`\`\`mdsn
+\`\`\`mdan
 BLOCK ${task.id.replace(/[^a-z0-9_]/gi, "_")} {
   GET "/tasks/${task.id}" -> open label:"Open task"
 }
@@ -332,7 +332,7 @@ function authRecovery(message: string) {
   });
 }
 
-function taskRecovery(taskId: string, status: number, title: string, detail: string): MdsnFragment {
+function taskRecovery(taskId: string, status: number, title: string, detail: string): MdanFragment {
   return {
     markdown: `## ${title}\n\n${detail}`,
     blocks: [
@@ -353,7 +353,7 @@ function taskRecovery(taskId: string, status: number, title: string, detail: str
   };
 }
 
-function recoverTaskError(taskId: string, error: unknown): { status: number; fragment: MdsnFragment } {
+function recoverTaskError(taskId: string, error: unknown): { status: number; fragment: MdanFragment } {
   const message = error instanceof Error ? error.message : "Unknown task error.";
   if (message.includes("is not the reviewer")) {
     return {
@@ -389,9 +389,9 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
   const users = new Map<string, UserRecord>();
   const store = createTaskStore();
   const sessionProvider = createMemorySessionProvider(users);
-  const server = createMdsnServer({ session: sessionProvider });
+  const server = createMdanServer({ session: sessionProvider });
 
-  function currentAgent(session: MdsnSessionSnapshot | null): string | null {
+  function currentAgent(session: MdanSessionSnapshot | null): string | null {
     return getSessionUserId(session);
   }
 
@@ -403,7 +403,7 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
         runtime: runtimeFragment.markdown
       }
     });
-    page.blocks = page.blocks.map((block): MdsnBlock => (block.name === "runtime" && runtimeBlock ? runtimeBlock : block));
+    page.blocks = page.blocks.map((block): MdanBlock => (block.name === "runtime" && runtimeBlock ? runtimeBlock : block));
     return page;
   }
 
@@ -440,10 +440,10 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
     return page;
   }
 
-  function requireAgent(session: MdsnSessionSnapshot | null, message: string): string | MdsnFragment {
+  function requireAgent(session: MdanSessionSnapshot | null, message: string): string | MdanFragment {
     const agentId = currentAgent(session);
     if (!agentId) {
-      return authRecovery(message).fragment as MdsnFragment;
+      return authRecovery(message).fragment as MdanFragment;
     }
     return agentId;
   }

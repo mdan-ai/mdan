@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { createAuthServer } from "../../../examples/auth-session/app/server.js";
-import { createHost } from "@mdsnai/sdk/server/bun";
+import { createHost } from "@mdanai/sdk/server/bun";
 
 async function readAuthSources(): Promise<{ loginSource: string; registerSource: string; vaultSource: string }> {
   const [loginSource, registerSource, vaultSource] = await Promise.all([
@@ -44,7 +44,7 @@ describe("bun auth-session adapter", () => {
 
     expect(register.status).toBe(200);
     const sessionCookie = cookieValue(register);
-    await expect(register.text()).resolves.toContain("Account created for BunAgent");
+    await expect(register.text()).resolves.toContain("# Vault");
 
     const vault = await host(
       new Request("https://example.test/vault", {

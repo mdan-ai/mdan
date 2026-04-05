@@ -1,4 +1,4 @@
-import { MdsnParseError } from "../errors.js";
+import { MdanParseError } from "../errors.js";
 
 export interface ExecutableBlockResult {
   markdown: string;
@@ -26,7 +26,7 @@ export function extractExecutableBlock(source: string): ExecutableBlockResult {
     }
 
     if (line.trim() === "```") {
-      if (currentFenceLang === "mdsn") {
+      if (currentFenceLang === "mdan") {
         executableIndices.push({ start: currentStart, end: index });
       }
       insideFence = false;
@@ -36,7 +36,7 @@ export function extractExecutableBlock(source: string): ExecutableBlockResult {
   }
 
   if (executableIndices.length > 1) {
-    throw new MdsnParseError("A page may contain at most one executable mdsn block.");
+    throw new MdanParseError("A page may contain at most one executable mdan block.");
   }
 
   if (executableIndices.length === 0) {

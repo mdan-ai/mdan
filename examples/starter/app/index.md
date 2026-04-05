@@ -4,11 +4,11 @@ title: Agent App
 
 # Agent App
 
-Use this starter as the smallest end-to-end MDSN app.
+Use this starter as the smallest end-to-end MDAN app.
 
-<!-- mdsn:block main -->
+<!-- mdan:block main -->
 
-```mdsn
+```mdan
 BLOCK main {
   INPUT text required -> message
   GET "/list" -> refresh label:"Refresh"

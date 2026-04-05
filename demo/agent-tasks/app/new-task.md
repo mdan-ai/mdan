@@ -1,10 +1,10 @@
 # New Task
 
-Create a task that another agent can open from a page URL and continue through MDSN actions.
+Create a task that another agent can open from a page URL and continue through MDAN actions.
 
-<!-- mdsn:block create_task -->
+<!-- mdan:block create_task -->
 
-```mdsn
+```mdan
 BLOCK create_task {
   INPUT text required -> title
   INPUT text required -> summary

@@ -6,12 +6,12 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { createMdsnServer, ok, stream } from "../../src/server/index.js";
-import { createHost } from "@mdsnai/sdk/server/bun";
+import { createMdanServer, ok, stream } from "../../src/server/index.js";
+import { createHost } from "@mdanai/sdk/server/bun";
 
 describe("bun host adapter", () => {
   it("bridges requests into the shared server runtime", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.get("/list", async () =>
       ok({
@@ -35,7 +35,7 @@ describe("bun host adapter", () => {
   });
 
   it("normalizes form posts and cookies", async () => {
-    const server = createMdsnServer();
+    const server = createMdanServer();
 
     server.post("/submit", async ({ inputs, request }) =>
       ok({
@@ -64,11 +64,11 @@ describe("bun host adapter", () => {
   });
 
   it("serves static files, redirects root, and streams event-stream responses", async () => {
-    const staticRoot = await mkdtemp(join(tmpdir(), "mdsn-bun-host-"));
+    const staticRoot = await mkdtemp(join(tmpdir(), "mdan-bun-host-"));
     const filePath = join(staticRoot, "hello.txt");
     await writeFile(filePath, "static bun asset", "utf8");
 
-    const server = createMdsnServer();
+    const server = createMdanServer();
     server.get("/stream", async () =>
       stream(
         (async function* () {
@@ -110,12 +110,12 @@ describe("bun host adapter", () => {
   });
 
   it("does not serve files for lookalike static mount prefixes", async () => {
-    const tempRoot = await mkdtemp(join(tmpdir(), "mdsn-bun-host-prefix-"));
+    const tempRoot = await mkdtemp(join(tmpdir(), "mdan-bun-host-prefix-"));
     const publicDir = join(tempRoot, "public");
     await mkdir(join(publicDir, "-evil"), { recursive: true });
     await writeFile(join(publicDir, "-evil", "secret.txt"), "secret", "utf8");
 
-    const server = createMdsnServer();
+    const server = createMdanServer();
     const host = createHost(server, {
       staticMounts: [{ urlPrefix: "/public", directory: publicDir }]
     });
@@ -130,10 +130,10 @@ describe("bun host adapter", () => {
   });
 
   it("serves root-mounted static files from top-level paths", async () => {
-    const staticRoot = await mkdtemp(join(tmpdir(), "mdsn-bun-host-root-"));
+    const staticRoot = await mkdtemp(join(tmpdir(), "mdan-bun-host-root-"));
     await writeFile(join(staticRoot, "site.css"), "body { color: red; }", "utf8");
 
-    const server = createMdsnServer();
+    const server = createMdanServer();
     const host = createHost(server, {
       staticMounts: [{ urlPrefix: "/", directory: staticRoot }]
     });

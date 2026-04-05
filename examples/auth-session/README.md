@@ -1,4 +1,4 @@
-# MDSN Auth Session Example
+# MDAN Auth Session Example
 
 This is a starter-style session example.
 
@@ -13,9 +13,9 @@ This is a starter-style session example.
 - `app/server.ts`
   - user, note, and session logic
 - `app/client.ts`
-  - default UI mount using `createHeadlessHost() + mountMdsnElements()`
+  - default UI mount using `createHeadlessHost() + mountMdanElements()`
 - `index.mjs`
-  - local Node host using `createHost()` from `@mdsnai/sdk/server/node`
+  - local Node host using `createHost()` from `@mdanai/sdk/server/node`
 
 ## Start
 
@@ -43,5 +43,5 @@ Open:
 
 1. page sources still live in `.md` files
 2. explicit `createHostedApp()` action bindings work for session flows
-3. login, register, protected actions, and logout all use the same MDSN protocol
+3. login, register, protected actions, and logout all use the same MDAN protocol
 4. the app starts on `login.md`, moves between login and register, and switches to `vault.md` after success

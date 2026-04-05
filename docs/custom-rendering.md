@@ -1,15 +1,15 @@
 ---
 title: Custom Rendering
-description: Keep the MDSN browser runtime and let Vue or React take over the UI.
+description: Keep the MDAN browser runtime and let Vue or React take over the UI.
 ---
 
 # Custom Rendering
 
-If you want to keep the MDSN browser runtime while letting your own framework fully own the UI, this is the path to take.
+If you want to keep the MDAN browser runtime while letting your own framework fully own the UI, this is the path to take.
 
 ## Shared Principle
 
-- `@mdsnai/sdk/web` handles request lifecycle, state updates, and protocol behavior
+- `@mdanai/sdk/web` handles request lifecycle, state updates, and protocol behavior
 - your framework handles the component tree, rendering, form controls, and visual state
 
 In other words: keep the protocol layer, replace the view layer.
@@ -34,7 +34,7 @@ const host = createHeadlessHost({
 });
 ```
 
-That keeps a browser-visible log of raw Markdown send/receive messages at `window.__MDSN_DEBUG__.messages`.
+That keeps a browser-visible log of raw Markdown send/receive messages at `window.__MDAN_DEBUG__.messages`.
 
 ## Forms and Operations
 
@@ -48,13 +48,13 @@ UI should be derived from current runtime state plus local form state, not from 
 
 Reference: [examples/vue-starter/app/client.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/app/client.ts)
 
-This is the right path if you want Vue to own the component tree and visual system while keeping MDSN behavior underneath.
+This is the right path if you want Vue to own the component tree and visual system while keeping MDAN behavior underneath.
 
 ## React Example
 
 Reference: [examples/react-starter/app/client.tsx](/Users/hencoo/projects/mdsn/examples/react-starter/app/client.tsx)
 
-This is the right path if you want React to own state projection and interaction components while keeping the same MDSN runtime.
+This is the right path if you want React to own state projection and interaction components while keeping the same MDAN runtime.
 
 ## Using a Third-Party Markdown Renderer
 
@@ -80,8 +80,8 @@ If you want the server output and the default UI to share the same rendering rul
 
 In that setup, the same renderer is typically injected into:
 
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/elements`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/elements`
 
 That keeps the server-rendered HTML and the default UI aligned.
 

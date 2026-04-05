@@ -1,5 +1,5 @@
-import { mountMdsnElements } from "@mdsnai/sdk/elements";
-import { createHeadlessHost } from "@mdsnai/sdk/web";
+import { mountMdanElements } from "@mdanai/sdk/elements";
+import { createHeadlessHost } from "@mdanai/sdk/web";
 import { marked } from "marked";
 
 const markdownRenderer = {
@@ -10,5 +10,5 @@ const markdownRenderer = {
 
 export function mountApp(root: HTMLElement, fetchImpl: typeof fetch): void {
   const host = createHeadlessHost({ root, fetchImpl });
-  mountMdsnElements({ root, host, markdownRenderer }).mount();
+  mountMdanElements({ root, host, markdownRenderer }).mount();
 }

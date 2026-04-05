@@ -1,16 +1,16 @@
-export type MdsnInputType = "text" | "number" | "boolean" | "choice" | "asset";
+export type MdanInputType = "text" | "number" | "boolean" | "choice" | "asset";
 
-export type MdsnFrontmatter = Record<string, string | number | boolean | null>;
+export type MdanFrontmatter = Record<string, string | number | boolean | null>;
 
-export interface MdsnInput {
+export interface MdanInput {
   name: string;
-  type: MdsnInputType;
+  type: MdanInputType;
   required: boolean;
   secret: boolean;
   options?: string[];
 }
 
-export interface MdsnGetOperation {
+export interface MdanGetOperation {
   method: "GET";
   target: string;
   name?: string;
@@ -20,7 +20,7 @@ export interface MdsnGetOperation {
   accept?: string;
 }
 
-export interface MdsnPostOperation {
+export interface MdanPostOperation {
   method: "POST";
   target: string;
   name: string;
@@ -30,51 +30,51 @@ export interface MdsnPostOperation {
   accept?: string;
 }
 
-export type MdsnOperation = MdsnGetOperation | MdsnPostOperation;
+export type MdanOperation = MdanGetOperation | MdanPostOperation;
 
-export interface MdsnBlock {
+export interface MdanBlock {
   name: string;
-  inputs: MdsnInput[];
-  operations: MdsnOperation[];
+  inputs: MdanInput[];
+  operations: MdanOperation[];
 }
 
-export interface MdsnPage {
-  frontmatter: MdsnFrontmatter;
+export interface MdanPage {
+  frontmatter: MdanFrontmatter;
   markdown: string;
   blockContent?: Record<string, string>;
-  blocks: MdsnBlock[];
+  blocks: MdanBlock[];
   blockAnchors: string[];
   visibleBlockNames?: string[];
 }
 
-export interface MdsnComposedPage extends MdsnPage {
-  fragment(blockName: string): MdsnFragment;
+export interface MdanComposedPage extends MdanPage {
+  fragment(blockName: string): MdanFragment;
 }
 
-export interface MdsnFragment {
+export interface MdanFragment {
   markdown: string;
-  blocks: MdsnBlock[];
+  blocks: MdanBlock[];
 }
 
-export interface MdsnHeadlessBlock {
+export interface MdanHeadlessBlock {
   name: string;
   markdown: string;
-  inputs: MdsnInput[];
-  operations: MdsnOperation[];
+  inputs: MdanInput[];
+  operations: MdanOperation[];
 }
 
-export interface MdsnHeadlessPageBootstrap {
+export interface MdanHeadlessPageBootstrap {
   kind: "page";
   route?: string;
   markdown: string;
-  blocks: MdsnHeadlessBlock[];
+  blocks: MdanHeadlessBlock[];
 }
 
-export interface MdsnHeadlessFragmentBootstrap {
+export interface MdanHeadlessFragmentBootstrap {
   kind: "fragment";
-  block: MdsnHeadlessBlock;
+  block: MdanHeadlessBlock;
 }
 
-export type MdsnHeadlessBootstrap = MdsnHeadlessPageBootstrap | MdsnHeadlessFragmentBootstrap;
+export type MdanHeadlessBootstrap = MdanHeadlessPageBootstrap | MdanHeadlessFragmentBootstrap;
 
-export type MdsnRepresentation = "markdown" | "html" | "event-stream" | "not-acceptable";
+export type MdanRepresentation = "markdown" | "html" | "event-stream" | "not-acceptable";

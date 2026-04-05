@@ -6,7 +6,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 import { createAgentTasksServer } from "../../../demo/agent-tasks/app/server.js";
 import { transformAgentTasksHtml } from "../../../demo/agent-tasks/app/html-theme.js";
 
@@ -64,7 +64,7 @@ describe("agent tasks demo html theme", () => {
     }).then((response) => response.text());
 
     expect(loginHtml).toContain('data-agent-demo-route="/login"');
-    expect(loginHtml).toContain("MDSN Agent Tasks");
+    expect(loginHtml).toContain("MDAN Agent Tasks");
     expect(loginHtml).toContain("Agent Sign In");
 
     const register = await fetch(`${baseUrl}/register`, {

@@ -6,11 +6,11 @@ title: "Vault"
 
 Private notes follow your session. Open `/login` to sign in if this page is locked.
 
-<!-- mdsn:block session -->
+<!-- mdan:block session -->
 
-<!-- mdsn:block vault -->
+<!-- mdan:block vault -->
 
-```mdsn
+```mdan
 BLOCK session {
   POST "/vault/logout" () -> logout label:"Log Out"
 }

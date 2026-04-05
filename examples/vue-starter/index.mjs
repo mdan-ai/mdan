@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createHost } from "@mdsnai/sdk/server/node";
+import { createHost } from "@mdanai/sdk/server/node";
 
 import { createAppServer } from "./dist/server.js";
 
@@ -19,8 +19,8 @@ function withVersion(path) {
 
 const importMap = {
   imports: {
-    "@mdsnai/sdk/core": withVersion("/sdk/dist/core/index.js"),
-    "@mdsnai/sdk/web": withVersion("/sdk/dist/web/index.js"),
+    "@mdanai/sdk/core": withVersion("/sdk/dist/core/index.js"),
+    "@mdanai/sdk/web": withVersion("/sdk/dist/web/index.js"),
     "marked": withVersion("/node_modules/marked/lib/marked.esm.js"),
     "vue": withVersion("/node_modules/vue/dist/vue.esm-browser.js")
   }
@@ -30,7 +30,7 @@ function injectEnhancement(html) {
   const shell = `
 <div id="vue-starter-root"></div>
 <style>
-  mdsn-page {
+  mdan-page {
     display: none !important;
   }
   body {
@@ -200,9 +200,9 @@ function injectEnhancement(html) {
 }
 
 const source = await readFile(sourcePath, "utf8");
-const mdsn = createAppServer({ source });
+const mdan = createAppServer({ source });
 const server = http.createServer(
-  createHost(mdsn, {
+  createHost(mdan, {
     transformHtml: injectEnhancement,
     staticFiles: {
       "/app/client.js": join(exampleRoot, "dist", "client.js")

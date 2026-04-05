@@ -1,6 +1,6 @@
 ---
 title: Custom Rendering with React
-description: Use @mdsnai/sdk/web as the runtime while React owns the UI.
+description: Use @mdanai/sdk/web as the runtime while React owns the UI.
 ---
 
 # Custom Rendering with React

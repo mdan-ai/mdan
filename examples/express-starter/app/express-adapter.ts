@@ -1,8 +1,8 @@
-import { serializeMarkdownBody } from "@mdsnai/sdk/core";
-import type { MdsnRequest, MdsnResponse } from "@mdsnai/sdk/server";
+import { serializeMarkdownBody } from "@mdanai/sdk/core";
+import type { MdanRequest, MdanResponse } from "@mdanai/sdk/server";
 
-interface MdsnRequestHandler {
-  handle(request: MdsnRequest): Promise<MdsnResponse>;
+interface MdanRequestHandler {
+  handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
 type HeaderValue = string | string[] | undefined;
@@ -26,7 +26,7 @@ export interface ExpressLikeResponse {
   write(chunk: string): void;
 }
 
-export interface CreateExpressMdsnHandlerOptions {
+export interface CreateExpressMdanHandlerOptions {
   transformHtml?: (html: string) => string;
 }
 
@@ -82,7 +82,7 @@ function normalizeBody(body: unknown, contentType: string | undefined): string |
   return String(body);
 }
 
-function toMdsnRequest(request: ExpressLikeRequest): MdsnRequest {
+function toMdanRequest(request: ExpressLikeRequest): MdanRequest {
   const method = request.method === "POST" ? "POST" : "GET";
   const host = request.get?.("host") ?? normalizeHeaderValue(request.headers.host) ?? "127.0.0.1";
   const urlPath = request.originalUrl ?? request.url ?? "/";
@@ -105,12 +105,12 @@ function toMdsnRequest(request: ExpressLikeRequest): MdsnRequest {
   };
 }
 
-export function createExpressMdsnHandler(
-  handler: MdsnRequestHandler,
-  options: CreateExpressMdsnHandlerOptions = {}
+export function createExpressMdanHandler(
+  handler: MdanRequestHandler,
+  options: CreateExpressMdanHandlerOptions = {}
 ) {
   return async (request: ExpressLikeRequest, response: ExpressLikeResponse): Promise<void> => {
-    const result = await handler.handle(toMdsnRequest(request));
+    const result = await handler.handle(toMdanRequest(request));
     response.status(result.status);
     for (const [name, value] of Object.entries(result.headers)) {
       response.setHeader(name, value);

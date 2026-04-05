@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Public API overview for the current @mdsnai/sdk package.
+description: Public API overview for the current @mdanai/sdk package.
 ---
 
 # API Reference
@@ -11,7 +11,7 @@ If something does not appear here, you should not rely on it as a public SDK int
 
 This page is for looking up entry points and API names. It is not meant to explain the whole model or best practices.
 
-## `@mdsnai/sdk/core`
+## `@mdanai/sdk/core`
 
 This group contains the protocol and Markdown handling tools.
 
@@ -54,13 +54,13 @@ Serializes a full page object into full page Markdown.
 
 Serializes a block-level fragment into Markdown.
 
-### `MdsnMarkdownRenderer`
+### `MdanMarkdownRenderer`
 
 The shared Markdown renderer extension point. The same renderer can be injected into:
 
-- `createMdsnServer({ markdownRenderer })`
+- `createMdanServer({ markdownRenderer })`
 - `createHostedApp({ markdownRenderer })`
-- `mountMdsnElements({ markdownRenderer })`
+- `mountMdanElements({ markdownRenderer })`
 
 ### `negotiateRepresentation(acceptHeader)`
 
@@ -73,7 +73,7 @@ Negotiates from `Accept`:
 
 When `text/markdown` is explicitly present, it wins over `html`.
 
-## `@mdsnai/sdk/server`
+## `@mdanai/sdk/server`
 
 This group contains the shared server runtime.
 
@@ -96,7 +96,7 @@ Each action automatically receives:
 - `page()`
 - `block()`
 
-### `createMdsnServer(options?)`
+### `createMdanServer(options?)`
 
 Creates the server runtime.
 
@@ -141,7 +141,7 @@ Creates a sign-out session mutation.
 
 Creates a session refresh mutation.
 
-## `@mdsnai/sdk/server/node`
+## `@mdanai/sdk/server/node`
 
 This group contains the Node host adapter.
 
@@ -165,7 +165,7 @@ An explicit Node-named alias for `createHost(...)`.
 
 Lower-level Node `RequestListener` adapter when you want to wrap your own `http.createServer(...)` shell.
 
-## `@mdsnai/sdk/server/bun`
+## `@mdanai/sdk/server/bun`
 
 This group contains the Bun host adapter.
 
@@ -182,7 +182,7 @@ Supported options:
 - `staticMounts`
 - `maxBodyBytes`
 
-## `@mdsnai/sdk/web`
+## `@mdanai/sdk/web`
 
 This group contains the browser-side runtime.
 
@@ -199,27 +199,27 @@ The returned host provides:
 - `host.mount()`
 - `host.unmount()`
 
-## `@mdsnai/sdk/elements`
+## `@mdanai/sdk/elements`
 
 This group contains the default UI layer and custom element registry.
 
-### `mountMdsnElements({ root, host, markdownRenderer? })`
+### `mountMdanElements({ root, host, markdownRenderer? })`
 
 The recommended default UI entry. It will:
 
 - register the official Web Components
 - render the default page, block, and form UI from current state
 
-### `registerMdsnElements()`
+### `registerMdanElements()`
 
 Registers these default Web Components:
 
-- `mdsn-page`
-- `mdsn-block`
-- `mdsn-form`
-- `mdsn-field`
-- `mdsn-action`
-- `mdsn-error`
+- `mdan-page`
+- `mdan-block`
+- `mdan-form`
+- `mdan-field`
+- `mdan-action`
+- `mdan-error`
 
 ## Legacy Paths You Should Avoid Depending On
 
@@ -228,4 +228,4 @@ These may still exist inside package internals, but they should not be treated a
 - `fragmentForBlock()` root export
 - `createNodeRequestListener()` root export
 - `renderHtmlDocument()` root export
-- `@mdsnai/sdk/elements/register` subpath
+- `@mdanai/sdk/elements/register` subpath

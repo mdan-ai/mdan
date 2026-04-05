@@ -1,19 +1,19 @@
 ---
-title: MDSN
-description: MDSN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
+title: MDAN
+description: MDAN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
 ---
 
-# MDSN
+# MDAN
 
-MDSN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
+MDAN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
 
 它把内容、操作和后续交互放回同一个页面模型里。
 
 这意味着同一个应用可以同时服务浏览器和 Agent，而不需要把交互模型拆散到 Markdown、提示词、JSON API 和前端胶水代码里。
 
-## MDSN 是什么
+## MDAN 是什么
 
-MDSN 把页面本身当成应用行为的基本单位。
+MDAN 把页面本身当成应用行为的基本单位。
 
 在一份页面源里，你可以同时保留：
 
@@ -22,9 +22,9 @@ MDSN 把页面本身当成应用行为的基本单位。
 - 服务端返回的 Markdown 片段不仅是结果，也是下一步交互上下文
 - 同一个 Web 应用既可以被浏览器访问，也可以被 Agent 直接通过 HTTP 交互
 
-这让 MDSN 很适合用来构建 agent app、skills app，以及需要持续多步交互的页面型应用。
+这让 MDAN 很适合用来构建 agent app、skills app，以及需要持续多步交互的页面型应用。
 
-`@mdsnai/sdk` 是当前这套格式和相关 Host 行为的一份参考实现。
+`@mdanai/sdk` 是当前这套格式和相关 Host 行为的一份参考实现。
 
 ## 它解决什么问题
 
@@ -34,7 +34,7 @@ MDSN 把页面本身当成应用行为的基本单位。
 - 浏览器走另一套页面和交互模型
 - 服务端还要额外维护提示词、状态和下一步动作的同步关系
 
-MDSN 的做法，是让页面本身承担这层表达。这样一来：
+MDAN 的做法，是让页面本身承担这层表达。这样一来：
 
 - Agent 可以直接读取 Markdown，并继续执行下一步操作
 - Agent 可以直接通过 HTTP 与同一个 Web 应用交互，用 `curl` 这类原生命令行工具就够了
@@ -43,9 +43,9 @@ MDSN 的做法，是让页面本身承担这层表达。这样一来：
 - 服务端可以通过返回 Markdown 片段，持续驱动后续交互
 - 应用更不容易在“页面、协议、工具、UI”之间逐渐漂移
 
-## 什么时候适合用 MDSN
+## 什么时候适合用 MDAN
 
-当你满足下面这些条件时，MDSN 很合适：
+当你满足下面这些条件时，MDAN 很合适：
 
 - 同一个应用既要给人用，也要给 Agent 用
 - 你的交互模型天然是页面型、多步式的
@@ -54,7 +54,7 @@ MDSN 的做法，是让页面本身承担这层表达。这样一来：
 
 ## 什么时候不适合
 
-下面这些场景通常不必上 MDSN：
+下面这些场景通常不必上 MDAN：
 
 - 你只需要一个传统的浏览器 Web 应用
 - 你的系统本质上只是一个 JSON API
@@ -63,7 +63,7 @@ MDSN 的做法，是让页面本身承担这层表达。这样一来：
 
 ## 工作方式
 
-MDSN 的工作方式可以先概括成三步：
+MDAN 的工作方式可以先概括成三步：
 
 1. 页面源用 Markdown 表达内容和操作
 2. 交互发生后，服务端返回更新后的 Markdown 片段
@@ -82,10 +82,10 @@ MDSN 的工作方式可以先概括成三步：
 ## 文档导览
 
 - 想先在 5 分钟内跑起来：看 [快速开始](/zh/docs/getting-started)
-- 想先快速理解定义、适用场景和边界：看 [什么是 MDSN？](/zh/docs/what-is-mdsn)
-- 想理解 MDSN 和 MCP 的关系：看 [MDSN 与 MCP](/zh/docs/mdsn-vs-mcp)
-- 想看协议层面对 Markdown 响应的正式定义：看 [协议 v1](https://mdsn.ai/protocol/v1)
-- 想理解页面、block 和更新方式：看 [理解 MDSN](/zh/docs/understanding-mdsn)
+- 想先快速理解定义、适用场景和边界：看 [什么是 MDAN？](/zh/docs/what-is-mdan)
+- 想理解 MDAN 和 MCP 的关系：看 [MDAN 与 MCP](/zh/docs/mdan-vs-mcp)
+- 想看协议层面对 Markdown 响应的正式定义：看 [协议 v1](https://mdan.ai/protocol/v1)
+- 想理解页面、block 和更新方式：看 [理解 MDAN](/zh/docs/understanding-mdan)
 - 想理解为什么同一个应用可以同时服务 Agent 和浏览器：看 [HTTP 内容协商](/zh/docs/shared-interaction)
 - 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
 - 想理解 SDK 边界：看 [SDK 概览](/zh/docs/sdk)
@@ -93,7 +93,7 @@ MDSN 的工作方式可以先概括成三步：
 ## 推荐阅读顺序
 
 1. [快速开始](/zh/docs/getting-started)
-2. [什么是 MDSN？](/zh/docs/what-is-mdsn)
-3. [理解 MDSN](/zh/docs/understanding-mdsn)
+2. [什么是 MDAN？](/zh/docs/what-is-mdan)
+3. [理解 MDAN](/zh/docs/understanding-mdan)
 4. [应用结构](/zh/docs/application-structure)
 5. [SDK 概览](/zh/docs/sdk)

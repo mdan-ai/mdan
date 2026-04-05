@@ -1,0 +1,63 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { createHost } from "@mdanai/sdk/server/bun";
+
+import { createAppServer } from "./dist/server.js";
+
+const port = Number(process.env.PORT || 3000);
+const hostname = process.env.HOST || "127.0.0.1";
+const projectRoot = fileURLToPath(new URL("./", import.meta.url));
+const sourcePath = join(projectRoot, "app", "index.md");
+const assetVersion = Date.now().toString(36);
+
+function withVersion(path) {
+  return `${path}?v=${assetVersion}`;
+}
+
+const importMap = {
+  imports: {
+    "@mdanai/sdk/core": withVersion("/node_modules/@mdanai/sdk/dist/core/index.js"),
+    "@mdanai/sdk/web": withVersion("/node_modules/@mdanai/sdk/dist/web/index.js"),
+    "@mdanai/sdk/elements": withVersion("/node_modules/@mdanai/sdk/dist/elements/index.js"),
+    "lit": withVersion("/node_modules/lit/index.js"),
+    "lit-html": withVersion("/node_modules/lit-html/lit-html.js"),
+    "lit-html/is-server.js": withVersion("/node_modules/lit-html/is-server.js"),
+    "lit-element/lit-element.js": withVersion("/node_modules/lit-element/lit-element.js"),
+    "@lit/reactive-element": withVersion("/node_modules/@lit/reactive-element/reactive-element.js")
+  }
+};
+
+function injectEnhancement(html) {
+  const enhancement = `
+<script type="importmap">${JSON.stringify(importMap)}</script>
+<script type="module">
+  import { mountApp } from "${withVersion("/app/client.js")}";
+  mountApp(document, window.fetch.bind(window));
+</script>`;
+
+  return html.replace("</body>", `${enhancement}\n  </body>`);
+}
+
+const source = await readFile(sourcePath, "utf8");
+const mdan = createAppServer({ source });
+
+Bun.serve({
+  hostname,
+  port,
+  fetch: createHost(mdan, {
+    transformHtml: injectEnhancement,
+    staticFiles: {
+      "/app/client.js": join(projectRoot, "dist", "client.js")
+    },
+    staticMounts: [
+      {
+        urlPrefix: "/node_modules/",
+        directory: join(projectRoot, "node_modules")
+      }
+    ]
+  })
+});
+
+console.log(`MDAN starter running at http://${hostname}:${port}/`);

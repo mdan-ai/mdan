@@ -9,8 +9,8 @@ description: 使用统一 markdownRenderer 接口注入第三方 Markdown 渲染
 
 通常推荐把同一份渲染器同时注入到：
 
-- `@mdsnai/sdk/server`
-- `@mdsnai/sdk/elements`
+- `@mdanai/sdk/server`
+- `@mdanai/sdk/elements`
 
 这样服务端输出的 HTML 和默认 UI 的呈现规则会保持一致。
 

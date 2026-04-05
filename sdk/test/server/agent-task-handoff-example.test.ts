@@ -19,7 +19,7 @@ function cookieValueFromSetCookie(setCookie: string | undefined): string {
   if (!setCookie) {
     throw new Error("Expected Set-Cookie header.");
   }
-  return (setCookie.split(";", 1)[0] ?? "").replace(/^mdsn_session=/, "");
+  return (setCookie.split(";", 1)[0] ?? "").replace(/^mdan_session=/, "");
 }
 
 async function registerAgent(
@@ -108,7 +108,7 @@ describe("agent task handoff demo", () => {
         'acceptance_criteria: "- Return ascending order"'
       ].join(", "),
       cookies: {
-        mdsn_session: agentACookie.replace(/^mdsn_session=/, "")
+        mdan_session: agentACookie.replace(/^mdan_session=/, "")
       }
     });
 
@@ -129,7 +129,7 @@ describe("agent task handoff demo", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: agentBCookie.replace(/^mdsn_session=/, "")
+        mdan_session: agentBCookie.replace(/^mdan_session=/, "")
       }
     });
 
@@ -145,7 +145,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'result: "fn session_sort(nums: Vec<i32>) -> Vec<i32> { nums }"',
       cookies: {
-        mdsn_session: agentBCookie.replace(/^mdsn_session=/, "")
+        mdan_session: agentBCookie.replace(/^mdan_session=/, "")
       }
     });
 
@@ -161,7 +161,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'note: "Please sort the values before returning."',
       cookies: {
-        mdsn_session: agentACookie.replace(/^mdsn_session=/, "")
+        mdan_session: agentACookie.replace(/^mdan_session=/, "")
       }
     });
 
@@ -176,7 +176,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'result: "fn session_sort(nums: Vec<i32>) -> Vec<i32> { let mut nums = nums; nums.sort(); nums }"',
       cookies: {
-        mdsn_session: agentBCookie.replace(/^mdsn_session=/, "")
+        mdan_session: agentBCookie.replace(/^mdan_session=/, "")
       }
     });
 
@@ -191,7 +191,7 @@ describe("agent task handoff demo", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: agentACookie.replace(/^mdsn_session=/, "")
+        mdan_session: agentACookie.replace(/^mdan_session=/, "")
       }
     });
 
@@ -219,7 +219,7 @@ describe("agent task handoff demo", () => {
         'acceptance_criteria: "- Return ascending order"'
       ].join(", "),
       cookies: {
-        mdsn_session: agentACookie
+        mdan_session: agentACookie
       }
     });
 
@@ -236,7 +236,7 @@ describe("agent task handoff demo", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -249,7 +249,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'result: "pub fn reviewer_check(nums: Vec<i32>) -> Vec<i32> { nums }"',
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -262,7 +262,7 @@ describe("agent task handoff demo", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -293,7 +293,7 @@ describe("agent task handoff demo", () => {
         'reviewer_id: "agent-a"'
       ].join(", "),
       cookies: {
-        mdsn_session: cookie
+        mdan_session: cookie
       }
     });
 
@@ -302,7 +302,7 @@ describe("agent task handoff demo", () => {
       url: "https://example.test/tasks",
       headers: { accept: "text/markdown" },
       cookies: {
-        mdsn_session: cookie
+        mdan_session: cookie
       }
     });
 
@@ -337,7 +337,7 @@ describe("agent task handoff demo", () => {
         'reviewer_id: "agent-a"'
       ].join(", "),
       cookies: {
-        mdsn_session: agentACookie
+        mdan_session: agentACookie
       }
     });
 
@@ -350,7 +350,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'actor_id: "agent-b"',
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -359,7 +359,7 @@ describe("agent task handoff demo", () => {
       url: "https://example.test/tasks?agent_id=agent-b",
       headers: { accept: "text/markdown" },
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -391,7 +391,7 @@ describe("agent task handoff demo", () => {
         'reviewer_id: "agent-a"'
       ].join(", "),
       cookies: {
-        mdsn_session: cookie
+        mdan_session: cookie
       }
     });
 
@@ -400,7 +400,7 @@ describe("agent task handoff demo", () => {
       url: "https://example.test/tasks/task-1",
       headers: { accept: "text/markdown" },
       cookies: {
-        mdsn_session: cookie
+        mdan_session: cookie
       }
     });
 
@@ -422,7 +422,7 @@ describe("agent task handoff demo", () => {
       url: "https://example.test/tasks/new",
       headers: { accept: "text/markdown" },
       cookies: {
-        mdsn_session: cookie
+        mdan_session: cookie
       }
     });
 
@@ -442,7 +442,7 @@ describe("agent task handoff demo", () => {
       url: "https://example.test/tasks/new",
       headers: { accept: "text/markdown" },
       cookies: {
-        mdsn_session: agentACookie
+        mdan_session: agentACookie
       }
     });
 
@@ -464,7 +464,7 @@ describe("agent task handoff demo", () => {
         'acceptance_criteria: "- Return ascending order\\n- Match the required function signature"'
       ].join(", "),
       cookies: {
-        mdsn_session: agentACookie
+        mdan_session: agentACookie
       }
     });
 
@@ -485,7 +485,7 @@ describe("agent task handoff demo", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -502,7 +502,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'result: "fn sort_numbers(nums: Vec<i32>) -> Vec<i32> { nums }"',
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -519,7 +519,7 @@ describe("agent task handoff demo", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: agentACookie
+        mdan_session: agentACookie
       }
     });
 
@@ -548,7 +548,7 @@ describe("agent task handoff demo", () => {
         'acceptance_criteria: "- Remove duplicates"'
       ].join(", "),
       cookies: {
-        mdsn_session: agentACookie
+        mdan_session: agentACookie
       }
     });
 
@@ -565,7 +565,7 @@ describe("agent task handoff demo", () => {
       },
       body: "",
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -578,7 +578,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'result: "fn dedupe(nums: Vec<i32>) -> Vec<i32> { nums }"',
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -591,7 +591,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'note: "Please actually remove duplicates."',
       cookies: {
-        mdsn_session: agentACookie
+        mdan_session: agentACookie
       }
     });
 
@@ -608,7 +608,7 @@ describe("agent task handoff demo", () => {
       },
       body: 'result: "fn dedupe(nums: Vec<i32>) -> Vec<i32> { let mut out = Vec::new(); for value in nums { if !out.contains(&value) { out.push(value); } } out }"',
       cookies: {
-        mdsn_session: agentBCookie
+        mdan_session: agentBCookie
       }
     });
 
@@ -626,7 +626,7 @@ describe("agent task handoff demo", () => {
       url: "https://example.test/tasks?agent_id=agent-b",
       headers: { accept: "text/markdown" },
       cookies: {
-        mdsn_session: cookie
+        mdan_session: cookie
       }
     });
 
