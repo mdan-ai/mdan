@@ -6,15 +6,18 @@ import { createHash } from "node:crypto";
 
 import { createNodeHost } from "@mdanai/sdk/server/node";
 
+import { resolveDocsSiteRuntimeConfig } from "./dist/config.js";
 import { createDocsSiteServer } from "./dist/index.js";
 
-const port = Number(process.env.PORT || 4332);
+const runtimeConfig = resolveDocsSiteRuntimeConfig(process.env);
+const port = runtimeConfig.port;
+const host = runtimeConfig.host;
 const docsRoot = fileURLToPath(new URL("./", import.meta.url));
 const pagesDir = process.env.DOCS_CONTENT_DIR
   ? process.env.DOCS_CONTENT_DIR
   : join(docsRoot, "..", "docs");
 const assetVersion =
-  process.env.DOCS_ASSET_VERSION ??
+  runtimeConfig.assetVersion ??
   createHash("sha1").update(String(Date.now())).digest("hex").slice(0, 8);
 
 async function collectMarkdownFiles(rootDir, relativeDir = "") {
@@ -73,7 +76,8 @@ if (!pages["/zh"]) {
 }
 
 const mdan = createDocsSiteServer({
-  siteTitle: "MDAN Docs",
+  siteTitle: runtimeConfig.siteTitle,
+  siteOrigin: runtimeConfig.siteOrigin,
   assetVersion,
   pages
 });
@@ -91,6 +95,6 @@ const server = http.createServer(
   })
 );
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`MDAN docs site running at http://127.0.0.1:${port}/`);
+server.listen(port, host, () => {
+  console.log(`MDAN docs site running at http://${host}:${port}/`);
 });
