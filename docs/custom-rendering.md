@@ -46,13 +46,13 @@ UI should be derived from current runtime state plus local form state, not from 
 
 ## Vue Example
 
-Reference: [examples/vue-starter/app/client.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/app/client.ts)
+Reference: [examples/vue-starter/app/client.ts](../examples/vue-starter/app/client.ts)
 
 This is the right path if you want Vue to own the component tree and visual system while keeping MDAN behavior underneath.
 
 ## React Example
 
-Reference: [examples/react-starter/app/client.tsx](/Users/hencoo/projects/mdsn/examples/react-starter/app/client.tsx)
+Reference: [examples/react-starter/app/client.tsx](../examples/react-starter/app/client.tsx)
 
 This is the right path if you want React to own state projection and interaction components while keeping the same MDAN runtime.
 
@@ -68,15 +68,15 @@ Common choices include:
 
 There are two example shapes for this in the repository:
 
-- [examples/vue-starter/app/client.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/app/client.ts)
+- [examples/vue-starter/app/client.ts](../examples/vue-starter/app/client.ts)
   uses `marked` directly in the Vue client
-- [examples/react-starter/app/client.tsx](/Users/hencoo/projects/mdsn/examples/react-starter/app/client.tsx)
+- [examples/react-starter/app/client.tsx](../examples/react-starter/app/client.tsx)
   uses `marked` directly in the React client
 
 If you want the server output and the default UI to share the same rendering rules as well, see:
 
-- [examples/marked-starter/app/server.ts](/Users/hencoo/projects/mdsn/examples/marked-starter/app/server.ts)
-- [examples/marked-starter/app/client.ts](/Users/hencoo/projects/mdsn/examples/marked-starter/app/client.ts)
+- [examples/marked-starter/app/server.ts](../examples/marked-starter/app/server.ts)
+- [examples/marked-starter/app/client.ts](../examples/marked-starter/app/client.ts)
 
 In that setup, the same renderer is typically injected into:
 

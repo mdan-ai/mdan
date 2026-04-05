@@ -23,7 +23,7 @@ That loop works both for simple state updates like `guestbook` and for auth flow
 
 ## Example A: Guestbook
 
-Reference: [examples/guestbook/app/server.ts](/Users/hencoo/projects/mdsn/examples/guestbook/app/server.ts)
+Reference: [examples/guestbook/app/server.ts](../examples/guestbook/app/server.ts)
 
 Server behavior:
 
@@ -35,7 +35,7 @@ The key point is that both reads and writes stay inside the block, so the agent 
 
 ## Example B: Auth Session
 
-Reference: [examples/auth-session/app/server.ts](/Users/hencoo/projects/mdsn/examples/auth-session/app/server.ts)
+Reference: [examples/auth-session/app/server.ts](../examples/auth-session/app/server.ts)
 
 This example adds two important patterns:
 
@@ -52,9 +52,9 @@ That means the agent does not have to guess where to go next. The returned conte
 
 ## Example C: Agent Task Handoff
 
-Reference: [demo/agent-tasks/app/server.ts](/Users/hencoo/projects/mdsn/demo/agent-tasks/app/server.ts)
+Reference: [demo/agent-tasks/app/server.ts](../demo/agent-tasks/app/server.ts)
 
-Message walkthrough: [demo/agent-tasks/README.md](/Users/hencoo/projects/mdsn/demo/agent-tasks/README.md)
+Message walkthrough: [demo/agent-tasks/README.md](../demo/agent-tasks/README.md)
 
 This demo pushes the same model into a multi-step delegation flow:
 

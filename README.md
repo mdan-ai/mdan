@@ -76,17 +76,17 @@ bunx create-mdan agent-app --runtime node
 
 ## Examples
 
-- Starter: [examples/starter](/Users/hencoo/projects/mdsn/examples/starter)
-- Vue Starter: [examples/vue-starter](/Users/hencoo/projects/mdsn/examples/vue-starter)
-- React Starter: [examples/react-starter](/Users/hencoo/projects/mdsn/examples/react-starter)
-- Express Starter: [examples/express-starter](/Users/hencoo/projects/mdsn/examples/express-starter)
-- Docs Starter: [examples/docs-starter](/Users/hencoo/projects/mdsn/examples/docs-starter)
+- Starter: [examples/starter](./examples/starter)
+- Vue Starter: [examples/vue-starter](./examples/vue-starter)
+- React Starter: [examples/react-starter](./examples/react-starter)
+- Express Starter: [examples/express-starter](./examples/express-starter)
+- Docs Starter: [examples/docs-starter](./examples/docs-starter)
 
 ## Docs
 
-- Getting Started: [docs/getting-started.md](/Users/hencoo/projects/mdsn/docs/getting-started.md)
-- Understanding MDAN: [docs/understanding-mdan.md](/Users/hencoo/projects/mdsn/docs/understanding-mdan.md)
-- Application Structure: [docs/application-structure.md](/Users/hencoo/projects/mdsn/docs/application-structure.md)
-- Custom Rendering: [docs/custom-rendering.md](/Users/hencoo/projects/mdsn/docs/custom-rendering.md)
-- SDK Overview: [docs/sdk.md](/Users/hencoo/projects/mdsn/docs/sdk.md)
-- Examples: [docs/examples.md](/Users/hencoo/projects/mdsn/docs/examples.md)
+- Getting Started: [docs/getting-started.md](./docs/getting-started.md)
+- Understanding MDAN: [docs/understanding-mdan.md](./docs/understanding-mdan.md)
+- Application Structure: [docs/application-structure.md](./docs/application-structure.md)
+- Custom Rendering: [docs/custom-rendering.md](./docs/custom-rendering.md)
+- SDK Overview: [docs/sdk.md](./docs/sdk.md)
+- Examples: [docs/examples.md](./docs/examples.md)

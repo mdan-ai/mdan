@@ -11,7 +11,7 @@ description: 将 MDAN 运行时安全集成到现有后端框架。
 
 - 想看已有后端怎么接 MDAN：看 [服务端接入](/zh/docs/server-integration)
 - 想看服务端运行时本身提供什么：看 [服务端运行时](/zh/docs/server-runtime)
-- 想看完整示例：看 [examples/express-starter](/Users/hencoo/projects/mdsn/examples/express-starter)
+- 想看完整示例：看 [examples/express-starter](../../examples/express-starter)
 
 ## 相关文档
 

@@ -10,7 +10,7 @@ This page is kept for old links. The main content now lives in [Custom Rendering
 If you only care about the Vue version, go straight to:
 
 - [Custom Rendering](/docs/custom-rendering)
-- [examples/vue-starter/app/client.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/app/client.ts)
+- [examples/vue-starter/app/client.ts](../examples/vue-starter/app/client.ts)
 
 The key Vue-specific difference is simple: you will usually manage host creation, subscription, and teardown in the component lifecycle, then map runtime state into the component tree.
 

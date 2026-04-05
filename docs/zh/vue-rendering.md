@@ -10,7 +10,7 @@ description: 以 @mdanai/sdk/web 为运行时，Vue 完整接管 UI。
 如果你只关心 Vue 版本，可以直接看：
 
 - [自定义渲染](/zh/docs/custom-rendering)
-- [examples/vue-starter/app/client.ts](/Users/hencoo/projects/mdsn/examples/vue-starter/app/client.ts)
+- [examples/vue-starter/app/client.ts](../../examples/vue-starter/app/client.ts)
 
 最核心的差别只有一层：在 Vue 里，你通常会在组件生命周期里管理 `host` 的创建、订阅和销毁，再把运行时状态映射到组件树里。
 

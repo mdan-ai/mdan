@@ -20,7 +20,7 @@ In practice, that means adapting requests and responses to `server.handle()`, no
 
 ## A Typical Adapter Shape
 
-Reference: [examples/express-starter/app/express-adapter.ts](/Users/hencoo/projects/mdsn/examples/express-starter/app/express-adapter.ts)
+Reference: [examples/express-starter/app/express-adapter.ts](../examples/express-starter/app/express-adapter.ts)
 
 Using Express as an example, the adapter only needs to do a few things:
 
@@ -33,7 +33,7 @@ So the adapter is only translating the framework world into a runtime request, t
 
 ## How The App Registers Operations
 
-Reference: [examples/express-starter/app/server.ts](/Users/hencoo/projects/mdsn/examples/express-starter/app/server.ts)
+Reference: [examples/express-starter/app/server.ts](../examples/express-starter/app/server.ts)
 
 Application-side action registration should stay explicit:
 
