@@ -1,11 +1,11 @@
 ---
 title: Getting Started
-description: Get your first MDAN app running with @mdanai/sdk.
+description: Create your first MDAN app with create-mdan and get it running in a few minutes.
 ---
 
 # Getting Started
 
-This page does one thing: get your first MDAN app running in a few minutes.
+This page does one thing: help you create your first MDAN app and get it running in a few minutes.
 
 MDAN officially supports Node and Bun.
 

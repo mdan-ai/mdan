@@ -1,11 +1,11 @@
 ---
 title: Examples
-description: Repository examples and when to read each one.
+description: MDAN repository examples, including agent app demos, starter apps, and integration examples, with guidance on when to read each one.
 ---
 
 # Examples
 
-These examples all use the same MDAN model, but each one answers a different question.
+These examples all use the same MDAN model, but each one answers a different question about agent apps, interactive pages, and real integration paths.
 
 ## When To Read Each Example
 

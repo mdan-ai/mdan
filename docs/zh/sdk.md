@@ -1,11 +1,11 @@
 ---
 title: SDK 概览
-description: MDAN SDK 的包结构、协议边界与推荐用法。
+description: 理解 MDAN SDK 的包结构、公开入口，以及 TypeScript 参考实现从哪里开始。
 ---
 
 # SDK 概览
 
-`@mdanai/sdk` 是 MDAN 的官方 SDK。
+`@mdanai/sdk` 是 MDAN 的 TypeScript 参考实现。
 
 这页只回答三个问题：
 

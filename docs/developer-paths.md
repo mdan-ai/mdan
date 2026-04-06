@@ -1,11 +1,11 @@
 ---
 title: Developer Paths
-description: Choose the MDAN integration path that best fits your use case.
+description: Choose the MDAN integration path that best fits your app, whether you need a hosted app, custom UI, existing backend integration, or spec utilities only.
 ---
 
 # Developer Paths
 
-Use this page to quickly pick the right integration path for your situation.
+Use this page to quickly pick the right MDAN integration path for your situation.
 
 ## Path A: Hosted App + Default UI
 

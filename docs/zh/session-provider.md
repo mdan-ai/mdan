@@ -1,6 +1,6 @@
 ---
 title: Session Provider
-description: 服务端 session 读写与清理接口说明。
+description: 通过 read、commit、clear 这组接口，把你现有的登录、cookie 或 session 体系接进 MDAN 服务端运行时。
 ---
 
 # Session Provider

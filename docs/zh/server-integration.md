@@ -1,11 +1,11 @@
 ---
 title: 服务端接入
-description: 将 MDAN 运行时接入 Express、Hono、Fastify、Koa 或 Next 等现有后端。
+description: 将 MDAN 接入 Express、Hono、Fastify、Koa 或 Next 等现有后端，而不必自己重写运行时行为。
 ---
 
 # 服务端接入
 
-这页适合已经有现成后端，需要把 MDAN 接进去的场景。
+这页适合已经有现成后端，需要把 MDAN 接进去、但不想自己重写运行时的场景。
 
 先说结论：接 MDAN 时，最重要的不是“怎么把每个细节都包起来”，而是只做一层很薄的 HTTP 适配，然后把真正的处理交给运行时。
 

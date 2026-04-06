@@ -1,13 +1,13 @@
 ---
 title: Agent 直接消费
-description: 说明 Agent 如何直接通过 HTTP 消费 MDAN，而不需要浏览器专用工具层。
+description: 说明 Agent 如何直接读取 MDAN 页面、执行动作，并从 Markdown 中继续多步交互。
 ---
 
 # Agent 直接消费
 
 MDAN 本来就是为了让 Agent 直接消费而设计的。
 
-Agent 在使用 MDAN 应用之前，不需要先套一层无头浏览器、MCP 包装器，或者额外的运行时。
+Agent 在使用 MDAN 应用之前，不需要先套一层无头浏览器、MCP 包装器，或者额外的运行时，才有办法继续一个可交互 Markdown 页面。
 
 只要 Agent 能做到下面几件事：
 

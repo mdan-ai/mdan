@@ -1,6 +1,6 @@
 ---
 title: API 参考
-description: @mdanai/sdk 各子路径公共 API 总览。
+description: 当前 @mdanai/sdk 包及其子路径导出的公共 API 参考。
 ---
 
 # API 参考

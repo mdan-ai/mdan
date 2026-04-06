@@ -1,11 +1,11 @@
 ---
 title: Web 运行时
-description: @mdanai/sdk/web 在浏览器侧的运行时模型。
+description: 理解 @mdanai/sdk/web 这套浏览器侧 MDAN 运行时，以及交互页面在首次 HTML 之后如何继续运行。
 ---
 
 # Web 运行时
 
-`@mdanai/sdk/web` 是浏览器侧运行时，本身不负责 UI 渲染。
+`@mdanai/sdk/web` 是浏览器侧 MDAN 运行时，本身不负责 UI 渲染。
 
 它读取服务端写进 HTML 的初始状态，负责发请求、维护页面和 block 状态，并把这些状态暴露给任意渲染层。
 

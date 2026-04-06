@@ -1,11 +1,11 @@
 ---
 title: HTTP 内容协商
-description: 说明 MDAN 如何用同一套页面和操作定义，同时服务 Agent 和浏览器。
+description: 说明一个 MDAN 应用如何基于同一套页面和动作定义，同时服务人类和 Agent。
 ---
 
 # HTTP 内容协商
 
-MDAN 用 HTTP 内容协商，让同一个应用可以同时服务 Agent 和浏览器。
+MDAN 用 HTTP 内容协商，让同一个应用可以基于同一套页面和动作定义，同时服务人类和 Agent。
 
 核心规则很简单：
 

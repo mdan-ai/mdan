@@ -1,6 +1,6 @@
 ---
 title: Elements
-description: @mdanai/sdk/elements provides the official default UI.
+description: @mdanai/sdk/elements provides the official default UI for MDAN interactive pages on top of the browser runtime.
 ---
 
 # Elements

@@ -1,11 +1,11 @@
 ---
 title: 快速开始
-description: 用 @mdanai/sdk 快速跑起你的第一个 MDAN 应用。
+description: 用 create-mdan 创建你的第一个 MDAN 应用，并在几分钟内把它跑起来。
 ---
 
 # 快速开始
 
-这页只做一件事：让你在几分钟内把第一个 MDAN 应用跑起来。
+这页只做一件事：帮你创建第一个 MDAN 应用，并在几分钟内把它跑起来。
 
 MDAN 现在官方支持 Node 和 Bun。
 

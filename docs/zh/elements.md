@@ -1,6 +1,6 @@
 ---
 title: Elements 组件
-description: @mdanai/sdk/elements 提供官方默认 UI。
+description: @mdanai/sdk/elements 为 MDAN 交互页面提供建立在浏览器运行时之上的官方默认 UI。
 ---
 
 # Elements 组件

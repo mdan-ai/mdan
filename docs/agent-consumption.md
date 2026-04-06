@@ -1,13 +1,13 @@
 ---
 title: Direct Agent Consumption
-description: How an agent can consume MDAN directly over HTTP without a browser-only tool layer.
+description: Learn how an agent can read MDAN pages, execute actions, and continue multi-step interaction directly from Markdown.
 ---
 
 # Direct Agent Consumption
 
 MDAN is meant to be consumed directly by agents.
 
-An agent does not need a headless browser, a separate MCP wrapper, or a custom runtime layer before it can use an MDAN app.
+An agent does not need a headless browser, a separate MCP wrapper, or a custom runtime layer before it can use an MDAN app or continue an interactive Markdown page.
 
 If the agent can:
 

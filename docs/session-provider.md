@@ -1,6 +1,6 @@
 ---
 title: Session Provider
-description: Server-side session read, write, and clear hooks.
+description: Connect your existing login, cookie, or session system to the MDAN server runtime through read, commit, and clear hooks.
 ---
 
 # Session Provider

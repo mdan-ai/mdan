@@ -1,11 +1,11 @@
 ---
 title: Agent App Demo
-description: Walk through agent-driven flows, from small examples up to the agent task handoff demo.
+description: See how a real MDAN agent app works, from simple page actions up to multi-step task handoff between agents.
 ---
 
 # Agent App Demo
 
-This page shows how an agent actually moves through an MDAN app, starting from the small examples and ending with the full `agent-tasks` demo.
+This page shows how an agent actually moves through an MDAN agent app, starting from the small examples and ending with the full `agent-tasks` demo.
 
 ## Basic Flow
 

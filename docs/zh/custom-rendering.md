@@ -1,6 +1,6 @@
 ---
 title: 自定义渲染
-description: 在保留 MDAN 浏览器运行时的前提下，用 Vue 或 React 自己接管 UI。
+description: 在保留 MDAN 浏览器运行时的前提下，用 Vue、React 或其他 UI 层按自己的方式渲染交互页面。
 ---
 
 # 自定义渲染

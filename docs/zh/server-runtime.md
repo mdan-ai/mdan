@@ -1,11 +1,11 @@
 ---
 title: 服务端运行时
-description: @mdanai/sdk/server 的职责、入口与常见集成方式。
+description: 理解 MDAN 服务端运行时的职责、公开入口，以及页面和动作如何在服务端被托管。
 ---
 
 # 服务端运行时
 
-`@mdanai/sdk/server` 是在服务端组织 MDAN 应用时的主入口。
+`@mdanai/sdk/server` 是在服务端组织 MDAN 应用时的 TypeScript 主入口。
 
 它按 MDAN 页面里显式写出的 HTTP 路径注册和处理操作。
 

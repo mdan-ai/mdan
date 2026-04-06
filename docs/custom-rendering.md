@@ -1,6 +1,6 @@
 ---
 title: Custom Rendering
-description: Keep the MDAN browser runtime and let Vue or React take over the UI.
+description: Keep the MDAN browser runtime while letting Vue, React, or another UI layer render interactive pages your own way.
 ---
 
 # Custom Rendering

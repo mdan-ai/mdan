@@ -1,11 +1,11 @@
 ---
 title: Agent App Demo 讲解
-description: 从 guestbook、auth-session 一直到 agent-tasks demo，拆解 Agent 驱动的交互闭环。
+description: 从简单页面动作到多 Agent 任务交接，拆解一个真实 MDAN agent app 的交互闭环。
 ---
 
 # Agent App Demo 讲解
 
-这篇文档讲的是：Agent 在 MDAN 应用里到底如何一步步继续交互，而不只是停留在抽象概念层面。
+这篇文档讲的是：Agent 在 MDAN agent app 里到底如何一步步继续交互，而不只是停留在抽象概念层面。
 
 ## 基本流程
 

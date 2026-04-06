@@ -1,6 +1,6 @@
 ---
 title: MDAN 与 MCP
-description: 理解 MDAN 和 MCP 分别解决什么问题、它们如何互补，以及什么时候该用哪一个。
+description: 对比 MDAN 与 MCP，理解它们如何互补，以及什么时候交互页面比单纯工具暴露更合适。
 ---
 
 # MDAN 与 MCP

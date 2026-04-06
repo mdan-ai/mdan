@@ -1,11 +1,11 @@
 ---
 title: Web Runtime
-description: The browser-side runtime model in @mdanai/sdk/web.
+description: Understand the browser-side MDAN runtime in @mdanai/sdk/web and how interactive pages continue after the first HTML load.
 ---
 
 # Web Runtime
 
-`@mdanai/sdk/web` is the browser-side runtime. It does not render your UI.
+`@mdanai/sdk/web` is the browser-side MDAN runtime. It does not render your UI.
 
 It reads the initial state written into HTML by the server, sends requests, maintains page and block state, and exposes that state to any rendering layer.
 

@@ -1,11 +1,11 @@
 ---
 title: MDAN vs MCP
-description: Understand how MDAN and MCP differ, where they complement each other, and when to use each one.
+description: Compare MDAN and MCP, see how they complement each other, and learn when interactive pages fit better than tools alone.
 ---
 
 # MDAN vs MCP
 
-MDAN and MCP are related to AI apps, but they solve different layers of the problem.
+MDAN and MCP are both useful in AI systems, but they solve different layers of the problem.
 
 ## What MCP Is Good At
 

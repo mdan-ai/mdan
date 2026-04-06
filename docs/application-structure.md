@@ -1,11 +1,11 @@
 ---
 title: Application Structure
-description: Recommended project structure, routing model, and action organization for real MDAN apps and docs sites.
+description: Recommended project structure, routing model, and action organization for real MDAN apps, including agent apps and skills apps.
 ---
 
 # Application Structure
 
-This page is about how to lay out code, pages, and interaction when you build a real MDAN app.
+This page is about how to lay out code, pages, and interaction when you build a real MDAN app, especially agent apps and skills apps.
 
 The short version is: keep page source, server logic, and browser-side code separate, but do not split them into something heavier than the app itself.
 

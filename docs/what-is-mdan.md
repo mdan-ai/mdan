@@ -1,6 +1,6 @@
 ---
 title: What is MDAN?
-description: Understand what MDAN is, who it is for, and when to use it.
+description: What MDAN is, how it works, and why it fits interactive pages for both humans and agents.
 ---
 
 # What is MDAN?

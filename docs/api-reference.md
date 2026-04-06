@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Public API overview for the current @mdanai/sdk package.
+description: Public API reference for the current @mdanai/sdk package and its subpath exports.
 ---
 
 # API Reference

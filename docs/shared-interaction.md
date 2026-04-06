@@ -1,11 +1,11 @@
 ---
 title: HTTP Content Negotiation
-description: How MDAN serves agents and browsers from the same page and operation definitions.
+description: Learn how one MDAN app serves both humans and agents from the same page and action definitions.
 ---
 
 # HTTP Content Negotiation
 
-MDAN uses HTTP content negotiation so the same app can serve both agents and browsers.
+MDAN uses HTTP content negotiation so the same app can serve both humans and agents from the same page and action definitions.
 
 The core rule is simple:
 

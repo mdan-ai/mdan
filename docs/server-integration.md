@@ -1,11 +1,11 @@
 ---
 title: Server Integration
-description: Integrate the MDAN runtime into an existing Express, Hono, Fastify, Koa, or Next backend.
+description: Integrate MDAN into an existing Express, Hono, Fastify, Koa, or Next backend without rebuilding runtime behavior yourself.
 ---
 
 # Server Integration
 
-This page is for the case where you already have a backend and want to plug MDAN into it.
+This page is for the case where you already have a backend and want to plug MDAN into it without rebuilding the runtime yourself.
 
 The short version is: do a thin HTTP adaptation layer, then let the runtime handle the real work.
 

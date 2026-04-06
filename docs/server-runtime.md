@@ -1,11 +1,11 @@
 ---
 title: Server Runtime
-description: Responsibilities, entry points, and common usage of @mdanai/sdk/server.
+description: Understand the MDAN server runtime, its public entry points, and how server-side pages and actions are hosted.
 ---
 
 # Server Runtime
 
-`@mdanai/sdk/server` is the main entry point when you want to model an MDAN app on the server.
+`@mdanai/sdk/server` is the main TypeScript entry point when you want to model an MDAN app on the server.
 
 It registers and handles operations by the explicit HTTP paths written in the MDAN page.
 

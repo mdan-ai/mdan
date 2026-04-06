@@ -1,6 +1,6 @@
 ---
 title: 什么是 MDAN？
-description: 快速理解 MDAN 是什么、适合谁、什么时候该用。
+description: 快速理解 MDAN 是什么、它如何工作，以及它为什么适合同时面向人和 Agent 的交互页面。
 ---
 
 # 什么是 MDAN？

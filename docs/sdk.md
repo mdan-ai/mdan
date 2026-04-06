@@ -1,11 +1,11 @@
 ---
 title: SDK Overview
-description: Package structure, protocol boundaries, and recommended usage in the MDAN SDK.
+description: Understand the MDAN SDK package structure, public entry points, and where the TypeScript reference implementation begins.
 ---
 
 # SDK Overview
 
-`@mdanai/sdk` is the official SDK for MDAN.
+`@mdanai/sdk` is the TypeScript reference implementation for MDAN.
 
 This page answers three questions:
 
