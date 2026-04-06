@@ -23,7 +23,7 @@ it can continue the interaction on its own.
 The agent usually asks for Markdown:
 
 ```http
-Accept: text/markdown; profile="https://mdan.ai/protocol/v1"
+Accept: text/markdown; profile="https://mdan.ai/spec/v1"
 ```
 
 The server then returns a Markdown page or fragment that already contains:
@@ -149,4 +149,4 @@ That is why MDAN can work as an agent-native interaction surface rather than onl
 - [HTTP Content Negotiation](/docs/shared-interaction)
 - [Understanding MDAN](/docs/understanding-mdan)
 - [Agent App Demo](/docs/agent-app-demo)
-- [Protocol v1](https://mdan.ai/protocol/v1)
+- [Spec v1](https://mdan.ai/spec/v1)

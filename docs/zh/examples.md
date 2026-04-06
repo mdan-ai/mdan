@@ -37,13 +37,13 @@ description: 仓库内示例说明与适合查看的时机。
 
 Vue 接管 UI 的版本。
 
-适合想保留 MDAN 协议和浏览器运行时，但用 Vue 来渲染界面的场景。
+适合想保留 MDAN 规范语义和浏览器运行时，但用 Vue 来渲染界面的场景。
 
 ### [`examples/react-starter`](https://github.com/mdan-ai/mdan/tree/main/examples/react-starter)
 
 React 接管 UI 的版本。
 
-适合想保留 MDAN 协议和浏览器运行时，但用 React 来渲染界面的场景。
+适合想保留 MDAN 规范语义和浏览器运行时，但用 React 来渲染界面的场景。
 
 ### [`examples/express-starter`](https://github.com/mdan-ai/mdan/tree/main/examples/express-starter)
 

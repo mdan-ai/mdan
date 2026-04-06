@@ -4,7 +4,7 @@ title: React Starter
 
 # React Starter
 
-This React starter keeps React as the host shell while MDAN continues to drive the page and block protocol.
+This React starter keeps React as the host shell while MDAN continues to drive page and block behavior.
 
 <!-- mdan:block main -->
 

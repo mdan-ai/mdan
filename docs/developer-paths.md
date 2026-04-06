@@ -68,10 +68,10 @@ See:
 ## Decision Checklist
 
 - Need the fastest launch with the official UI: choose Path A
-- Need a custom visual system with the same protocol behavior: choose Path B
+- Need a custom visual system with the same MDAN behavior: choose Path B
 - Need deep backend integration: choose Path C
 - Need parser and serializer utilities only: choose Path D
 
 ## Anti-Pattern To Avoid
 
-Do not duplicate protocol logic inside frontend framework code. Keep protocol and routing behavior in the server and runtime layers, then let the UI render from current state.
+Do not duplicate MDAN logic inside frontend framework code. Keep spec handling and routing behavior in the server and runtime layers, then let the UI render from current state.

@@ -209,8 +209,8 @@ The runtime should resolve `auto` operations before returning results to any cli
 
 Use `auto` only for safe, idempotent, zero-input `GET` dependencies. `label` remains presentation-only.
 
-The normative definition lives in the protocol spec:
-- [协议规范](../protocol/zh/v1.md)
+The normative definition lives in the MDAN spec:
+- [Spec v1](../spec/v1.md)
 
 This page only describes the runtime consequence: server hosts are responsible for resolving `auto`, not browser code.
 

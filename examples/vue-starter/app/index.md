@@ -4,7 +4,7 @@ title: Vue Starter
 
 # Vue Starter
 
-This Vue starter keeps Vue as the host shell while MDAN continues to drive the page and block protocol.
+This Vue starter keeps Vue as the host shell while MDAN continues to drive page and block behavior.
 
 <!-- mdan:block main -->
 

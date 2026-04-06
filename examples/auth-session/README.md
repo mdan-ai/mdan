@@ -43,5 +43,5 @@ Open:
 
 1. page sources still live in `.md` files
 2. explicit `createHostedApp()` action bindings work for session flows
-3. login, register, protected actions, and logout all use the same MDAN protocol
+3. login, register, protected actions, and logout all use the same MDAN behavior model
 4. the app starts on `login.md`, moves between login and register, and switches to `vault.md` after success

@@ -41,7 +41,7 @@ When a framework owns the UI, the recommended interface is:
 After mounting, the runtime will:
 
 - read the initial state from the current HTML document
-- send `GET` and `POST` actions with the correct protocol behavior
+- send `GET` and `POST` actions with the correct MDAN behavior
 - merge returned block fragments into current state
 - load new page state when a response points at a new page target
 - notify any rendering layer through `subscribe(listener)`

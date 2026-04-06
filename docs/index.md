@@ -84,7 +84,7 @@ What changes is the returned form, not the underlying app.
 - Want to get something running in five minutes: [Getting Started](/docs/getting-started)
 - Want a crisp definition and best-fit use cases: [What is MDAN?](/docs/what-is-mdan)
 - Want to compare MDAN with MCP: [MDAN vs MCP](/docs/mdan-vs-mcp)
-- Want the protocol-level definition behind MDAN Markdown responses: [Protocol v1](https://mdan.ai/protocol/v1)
+- Want the spec-level definition behind MDAN Markdown responses: [Spec v1](https://mdan.ai/spec/v1)
 - Want to understand pages, blocks, and updates: [Understanding MDAN](/docs/understanding-mdan)
 - Want to understand how one app serves both agents and browsers: [HTTP Content Negotiation](/docs/shared-interaction)
 - Want to see how an agent consumes MDAN directly over HTTP: [Direct Agent Consumption](/docs/agent-consumption)

@@ -4,7 +4,7 @@ MDAN is a Markdown-first framework for building apps that humans and AI agents c
 
 It keeps content, operations, and follow-up interaction in the same page model.
 
-This repository contains the reference SDK, the project starter, runnable examples, and the docs site.
+This repository contains the MDAN spec, the TypeScript reference SDK, the project starter, runnable examples, and the docs site.
 
 MDAN officially supports Node and Bun through shared server primitives plus runtime-specific host adapters.
 
@@ -26,6 +26,15 @@ The same Markdown source can carry:
 
 - `@mdanai/sdk`: the reference SDK for building apps with MDAN
 - `create-mdan`: the fastest way to start a minimal MDAN app
+
+## Repository Map
+
+- `spec/`: the canonical MDAN spec
+  `spec/v1.md` is the public versioned entry, and `spec/spec.md` is the complete specification body
+- `sdk/`: the TypeScript reference implementation
+- `docs/` and `docs-site/`: developer-facing explanations and the docs app
+- `examples/` and `demo/`: runnable adoption examples
+- `create-mdan/`: the starter scaffold
 
 ## Quick Start
 
@@ -85,6 +94,8 @@ bunx create-mdan agent-app --runtime node
 ## Docs
 
 - Getting Started: [docs/getting-started.md](./docs/getting-started.md)
+- Spec v1: [spec/v1.md](./spec/v1.md)
+- Complete Spec: [spec/spec.md](./spec/spec.md)
 - Understanding MDAN: [docs/understanding-mdan.md](./docs/understanding-mdan.md)
 - Application Structure: [docs/application-structure.md](./docs/application-structure.md)
 - Custom Rendering: [docs/custom-rendering.md](./docs/custom-rendering.md)

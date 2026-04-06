@@ -9,10 +9,10 @@ If you want to keep the MDAN browser runtime while letting your own framework fu
 
 ## Shared Principle
 
-- `@mdanai/sdk/web` handles request lifecycle, state updates, and protocol behavior
+- `@mdanai/sdk/web` handles request lifecycle, state updates, and spec-defined behavior
 - your framework handles the component tree, rendering, form controls, and visual state
 
-In other words: keep the protocol layer, replace the view layer.
+In other words: keep the MDAN behavior layer, replace the view layer.
 
 ## Lifecycle Pattern
 

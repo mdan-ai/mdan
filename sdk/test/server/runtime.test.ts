@@ -16,6 +16,47 @@ async function readBody(body: string | AsyncIterable<string>): Promise<string> {
 }
 
 describe("createMdanServer", () => {
+  it("matches parameterized page and action routes and exposes route params", async () => {
+    const server = createMdanServer();
+
+    server.page("/surfaces/:surfaceId", ({ params }) =>
+      composePage(`# Surface ${params.surfaceId}`)
+    );
+
+    server.post("/surfaces/:surfaceId/accept", async ({ params, inputs }) =>
+      ok({
+        fragment: {
+          markdown: `## Accepted ${params.surfaceId} by ${inputs.actor_name ?? "unknown"}`,
+          blocks: []
+        }
+      })
+    );
+
+    const pageResponse = await server.handle({
+      method: "GET",
+      url: "https://example.test/surfaces/demo-open-task",
+      headers: { accept: "text/markdown" },
+      cookies: {}
+    });
+
+    expect(pageResponse.status).toBe(200);
+    expect(pageResponse.body).toContain("# Surface demo-open-task");
+
+    const actionResponse = await server.handle({
+      method: "POST",
+      url: "https://example.test/surfaces/demo-open-task/accept",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "text/markdown"
+      },
+      body: 'actor_name: "actor-a"',
+      cookies: {}
+    });
+
+    expect(actionResponse.status).toBe(200);
+    expect(actionResponse.body).toContain("## Accepted demo-open-task by actor-a");
+  });
+
   it("returns a single server-sent event when event-stream is requested for a regular fragment", async () => {
     const server = createMdanServer();
 
@@ -95,7 +136,7 @@ describe("createMdanServer", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(response.body).toContain("## Hi Guest");
   });
@@ -158,7 +199,7 @@ describe("createMdanServer", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(response.body).toContain("# Welcome Guest");
     expect(commit).toHaveBeenCalledTimes(1);
@@ -189,7 +230,7 @@ describe("createMdanServer", () => {
 
     expect(response.status).toBe(415);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(response.body).toContain("Unsupported Media Type");
   });
@@ -661,7 +702,7 @@ BLOCK gate {
     ).resolves.toMatchObject({
       status: 400,
       headers: {
-        "content-type": 'text/markdown; profile="https://mdan.ai/protocol/v1"'
+        "content-type": 'text/markdown; profile="https://mdan.ai/spec/v1"'
       }
     });
   });
@@ -686,7 +727,7 @@ BLOCK gate {
 
     expect(response.status).toBe(500);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(response.body).toContain("Internal Server Error");
   });
@@ -725,7 +766,7 @@ BLOCK gate {
 
     expect(response.status).toBe(500);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(response.body).toContain("Internal Server Error");
   });
@@ -845,7 +886,7 @@ BLOCK gate {
     });
 
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(response.body).toContain("# Demo");
   });
@@ -916,7 +957,7 @@ BLOCK gate {
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(response.body).toContain('title: "Guestbook"');
     expect(response.body).toContain("## 2 live messages");
@@ -1045,7 +1086,7 @@ BLOCK gate {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/protocol/v1"');
+    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/spec/v1"');
     expect(listHandler).toHaveBeenCalledTimes(1);
     expect(response.body).toContain("2 live messages");
     expect(response.body).not.toContain('GET "/list" -> load_messages auto');
@@ -1273,7 +1314,7 @@ BLOCK gate {
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/protocol/v1"');
+    expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/spec/v1"');
     expect(response.body).toContain("# Vault");
     expect(response.body).not.toContain('GET "/vault" -> open_vault auto');
     expect(response.body).not.toContain("Welcome Ada");
@@ -1298,7 +1339,7 @@ BLOCK gate {
 
     expect(response.status).toBe(406);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     await expect(readBody(response.body)).resolves.toContain("Page routes do not support text/event-stream");
   });
@@ -1319,7 +1360,7 @@ BLOCK gate {
 
     expect(response.status).toBe(500);
     expect(response.headers["content-type"]).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     await expect(readBody(response.body)).resolves.toContain("Internal Server Error");
   });

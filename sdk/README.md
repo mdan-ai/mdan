@@ -22,7 +22,7 @@ The same Markdown source can carry:
 - state and task context for AI agents to interpret
 - explicit interaction structure for both sides to continue from
 
-The default server runtime keeps Markdown canonical while also supporting explicit `auto` `GET` dependencies. Server hosts resolve `auto` before returning results, so agents and browsers observe the same final state. See the protocol/runtime docs for the full rules.
+The default server runtime keeps Markdown canonical while also supporting explicit `auto` `GET` dependencies. Server hosts resolve `auto` before returning results, so agents and browsers observe the same final state. See the spec and runtime docs for the full rules.
 
 ## Use Cases
 

@@ -13,7 +13,7 @@ This page is for looking up entry points and API names. It is not meant to expla
 
 ## `@mdanai/sdk/core`
 
-This group contains the protocol and Markdown handling tools.
+This group contains the spec-facing and Markdown handling tools.
 
 ### `parsePage(source)`
 

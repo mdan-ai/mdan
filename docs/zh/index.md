@@ -84,7 +84,7 @@ MDAN 的工作方式可以先概括成三步：
 - 想先在 5 分钟内跑起来：看 [快速开始](/zh/docs/getting-started)
 - 想先快速理解定义、适用场景和边界：看 [什么是 MDAN？](/zh/docs/what-is-mdan)
 - 想理解 MDAN 和 MCP 的关系：看 [MDAN 与 MCP](/zh/docs/mdan-vs-mcp)
-- 想看协议层面对 Markdown 响应的正式定义：看 [协议 v1](https://mdan.ai/protocol/v1)
+- 想看规范层面对 Markdown 响应的正式定义：看 [规范 v1](https://mdan.ai/spec/v1)
 - 想理解页面、block 和更新方式：看 [理解 MDAN](/zh/docs/understanding-mdan)
 - 想理解为什么同一个应用可以同时服务 Agent 和浏览器：看 [HTTP 内容协商](/zh/docs/shared-interaction)
 - 想看 Agent 如何直接通过 HTTP 消费 MDAN：看 [Agent 直接消费](/zh/docs/agent-consumption)

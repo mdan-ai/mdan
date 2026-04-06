@@ -37,13 +37,13 @@ Use this to study login, register, logout, page transitions, and how recoverable
 
 Vue-owned UI.
 
-Use this if you want to keep the MDAN protocol and browser runtime, but render the UI with Vue.
+Use this if you want to keep the MDAN spec behavior and browser runtime, but render the UI with Vue.
 
 ### [`examples/react-starter`](https://github.com/mdan-ai/mdan/tree/main/examples/react-starter)
 
 React-owned UI.
 
-Use this if you want to keep the MDAN protocol and browser runtime, but render the UI with React.
+Use this if you want to keep the MDAN spec behavior and browser runtime, but render the UI with React.
 
 ### [`examples/express-starter`](https://github.com/mdan-ai/mdan/tree/main/examples/express-starter)
 

@@ -79,7 +79,7 @@ describe("express starter example", () => {
 
     expect(statusCode).toBe(200);
     expect(headers.get("content-type")).toBe(
-      'text/markdown; profile="https://mdan.ai/protocol/v1"'
+      'text/markdown; profile="https://mdan.ai/spec/v1"'
     );
     expect(body).toContain("From Express");
   });

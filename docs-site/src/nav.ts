@@ -51,7 +51,7 @@ export const docsNav: DocsNavSection[] = [
     },
     items: [
       { href: "/docs/sdk", label: { en: "SDK Overview", zh: "SDK 概览" } },
-      { href: "https://mdan.ai/protocol/v1", label: { en: "Protocol v1", zh: "协议 v1" } },
+      { href: "https://mdan.ai/spec/v1", label: { en: "Spec v1", zh: "规范 v1" } },
       { href: "/docs/server-runtime", label: { en: "Server Runtime", zh: "服务端运行时" } },
       { href: "/docs/web-runtime", label: { en: "Web Runtime", zh: "Web 运行时" } },
       { href: "/docs/elements", label: { en: "Elements", zh: "Elements 组件" } },
