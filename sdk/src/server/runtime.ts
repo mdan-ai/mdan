@@ -209,9 +209,10 @@ async function resolveAutoTarget(
   const pageHandler = router.resolvePage(pathname);
 
   if (pageHandler) {
-    const page = await pageHandler({
+    const page = await pageHandler.handler({
       request: implicitRequest,
-      session
+      session,
+      params: pageHandler.params
     });
 
     if (!page) {
@@ -225,15 +226,16 @@ async function resolveAutoTarget(
     };
   }
 
-  const handler = router.resolve("GET", pathname);
-  if (!handler) {
+  const match = router.resolve("GET", pathname);
+  if (!match) {
     return null;
   }
 
-  const result = await handler({
+  const result = await match.handler({
     request: implicitRequest,
     inputs: Object.fromEntries(new URL(implicitRequest.url).searchParams.entries()),
-    session
+    session,
+    params: match.params
   });
 
   if (isStreamResult(result)) {
@@ -610,8 +612,8 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
       const session = sessionProvider ? await sessionProvider.read(request) : null;
 
       if (request.method === "GET") {
-        const pageHandler = router.resolvePage(pathname);
-        if (pageHandler) {
+        const pageMatch = router.resolvePage(pathname);
+        if (pageMatch) {
           if (representation === "event-stream") {
             return createResponse(
               fail({
@@ -626,9 +628,10 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
           }
           let page: MdanPage | null;
           try {
-            page = await pageHandler({
+            page = await pageMatch.handler({
               request,
-              session
+              session,
+              params: pageMatch.params
             });
           } catch {
             return createResponse(createInternalServerErrorResult(), representation, htmlRenderer, request, options.htmlDiscovery);
@@ -661,8 +664,8 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
         }
       }
 
-      const handler = router.resolve(request.method, pathname);
-      if (!handler) {
+      const match = router.resolve(request.method, pathname);
+      if (!match) {
         return createResponse(
           fail({
             status: 404,
@@ -715,10 +718,11 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
 
       let result: MdanHandlerResult;
       try {
-        result = await handler({
+        result = await match.handler({
           request,
           inputs,
-          session
+          session,
+          params: match.params
         });
       } catch {
         return createResponse(createInternalServerErrorResult(), representation, htmlRenderer, request, options.htmlDiscovery);

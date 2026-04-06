@@ -1,11 +1,13 @@
 import type { MdanComposedPage } from "../core/index.js";
 
+import { matchRoutePattern } from "./router.js";
 import { block as createBlockResult } from "./result.js";
 import { createMdanServer, type CreateMdanServerOptions } from "./runtime.js";
 import type { MdanActionResult, MdanHandlerContext, MdanHandlerResult, MdanPageHandlerContext } from "./types.js";
 
 export interface HostedPageContext extends MdanPageHandlerContext {
   routePath: string;
+  routePattern: string;
 }
 
 export interface HostedPageFactory {
@@ -43,6 +45,13 @@ interface ActionBinding {
   handler: HostedAction;
 }
 
+interface ResolvedHostedPage {
+  routePath: string;
+  routePattern: string;
+  params: Record<string, string>;
+  factory: HostedPageFactory;
+}
+
 function createBindingKey(method: "GET" | "POST", target: string): string {
   return `${method}:${target}`;
 }
@@ -53,6 +62,45 @@ function renderPage(factory: HostedPageFactory, context: HostedPageContext): Mda
     throw new Error(`Hosted page "${context.routePath}" must return a composed page created by composePage().`);
   }
   return page;
+}
+
+function getRequestPath(context: MdanHandlerContext | MdanPageHandlerContext): string {
+  return new URL(context.request.url).pathname;
+}
+
+function expandRoutePath(routePattern: string, params: Record<string, string>): string {
+  return routePattern.replace(/:([A-Za-z0-9_]+)/g, (_match, key: string) => params[key] ?? "");
+}
+
+function resolveHostedPage(
+  pages: Record<string, HostedPageFactory>,
+  routePath: string
+): ResolvedHostedPage | null {
+  const exactFactory = pages[routePath];
+  if (exactFactory) {
+    return {
+      routePath,
+      routePattern: routePath,
+      params: {},
+      factory: exactFactory
+    };
+  }
+
+  for (const [routePattern, factory] of Object.entries(pages)) {
+    const params = matchRoutePattern(routePattern, routePath);
+    if (!params) {
+      continue;
+    }
+
+    return {
+      routePath,
+      routePattern,
+      params,
+      factory
+    };
+  }
+
+  return null;
 }
 
 function buildBindings(
@@ -105,45 +153,57 @@ export function createHostedApp(options: CreateHostedAppOptions) {
   const bindings = buildBindings(options.pages, options.actions);
 
   for (const [routePath, factory] of Object.entries(options.pages)) {
-    server.page(routePath, async (context) => renderPage(factory, { ...context, routePath }));
+    server.page(routePath, async (context) =>
+      renderPage(factory, {
+        ...context,
+        routePath: getRequestPath(context),
+        routePattern: routePath
+      })
+    );
   }
 
   for (const binding of bindings.values()) {
     const register = binding.method === "GET" ? server.get.bind(server) : server.post.bind(server);
     register(binding.target, async (context) => {
-      const routeFactory = options.pages[binding.routePath];
-      if (!routeFactory) {
-        throw new Error(`Missing hosted page renderer for "${binding.routePath}".`);
+      const currentRoutePath = expandRoutePath(binding.routePath, context.params);
+      const currentPage = resolveHostedPage(options.pages, currentRoutePath);
+      if (!currentPage) {
+        throw new Error(`Missing hosted page renderer for "${currentRoutePath}".`);
       }
 
       return binding.handler({
         ...context,
-        routePath: binding.routePath,
+        routePath: currentRoutePath,
+        routePattern: currentPage.routePattern,
         blockName: binding.blockName,
-        page(routePath = binding.routePath) {
-          const pageFactory = options.pages[routePath];
-          if (!pageFactory) {
+        page(routePath = currentRoutePath) {
+          const resolved = resolveHostedPage(options.pages, routePath);
+          if (!resolved) {
             throw new Error(`Unknown hosted page route "${routePath}".`);
           }
-          return renderPage(pageFactory, {
+          return renderPage(resolved.factory, {
             request: context.request,
             session: context.session,
-            routePath
+            params: resolved.params,
+            routePath: resolved.routePath,
+            routePattern: resolved.routePattern
           });
         },
-        pageResult(pageOrRoute = binding.routePath, result = {}) {
-          const resolvedRoutePath = typeof pageOrRoute === "string" ? pageOrRoute : binding.routePath;
+        pageResult(pageOrRoute = currentRoutePath, result = {}) {
+          const resolvedRoutePath = typeof pageOrRoute === "string" ? pageOrRoute : currentRoutePath;
           const page =
             typeof pageOrRoute === "string"
               ? (() => {
-                  const pageFactory = options.pages[pageOrRoute];
-                  if (!pageFactory) {
+                  const resolved = resolveHostedPage(options.pages, pageOrRoute);
+                  if (!resolved) {
                     throw new Error(`Unknown hosted page route "${pageOrRoute}".`);
                   }
-                  return renderPage(pageFactory, {
+                  return renderPage(resolved.factory, {
                     request: context.request,
                     session: context.session,
-                    routePath: pageOrRoute
+                    params: resolved.params,
+                    routePath: resolved.routePath,
+                    routePattern: resolved.routePattern
                   });
                 })()
               : pageOrRoute;
@@ -156,15 +216,17 @@ export function createHostedApp(options: CreateHostedAppOptions) {
         },
         block(result = {}) {
           return createBlockResult(
-            renderPage(routeFactory, {
+            renderPage(currentPage.factory, {
               request: context.request,
               session: context.session,
-              routePath: binding.routePath
+              params: context.params,
+              routePath: currentRoutePath,
+              routePattern: currentPage.routePattern
             }),
             binding.blockName,
             {
               ...result,
-              route: binding.routePath
+              route: currentRoutePath
             }
           );
         }

@@ -70,6 +70,7 @@ export interface MdanHandlerContext {
   request: MdanRequest;
   inputs: Record<string, string>;
   session: MdanSessionSnapshot | null;
+  params: Record<string, string>;
 }
 
 export type MdanHandlerResult = MdanActionResult | MdanStreamResult;
@@ -79,6 +80,7 @@ export type MdanHandler = (context: MdanHandlerContext) => Promise<MdanHandlerRe
 export interface MdanPageHandlerContext {
   request: MdanRequest;
   session: MdanSessionSnapshot | null;
+  params: Record<string, string>;
 }
 
 export type MdanPageHandler = (context: MdanPageHandlerContext) => Promise<MdanPage | null> | MdanPage | null;

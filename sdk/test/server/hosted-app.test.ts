@@ -4,6 +4,69 @@ import { describe, expect, it } from "vitest";
 import { createHostedApp, stream } from "../../src/server/index.js";
 
 describe("createHostedApp", () => {
+  it("supports parameterized hosted page routes and action targets", async () => {
+    const app = createHostedApp({
+      pages: {
+        "/surfaces/:surfaceId": ({ params, routePath }) =>
+          composePage(
+            `# Surface ${params.surfaceId}
+
+<!-- mdan:block runtime -->
+
+\`\`\`mdan
+BLOCK runtime {
+  INPUT text -> actor_name
+  POST "${routePath}/accept" (actor_name) -> accept label:"Accept"
+}
+\`\`\``,
+            {
+              blocks: {
+                runtime: `## Waiting on ${params.surfaceId}`
+              }
+            }
+          )
+      },
+      actions: [
+        {
+          target: "/surfaces/:surfaceId/accept",
+          methods: ["POST"],
+          routePath: "/surfaces/:surfaceId",
+          blockName: "runtime",
+          handler: ({ params, block }) => {
+            expect(params.surfaceId).toBe("dynamic-task");
+            return block();
+          }
+        }
+      ]
+    });
+
+    const pageResponse = await app.handle({
+      method: "GET",
+      url: "https://example.test/surfaces/dynamic-task",
+      headers: { accept: "text/markdown" },
+      cookies: {}
+    });
+
+    expect(pageResponse.status).toBe(200);
+    expect(pageResponse.body).toContain("# Surface dynamic-task");
+    expect(pageResponse.body).toContain('POST "/surfaces/dynamic-task/accept" (actor_name) -> accept');
+
+    const actionResponse = await app.handle({
+      method: "POST",
+      url: "https://example.test/surfaces/dynamic-task/accept",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "text/markdown"
+      },
+      body: 'actor_name: "actor-a"',
+      cookies: {}
+    });
+
+    expect(actionResponse.status).toBe(200);
+    expect(actionResponse.body).toContain("## Waiting on dynamic-task");
+    expect(actionResponse.body).toContain('POST "/surfaces/dynamic-task/accept" (actor_name) -> accept');
+  });
+
   it("serves pages and block-bound actions from a compact hosted app definition", async () => {
     const messages = ["Welcome"];
     const source = `---
