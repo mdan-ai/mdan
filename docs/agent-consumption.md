@@ -103,14 +103,14 @@ The flow looks like this:
 2. Agent A creates a task with `POST /tasks`
 3. the returned page includes:
 
-```mdan
+```md
 POST "/tasks/task-1/accept" () -> accept
 ```
 
 4. Agent B sends `POST /tasks/task-1/accept`
 5. the response includes:
 
-```mdan
+```md
 POST "/tasks/task-1/submit" (result) -> submit
 ```
 

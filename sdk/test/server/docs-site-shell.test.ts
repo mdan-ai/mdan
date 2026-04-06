@@ -211,4 +211,32 @@ MDAN is a Markdown-first framework.
       '<link rel="alternate" hreflang="zh" href="https://docs.mdan.ai/zh/what-is-mdan">'
     );
   });
+
+  it("renders external navigation links as clickable links instead of disabled items", async () => {
+    const server = createDocsSiteServer({
+      pages: {
+        "/": `# Docs Home`,
+        "/sdk": `---
+title: SDK Overview
+---
+
+# SDK Overview
+
+SDK details.
+`
+      }
+    });
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/sdk",
+      headers: { accept: "text/html" },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain('href="https://mdan.ai/spec/v1"');
+    expect(response.body).toContain(">Spec v1</a>");
+    expect(response.body).not.toContain('<span class="docs-nav-disabled" data-nav-link>Spec v1</span>');
+  });
 });

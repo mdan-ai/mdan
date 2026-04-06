@@ -37,3 +37,4 @@ zh-spec.md
 scripts/*
 !scripts/release-smoke.mjs
 !scripts/sync-package-license.mjs
+!scripts/docs-dev.mjs

@@ -143,11 +143,19 @@ function rewriteDocsLinks(html: string): string {
     .replaceAll('href="/zh/docs/', 'href="/zh/');
 }
 
+function isExternalHref(href: string): boolean {
+  return /^https?:\/\//.test(href);
+}
+
 function renderNavigation(availableRoutes: Set<string>, currentRoute: string, locale: DocsLocale): string {
   return docsNav
     .map((section) => {
       const links = section.items
         .map((item) => {
+          if (isExternalHref(item.href)) {
+            return `<a href="${escapeHtml(item.href)}" data-nav-link rel="noreferrer" target="_blank">${escapeHtml(item.label[locale])}</a>`;
+          }
+
           const localRoute = localizedRoute(item.href, locale);
           const fallbackRoute = localizedRoute(item.href, locale === "zh" ? "en" : "zh");
           const resolvedRoute = withFallbackRoute(localRoute, fallbackRoute, availableRoutes);

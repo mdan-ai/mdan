@@ -12,7 +12,7 @@
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
     "docs:build": "tsc -b docs-site/tsconfig.json",
-    "docs:dev": "tsc -b docs-site/tsconfig.json && node docs-site/dev.mjs",
+    "docs:dev": "node scripts/docs-dev.mjs",
     "docs:start": "tsc -b docs-site/tsconfig.json && node docs-site/dev.mjs",
     "release:smoke:pre": "node scripts/release-smoke.mjs --mode=prepublish --runtime=node",
     "release:smoke:pre:bun": "node scripts/release-smoke.mjs --mode=prepublish --runtime=bun",

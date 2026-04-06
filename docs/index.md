@@ -83,23 +83,46 @@ What changes is the returned form, not the underlying app.
 
 ## Docs Guide
 
+### Start
+
 - Want to get something running in five minutes: [Getting Started](/docs/getting-started)
 - Want a crisp definition and best-fit use cases: [What is MDAN?](/docs/what-is-mdan)
 - Want to compare MDAN with MCP: [MDAN vs MCP](/docs/mdan-vs-mcp)
-- Want the spec-level definition behind MDAN Markdown responses: [Spec v1](https://mdan.ai/spec/v1)
+
+### Core Concepts
+
 - Want to understand pages, blocks, and updates: [Understanding MDAN](/docs/understanding-mdan)
-- Want to understand how one app serves both agents and browsers: [HTTP Content Negotiation](/docs/shared-interaction)
-- Want to see how an agent consumes MDAN directly over HTTP: [Direct Agent Consumption](/docs/agent-consumption)
+- Want to understand how one app serves both humans and agents: [HTTP Content Negotiation](/docs/shared-interaction)
+- Want to see how an agent consumes MDAN directly: [Direct Agent Consumption](/docs/agent-consumption)
+- Want to see a real multi-step agent app flow: [Agent App Demo](/docs/agent-app-demo)
+
+### Build With MDAN
+
+- Want to choose the right integration path first: [Developer Paths](/docs/developer-paths)
 - Want to start building a real app: [Application Structure](/docs/application-structure)
-- Want to choose the right integration style first: [Developer Paths](/docs/developer-paths)
-- Want to understand SDK boundaries: [SDK Overview](/docs/sdk)
-- Want to see a real agent-to-agent app flow: [Agent App Demo](/docs/agent-app-demo)
+- Want to plug MDAN into an existing backend: [Server Integration](/docs/server-integration)
 - Want runnable repository demos: [Examples](/docs/examples)
+
+### Spec
+
+- Want the public versioned spec entry: [Spec v1](https://mdan.ai/spec/v1)
+- Want the full spec body in the repository: [spec/spec.md](../spec/spec.md)
+
+### SDK Reference
+
+- Want to understand SDK boundaries: [SDK Overview](/docs/sdk)
+- Want to understand server-side hosting: [Server Runtime](/docs/server-runtime)
+- Want to understand browser-side continuation: [Web Runtime](/docs/web-runtime)
+- Want the public API surface: [API Reference](/docs/api-reference)
 
 ## Recommended Reading Order
 
 1. [Getting Started](/docs/getting-started)
 2. [What is MDAN?](/docs/what-is-mdan)
 3. [Understanding MDAN](/docs/understanding-mdan)
-4. [Application Structure](/docs/application-structure)
-5. [SDK Overview](/docs/sdk)
+4. [HTTP Content Negotiation](/docs/shared-interaction)
+5. [Direct Agent Consumption](/docs/agent-consumption)
+6. [Developer Paths](/docs/developer-paths)
+7. [Application Structure](/docs/application-structure)
+8. [Spec v1](https://mdan.ai/spec/v1)
+9. [SDK Overview](/docs/sdk)

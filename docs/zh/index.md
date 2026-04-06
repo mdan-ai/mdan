@@ -83,22 +83,46 @@ MDAN 的工作方式可以先概括成三步：
 
 ## 文档导览
 
+### 开始
+
 - 想先在 5 分钟内跑起来：看 [快速开始](/zh/docs/getting-started)
 - 想先快速理解定义、适用场景和边界：看 [什么是 MDAN？](/zh/docs/what-is-mdan)
 - 想理解 MDAN 和 MCP 的关系：看 [MDAN 与 MCP](/zh/docs/mdan-vs-mcp)
-- 想看规范层面对 Markdown 响应的正式定义：看 [规范 v1](https://mdan.ai/spec/v1)
+
+### 核心概念
+
 - 想理解页面、block 和更新方式：看 [理解 MDAN](/zh/docs/understanding-mdan)
-- 想理解为什么同一个应用可以同时服务 Agent 和浏览器：看 [HTTP 内容协商](/zh/docs/shared-interaction)
-- 想看 Agent 如何直接通过 HTTP 消费 MDAN：看 [Agent 直接消费](/zh/docs/agent-consumption)
-- 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
+- 想理解为什么同一个应用可以同时服务人类和 Agent：看 [HTTP 内容协商](/zh/docs/shared-interaction)
+- 想看 Agent 如何直接消费 MDAN：看 [Agent 直接消费](/zh/docs/agent-consumption)
+- 想看一个真实的多步 agent app 流程：看 [Agent App Demo 讲解](/zh/docs/agent-app-demo)
+
+### 用 MDAN 构建
+
 - 想先判断该走哪条接入路线：看 [开发者路线图](/zh/docs/developer-paths)
+- 想开始搭真实应用：看 [应用结构](/zh/docs/application-structure)
+- 想把 MDAN 接进现有后端：看 [服务端接入](/zh/docs/server-integration)
+- 想直接看仓库里的示例：看 [示例](/zh/docs/examples)
+
+### 规范
+
+- 想看公开的版本化规范入口：看 [规范 v1](https://mdan.ai/spec/v1)
+- 想看仓库里的完整规范正文：看 [spec/spec.md](../spec/spec.md)
+
+### SDK 参考
+
 - 想理解 SDK 边界：看 [SDK 概览](/zh/docs/sdk)
-- 想看一个真实的 agent-to-agent 应用流程：看 [Agent App Demo 讲解](/zh/docs/agent-app-demo)
+- 想理解服务端托管方式：看 [服务端运行时](/zh/docs/server-runtime)
+- 想理解浏览器侧如何继续交互：看 [Web 运行时](/zh/docs/web-runtime)
+- 想查公开 API：看 [API 参考](/zh/docs/api-reference)
 
 ## 推荐阅读顺序
 
 1. [快速开始](/zh/docs/getting-started)
 2. [什么是 MDAN？](/zh/docs/what-is-mdan)
 3. [理解 MDAN](/zh/docs/understanding-mdan)
-4. [应用结构](/zh/docs/application-structure)
-5. [SDK 概览](/zh/docs/sdk)
+4. [HTTP 内容协商](/zh/docs/shared-interaction)
+5. [Agent 直接消费](/zh/docs/agent-consumption)
+6. [开发者路线图](/zh/docs/developer-paths)
+7. [应用结构](/zh/docs/application-structure)
+8. [规范 v1](https://mdan.ai/spec/v1)
+9. [SDK 概览](/zh/docs/sdk)

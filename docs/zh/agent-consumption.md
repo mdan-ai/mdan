@@ -103,14 +103,14 @@ message: "Private note from agent"
 2. Agent A 通过 `POST /tasks` 创建任务
 3. 返回页面里会出现：
 
-```mdan
+```md
 POST "/tasks/task-1/accept" () -> accept
 ```
 
 4. Agent B 直接发送 `POST /tasks/task-1/accept`
 5. 返回结果里会出现：
 
-```mdan
+```md
 POST "/tasks/task-1/submit" (result) -> submit
 ```
 
