@@ -11,7 +11,10 @@ describe("docs-site discovery files", () => {
     expect(robots).toContain("User-agent: OAI-SearchBot");
     expect(robots).toContain("Sitemap: https://docs.mdan.ai/sitemap.xml");
 
-    expect(llms).toContain("MDAN is a Markdown-first framework for building apps that humans and AI agents can both use.");
+    expect(llms).toContain("One page for humans and agents.");
+    expect(llms).toContain(
+      "MDAN (Markdown Action Notation) is a shared notation for interactive pages that stay readable and actionable for both humans and agents, from the same source, across any interface."
+    );
     expect(llms).toContain("https://docs.mdan.ai/getting-started");
     expect(llms).toContain("https://www.npmjs.com/package/@mdanai/sdk");
 

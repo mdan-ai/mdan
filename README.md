@@ -1,8 +1,10 @@
 # MDAN
 
-MDAN is a Markdown-first framework for building apps that humans and AI agents can both use.
+One page for humans and agents.
 
-It keeps content, operations, and follow-up interaction in the same page model.
+MDAN (Markdown Action Notation) is a shared notation for interactive pages that stay readable and actionable for both humans and agents, from the same source, across any interface.
+
+Same page. Same actions. Same experience.
 
 This repository contains the MDAN spec, the TypeScript reference SDK, the project starter, runnable examples, and the docs site.
 
@@ -14,7 +16,7 @@ Markdown is easy to read and easy to generate, but plain Markdown is weak at exp
 
 Once a page needs inputs, actions, partial updates, or navigation, that structure usually gets pushed into templates, frontend state, and custom API glue.
 
-MDAN keeps that interaction in the page source, while still keeping the page readable for humans and AI agents.
+MDAN keeps that interaction in the page source, while still keeping the same page readable and actionable for both humans and agents.
 
 The same Markdown source can carry:
 

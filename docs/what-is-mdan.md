@@ -5,15 +5,17 @@ description: Understand what MDAN is, who it is for, and when to use it.
 
 # What is MDAN?
 
-MDAN is a Markdown-first framework for building apps that humans and AI agents can both use.
+One page for humans and agents.
 
-It keeps content, operations, and follow-up interaction in the same page model so one app can serve both browsers and agents.
+MDAN (Markdown Action Notation) is a shared notation for interactive pages that stay readable and actionable for both humans and agents, from the same source, across any interface.
+
+Same page. Same actions. Same experience.
 
 ## What Makes It Different
 
 In a typical AI product stack, page content, tool definitions, follow-up actions, and browser UI often live in separate layers.
 
-MDAN pulls those pieces back into one readable page-shaped application surface:
+MDAN pulls those pieces back into one readable and actionable page-shaped application surface:
 
 - Markdown carries the content people and agents read
 - executable operations are declared alongside that content

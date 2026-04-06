@@ -185,7 +185,7 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
   const siteTitle = options.siteTitle ?? "MDAN Docs";
   const siteOrigin = trimTrailingSlash(options.siteOrigin ?? "https://docs.mdan.ai");
   const siteDescription =
-    "MDAN is a Markdown-first framework for building apps that humans and AI agents can both use.";
+    "MDAN is a shared notation for interactive pages that stay readable and actionable for both humans and agents, from the same source, across any interface.";
   const assetVersion = options.assetVersion?.trim();
   const assetSuffix = assetVersion ? `?v=${encodeURIComponent(assetVersion)}` : "";
 

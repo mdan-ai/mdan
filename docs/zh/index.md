@@ -1,13 +1,15 @@
 ---
 title: MDAN
-description: MDAN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
+description: MDAN 是一种共享表示法，用来表达可交互页面，并让同一页面从同一份源在不同界面中都能同时对人类和 Agent 保持可读、可操作。
 ---
 
 # MDAN
 
-MDAN 是一个 Markdown-first 框架，用来构建同时面向人类和 AI Agent 的应用。
+一页，同时面向人类和 Agent。
 
-它把内容、操作和后续交互放回同一个页面模型里。
+MDAN（Markdown Action Notation）是一种共享表示法，用来表达可交互页面，并让同一页面从同一份源在不同界面中都能同时对人类和 Agent 保持可读、可操作。
+
+同一页面。同一动作。同一体验。
 
 这意味着同一个应用可以同时服务浏览器和 Agent，而不需要把交互模型拆散到 Markdown、提示词、JSON API 和前端胶水代码里。
 
@@ -24,7 +26,7 @@ MDAN 把页面本身当成应用行为的基本单位。
 
 这让 MDAN 很适合用来构建 agent app、skills app，以及需要持续多步交互的页面型应用。
 
-`@mdanai/sdk` 是当前这套格式和相关 Host 行为的一份参考实现。
+`@mdanai/sdk` 是当前这套格式和相关 Host 行为的一份 TypeScript 参考实现。
 
 ## 它解决什么问题
 

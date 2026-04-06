@@ -19,7 +19,7 @@ It is a good fit when you want to:
 
 ## What MDAN Is Good At
 
-MDAN is a Markdown-first framework for building page-shaped apps that humans and AI agents can both use.
+MDAN is a shared notation for interactive pages that stay readable and actionable for both humans and agents, from the same source, across any interface.
 
 It is a good fit when you want to:
 
@@ -37,7 +37,7 @@ MDAN is about expressing an interactive application surface that both humans and
 In short:
 
 - MCP is a tool and capability protocol
-- MDAN is an application and interaction framework
+- MDAN is a notation for interactive pages and interactions
 
 ## When To Use Both Together
 
