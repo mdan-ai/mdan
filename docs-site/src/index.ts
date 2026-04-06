@@ -256,7 +256,11 @@ export function createDocsSiteServer(options: CreateDocsSiteServerOptions) {
       const page = pageMap.get(route);
       const pageTitle = page ? toTitle(page.frontmatter, route) : "Docs";
       const pageDescription = page ? toDescription(page.frontmatter, siteDescription) : siteDescription;
-      const fullTitle = `${pageTitle} · ${siteTitle}`;
+      const homeTitle =
+        locale === "zh"
+          ? "MDAN Docs · 面向人类与 Agent 的 Markdown Action Notation"
+          : "MDAN Docs · Markdown Action Notation for Humans and Agents";
+      const fullTitle = route === "/" || route === "/zh" ? homeTitle : `${pageTitle} · ${siteTitle}`;
       const canonicalUrl = toAbsoluteUrl(siteOrigin, route);
       const suffix = docsRouteSuffix(route);
       const enRoute = withFallbackRoute(withLocaleSuffix("en", suffix), "/", availableRoutes);
