@@ -106,7 +106,8 @@ What changes is the returned form, not the underlying app.
 ### Spec
 
 - Want the public versioned spec entry: [Spec v1](https://mdan.ai/spec/v1)
-- Want the full spec body in the repository: [spec/spec.md](../spec/spec.md)
+- Want the complete MDAN spec in the repository: [spec/spec.md](../spec/spec.md)
+- Want the browser-facing host profile: [spec/browser-host.md](../spec/browser-host.md)
 
 ### SDK Reference
 

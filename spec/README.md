@@ -2,12 +2,11 @@
 
 This directory is the canonical specification source for MDAN.
 
-Use `spec/` for language-agnostic MDAN definitions:
+Use `spec/` for MDAN specification documents:
 
-- media type and profile
-- Markdown interaction semantics
-- page and fragment expectations
-- HTTP-facing spec behavior
+- the complete MDAN specification
+- the public versioned entry
+- browser-host expectations when a browser-facing host needs them
 
 This directory does not define the TypeScript SDK API surface.
 
@@ -23,6 +22,10 @@ Public versioned entry:
 
 - [`v1.md`](./v1.md)
 
-Complete specification body:
+Complete specification:
 
 - [`spec.md`](./spec.md)
+
+Browser-facing host profile:
+
+- [`browser-host.md`](./browser-host.md)

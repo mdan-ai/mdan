@@ -32,7 +32,7 @@ The same Markdown source can carry:
 ## Repository Map
 
 - `spec/`: the canonical MDAN spec
-  `spec/v1.md` is the public versioned entry, and `spec/spec.md` is the complete specification body
+  `spec/v1.md` is the public versioned entry, `spec/spec.md` is the complete specification, and `spec/browser-host.md` defines browser-host expectations outside the core spec boundary
 - `sdk/`: the TypeScript reference implementation
 - `docs/` and `docs-site/`: developer-facing explanations and the docs app
 - `examples/` and `demo/`: runnable adoption examples
@@ -97,7 +97,8 @@ bunx create-mdan agent-app --runtime node
 
 - Getting Started: [docs/getting-started.md](./docs/getting-started.md)
 - Spec v1: [spec/v1.md](./spec/v1.md)
-- Complete Spec: [spec/spec.md](./spec/spec.md)
+- Full Spec: [spec/spec.md](./spec/spec.md)
+- Browser Host Profile: [spec/browser-host.md](./spec/browser-host.md)
 - Understanding MDAN: [docs/understanding-mdan.md](./docs/understanding-mdan.md)
 - Application Structure: [docs/application-structure.md](./docs/application-structure.md)
 - Custom Rendering: [docs/custom-rendering.md](./docs/custom-rendering.md)

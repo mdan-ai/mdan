@@ -107,6 +107,7 @@ MDAN 的工作方式可以先概括成三步：
 
 - 想看公开的版本化规范入口：看 [规范 v1](https://mdan.ai/spec/v1)
 - 想看仓库里的完整规范正文：看 [spec/spec.md](../spec/spec.md)
+- 想看浏览器侧 Host Profile：看 [spec/browser-host.md](../spec/browser-host.md)
 
 ### SDK 参考
 
