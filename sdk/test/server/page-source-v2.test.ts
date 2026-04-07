@@ -12,26 +12,13 @@ function renderGuestbookBlock(messages: string[]): string {
 }
 
 describe("canonical v2 page source", () => {
-  it("composes and serializes a v2 page source in canonical v2 syntax", async () => {
+  it("loads the real guestbook page source and serializes it in canonical v2 syntax", async () => {
     const filePath = join(process.cwd(), "examples", "guestbook", "app", "index.md");
-    const legacySource = await readFile(filePath, "utf8");
-    expect(legacySource).toContain('INPUT text required -> message');
+    const source = await readFile(filePath, "utf8");
+    expect(source).toContain('INPUT message:text required');
+    expect(source).toContain('GET refresh "/list" LABEL "Refresh"');
+    expect(source).toContain('POST submit "/post" WITH message LABEL "Submit"');
 
-    const source = `---
-title: "Guestbook"
----
-
-# Guestbook
-
-<!-- mdan:block guestbook -->
-
-\`\`\`mdan
-BLOCK guestbook {
-  INPUT message:text required
-  GET refresh "/list" LABEL "Refresh"
-  POST submit "/post" WITH message LABEL "Submit"
-}
-\`\`\``;
     const page = composePageV2(source, {
       blocks: {
         guestbook: renderGuestbookBlock(["Welcome to MDAN", "Hello again"])

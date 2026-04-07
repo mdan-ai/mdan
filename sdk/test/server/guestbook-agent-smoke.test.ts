@@ -84,15 +84,15 @@ describe("guestbook agent-only smoke test", () => {
     const pageBody = await page.text();
     expect(pageBody).toContain("# Guestbook");
     expect(pageBody).toContain("## 2 live messages");
-    expect(pageBody).toContain('GET "/list" -> refresh');
-    expect(pageBody).toContain('POST "/post" (message) -> submit');
+    expect(pageBody).toContain('GET refresh "/list" LABEL "Refresh"');
+    expect(pageBody).toContain('POST submit "/post" WITH message LABEL "Submit"');
 
     const save = await postMarkdown(`${baseUrl}/post`, 'message: "Hello from agent smoke"');
     expect(save.status).toBe(200);
     const saveBody = await save.text();
     expect(saveBody).toContain("## 3 live messages");
     expect(saveBody).toContain("- Hello from agent smoke");
-    expect(saveBody).toContain('GET "/list" -> refresh');
+    expect(saveBody).toContain('GET refresh "/list" LABEL "Refresh"');
 
     const refresh = await getMarkdown(`${baseUrl}/list`);
     expect(refresh.status).toBe(200);

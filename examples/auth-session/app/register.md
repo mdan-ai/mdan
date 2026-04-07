@@ -10,9 +10,9 @@ Create a new account, then start saving private notes.
 
 ```mdan
 BLOCK register {
-  INPUT text required -> nickname
-  INPUT text required secret -> password
-  POST "/register" (nickname, password) -> register label:"Create account"
-  GET "/login" -> login label:"Back to sign in"
+  INPUT nickname:text required
+  INPUT password:text required secret
+  POST register "/register" WITH nickname, password LABEL "Create account"
+  GET login "/login" LABEL "Back to sign in"
 }
 ```

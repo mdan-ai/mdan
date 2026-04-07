@@ -10,9 +10,9 @@ Access your private vault with your existing account.
 
 ```mdan
 BLOCK login {
-  INPUT text required -> nickname
-  INPUT text required secret -> password
-  POST "/login" (nickname, password) -> login label:"Sign In"
-  GET "/register" -> register label:"Create account"
+  INPUT nickname:text required
+  INPUT password:text required secret
+  POST login "/login" WITH nickname, password LABEL "Sign In"
+  GET register "/register" LABEL "Create account"
 }
 ```

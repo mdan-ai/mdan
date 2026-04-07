@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { parsePage, serializePage } from "@mdanai/sdk/core";
+import { composePageV2, serializePageV2 } from "@mdanai/sdk/core";
 import { describe, expect, it } from "vitest";
 
 function renderGuestbookBlock(messages: string[]): string {
@@ -11,19 +11,20 @@ function renderGuestbookBlock(messages: string[]): string {
 }
 
 describe("canonical page source", () => {
-  it("loads guestbook from a real markdown file and preserves mdan definitions", async () => {
+  it("loads guestbook from a real markdown file and preserves v2 mdan definitions", async () => {
     const filePath = join(process.cwd(), "examples", "guestbook", "app", "index.md");
     const source = await readFile(filePath, "utf8");
-    const page = parsePage(source);
-    page.blockContent = {
-      guestbook: renderGuestbookBlock(["Welcome to MDAN", "Hello again"])
-    };
+    const page = composePageV2(source, {
+      blocks: {
+        guestbook: renderGuestbookBlock(["Welcome to MDAN", "Hello again"])
+      }
+    });
 
     expect(page.markdown).not.toContain("2 live messages");
     expect(page.blocks[0]?.name).toBe("guestbook");
-    expect(page.blockContent.guestbook).toContain("2 live messages");
-    expect(page.blockContent.guestbook).toContain("- Welcome to MDAN");
-    expect(serializePage(page)).toContain('POST "/post" (message) -> submit');
-    expect(serializePage(page)).toContain("## 2 live messages");
+    expect(page.blockContent?.guestbook).toContain("2 live messages");
+    expect(page.blockContent?.guestbook).toContain("- Welcome to MDAN");
+    expect(serializePageV2(page)).toContain('POST submit "/post" WITH message LABEL "Submit"');
+    expect(serializePageV2(page)).toContain("## 2 live messages");
   });
 });

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { composePage } from "@mdanai/sdk/core";
+import { composePageV2, markFragmentV2 } from "@mdanai/sdk/core";
 import {
   block,
   createHostedApp,
@@ -75,7 +75,7 @@ function getSessionUserId(session: MdanSessionSnapshot | null): string | null {
 function createRecoverableVaultFragment(markdown: string) {
   return fail({
     status: 401,
-    fragment: {
+    fragment: markFragmentV2({
       markdown,
       blocks: [
         {
@@ -92,7 +92,7 @@ function createRecoverableVaultFragment(markdown: string) {
           ]
         }
       ]
-    }
+    })
   });
 }
 
@@ -144,7 +144,7 @@ export function createAuthServer(options: CreateAuthServerOptions) {
   }
 
   function renderLoginPage(userId: string | null, banner?: { login?: string }) {
-    return composePage(options.loginSource, {
+    return composePageV2(options.loginSource, {
       blocks: {
         login: renderLoginBlock(userId, banner?.login)
       },
@@ -153,7 +153,7 @@ export function createAuthServer(options: CreateAuthServerOptions) {
   }
 
   function renderRegisterPage(userId: string | null, banner?: { register?: string }) {
-    return composePage(options.registerSource, {
+    return composePageV2(options.registerSource, {
       blocks: {
         register: renderRegisterBlock(userId, banner?.register)
       },
@@ -162,7 +162,7 @@ export function createAuthServer(options: CreateAuthServerOptions) {
   }
 
   function renderVaultPage(userId: string | null, banner?: { session?: string; vault?: string }) {
-    return composePage(options.vaultSource, {
+    return composePageV2(options.vaultSource, {
       blocks: {
         session: userId ? renderSessionBlock(userId, banner?.session) : "",
         vault: renderVaultBlock(userId, banner?.vault)

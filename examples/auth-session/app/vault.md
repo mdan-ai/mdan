@@ -12,11 +12,11 @@ Private notes follow your session. Open `/login` to sign in if this page is lock
 
 ```mdan
 BLOCK session {
-  POST "/vault/logout" () -> logout label:"Log Out"
+  POST logout "/vault/logout" LABEL "Log Out"
 }
 
 BLOCK vault {
-  INPUT text required -> message
-  POST "/vault" (message) -> save label:"Save Note"
+  INPUT message:text required
+  POST save "/vault" WITH message LABEL "Save Note"
 }
 ```
