@@ -20,8 +20,8 @@ title: Guestbook
 
 \`\`\`mdan
 BLOCK guestbook {
-  INPUT text required -> message
-  POST "/post" (message) -> submit label:"Submit"
+  INPUT message:text required
+  POST submit "/post" WITH message LABEL "Submit"
 }
 \`\`\`
 `,
@@ -47,7 +47,7 @@ BLOCK guestbook {
 
 \`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> refresh
+  GET refresh "/list"
 }
 \`\`\`
 `)
@@ -62,7 +62,7 @@ BLOCK guestbook {
 
 \`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> refresh label:"Refresh"
+  GET refresh "/list" LABEL "Refresh"
 }
 \`\`\`
 `,
@@ -89,13 +89,13 @@ BLOCK guestbook {
 
 \`\`\`mdan
 BLOCK auth {
-  INPUT text -> nickname
-  INPUT text -> password
-  POST "/login" (nickname, password) -> login label:"Sign In"
+  INPUT nickname:text
+  INPUT password:text
+  POST login "/login" WITH nickname, password LABEL "Sign In"
 }
 
 BLOCK vault {
-  GET "/notes" -> refresh label:"Refresh Notes"
+  GET refresh "/notes" LABEL "Refresh Notes"
 }
 \`\`\`
 `,
@@ -126,9 +126,9 @@ describe("page.fragment", () => {
 
 \`\`\`mdan
 BLOCK guestbook {
-  INPUT text required -> message
-  GET "/list" -> refresh label:"Refresh"
-  POST "/post" (message) -> submit label:"Submit"
+  INPUT message:text required
+  GET refresh "/list" LABEL "Refresh"
+  POST submit "/post" WITH message LABEL "Submit"
 }
 \`\`\`
 `,
@@ -153,7 +153,7 @@ BLOCK guestbook {
 
 \`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> refresh label:"Refresh"
+  GET refresh "/list" LABEL "Refresh"
 }
 \`\`\`
 `
@@ -170,7 +170,7 @@ BLOCK guestbook {
 
 \`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> refresh label:"Refresh"
+  GET refresh "/list" LABEL "Refresh"
 }
 \`\`\`
 `

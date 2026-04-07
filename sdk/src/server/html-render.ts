@@ -99,8 +99,10 @@ function renderOperation(operation: MdanOperation, inputs: MdanInput[]): string 
     .filter((input) => operation.inputs.includes(input.name))
     .map(renderInput)
     .join("");
+  const hasAssetInput = inputs.some((input) => operation.inputs.includes(input.name) && input.type === "asset");
+  const enctype = hasAssetInput ? ' enctype="multipart/form-data"' : "";
 
-  return `<mdan-form><form method="POST" action="${escapeHtml(operation.target)}" data-mdan-method="POST" data-mdan-target="${escapeHtml(operation.target)}" ${actionAttrs}>${fields}<mdan-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name)}</button></mdan-action></form></mdan-form>`;
+  return `<mdan-form><form method="POST" action="${escapeHtml(operation.target)}" data-mdan-method="POST" data-mdan-target="${escapeHtml(operation.target)}"${enctype} ${actionAttrs}>${fields}<mdan-action><button type="submit" ${actionAttrs}>${escapeHtml(operation.label ?? operation.name)}</button></mdan-action></form></mdan-form>`;
 }
 
 function renderBlock(block: MdanBlock, innerHtml = ""): string {

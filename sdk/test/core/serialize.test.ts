@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  serializeFragment,
-  serializePage,
-  type MdanFragment,
-  type MdanPage
-} from "../../src/core/index.js";
+import { serializeFragment, serializePage, type MdanFragment, type MdanPage } from "../../src/core/index.js";
 
 describe("serializePage", () => {
   it("serializes frontmatter, markdown, and executable blocks", () => {
@@ -60,10 +55,10 @@ title: "Guestbook"
 
 \`\`\`mdan
 BLOCK guestbook {
-  INPUT text -> nickname
-  INPUT text required -> message
-  GET "/list" -> refresh label:"Refresh"
-  POST "/post" (nickname, message) -> submit label:"Submit"
+  INPUT nickname:text
+  INPUT message:text required
+  GET refresh "/list" LABEL "Refresh"
+  POST submit "/post" WITH nickname, message LABEL "Submit"
 }
 \`\`\`
 `);
@@ -101,12 +96,13 @@ BLOCK guestbook {
       blockAnchors: ["compose"]
     };
 
-    expect(serializePage(page)).toContain('INPUT text -> title');
-    expect(serializePage(page)).toContain('INPUT number required -> quantity');
-    expect(serializePage(page)).toContain('INPUT boolean -> published');
-    expect(serializePage(page)).toContain('INPUT choice ["draft", "published"] -> status');
-    expect(serializePage(page)).toContain('INPUT asset required -> attachment');
-    expect(serializePage(page)).toContain('INPUT text required secret -> password');
+    const markdown = serializePage(page);
+    expect(markdown).toContain('INPUT title:text');
+    expect(markdown).toContain('INPUT quantity:number required');
+    expect(markdown).toContain('INPUT published:boolean');
+    expect(markdown).toContain('INPUT status:choice ["draft", "published"]');
+    expect(markdown).toContain('INPUT attachment:asset required');
+    expect(markdown).toContain('INPUT password:text required secret');
   });
 
   it("only serializes currently visible blocks for page responses", () => {
@@ -122,33 +118,13 @@ BLOCK guestbook {
       blocks: [
         {
           name: "auth",
-          inputs: [
-            { name: "nickname", type: "text", required: true, secret: false }
-          ],
-          operations: [
-            {
-              method: "POST",
-              target: "/login",
-              name: "login",
-              inputs: ["nickname"],
-              label: "Sign In"
-            }
-          ]
+          inputs: [{ name: "nickname", type: "text", required: true, secret: false }],
+          operations: [{ method: "POST", target: "/login", name: "login", inputs: ["nickname"], label: "Sign In" }]
         },
         {
           name: "vault",
-          inputs: [
-            { name: "message", type: "text", required: true, secret: false }
-          ],
-          operations: [
-            {
-              method: "POST",
-              target: "/notes",
-              name: "save",
-              inputs: ["message"],
-              label: "Save Note"
-            }
-          ]
+          inputs: [{ name: "message", type: "text", required: true, secret: false }],
+          operations: [{ method: "POST", target: "/notes", name: "save", inputs: ["message"], label: "Save Note" }]
         }
       ],
       blockAnchors: ["auth", "vault"],
@@ -159,7 +135,7 @@ BLOCK guestbook {
     expect(markdown).toContain("## Please sign in");
     expect(markdown).toContain("BLOCK auth");
     expect(markdown).not.toContain("BLOCK vault");
-    expect(markdown).not.toContain('POST "/notes" (message) -> save');
+    expect(markdown).not.toContain('POST save "/notes" WITH message');
     expect(markdown).not.toContain("<!-- mdan:block vault -->");
   });
 });
@@ -172,15 +148,7 @@ describe("serializeFragment", () => {
         {
           name: "messages",
           inputs: [],
-          operations: [
-            {
-              method: "GET",
-              target: "/messages",
-              name: "refresh",
-              inputs: [],
-              label: "Refresh"
-            }
-          ]
+          operations: [{ method: "GET", target: "/messages", name: "refresh", inputs: [], label: "Refresh" }]
         }
       ]
     };
@@ -189,28 +157,20 @@ describe("serializeFragment", () => {
 
 \`\`\`mdan
 BLOCK messages {
-  GET "/messages" -> refresh label:"Refresh"
+  GET refresh "/messages" LABEL "Refresh"
 }
 \`\`\`
 `);
   });
 
-  it("serializes explicit auto GET operations", () => {
+  it("serializes explicit AUTO GET operations", () => {
     const fragment: MdanFragment = {
       markdown: "## Messages",
       blocks: [
         {
           name: "messages",
           inputs: [],
-          operations: [
-            {
-              method: "GET",
-              target: "/messages",
-              name: "load_messages",
-              inputs: [],
-              auto: true
-            }
-          ]
+          operations: [{ method: "GET", target: "/messages", name: "load_messages", inputs: [], auto: true }]
         }
       ]
     };
@@ -219,7 +179,7 @@ BLOCK messages {
 
 \`\`\`mdan
 BLOCK messages {
-  GET "/messages" -> load_messages auto
+  GET load_messages "/messages" AUTO
 }
 \`\`\`
 `);

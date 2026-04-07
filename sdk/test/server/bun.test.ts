@@ -63,6 +63,37 @@ describe("bun host adapter", () => {
     await expect(response.text()).resolves.toContain("## Saved From Bun form for Agent");
   });
 
+  it("normalizes multipart form posts into shared field semantics", async () => {
+    const server = createMdanServer();
+
+    server.post("/submit", async ({ inputs }) =>
+      ok({
+        fragment: {
+          markdown: `## Saved ${inputs.message ?? ""} from ${inputs.attachment ?? ""}`,
+          blocks: []
+        }
+      })
+    );
+
+    const host = createHost(server);
+    const form = new FormData();
+    form.set("message", "From Bun multipart");
+    form.set("attachment", new File(["demo"], "hello.txt", { type: "text/plain" }));
+
+    const response = await host(
+      new Request("https://example.test/submit", {
+        method: "POST",
+        headers: {
+          accept: "text/markdown"
+        },
+        body: form
+      })
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toContain("## Saved From Bun multipart from hello.txt");
+  });
+
   it("serves static files, redirects root, and streams event-stream responses", async () => {
     const staticRoot = await mkdtemp(join(tmpdir(), "mdan-bun-host-"));
     const filePath = join(staticRoot, "hello.txt");

@@ -1,4 +1,4 @@
-import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanInput, MdanOperation, MdanPage } from "./types.js";
+import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanInput, MdanOperation, MdanPage } from "../types.js";
 
 const blockAnchorPattern = /^<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
 
@@ -7,7 +7,6 @@ function serializeFrontmatter(frontmatter: MdanFrontmatter): string {
   if (entries.length === 0) {
     return "";
   }
-
   const lines = entries.map(([key, value]) => `${key}: ${serializeScalar(value)}`);
   return `---\n${lines.join("\n")}\n---\n\n`;
 }
@@ -16,52 +15,55 @@ function serializeScalar(value: string | number | boolean | null): string {
   if (value === null) {
     return "null";
   }
-
   if (typeof value === "string") {
     return JSON.stringify(value);
   }
-
   return String(value);
 }
 
+function serializeOptions(input: MdanInput): string {
+  if (!input.options || input.options.length === 0) {
+    return "";
+  }
+  return ` [${input.options.map((option) => JSON.stringify(option)).join(", ")}]`;
+}
+
 function serializeInput(input: MdanInput): string {
-  const parts = ["INPUT", input.type];
+  const parts = [`INPUT ${input.name}:${input.type}`];
   if (input.required) {
     parts.push("required");
   }
   if (input.secret) {
     parts.push("secret");
   }
-  if (input.options && input.options.length > 0) {
-    parts.push(`[${input.options.map((option) => JSON.stringify(option)).join(", ")}]`);
-  }
-  parts.push("->", input.name);
-  return `  ${parts.join(" ")}`;
+  const options = serializeOptions(input);
+  return `  ${parts.join(" ")}${options}`;
 }
 
 function serializeOperation(operation: MdanOperation): string {
-  const parts = [operation.method, JSON.stringify(operation.target)];
-  if (operation.inputs.length > 0 || operation.method === "POST") {
-    parts.push(`(${operation.inputs.join(", ")})`);
-  }
-  if (operation.name) {
-    parts.push("->", operation.name);
-  }
-  if (operation.auto) {
-    parts.push("auto");
+  const parts = [`${operation.method} ${operation.name ?? operation.target} ${JSON.stringify(operation.target)}`];
+  if (operation.inputs.length > 0) {
+    parts.push(`WITH ${operation.inputs.join(", ")}`);
   }
   if (operation.label) {
-    parts.push(`label:${JSON.stringify(operation.label)}`);
+    parts.push(`LABEL ${JSON.stringify(operation.label)}`);
+  }
+  if (operation.auto) {
+    parts.push("AUTO");
   }
   if (operation.accept) {
-    parts.push(`accept:${JSON.stringify(operation.accept)}`);
+    parts.push(`ACCEPT ${JSON.stringify(operation.accept)}`);
   }
   return `  ${parts.join(" ")}`;
 }
 
-function serializeBlock(block: MdanBlock): string {
-  const body = [...block.inputs.map(serializeInput), ...block.operations.map(serializeOperation)];
-  const lines = [`BLOCK ${block.name} {`, ...body, `}`];
+export function serializeBlock(block: MdanBlock): string {
+  const lines = [
+    `BLOCK ${block.name} {`,
+    ...block.inputs.map(serializeInput),
+    ...block.operations.map(serializeOperation),
+    "}"
+  ];
   return lines.join("\n");
 }
 
@@ -69,9 +71,7 @@ function serializeBlocks(blocks: MdanBlock[]): string {
   if (blocks.length === 0) {
     return "";
   }
-
-  const content = blocks.map(serializeBlock).join("\n\n");
-  return `\`\`\`mdan\n${content}\n\`\`\`\n`;
+  return `\`\`\`mdan\n${blocks.map(serializeBlock).join("\n\n")}\n\`\`\`\n`;
 }
 
 function getVisibleBlockNames(page: MdanPage): Set<string> | null {
@@ -93,12 +93,10 @@ function getVisibleBlockContent(page: MdanPage): Record<string, string> | undefi
   if (!page.blockContent) {
     return undefined;
   }
-
   const visibleBlockNames = getVisibleBlockNames(page);
   if (!visibleBlockNames) {
     return page.blockContent;
   }
-
   return Object.fromEntries(Object.entries(page.blockContent).filter(([name]) => visibleBlockNames.has(name)));
 }
 

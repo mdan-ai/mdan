@@ -432,7 +432,7 @@ function resolveResponseBody(
 ): string {
   if (result.page) {
     return representation === "markdown"
-      ? serializePage(result.page)
+      ? serializeMarkdownPage(result.page)
       : renderHtml(
           getRenderablePage(result.page),
           {
@@ -450,7 +450,7 @@ function resolveResponseBody(
   }
 
   return representation === "markdown"
-    ? serializeFragment(result.fragment)
+    ? serializeMarkdownFragment(result.fragment)
     : renderHtml(result.fragment, {
         kind: "fragment",
         ...(result.route ? { route: result.route } : {}),
@@ -480,17 +480,25 @@ function serializeSseMessage(markdown: string): string {
   return `${lines.map((line) => `data: ${line}`).join("\n")}\n\n`;
 }
 
+function serializeMarkdownPage(page: MdanPage): string {
+  return serializePage(page);
+}
+
+function serializeMarkdownFragment(fragment: MdanFragment): string {
+  return serializeFragment(fragment);
+}
+
 function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<string> {
   if (!isStreamResult(result)) {
     if (!result.fragment) {
       throw new Error("Non-stream event-stream responses must include a fragment.");
     }
-    return serializeSseMessage(serializeFragment(result.fragment));
+    return serializeSseMessage(serializeMarkdownFragment(result.fragment));
   }
 
   return (async function* () {
     for await (const chunk of toAsyncIterable(result.stream)) {
-      const markdown = typeof chunk === "string" ? chunk : serializeFragment(chunk);
+      const markdown = typeof chunk === "string" ? chunk : serializeMarkdownFragment(chunk);
       yield serializeSseMessage(markdown);
     }
   })();
@@ -556,7 +564,7 @@ function createPageResponse(
     }, discoveryLinksToHeader(discoveryLinks)),
     body:
       representation === "markdown"
-        ? serializePage(page)
+        ? serializeMarkdownPage(page)
         : renderHtml(getRenderablePage(page), {
             kind: "page",
             ...(route ? { route } : {}),

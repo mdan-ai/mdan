@@ -59,14 +59,15 @@ describe("result helpers", () => {
 
 \`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> refresh label:"Refresh"
+  GET refresh "/list" LABEL "Refresh"
 }
 \`\`\`
 `,
       {
         blocks: {
           guestbook: "## 2 live messages\n\n- Welcome\n- Hello"
-        }
+        },
+        visibleBlocks: ["guestbook"]
       }
     );
 

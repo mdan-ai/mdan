@@ -17,11 +17,11 @@ This group contains the spec-facing and Markdown handling tools.
 
 ### `parsePage(source)`
 
-Parses a `.md` page source and returns a page object.
+Parses a `.md` page source with the current MDAN syntax and returns a page object.
 
 ### `composePage(source, { blocks })`
 
-Parses a page and attaches runtime block content, returning a composed page object.
+Parses a page with the current MDAN syntax and attaches runtime block content, returning a composed page object.
 
 The returned value also provides:
 
@@ -31,7 +31,7 @@ This is the recommended way to extract a block fragment from a composed page.
 
 ### `validatePage(page)`
 
-Validates page structure, including:
+Validates page structure for the current MDAN syntax, including:
 
 - block names
 - anchor alignment
@@ -48,11 +48,11 @@ Serializes fields into a standard Markdown request body.
 
 ### `serializePage(page)`
 
-Serializes a full page object into full page Markdown.
+Serializes a full page object into canonical current-syntax Markdown.
 
 ### `serializeFragment(fragment)`
 
-Serializes a block-level fragment into Markdown.
+Serializes a block-level fragment into canonical current-syntax Markdown.
 
 ### `MdanMarkdownRenderer`
 

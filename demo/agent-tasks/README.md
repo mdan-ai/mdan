@@ -107,7 +107,7 @@ Each task summary includes:
 - summary
 - current status
 - next step
-- a `GET "/tasks/:id" -> open` operation
+- a `GET open "/tasks/:id"` operation
 
 ### 2. Task detail page
 
@@ -327,15 +327,15 @@ No tasks in available.
 
 ```mdan
 BLOCK waiting_for_you {
-  GET "/tasks/waiting?agent_id=agent-a" -> refresh_waiting label:"Refresh waiting"
+  GET refresh_waiting "/tasks/waiting?agent_id=agent-a" LABEL "Refresh waiting"
 }
 
 BLOCK in_progress {
-  GET "/tasks/in-progress?agent_id=agent-a" -> refresh_in_progress label:"Refresh in progress"
+  GET refresh_in_progress "/tasks/in-progress?agent_id=agent-a" LABEL "Refresh in progress"
 }
 
 BLOCK available {
-  GET "/tasks/available?agent_id=agent-a" -> refresh_available label:"Refresh available"
+  GET refresh_available "/tasks/available?agent_id=agent-a" LABEL "Refresh available"
 }
 ```
 ````
@@ -388,7 +388,7 @@ Review the task and accept it if you will complete it.
 
 ```mdan
 BLOCK runtime {
-  POST "/tasks/task-1/accept" () -> accept label:"Accept task"
+  POST accept "/tasks/task-1/accept" LABEL "Accept task"
 }
 ```
 ````
@@ -414,7 +414,7 @@ Agent B reads the stable task definition from the page body, then finds the next
 
 ```mdan
 BLOCK runtime {
-  POST "/tasks/task-1/accept" () -> accept label:"Accept task"
+  POST accept "/tasks/task-1/accept" LABEL "Accept task"
 }
 ```
 
@@ -447,8 +447,8 @@ Complete the task and submit a result.
 
 ```mdan
 BLOCK runtime {
-  INPUT text required -> result
-  POST "/tasks/task-1/submit" (result) -> submit label:"Submit result"
+  INPUT result:text required
+  POST submit "/tasks/task-1/submit" WITH result LABEL "Submit result"
 }
 ```
 ````
@@ -487,9 +487,9 @@ pub fn session_sort(mut values: Vec<i32>) -> Vec<i32> { values.sort(); values }
 
 ```mdan
 BLOCK runtime {
-  INPUT text -> note
-  POST "/tasks/task-1/request-revision" (note) -> request_revision label:"Request revision"
-  POST "/tasks/task-1/complete" () -> complete label:"Complete task"
+  INPUT note:text
+  POST request_revision "/tasks/task-1/request-revision" WITH note LABEL "Request revision"
+  POST complete "/tasks/task-1/complete" LABEL "Complete task"
 }
 ```
 ````
@@ -532,8 +532,8 @@ pub fn session_sort(mut values: Vec<i32>) -> Vec<i32> { values.sort(); values }
 
 ```mdan
 BLOCK runtime {
-  INPUT text required -> result
-  POST "/tasks/task-1/submit" (result) -> submit label:"Resubmit result"
+  INPUT result:text required
+  POST submit "/tasks/task-1/submit" WITH result LABEL "Resubmit result"
 }
 ```
 ````
@@ -594,7 +594,7 @@ Open `/login` to continue.
 
 ```mdan
 BLOCK recover {
-  GET "/login" -> recover label:"Open Sign In"
+  GET recover "/login" LABEL "Open Sign In"
 }
 ```
 ````
@@ -610,7 +610,7 @@ Return to the task page and wait for the assigned reviewer to continue.
 
 ```mdan
 BLOCK recover {
-  GET "/tasks/task-1" -> recover label:"Open task"
+  GET recover "/tasks/task-1" LABEL "Open task"
 }
 ```
 ````
@@ -626,7 +626,7 @@ Refresh the task page to see the current state before continuing.
 
 ```mdan
 BLOCK recover {
-  GET "/tasks/task-1" -> recover label:"Open task"
+  GET recover "/tasks/task-1" LABEL "Open task"
 }
 ```
 ````

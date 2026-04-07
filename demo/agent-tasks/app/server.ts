@@ -26,10 +26,10 @@ Sign in to open your task queue.
 
 \`\`\`mdan
 BLOCK login {
-  INPUT text required -> nickname
-  INPUT text required secret -> password
-  POST "/login" (nickname, password) -> login label:"Sign In"
-  GET "/register" -> register label:"Create account"
+  INPUT nickname:text required
+  INPUT password:text required secret
+  POST login "/login" WITH nickname, password LABEL "Sign In"
+  GET register "/register" LABEL "Create account"
 }
 \`\`\`
 `;
@@ -42,10 +42,10 @@ Create an agent identity for this demo.
 
 \`\`\`mdan
 BLOCK register {
-  INPUT text required -> nickname
-  INPUT text required secret -> password
-  POST "/register" (nickname, password) -> register label:"Create account"
-  GET "/login" -> login label:"Back to sign in"
+  INPUT nickname:text required
+  INPUT password:text required secret
+  POST register "/register" WITH nickname, password LABEL "Create account"
+  GET login "/login" LABEL "Back to sign in"
 }
 \`\`\`
 `;
@@ -279,7 +279,7 @@ Next step: ${task.status === "open" ? "accept task" : task.status === "submitted
 
 \`\`\`mdan
 BLOCK ${task.id.replace(/[^a-z0-9_]/gi, "_")} {
-  GET "/tasks/${task.id}" -> open label:"Open task"
+  GET open "/tasks/${task.id}" LABEL "Open task"
 }
 \`\`\``
     )
@@ -304,7 +304,8 @@ function renderAuthPage(source: string, blockName: "login" | "register", blockMa
   return composePage(source, {
     blocks: {
       [blockName]: blockMarkdown
-    }
+    },
+    visibleBlocks: [blockName]
   });
 }
 
@@ -401,7 +402,8 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
     const page = composePage(replaceTemplate(options.detailSource, task), {
       blocks: {
         runtime: runtimeFragment.markdown
-      }
+      },
+      visibleBlocks: ["runtime"]
     });
     page.blocks = page.blocks.map((block): MdanBlock => (block.name === "runtime" && runtimeBlock ? runtimeBlock : block));
     return page;
@@ -414,7 +416,8 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
         waiting_for_you: renderOverviewSection("Waiting for you", buckets.waitingForYou),
         in_progress: renderOverviewSection("In progress", buckets.inProgress),
         available: renderOverviewSection("Available", buckets.available)
-      }
+      },
+      visibleBlocks: ["waiting_for_you", "in_progress", "available"]
     });
     page.blocks = page.blocks.map((block) => {
       if (block.name === "waiting_for_you") {
@@ -620,7 +623,10 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
       return { fragment: agentId, route: "/tasks/new", status: 401 };
     }
     return {
-      page: composePage(options.newTaskSource, { blocks: { create_task: renderCreateTaskBlockContent() } }),
+      page: composePage(options.newTaskSource, {
+        blocks: { create_task: renderCreateTaskBlockContent() },
+        visibleBlocks: ["create_task"]
+      }),
       route: "/tasks/new"
     };
   });

@@ -180,6 +180,9 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                   return html`
                     <mdan-form>
                       <form
+                        enctype=${renderableInputs.some((input) => input.type === "asset")
+                          ? "multipart/form-data"
+                          : "application/x-www-form-urlencoded"}
                         @submit=${(event: Event) => {
                           event.preventDefault();
                           const form = event.currentTarget as HTMLFormElement;
@@ -303,6 +306,9 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                   return html`
                     <mdan-form>
                       <form
+                        enctype=${renderableInputs.some((input) => input.type === "asset")
+                          ? "multipart/form-data"
+                          : "application/x-www-form-urlencoded"}
                         @submit=${(event: Event) => {
                           event.preventDefault();
                           const form = event.currentTarget as HTMLFormElement;

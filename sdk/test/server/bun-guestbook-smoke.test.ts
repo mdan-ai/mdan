@@ -25,7 +25,7 @@ describe("bun guestbook adapter", () => {
     expect(page.status).toBe(200);
     const pageBody = await page.text();
     expect(pageBody).toContain("## 2 live messages");
-    expect(pageBody).toContain('POST "/post" (message) -> submit');
+    expect(pageBody).toContain('POST submit "/post" WITH message LABEL "Submit"');
 
     const save = await host(
       new Request("https://example.test/post", {

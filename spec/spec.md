@@ -58,9 +58,9 @@ The executable interaction block uses a fenced code block with info string `mdan
 ````md
 ```mdan
 BLOCK guestbook {
-  INPUT text required -> message
-  GET "/list" -> refresh
-  POST "/post" (message) -> submit
+  INPUT message:text required
+  GET refresh "/list"
+  POST submit "/post" WITH message
 }
 ```
 ````
@@ -81,7 +81,7 @@ For example:
 ```mdan-src
 ```mdan
 BLOCK guestbook {
-  INPUT text -> nickname
+  INPUT nickname:text
 }
 ```
 ```
@@ -100,9 +100,9 @@ The main MDAN keywords are:
 
 Supported operation modifiers are:
 
-- `auto`
-- `label:"..."`
-- `accept:"..."`
+- `AUTO`
+- `LABEL "..."`
+- `ACCEPT "..."`
 
 Keywords are case-sensitive. The canonical forms shown in this spec must be used.
 
@@ -132,7 +132,7 @@ Rules:
 Form:
 
 ```mdan
-INPUT <type> [required] [secret] [options] -> <name>
+INPUT <name>:<type> [required] [secret] [options]
 ```
 
 Supported input types:
@@ -152,10 +152,10 @@ Supported modifiers:
 Examples:
 
 ```mdan
-INPUT text -> nickname
-INPUT text required -> message
-INPUT text required secret -> password
-INPUT choice ["draft","published"] -> status
+INPUT nickname:text
+INPUT message:text required
+INPUT password:text required secret
+INPUT status:choice ["draft","published"]
 ```
 
 Rules:
@@ -172,10 +172,10 @@ Rules:
 Forms:
 
 ```mdan
-GET "/list" -> refresh
-GET "/list" -> load_messages auto
-GET "/list" (cursor) -> load_more label:"Load More"
-GET "/stream" accept:"text/event-stream"
+GET refresh "/list"
+GET load_messages "/list" AUTO
+GET load_more "/list" WITH cursor LABEL "Load More"
+GET stream "/stream" ACCEPT "text/event-stream"
 ```
 
 Rules:
@@ -183,10 +183,8 @@ Rules:
 - the target must be a double-quoted string
 - every referenced input must already be declared in the current block
 - a normal `GET` must declare an operation name
-- a stream read using `accept:"text/event-stream"` may omit the operation name
-- a stream read must not declare an operation name
 - operation names share one namespace across `GET` and `POST` within a block
-- `label:"..."` declares a human-readable label and does not change execution semantics
+- `LABEL "..."` declares a human-readable label and does not change execution semantics
 
 ### `POST`
 
@@ -195,7 +193,7 @@ Rules:
 Form:
 
 ```mdan
-POST "/post" (nickname, message) -> submit label:"Send Message"
+POST submit "/post" WITH nickname, message LABEL "Send Message"
 ```
 
 Rules:
@@ -211,16 +209,16 @@ Rules:
 Examples:
 
 ```mdan
-GET "/list" -> load_more label:"Load More"
-POST "/login" (email, password) -> sign_in label:"Sign In"
+GET load_more "/list" LABEL "Load More"
+POST sign_in "/login" WITH email, password LABEL "Sign In"
 ```
 
 Rules:
 
 - operation names must match `[a-zA-Z_][\\w-]*`
-- `label:"..."` uses a double-quoted string
+- `LABEL "..."` uses a double-quoted string
 - `label` affects display, not target, method, or input binding
-- `auto` is an execution modifier, not a display modifier
+- `AUTO` is an execution modifier, not a display modifier
 
 ## Block Anchors
 
@@ -331,23 +329,23 @@ An implementation should treat the result as a full-page transition when:
 - the response is a full page Markdown document
 - or the operation explicitly leads to a different page route
 
-### `auto`
+### `AUTO`
 
-`auto` is an execution instruction, not a browser-only hint.
+`AUTO` is an execution instruction, not a browser-only hint.
 
 Rules:
 
-- `auto` is allowed only on `GET`
-- `auto` is allowed only on zero-input operations
-- `auto` must not be combined with stream reads
+- `AUTO` is allowed only on `GET`
+- `AUTO` is allowed only on zero-input operations
+- `AUTO` must not be combined with stream reads
 - at most one `auto GET` may appear in the same block
 - the corresponding target should be safe, idempotent, and side-effect free
 
 Intent:
 
-- `auto` marks a dependency that should not be exposed as an intermediate client step
+- `AUTO` marks a dependency that should not be exposed as an intermediate client step
 - different hosts should expose the same resolved result
-- if an intermediate step should remain visible to the client, it must not be marked `auto`
+- if an intermediate step should remain visible to the client, it must not be marked `AUTO`
 
 ## Session Surface Semantics
 
@@ -359,7 +357,7 @@ Rules:
 - when a page or action requires authorization, an unauthorized response should return a recoverable Markdown result whenever continued interaction is possible
 - login, register, logout, and similar actions should still return Markdown pages or fragments that describe the next step
 - when a session becomes invalid, the returned result should guide the client back to a recoverable next operation
-- if a recovery path includes an `auto` read dependency, the host should resolve it before returning the final result
+- if a recovery path includes an `AUTO` read dependency, the host should resolve it before returning the final result
 
 ## HTTP Binding
 
@@ -371,8 +369,8 @@ Example:
 
 ```mdan
 BLOCK guestbook {
-  GET "/list" -> refresh
-  POST "/post" (message) -> submit
+  GET refresh "/list"
+  POST submit "/post" WITH message
 }
 ```
 
@@ -470,7 +468,7 @@ The current TypeScript reference implementation currently normalizes Markdown di
 ### Action Parameters Over HTTP
 
 - `GET` action inputs are carried through the target URL
-- `POST` action inputs are carried through the Markdown request body
+- `POST` action inputs are carried through the request body using one of the supported write encodings
 
 ### Error And Recovery Over HTTP
 
@@ -534,11 +532,11 @@ title: Guestbook
 
 ```mdan
 BLOCK guestbook {
-  INPUT text -> nickname
-  INPUT text required -> message
-  GET "/list" -> load_messages auto
-  GET "/list" -> refresh label:"Refresh"
-  POST "/post" (nickname, message) -> submit label:"Submit"
+  INPUT nickname:text
+  INPUT message:text required
+  GET load_messages "/list" AUTO
+  GET refresh "/list" LABEL "Refresh"
+  POST submit "/post" WITH nickname, message LABEL "Submit"
 }
 ```
 ````
@@ -548,7 +546,7 @@ In this page:
 - the body is ordinary Markdown
 - `guestbook` is a named interaction block
 - `/list` is a read target
-- `load_messages auto` means the host may resolve that read dependency before returning the final result
+- `GET load_messages "/list" AUTO` means the host may resolve that read dependency before returning the final result
 - `/post` is a write target
 - `<!-- mdan:block guestbook -->` is the body anchor for that block
 

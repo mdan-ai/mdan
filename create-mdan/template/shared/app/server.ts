@@ -18,7 +18,8 @@ export function createAppServer(options: CreateAppServerOptions) {
     return composePage(options.source, {
       blocks: {
         main: renderMainBlock()
-      }
+      },
+      visibleBlocks: ["main"]
     });
   }
 

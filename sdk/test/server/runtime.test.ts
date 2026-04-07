@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { composePage } from "../../src/core/index.js";
+import { composePage } from "../../src/core/syntax/index.js";
 import { createMdanServer, ok, signIn, stream } from "../../src/server/index.js";
 
 async function readBody(body: string | AsyncIterable<string>): Promise<string> {
@@ -363,14 +363,15 @@ describe("createMdanServer", () => {
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/step-2" -> step_2 auto
+  GET step_2 "/step-2" AUTO
 }
 \`\`\`
 `,
           {
             blocks: {
               gate: "## Passing through"
-            }
+            },
+            visibleBlocks: ["gate"]
           }
         ),
         session: signIn({ userId: "middle-user" })
@@ -422,14 +423,15 @@ BLOCK gate {
 
 \`\`\`mdan
 BLOCK auth {
-  GET "/bootstrap-session" -> bootstrap_session auto
+  GET bootstrap_session "/bootstrap-session" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             auth: "## Loading session"
-          }
+          },
+          visibleBlocks: ["auth"]
         }
       )
     );
@@ -472,14 +474,15 @@ BLOCK auth {
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/login" -> open_login auto
+  GET open_login "/login" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Checking access"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -519,14 +522,15 @@ BLOCK gate {
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/logout-bootstrap" -> logout_bootstrap auto
+  GET logout_bootstrap "/logout-bootstrap" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Closing session"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -569,14 +573,15 @@ BLOCK gate {
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/missing" -> missing auto
+  GET missing "/missing" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Still here"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -598,21 +603,25 @@ BLOCK gate {
 
   it("stops auto resolution after 10 passes instead of looping forever", async () => {
     const server = createMdanServer();
-    const loop = vi.fn(async () =>
-      ok({
-        fragment: {
-          markdown: "## Looping",
-          blocks: [
-            {
-              name: "gate",
-              markdown: "## Looping",
-              inputs: [],
-              operations: [{ method: "GET", target: "/loop-step", name: "loop_step", inputs: [], auto: true }]
-            }
-          ]
-        }
-      })
+    const loopPage = composePage(
+      `# Loop
+
+<!-- mdan:block gate -->
+
+\`\`\`mdan
+BLOCK gate {
+  GET loop_step "/loop-step" AUTO
+}
+\`\`\`
+`,
+      {
+        blocks: {
+          gate: "## Looping"
+        },
+        visibleBlocks: ["gate"]
+      }
     );
+    const loop = vi.fn(async () => ok({ fragment: loopPage.fragment("gate") }));
 
     server.page("/loop", async () =>
       composePage(
@@ -622,14 +631,15 @@ BLOCK gate {
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/loop-step" -> loop_step auto
+  GET loop_step "/loop-step" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Start"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -647,7 +657,7 @@ BLOCK gate {
 
     expect(response.status).toBe(200);
     expect(loop).toHaveBeenCalledTimes(10);
-    expect(response.body).toContain("GET \"/loop-step\" -> loop_step auto");
+    expect(response.body).toContain("/loop-step");
     expect(response.body).toContain("## Looping");
   });
 
@@ -963,7 +973,38 @@ BLOCK gate {
     expect(response.body).toContain("## 2 live messages");
     expect(response.body).toContain("- Hello");
     expect(response.body).toContain("```mdan");
-    expect(response.body).toContain('POST "/post" (message) -> submit');
+    expect(response.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
+  });
+
+  it("treats hand-built unmarked pages as current syntax when serializing markdown responses", async () => {
+    const server = createMdanServer();
+
+    server.page("/manual-current", async () => ({
+      frontmatter: { title: "Manual Current" },
+      markdown: "# Manual Current\n\n<!-- mdan:block guestbook -->",
+      blockContent: {
+        guestbook: "## 1 live message\n\n- Welcome"
+      },
+      blocks: [
+        {
+          name: "guestbook",
+          inputs: [{ name: "message", type: "text", required: true, secret: false }],
+          operations: [{ method: "POST", target: "/post", name: "submit", inputs: ["message"], label: "Submit" }]
+        }
+      ],
+      blockAnchors: ["guestbook"]
+    }));
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/manual-current",
+      headers: { accept: "text/markdown" },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
+    expect(response.body).not.toContain('POST "/post" (message) -> submit');
   });
 
   it("serves rendered html to browser consumers for page routes", async () => {
@@ -1089,7 +1130,7 @@ BLOCK gate {
     expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/spec/v1"');
     expect(listHandler).toHaveBeenCalledTimes(1);
     expect(response.body).toContain("2 live messages");
-    expect(response.body).not.toContain('GET "/list" -> load_messages auto');
+    expect(response.body).not.toContain('GET load_messages "/list" AUTO');
   });
 
   it("does not auto-resolve manual labeled GET operations for html page responses", async () => {
@@ -1188,7 +1229,7 @@ BLOCK gate {
     expect(response.body).toContain("No private notes yet");
     expect(response.body).toContain('action="/vault"');
     expect(response.body).not.toContain("Use `open_vault` to continue.");
-    expect(response.body).not.toContain('GET "/vault" -> open_vault');
+    expect(response.body).not.toContain('GET open_vault "/vault"');
   });
 
   it("propagates session mutations from implicit html GET dependencies to later implicit steps", async () => {
@@ -1316,7 +1357,7 @@ BLOCK gate {
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/spec/v1"');
     expect(response.body).toContain("# Vault");
-    expect(response.body).not.toContain('GET "/vault" -> open_vault auto');
+    expect(response.body).not.toContain('GET open_vault "/vault" AUTO');
     expect(response.body).not.toContain("Welcome Ada");
   });
 

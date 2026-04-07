@@ -38,9 +38,9 @@ describe("auth-session example", () => {
     });
 
     expect(loginPage.body).toContain("# Starter Sign In");
-    expect(loginPage.body).toContain('POST "/login" (nickname, password) -> login');
-    expect(loginPage.body).toContain('GET "/register" -> register');
-    expect(loginPage.body).not.toContain('POST "/vault" (message) -> save');
+    expect(loginPage.body).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
+    expect(loginPage.body).toContain('GET register "/register" LABEL "Create account"');
+    expect(loginPage.body).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
 
     const registerPage = await server.handle({
       method: "GET",
@@ -50,8 +50,8 @@ describe("auth-session example", () => {
     });
 
     expect(registerPage.body).toContain("# Starter Register");
-    expect(registerPage.body).toContain('POST "/register" (nickname, password) -> register');
-    expect(registerPage.body).toContain('GET "/login" -> login');
+    expect(registerPage.body).toContain('POST register "/register" WITH nickname, password LABEL "Create account"');
+    expect(registerPage.body).toContain('GET login "/login" LABEL "Back to sign in"');
 
     const registerResponse = await server.handle({
       method: "POST",
@@ -66,7 +66,7 @@ describe("auth-session example", () => {
 
     expect(registerResponse.body).toContain("# Starter Vault");
     expect(registerResponse.body).toContain("No private notes yet");
-    expect(registerResponse.body).not.toContain('GET "/vault" -> open_vault auto');
+    expect(registerResponse.body).not.toContain('GET open_vault "/vault" AUTO');
     const sessionCookie = cookieValueFromSetCookie(registerResponse.headers["set-cookie"]);
     expect(sessionCookie).toBeTruthy();
     expect(decodeURIComponent(sessionCookie)).not.toBe("Ada");
@@ -117,9 +117,9 @@ describe("auth-session example", () => {
     });
 
     expect(logoutResponse.body).toContain("# Starter Sign In");
-    expect(logoutResponse.body).toContain('POST "/login" (nickname, password) -> login');
-    expect(logoutResponse.body).not.toContain('GET "/login" -> open_login auto');
-    expect(logoutResponse.body).not.toContain('POST "/vault" (message) -> save');
+    expect(logoutResponse.body).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
+    expect(logoutResponse.body).not.toContain('GET open_login "/login" AUTO');
+    expect(logoutResponse.body).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
     expect(logoutResponse.headers["set-cookie"]).toContain("Max-Age=0");
 
     const replayAfterLogout = await server.handle({
@@ -136,7 +136,7 @@ describe("auth-session example", () => {
     });
 
     expect(replayAfterLogout.status).toBe(401);
-    expect(replayAfterLogout.body).toContain('GET "/login" -> recover');
+    expect(replayAfterLogout.body).toContain('GET recover "/login" LABEL "Open Sign In"');
   });
 
   it("returns a recoverable vault fragment when a protected action is called without a session", async () => {
@@ -156,7 +156,7 @@ describe("auth-session example", () => {
 
     expect(response.status).toBe(401);
     expect(response.body).toContain("Please sign in before saving notes");
-    expect(response.body).toContain('GET "/login" -> recover');
+    expect(response.body).toContain('GET recover "/login" LABEL "Open Sign In"');
   });
 
   it("treats stale cookies as signed out and sends recovery back to login", async () => {
@@ -173,7 +173,7 @@ describe("auth-session example", () => {
     });
 
     expect(pageResponse.body).toContain("# Sign In");
-    expect(pageResponse.body).not.toContain('POST "/vault" (message) -> save');
+    expect(pageResponse.body).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
 
     const notesResponse = await server.handle({
       method: "POST",
@@ -189,7 +189,7 @@ describe("auth-session example", () => {
     });
 
     expect(notesResponse.status).toBe(401);
-    expect(notesResponse.body).toContain('GET "/login" -> recover');
+    expect(notesResponse.body).toContain('GET recover "/login" LABEL "Open Sign In"');
   });
 
   it("returns a recoverable register fragment for duplicate registration", async () => {
@@ -220,7 +220,7 @@ describe("auth-session example", () => {
 
     expect(duplicate.status).toBe(409);
     expect(duplicate.body).toContain("already exists");
-    expect(duplicate.body).toContain('GET "/login" -> login');
+    expect(duplicate.body).toContain('GET login "/login" LABEL "Back to sign in"');
   });
 
   it("returns a recoverable login fragment for invalid credentials", async () => {
@@ -240,8 +240,8 @@ describe("auth-session example", () => {
 
     expect(invalidLogin.status).toBe(401);
     expect(invalidLogin.body).toContain("Invalid credentials");
-    expect(invalidLogin.body).toContain('POST "/login" (nickname, password) -> login');
-    expect(invalidLogin.body).toContain('GET "/register" -> register');
+    expect(invalidLogin.body).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
+    expect(invalidLogin.body).toContain('GET register "/register" LABEL "Create account"');
   });
 
   it("keeps a signed-in user in the vault flow when note input is empty", async () => {
@@ -275,7 +275,7 @@ describe("auth-session example", () => {
 
     expect(emptyNote.status).toBe(400);
     expect(emptyNote.body).toContain("Message is required");
-    expect(emptyNote.body).toContain('POST "/vault" (message) -> save');
+    expect(emptyNote.body).toContain('POST save "/vault" WITH message LABEL "Save Note"');
   });
 
   it("allows an agent to recover from an unauthorized vault action and then retry successfully", async () => {
@@ -294,7 +294,7 @@ describe("auth-session example", () => {
     });
 
     expect(unauthorized.status).toBe(401);
-    expect(unauthorized.body).toContain('GET "/login" -> recover');
+    expect(unauthorized.body).toContain('GET recover "/login" LABEL "Open Sign In"');
 
     const register = await server.handle({
       method: "POST",

@@ -85,7 +85,7 @@ message: "Private note from agent"
 在 `auth-session` 例子里，Agent 可以这样工作：
 
 1. `GET /login`
-2. 发现 `POST "/login"` 和 `GET "/register"`
+2. 发现 `POST login "/login"` 和 `GET register "/register"`
 3. 用下面的 body 执行 `POST /register`：
 
 ```md
@@ -114,19 +114,19 @@ message: "Private note from agent"
 3. 返回页面里会出现：
 
 ```md
-POST "/tasks/task-1/accept" () -> accept
+POST accept "/tasks/task-1/accept"
 ```
 
 4. Agent B 直接发送 `POST /tasks/task-1/accept`
 5. 返回结果里会出现：
 
 ```md
-POST "/tasks/task-1/submit" (result) -> submit
+POST submit "/tasks/task-1/submit" WITH result
 ```
 
 6. Agent B 提交结果
 7. reviewer 会收到：
-   `POST "/tasks/task-1/request-revision"` 和 `POST "/tasks/task-1/complete"`
+   `POST request_revision "/tasks/task-1/request-revision" WITH review_note` 和 `POST complete "/tasks/task-1/complete"`
 
 这是一条直接通过 HTTP 完成的 handoff 流程，不需要浏览器自动化。
 

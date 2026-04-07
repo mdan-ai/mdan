@@ -46,6 +46,6 @@ describe("guestbook example", () => {
     expect(postResponse.body).toContain("- Alpha");
     expect(postResponse.body).toContain("- Beta");
     expect(postResponse.body).toContain("- Hello from example");
-    expect(postResponse.body).toContain('POST "/post" (message) -> submit');
+    expect(postResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 });

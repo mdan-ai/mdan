@@ -1,5 +1,5 @@
-import { MdanValidationError } from "./errors.js";
-import type { MdanBlock, MdanOperation, MdanPage } from "./types.js";
+import { MdanValidationError } from "../errors.js";
+import type { MdanBlock, MdanOperation, MdanPage } from "../types.js";
 
 const identifierPattern = /^[a-zA-Z_][\w-]*$/;
 
@@ -38,9 +38,47 @@ function validateOperationNames(block: MdanBlock): void {
   assertUnique(names, (name) => `Duplicate operation "${name}" in block "${block.name}".`);
 }
 
+function validateGetOperation(operation: MdanOperation, blockName: string): void {
+  const isStream = operation.accept === "text/event-stream";
+  if (isStream && operation.name) {
+    throw new MdanValidationError(
+      `Stream GET "${operation.target}" in block "${blockName}" must not define an operation name.`
+    );
+  }
+  if (!isStream && !operation.name) {
+    throw new MdanValidationError(
+      `GET "${operation.target}" in block "${blockName}" must define an operation name.`
+    );
+  }
+  if (operation.auto && operation.inputs.length > 0) {
+    throw new MdanValidationError(
+      `AUTO GET "${operation.target}" in block "${blockName}" must not declare inputs.`
+    );
+  }
+  if (operation.auto && operation.accept) {
+    throw new MdanValidationError(
+      `AUTO GET "${operation.target}" in block "${blockName}" must not declare an ACCEPT override.`
+    );
+  }
+}
+
+function validatePostOperation(operation: MdanOperation, blockName: string): void {
+  if (!operation.name) {
+    throw new MdanValidationError(
+      `POST "${operation.target}" in block "${blockName}" must define an operation name.`
+    );
+  }
+  if (operation.auto) {
+    throw new MdanValidationError(
+      `POST "${operation.target}" in block "${blockName}" must not declare AUTO.`
+    );
+  }
+}
+
 function validateOperationReferences(block: MdanBlock): void {
   const inputNames = new Set(block.inputs.map((input) => input.name));
   let autoGetCount = 0;
+
   for (const operation of block.operations) {
     for (const input of operation.inputs) {
       if (!inputNames.has(input)) {
@@ -58,51 +96,9 @@ function validateOperationReferences(block: MdanBlock): void {
       validatePostOperation(operation, block.name);
     }
   }
+
   if (autoGetCount > 1) {
-    throw new MdanValidationError(`Block "${block.name}" may define at most one auto GET operation.`);
-  }
-}
-
-function validateGetOperation(operation: MdanOperation, blockName: string): void {
-  if (operation.method !== "GET") {
-    return;
-  }
-  const isStream = operation.accept === "text/event-stream";
-  if (isStream && operation.name) {
-    throw new MdanValidationError(
-      `Stream GET "${operation.target}" in block "${blockName}" must not define an operation name.`
-    );
-  }
-  if (!isStream && !operation.name) {
-    throw new MdanValidationError(
-      `GET "${operation.target}" in block "${blockName}" must define an operation name.`
-    );
-  }
-  if (operation.auto && operation.inputs.length > 0) {
-    throw new MdanValidationError(
-      `Auto GET "${operation.target}" in block "${blockName}" must not declare inputs.`
-    );
-  }
-  if (operation.auto && operation.accept) {
-    throw new MdanValidationError(
-      `Auto GET "${operation.target}" in block "${blockName}" must not declare an accept override.`
-    );
-  }
-}
-
-function validatePostOperation(operation: MdanOperation, blockName: string): void {
-  if (operation.method !== "POST") {
-    return;
-  }
-  if (!operation.name) {
-    throw new MdanValidationError(
-      `POST "${operation.target}" in block "${blockName}" must define an operation name.`
-    );
-  }
-  if (operation.auto) {
-    throw new MdanValidationError(
-      `POST "${operation.target}" in block "${blockName}" must not declare auto.`
-    );
+    throw new MdanValidationError(`Block "${block.name}" may define at most one AUTO GET operation.`);
   }
 }
 

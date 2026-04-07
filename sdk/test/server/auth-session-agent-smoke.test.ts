@@ -88,15 +88,15 @@ describe("auth-session agent-only smoke test", () => {
     const loginPage = await getMarkdown(`${baseUrl}/login`);
     expect(loginPage.status).toBe(200);
     const loginBody = await loginPage.text();
-    expect(loginBody).toContain('POST "/login" (nickname, password) -> login');
-    expect(loginBody).toContain('GET "/register" -> register');
-    expect(loginBody).not.toContain('POST "/vault" (message) -> save');
+    expect(loginBody).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
+    expect(loginBody).toContain('GET register "/register" LABEL "Create account"');
+    expect(loginBody).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
 
     const registerPage = await getMarkdown(`${baseUrl}/register`);
     expect(registerPage.status).toBe(200);
     const registerBody = await registerPage.text();
-    expect(registerBody).toContain('POST "/register" (nickname, password) -> register');
-    expect(registerBody).toContain('GET "/login" -> login');
+    expect(registerBody).toContain('POST register "/register" WITH nickname, password LABEL "Create account"');
+    expect(registerBody).toContain('GET login "/login" LABEL "Back to sign in"');
 
     const nickname = `AgentSmoke-${Date.now().toString(36)}`;
     const register = await postMarkdown(`${baseUrl}/register`, `nickname: "${nickname}", password: "pass-1234"`);
@@ -105,8 +105,8 @@ describe("auth-session agent-only smoke test", () => {
     const registerResult = await register.text();
     expect(registerResult).toContain("# Vault");
     expect(registerResult).toContain(`## Welcome ${nickname}`);
-    expect(registerResult).toContain('POST "/vault" (message) -> save');
-    expect(registerResult).not.toContain('GET "/vault" -> open_vault auto');
+    expect(registerResult).toContain('POST save "/vault" WITH message LABEL "Save Note"');
+    expect(registerResult).not.toContain('GET open_vault "/vault" AUTO');
     expect(sessionCookie).toMatch(/^mdan_session=[0-9a-f-]+$/);
     expect(sessionCookie).not.toContain(nickname);
 
@@ -114,8 +114,8 @@ describe("auth-session agent-only smoke test", () => {
     expect(vaultPage.status).toBe(200);
     const vaultBody = await vaultPage.text();
     expect(vaultBody).toContain(`## Welcome ${nickname}`);
-    expect(vaultBody).toContain('POST "/vault" (message) -> save');
-    expect(vaultBody).toContain('POST "/vault/logout" () -> logout');
+    expect(vaultBody).toContain('POST save "/vault" WITH message LABEL "Save Note"');
+    expect(vaultBody).toContain('POST logout "/vault/logout" LABEL "Log Out"');
 
     const save = await postMarkdown(`${baseUrl}/vault`, 'message: "Private note from smoke test"', sessionCookie);
     expect(save.status).toBe(200);
@@ -133,8 +133,8 @@ describe("auth-session agent-only smoke test", () => {
     expect(logout.status).toBe(200);
     expect(logout.headers.get("set-cookie")).toContain("Max-Age=0");
     const logoutBody = await logout.text();
-    expect(logoutBody).toContain('POST "/login" (nickname, password) -> login');
-    expect(logoutBody).not.toContain('GET "/login" -> open_login auto');
+    expect(logoutBody).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
+    expect(logoutBody).not.toContain('GET open_login "/login" AUTO');
 
     const lockedVault = await getMarkdown(`${baseUrl}/vault`, sessionCookie);
     expect(lockedVault.status).toBe(200);
@@ -145,6 +145,6 @@ describe("auth-session agent-only smoke test", () => {
     const replayWrite = await postMarkdown(`${baseUrl}/vault`, 'message: "Replay should fail"', sessionCookie);
     expect(replayWrite.status).toBe(401);
     const replayBody = await replayWrite.text();
-    expect(replayBody).toContain('GET "/login" -> recover');
+    expect(replayBody).toContain('GET recover "/login" LABEL "Open Sign In"');
   }, 15_000);
 });

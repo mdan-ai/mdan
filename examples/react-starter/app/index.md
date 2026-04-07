@@ -10,8 +10,8 @@ This React starter keeps React as the host shell while MDAN continues to drive p
 
 ```mdan
 BLOCK main {
-  INPUT text required -> message
-  GET "/list" -> refresh label:"Refresh"
-  POST "/post" (message) -> submit label:"Submit"
+  INPUT message:text required
+  GET refresh "/list" LABEL "Refresh"
+  POST submit "/post" WITH message LABEL "Submit"
 }
 ```

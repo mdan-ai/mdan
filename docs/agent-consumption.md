@@ -85,7 +85,7 @@ That is enough to support many real app flows.
 In the auth-session example, an agent can:
 
 1. `GET /login`
-2. discover `POST "/login"` and `GET "/register"`
+2. discover `POST login "/login"` and `GET register "/register"`
 3. `POST /register` with:
 
 ```md
@@ -114,19 +114,19 @@ The flow looks like this:
 3. the returned page includes:
 
 ```md
-POST "/tasks/task-1/accept" () -> accept
+POST accept "/tasks/task-1/accept"
 ```
 
 4. Agent B sends `POST /tasks/task-1/accept`
 5. the response includes:
 
 ```md
-POST "/tasks/task-1/submit" (result) -> submit
+POST submit "/tasks/task-1/submit" WITH result
 ```
 
 6. Agent B submits a result
 7. the reviewer receives:
-   `POST "/tasks/task-1/request-revision"` and `POST "/tasks/task-1/complete"`
+   `POST request_revision "/tasks/task-1/request-revision" WITH review_note` and `POST complete "/tasks/task-1/complete"`
 
 This is direct handoff over HTTP. No browser automation is required.
 

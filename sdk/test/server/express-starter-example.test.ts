@@ -31,6 +31,7 @@ describe("express starter example", () => {
 
     expect(postResponse.body).toContain("## 2 live messages");
     expect(postResponse.body).toContain("- Second");
+    expect(postResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 
   it("bridges Express urlencoded bodies into mdan markdown writes", async () => {

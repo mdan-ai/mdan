@@ -58,7 +58,7 @@ describe("agent task handoff demo", () => {
 
     expect(overview.status).toBe(401);
     expect(overview.body).toContain("Sign in to open your task queue");
-    expect(overview.body).toContain('GET "/login" -> recover');
+    expect(overview.body).toContain('GET recover "/login" LABEL "Open Sign In"');
   });
 
   it("creates, accepts, submits, revises, and completes tasks using the logged-in session identity", async () => {
@@ -113,10 +113,10 @@ describe("agent task handoff demo", () => {
     });
 
     expect(created.body).toContain("Implement session_sort");
-    expect(created.body).toContain('/accept" () -> accept');
+    expect(created.body).toContain('POST accept "/tasks/');
     expect(created.body).not.toContain("actor_id");
 
-    const taskIdMatch = created.body.match(/POST "\/tasks\/([^/]+)\/accept"/);
+    const taskIdMatch = created.body.match(/POST accept "\/tasks\/([^/]+)\/accept"/);
     expect(taskIdMatch?.[1]).toBeTruthy();
     const taskId = taskIdMatch?.[1] ?? "";
 
@@ -223,7 +223,7 @@ describe("agent task handoff demo", () => {
       }
     });
 
-    const taskIdMatch = created.body.match(/POST "\/tasks\/([^/]+)\/accept"/);
+    const taskIdMatch = created.body.match(/POST accept "\/tasks\/([^/]+)\/accept"/);
     expect(taskIdMatch?.[1]).toBeTruthy();
     const taskId = taskIdMatch?.[1] ?? "";
 
@@ -268,7 +268,7 @@ describe("agent task handoff demo", () => {
 
     expect(forbidden.status).toBe(403);
     expect(forbidden.body).toContain("Only the reviewer can complete this task");
-    expect(forbidden.body).toContain(`GET "/tasks/${taskId}" -> recover`);
+    expect(forbidden.body).toContain(`GET recover "/tasks/${taskId}" LABEL "Open task"`);
   });
 
   it("renders the overview page as a task work queue", async () => {
@@ -289,8 +289,6 @@ describe("agent task handoff demo", () => {
         'instruction: "Write a Rust function named binary_search."',
         'constraints: "- Return -1 when the value is missing"',
         'acceptance_criteria: "- Match the required function signature"',
-        'creator_id: "agent-a"',
-        'reviewer_id: "agent-a"'
       ].join(", "),
       cookies: {
         mdan_session: cookie
@@ -311,7 +309,7 @@ describe("agent task handoff demo", () => {
     expect(overview.body).toContain("## In progress");
     expect(overview.body).toContain("## Available");
     expect(overview.body).toContain("Implement binary_search");
-    expect(overview.body).toContain('GET "/tasks/task-1" -> open');
+    expect(overview.body).toContain('GET open "/tasks/task-1" LABEL "Open task"');
   });
 
   it("shows agent-specific buckets on the overview page", async () => {
@@ -333,8 +331,6 @@ describe("agent task handoff demo", () => {
         'instruction: "Write a Rust function named merge_sort."',
         'constraints: "- Handle empty input"',
         'acceptance_criteria: "- Return ascending order"',
-        'creator_id: "agent-a"',
-        'reviewer_id: "agent-a"'
       ].join(", "),
       cookies: {
         mdan_session: agentACookie
@@ -348,7 +344,7 @@ describe("agent task handoff demo", () => {
         accept: "text/markdown",
         "content-type": "text/markdown"
       },
-      body: 'actor_id: "agent-b"',
+      body: "",
       cookies: {
         mdan_session: agentBCookie
       }
@@ -387,8 +383,6 @@ describe("agent task handoff demo", () => {
         'instruction: "Write a Rust function named is_palindrome."',
         'constraints: "- Ignore empty input"',
         'acceptance_criteria: "- Return true for mirrored strings"',
-        'creator_id: "agent-a"',
-        'reviewer_id: "agent-a"'
       ].join(", "),
       cookies: {
         mdan_session: cookie
@@ -409,7 +403,7 @@ describe("agent task handoff demo", () => {
     expect(detail.body).toContain("Write a Rust function named is_palindrome.");
     expect(detail.body).toContain("## Acceptance Criteria");
     expect(detail.body).toContain("Review the task and accept it if you will complete it.");
-    expect(detail.body).toContain('POST "/tasks/task-1/accept" () -> accept');
+    expect(detail.body).toContain('POST accept "/tasks/task-1/accept" LABEL "Accept task"');
   });
 
   it("shows a starter template on the task creation page", async () => {
@@ -447,7 +441,7 @@ describe("agent task handoff demo", () => {
     });
 
     expect(newTaskPage.body).toContain("# New Task");
-    expect(newTaskPage.body).toContain('POST "/tasks" (title, summary, instruction, constraints, acceptance_criteria) -> create_task');
+    expect(newTaskPage.body).toContain('POST create_task "/tasks" WITH title, summary, instruction, constraints, acceptance_criteria LABEL "Create task"');
 
     const created = await server.handle({
       method: "POST",
@@ -469,10 +463,9 @@ describe("agent task handoff demo", () => {
     });
 
     expect(created.body).toContain("Implement sort_numbers");
-    expect(created.body).toContain('POST "/tasks/');
-    expect(created.body).toContain('/accept" () -> accept');
+    expect(created.body).toContain('POST accept "/tasks/');
 
-    const taskIdMatch = created.body.match(/POST "\/tasks\/([^/]+)\/accept"/);
+    const taskIdMatch = created.body.match(/POST accept "\/tasks\/([^/]+)\/accept"/);
     expect(taskIdMatch?.[1]).toBeTruthy();
     const taskId = taskIdMatch?.[1] ?? "";
 
@@ -490,8 +483,8 @@ describe("agent task handoff demo", () => {
     });
 
     expect(accepted.body).toContain("Complete the task and submit a result.");
-    expect(accepted.body).toContain('POST "/tasks/');
-    expect(accepted.body).toContain('/submit" (result) -> submit');
+    expect(accepted.body).toContain('POST submit "/tasks/');
+    expect(accepted.body).toContain('WITH result LABEL "Submit result"');
 
     const submitted = await server.handle({
       method: "POST",
@@ -508,7 +501,7 @@ describe("agent task handoff demo", () => {
 
     expect(submitted.body).toContain("Review the submission and either complete the task or request revision.");
     expect(submitted.body).toContain("sort_numbers");
-    expect(submitted.body).toContain('/complete" () -> complete');
+    expect(submitted.body).toContain('POST complete "/tasks/');
 
     const completed = await server.handle({
       method: "POST",
@@ -552,7 +545,7 @@ describe("agent task handoff demo", () => {
       }
     });
 
-    const taskIdMatch = created.body.match(/POST "\/tasks\/([^/]+)\/accept"/);
+    const taskIdMatch = created.body.match(/POST accept "\/tasks\/([^/]+)\/accept"/);
     expect(taskIdMatch?.[1]).toBeTruthy();
     const taskId = taskIdMatch?.[1] ?? "";
 
@@ -597,7 +590,8 @@ describe("agent task handoff demo", () => {
 
     expect(revision.body).toContain("Status: needs_revision");
     expect(revision.body).toContain("Please actually remove duplicates.");
-    expect(revision.body).toContain('/submit" (result) -> submit');
+    expect(revision.body).toContain('POST submit "/tasks/');
+    expect(revision.body).toContain('WITH result LABEL "Resubmit result"');
 
     const resubmitted = await server.handle({
       method: "POST",
@@ -630,8 +624,8 @@ describe("agent task handoff demo", () => {
       }
     });
 
-    expect(overview.body).toContain('GET "/tasks/waiting?agent_id=agent-b" -> refresh_waiting');
-    expect(overview.body).toContain('GET "/tasks/in-progress?agent_id=agent-b" -> refresh_in_progress');
-    expect(overview.body).toContain('GET "/tasks/available?agent_id=agent-b" -> refresh_available');
+    expect(overview.body).toContain('GET refresh_waiting "/tasks/waiting?agent_id=agent-b" LABEL "Refresh waiting"');
+    expect(overview.body).toContain('GET refresh_in_progress "/tasks/in-progress?agent_id=agent-b" LABEL "Refresh in progress"');
+    expect(overview.body).toContain('GET refresh_available "/tasks/available?agent_id=agent-b" LABEL "Refresh available"');
   });
 });

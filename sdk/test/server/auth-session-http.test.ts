@@ -80,9 +80,9 @@ describe("auth-session example over real node http", () => {
     });
     expect(loginPage.status).toBe(200);
     const loginBody = await loginPage.text();
-    expect(loginBody).toContain('POST "/login" (nickname, password) -> login');
-    expect(loginBody).toContain('GET "/register" -> register');
-    expect(loginBody).not.toContain('POST "/vault" (message) -> save');
+    expect(loginBody).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
+    expect(loginBody).toContain('GET register "/register" LABEL "Create account"');
+    expect(loginBody).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
 
     const registerPage = await fetch(`${baseUrl}/register`, {
       headers: {
@@ -91,8 +91,8 @@ describe("auth-session example over real node http", () => {
     });
     expect(registerPage.status).toBe(200);
     const registerPageBody = await registerPage.text();
-    expect(registerPageBody).toContain('POST "/register" (nickname, password) -> register');
-    expect(registerPageBody).toContain('GET "/login" -> login');
+    expect(registerPageBody).toContain('POST register "/register" WITH nickname, password LABEL "Create account"');
+    expect(registerPageBody).toContain('GET login "/login" LABEL "Back to sign in"');
 
     const register = await fetch(`${baseUrl}/register`, {
       method: "POST",
@@ -107,7 +107,7 @@ describe("auth-session example over real node http", () => {
     const registerBody = await register.text();
     expect(registerBody).toContain("# Vault");
     expect(registerBody).toContain("No private notes yet");
-    expect(registerBody).not.toContain('GET "/vault" -> open_vault auto');
+    expect(registerBody).not.toContain('GET open_vault "/vault" AUTO');
 
     const loginHtml = await fetch(`${baseUrl}/login`, {
       method: "POST",
@@ -164,9 +164,9 @@ describe("auth-session example over real node http", () => {
     expect(logout.headers.get("set-cookie")).toContain("Max-Age=0");
     const logoutBody = await logout.text();
     expect(logoutBody).toContain("# Sign In");
-    expect(logoutBody).toContain('POST "/login" (nickname, password) -> login');
-    expect(logoutBody).not.toContain('GET "/login" -> open_login auto');
-    expect(logoutBody).not.toContain('POST "/vault" (message) -> save');
+    expect(logoutBody).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
+    expect(logoutBody).not.toContain('GET open_login "/login" AUTO');
+    expect(logoutBody).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
 
     const replayAfterLogout = await fetch(`${baseUrl}/vault`, {
       method: "POST",
@@ -179,7 +179,7 @@ describe("auth-session example over real node http", () => {
     });
     expect(replayAfterLogout.status).toBe(401);
     const replayAfterLogoutBody = await replayAfterLogout.text();
-    expect(replayAfterLogoutBody).toContain('GET "/login" -> recover');
+    expect(replayAfterLogoutBody).toContain('GET recover "/login" LABEL "Open Sign In"');
 
     const notesAfterLogout = await fetch(`${baseUrl}/vault`, {
       method: "POST",
@@ -192,7 +192,7 @@ describe("auth-session example over real node http", () => {
     });
     expect(notesAfterLogout.status).toBe(401);
     const notesAfterLogoutBody = await notesAfterLogout.text();
-    expect(notesAfterLogoutBody).toContain('GET "/login" -> recover');
+    expect(notesAfterLogoutBody).toContain('GET recover "/login" LABEL "Open Sign In"');
   }, 15_000);
 
   it("supports non-ascii nicknames by encoding the session cookie value", async () => {
@@ -234,7 +234,7 @@ describe("auth-session example over real node http", () => {
     const markdownBody = await markdownResponse.text();
     expect(markdownBody).toContain("# Vault");
     expect(markdownBody).toContain("Private notes are locked");
-    expect(markdownBody).not.toContain('GET "/login" -> recover');
+    expect(markdownBody).not.toContain('GET recover "/login" LABEL "Open Sign In"');
 
     const htmlResponse = await fetch(`${baseUrl}/vault`, {
       headers: {
