@@ -1,36 +1,44 @@
 # MDAN Spec
 
-This document is the complete MDAN specification body for the current repository state.
+This page is the complete MDAN specification.
 
 If you want the public versioned entry, use:
 
 - [MDAN Spec v1](./v1.md)
 
+If you want the browser-facing host profile, use:
+
+- [MDAN Browser Host Profile](./browser-host.md)
+
 ## Scope
 
-This document expands the current public v1 profile into a fuller specification body.
-
-It defines:
+This document defines:
 
 - the canonical Markdown form of an MDAN page
-- the executable `mdan` fenced block format
+- executable `mdan` blocks
 - interaction primitives such as `BLOCK`, `INPUT`, `GET`, and `POST`
 - parsing and validation constraints
-- how MDAN pages and fragments are exchanged over HTTP
-- host-facing execution responsibilities such as `auto`, recovery, and session continuity
+- response, recovery, and continuation semantics
+- the current HTTP binding for MDAN over HTTP
+- discovery expectations for canonical Markdown over HTTP
 
 It does not define:
 
 - SDK-specific APIs
 - framework adapters
-- browser rendering details
+- browser runtime internals
+- browser UI behavior
 - non-HTTP transports
+
+Browser-facing host behavior is intentionally separated into:
+
+- [MDAN Browser Host Profile](./browser-host.md)
 
 ## Canonical Source
 
 The canonical source of an MDAN page is Markdown.
 
-HTML is a browser-facing projection of the same app state, not the canonical source.
+HTML may project the same app state for browser-facing hosts, but HTML is not the canonical source.
 
 ## Document Model
 
@@ -277,6 +285,82 @@ A conforming implementation should reject at least these invalid structures:
 - invalid `choice` declarations
 - invalid `auto` combinations
 
+## Interaction Semantics
+
+### Response Shapes
+
+A conforming implementation may return either:
+
+- a full page Markdown document
+- a Markdown fragment representing the next state of the current interaction region
+
+Response expectations:
+
+- a page route returns full page Markdown
+- a block-local action may return a block-local fragment
+- responses may contain new interaction structure for the next step
+- error responses may also return Markdown content and follow-up operations
+
+### Error And Recovery
+
+Errors fall into two broad categories:
+
+- parse or structural errors
+- runtime interaction errors
+
+For runtime interaction errors, an implementation should prefer recoverable Markdown responses over opaque transport errors when the client can reasonably continue from the returned result.
+
+A recoverable error response should:
+
+- return an appropriate status
+- include Markdown describing the failure
+- include the next valid operation when recovery is possible
+
+### Block Update Semantics
+
+By default:
+
+- a block-local `GET` or `POST` updates the current interaction region
+- static page body does not change unless a full page response is returned
+- other blocks do not change unless the returned result explicitly represents a new full page
+
+### Full-Page Transition Semantics
+
+An implementation should treat the result as a full-page transition when:
+
+- the response is a full page Markdown document
+- or the operation explicitly leads to a different page route
+
+### `auto`
+
+`auto` is an execution instruction, not a browser-only hint.
+
+Rules:
+
+- `auto` is allowed only on `GET`
+- `auto` is allowed only on zero-input operations
+- `auto` must not be combined with stream reads
+- at most one `auto GET` may appear in the same block
+- the corresponding target should be safe, idempotent, and side-effect free
+
+Intent:
+
+- `auto` marks a dependency that should not be exposed as an intermediate client step
+- different hosts should expose the same resolved result
+- if an intermediate step should remain visible to the client, it must not be marked `auto`
+
+## Session Surface Semantics
+
+Session lifecycle belongs to the host layer, but the MDAN spec constrains how session-dependent interaction should appear at the Markdown surface.
+
+Rules:
+
+- the grammar does not introduce a separate session keyword
+- when a page or action requires authorization, an unauthorized response should return a recoverable Markdown result whenever continued interaction is possible
+- login, register, logout, and similar actions should still return Markdown pages or fragments that describe the next step
+- when a session becomes invalid, the returned result should guide the client back to a recoverable next operation
+- if a recovery path includes an `auto` read dependency, the host should resolve it before returning the final result
+
 ## HTTP Binding
 
 MDAN is defined over HTTP in the current public specification.
@@ -321,58 +405,74 @@ Rules:
 - unsupported `Accept` values should return `406 Not Acceptable`
 - the Markdown response should use the MDAN spec profile
 
-### Markdown Request Bodies
+### Direct-Write Request Bodies
 
-For direct-write requests, `POST` uses:
+`POST` submits a set of named input fields.
+
+These field submissions may be encoded as:
+
+- `application/x-www-form-urlencoded`
+- `multipart/form-data`
+- `text/markdown`
+
+These encodings carry the same input semantics. They do not define different operation models.
+
+Rules:
+
+- each submitted field name must match an `INPUT` declared in the current `BLOCK`
+- a conforming implementation should accept only the fields referenced by the current `POST` operation
+- field values are interpreted according to the declared `INPUT` type
+- a browser-facing host should support ordinary HTML form encodings
+- a host that supports `INPUT asset` should support `multipart/form-data`
+
+### `text/markdown` Direct-Write Encoding
+
+For direct-write requests, `POST` may use:
 
 ```http
 Content-Type: text/markdown
 ```
 
-The canonical request body form is a comma-separated list of Markdown key-value pairs:
+The Markdown form is a list of key-value pairs.
+
+Implementations should accept both:
+
+- a comma-separated form
+- a newline-separated form
+
+Canonical serialized form:
 
 ```md
 nickname: "Guest", message: "Hello"
 ```
 
-Each value is a JSON string literal.
+Compatible newline-separated form:
 
-Compatibility note:
+```md
+nickname: "Guest"
+message: "Hello"
+```
 
-- implementations may accept newline-separated entries for compatibility
-- implementations should emit the comma-separated canonical form when serializing request bodies
+The current TypeScript reference implementation serializes the comma-separated form and accepts both forms when parsing.
 
-### Action Parameters
+### Field Value Interpretation
 
-- `GET` action inputs are carried through the request URL
+Field values are interpreted according to the declared `INPUT` type:
+
+- `text` as text
+- `number` as a numeric value
+- `boolean` as a boolean value
+- `choice` as one of the declared option values
+- `asset` as an uploaded file or asset reference
+
+The current TypeScript reference implementation currently normalizes Markdown direct-write fields as string values. Wider typed input parsing is a future implementation expansion, not a different operation model.
+
+### Action Parameters Over HTTP
+
+- `GET` action inputs are carried through the target URL
 - `POST` action inputs are carried through the Markdown request body
 
-### Response Shapes
-
-A conforming host may return either:
-
-- a full page Markdown document
-- a Markdown fragment representing the next state of the current interaction region
-
-Response expectations:
-
-- a page route returns full page Markdown
-- a block-local action may return a block-local fragment
-- responses may contain new interaction structure for the next step
-- error responses may also return Markdown content and follow-up operations
-
-Representation expectations:
-
-- explicit `Accept: text/markdown` should return `text/markdown`
-- otherwise a host may project the same result as HTML
-- browser-facing HTML does not replace the canonical Markdown form
-
-### Error And Recovery
-
-Errors fall into two broad categories:
-
-- parse or structural errors
-- runtime interaction errors
+### Error And Recovery Over HTTP
 
 For runtime interaction errors, a host should prefer recoverable Markdown responses over opaque transport errors when the client can reasonably continue from the returned result.
 
@@ -390,56 +490,13 @@ Typical runtime and HTTP errors include:
 - `401` for unauthorized access
 - `500` for uncaught action failures
 
-## Execution Semantics
-
-### Block Update Semantics
-
-By default:
-
-- a block-local `GET` or `POST` updates the current interaction region
-- static page body does not change unless a full page response is returned
-- other blocks do not change unless the returned result explicitly represents a new full page
-
-### Full-Page Transition Semantics
-
-A host should treat the result as a full-page transition when:
-
-- the response is a full page Markdown document
-- or the operation explicitly leads to a different page route
-
-### `auto`
-
-`auto` is a host-side execution instruction, not a browser-only hint.
-
-If a page or fragment contains an `auto GET`, the host should resolve that dependency before returning the final result to any client.
+### Session Continuity Over HTTP
 
 Rules:
 
-- `auto` is allowed only on `GET`
-- `auto` is allowed only on zero-input operations
-- `auto` must not be combined with stream reads
-- at most one `auto GET` may appear in the same block
-- the corresponding target should be safe, idempotent, and side-effect free
-
-Intent:
-
-- `auto` marks a dependency that should not be exposed as an intermediate client step
-- agents and browsers should observe the same resolved result
-- if an intermediate step should remain visible to the client, it must not be marked `auto`
-
-## Session Semantics
-
-Session lifecycle belongs to the host/runtime layer, but the MDAN specification constrains how session-dependent interaction should appear at the Markdown surface.
-
-Rules:
-
-- the host/runtime is responsible for creating, validating, refreshing, and clearing session state
 - session state is carried through ordinary HTTP mechanisms such as cookies
-- the page grammar does not introduce a separate session keyword
-- when a page or action requires authorization, an unauthorized response should return a recoverable Markdown result whenever continued interaction is possible
-- login, register, logout, and similar actions should still return Markdown pages or fragments that describe the next step
-- when a session becomes invalid, the returned result should guide the client back to a recoverable next operation
-- if a recovery path includes an `auto` read dependency, the host should resolve it before returning the final result
+- the host/runtime is responsible for creating, validating, refreshing, and clearing session state
+- Markdown responses should still describe the next step after login, logout, expiry, or unauthorized access
 
 ## Relationship To HTML
 
@@ -453,20 +510,16 @@ For HTML responses, a host should help agents discover the canonical Markdown so
 
 The profile itself belongs on the Markdown response, not on the HTML response.
 
-## Host Conformance
+## Discovery
 
-A conforming MDAN host/runtime should be able to:
+A host may expose MDAN discovery through:
 
-- parse one executable `mdan` fenced block from a Markdown page
-- ignore `mdan-src` and other display-only code blocks for execution purposes
-- discover `mdan:block` anchors in normal Markdown body content
-- validate the structural consistency of blocks, inputs, operations, and anchors
-- treat declared `GET` and `POST` targets as stable HTTP paths
-- provide both Markdown and HTML representations of the same app state
-- return a fragment or page that remains understandable to a client after both success and failure cases
-- manage session lifecycle and expose recoverable next steps for unauthorized or expired sessions
-- support stream-read semantics for `accept:"text/event-stream"` operations
-- resolve explicit `auto GET` dependencies consistently before returning the final result to any client
+- `rel="alternate" type="text/markdown"`
+- `rel="llms-txt"`
+- equivalent HTTP `Link` headers
+- site-level `llms.txt`
+
+These mechanisms help clients discover the canonical Markdown source without redefining the app as HTML-first.
 
 ## Minimal Example
 
@@ -499,3 +552,15 @@ In this page:
 - `/post` is a write target
 - `<!-- mdan:block guestbook -->` is the body anchor for that block
 
+## Conformance Requirements
+
+A conforming MDAN implementation should be able to:
+
+- parse canonical Markdown pages and fragments
+- parse and validate executable `mdan` blocks
+- preserve anchor bindings between Markdown body and interaction blocks
+- serialize canonical Markdown request and response forms
+- execute MDAN interaction semantics consistently across full-page and fragment flows
+- serve canonical Markdown with the MDAN profile over HTTP
+- negotiate Markdown and HTML representations from the same route
+- preserve recoverable interaction in error responses when possible

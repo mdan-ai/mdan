@@ -37,13 +37,21 @@ Accept: text/markdown; profile="https://mdan.ai/spec/v1"
 
 ## Agent 在发送什么
 
-对于写操作，Agent 发送的仍然是普通 HTTP 请求，请求体类型是：
+对于写操作，Agent 发送的仍然是普通 HTTP 请求，并为目标 `POST` 提交一组具名输入字段。
+
+MDAN 当前支持用这几种方式承载同一套字段语义：
+
+- `application/x-www-form-urlencoded`
+- `multipart/form-data`
+- `text/markdown`
+
+对 Agent 和 CLI 来说，最直接的通常还是 `text/markdown`：
 
 ```http
 Content-Type: text/markdown
 ```
 
-这里的请求体不是任意自然语言，而是 MDAN 的直写 body 格式，例如：
+这里的请求体不是任意自然语言，而是 MDAN 的直写字段格式，例如：
 
 ```md
 nickname: "Ada", password: "pass-1234"
@@ -55,7 +63,9 @@ nickname: "Ada", password: "pass-1234"
 message: "Private note from agent"
 ```
 
-如果 body 不符合预期格式，服务端可以返回一个可恢复的错误结果。
+当前 TypeScript 参考实现会把 Markdown 形式序列化成逗号分隔的 key-value 对，同时在解析时兼容换行分隔形式。
+
+如果提交字段不符合预期格式，或者与声明的输入不匹配，服务端可以返回一个可恢复的错误结果。
 
 ## 最小消费循环
 

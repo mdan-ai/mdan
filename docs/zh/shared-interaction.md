@@ -42,11 +42,13 @@ Accept: text/markdown
 Accept: text/html
 ```
 
-写入时，请求体仍然使用 Markdown：
+写入时，应用底层仍然使用同一套字段语义，只是不同调用方会选择不同承载方式。
 
-```http
-Content-Type: text/markdown
-```
+实践里通常是：
+
+- 浏览器 Host 使用 `application/x-www-form-urlencoded`
+- 文件上传使用 `multipart/form-data`
+- Agent 和 CLI 工具更常用 `text/markdown`
 
 这页真正想说明的只有一件事：
 

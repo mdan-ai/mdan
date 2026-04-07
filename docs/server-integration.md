@@ -26,7 +26,7 @@ Using Express as an example, the adapter only needs to do a few things:
 
 - normalize headers into a lowercase key map
 - parse cookies from the framework cookie map or `cookie` header
-- normalize form bodies into Markdown request bodies with `serializeMarkdownBody`
+- normalize incoming form submissions into the runtime's direct-write field format with `serializeMarkdownBody`
 - pass runtime headers and body back through unchanged
 
 So the adapter is only translating the framework world into a runtime request, then translating the runtime result back into a framework response.
@@ -47,7 +47,9 @@ Do not infer bindings from what the page currently renders. What the page declar
 
 ## HTTP Semantics You Need To Preserve
 
-- direct-write requests use `Content-Type: text/markdown`
+- browser form submissions may arrive as `application/x-www-form-urlencoded`
+- file uploads may arrive as `multipart/form-data`
+- runtime-native direct-write requests may use `Content-Type: text/markdown`
 - malformed Markdown bodies return `400`
 - unsupported direct-write media types return `415`
 - unacceptable representations return `406`
@@ -63,7 +65,7 @@ You do not need to manually handle these rules in every business handler, but th
 
 ## Common Pitfalls
 
-- treating `application/x-www-form-urlencoded` as the runtime's native write format
+- forgetting that browsers, file uploads, and agent requests may use different body encodings for the same input semantics
 - overwriting the `content-type` already set by the runtime
 - dropping `set-cookie` on the way out
 - adding a second routing layer in the adapter and slowly drifting away from real runtime behavior

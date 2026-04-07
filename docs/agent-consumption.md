@@ -37,13 +37,21 @@ That response is not just content. It is the next interaction surface.
 
 ## What The Agent Sends
 
-For write operations, the agent sends normal HTTP requests with a Markdown body:
+For write operations, the agent sends normal HTTP requests and submits named input fields for the target `POST`.
+
+MDAN currently accepts the same field semantics through:
+
+- `application/x-www-form-urlencoded`
+- `multipart/form-data`
+- `text/markdown`
+
+For agents and CLI tools, `text/markdown` is usually the most direct form:
 
 ```http
 Content-Type: text/markdown
 ```
 
-The request body is not arbitrary prose. It should use MDAN's direct-write body format:
+The request body is not arbitrary prose. It should use MDAN's direct-write field format:
 
 ```md
 nickname: "Ada", password: "pass-1234"
@@ -55,7 +63,9 @@ Another example:
 message: "Private note from agent"
 ```
 
-If the body does not match the expected format, the server can reject it with a recoverable error.
+The current TypeScript reference implementation serializes the Markdown form as comma-separated key-value pairs and also accepts newline-separated pairs when parsing.
+
+If the submitted fields do not match the expected format or declared inputs, the server can reject the request with a recoverable error.
 
 ## Minimal Consumption Loop
 

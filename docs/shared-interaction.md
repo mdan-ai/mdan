@@ -42,11 +42,13 @@ When a browser visits a page or submits an interaction, it usually sends:
 Accept: text/html
 ```
 
-For writes, the body still uses Markdown:
+For writes, the app still uses the same underlying field semantics for both agents and browsers.
 
-```http
-Content-Type: text/markdown
-```
+In practice that means:
+
+- browser hosts commonly use `application/x-www-form-urlencoded`
+- file uploads use `multipart/form-data`
+- agents and CLI tools often use `text/markdown`
 
 The important point is simple:
 
