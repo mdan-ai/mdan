@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { composePageV2, markFragmentV2, type MdanBlock, type MdanFragment, type MdanInput } from "@mdanai/sdk/core";
+import { composePageV2, type MdanBlock, type MdanFragment, type MdanInput } from "@mdanai/sdk/core";
 import { createMdanServer, fail, signIn, signOut, type MdanResponse, type MdanSessionProvider, type MdanSessionSnapshot } from "@mdanai/sdk/server";
 
 import { createTaskStore } from "./task-store.js";
@@ -160,7 +160,7 @@ function input(name: string, required = false, secret = false): MdanInput {
 
 function renderRuntimeBlock(task: TaskRecord): MdanFragment {
   if (task.status === "claimed") {
-    return markFragmentV2({
+    return {
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -177,11 +177,11 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           ]
         }
       ]
-    });
+    };
   }
 
   if (task.status === "submitted") {
-    return markFragmentV2({
+    return {
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -205,11 +205,11 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           ]
         }
       ]
-    });
+    };
   }
 
   if (task.status === "needs_revision") {
-    return markFragmentV2({
+    return {
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -226,11 +226,11 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           ]
         }
       ]
-    });
+    };
   }
 
   if (task.status === "completed") {
-    return markFragmentV2({
+    return {
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -239,10 +239,10 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           operations: []
         }
       ]
-    });
+    };
   }
 
-  return markFragmentV2({
+  return {
     markdown: renderRuntimeMarkdown(task),
     blocks: [
       {
@@ -259,7 +259,7 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
         ]
       }
     ]
-  });
+  };
 }
 
 function renderOverviewSection(title: string, tasks: TaskRecord[]): string {
@@ -312,7 +312,7 @@ function renderAuthPage(source: string, blockName: "login" | "register", blockMa
 function authRecovery(message: string) {
   return fail({
     status: 401,
-    fragment: markFragmentV2({
+    fragment: {
       markdown: `## ${message}\n\nOpen \`/login\` to continue.`,
       blocks: [
         {
@@ -329,12 +329,12 @@ function authRecovery(message: string) {
           ]
         }
       ]
-    })
+    }
   });
 }
 
 function taskRecovery(taskId: string, status: number, title: string, detail: string): MdanFragment {
-  return markFragmentV2({
+  return {
     markdown: `## ${title}\n\n${detail}`,
     blocks: [
       {
@@ -351,7 +351,7 @@ function taskRecovery(taskId: string, status: number, title: string, detail: str
         ]
       }
     ]
-  });
+  };
 }
 
 function recoverTaskError(taskId: string, error: unknown): { status: number; fragment: MdanFragment } {

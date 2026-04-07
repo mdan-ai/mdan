@@ -1,12 +1,9 @@
 import {
-  getSyntaxVersion,
   MdanParseError,
   negotiateRepresentation,
   parseMarkdownBody,
   serializeFragment,
-  serializeFragmentLegacy,
   serializePage,
-  serializePageLegacy,
   type MdanBlock,
   type MdanFragment,
   type MdanMarkdownRenderer,
@@ -484,11 +481,11 @@ function serializeSseMessage(markdown: string): string {
 }
 
 function serializeMarkdownPage(page: MdanPage): string {
-  return getSyntaxVersion(page) === "legacy" ? serializePageLegacy(page) : serializePage(page);
+  return serializePage(page);
 }
 
 function serializeMarkdownFragment(fragment: MdanFragment): string {
-  return getSyntaxVersion(fragment) === "legacy" ? serializeFragmentLegacy(fragment) : serializeFragment(fragment);
+  return serializeFragment(fragment);
 }
 
 function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<string> {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parsePageLegacy as parsePage } from "../../src/core/index.js";
+import { parsePage } from "../../src/core/index.js";
 
 describe("parsePage", () => {
   it("extracts frontmatter, markdown, executable block, and anchors", () => {
@@ -14,11 +14,10 @@ title: Guestbook
 
 \`\`\`mdan
 BLOCK guestbook {
-
-  INPUT text -> nickname
-  INPUT text required -> message
-  GET "/list" -> refresh label:"Refresh"
-  POST "/post" (nickname, message) -> submit label:"Submit"
+  INPUT nickname:text
+  INPUT message:text required
+  GET refresh "/list" LABEL "Refresh"
+  POST submit "/post" WITH nickname, message LABEL "Submit"
 }
 \`\`\`
 `);
@@ -36,7 +35,7 @@ BLOCK guestbook {
 \`\`\`mdan-src
 \`\`\`mdan
 BLOCK fake {
-  INPUT text -> value
+  INPUT value:text
 }
 \`\`\`
 \`\`\`
@@ -49,8 +48,8 @@ const value = "<!-- mdan:block fake -->";
 
 \`\`\`mdan
 BLOCK real {
-  INPUT text -> value
-  GET "/read" -> refresh
+  INPUT value:text
+  GET refresh "/read"
 }
 \`\`\`
 `);
@@ -67,13 +66,13 @@ BLOCK real {
 
 \`\`\`mdan
 BLOCK compose {
-  INPUT text -> title
-  INPUT number required -> quantity
-  INPUT boolean -> published
-  INPUT choice ["draft", "published"] -> status
-  INPUT asset required -> attachment
-  INPUT text required secret -> password
-  POST "/submit" (title, quantity, published, status, attachment, password) -> submit label:"Submit"
+  INPUT title:text
+  INPUT quantity:number required
+  INPUT published:boolean
+  INPUT status:choice ["draft", "published"]
+  INPUT attachment:asset required
+  INPUT password:text required secret
+  POST submit "/submit" WITH title, quantity, published, status, attachment, password LABEL "Submit"
 }
 \`\`\`
 `);
@@ -95,8 +94,8 @@ BLOCK compose {
 
 \`\`\`mdan
 BLOCK compose {
-  INPUT choice ["draft,alpha", "say \\"hello\\""] -> status
-  POST "/submit" (status) -> submit label:"Submit"
+  INPUT status:choice ["draft,alpha", "say \\"hello\\""]
+  POST submit "/submit" WITH status LABEL "Submit"
 }
 \`\`\`
 `);
@@ -114,22 +113,22 @@ BLOCK compose {
 
 \`\`\`mdan
 BLOCK compose {
-  INPUT choice ["draft", 1] -> status
-  POST "/submit" (status) -> submit label:"Submit"
+  INPUT status:choice ["draft", 1]
+  POST submit "/submit" WITH status LABEL "Submit"
 }
 \`\`\`
 `)
     ).toThrowError(/Invalid choice option/i);
   });
 
-  it("accepts POST operations with an explicit empty input list", () => {
+  it("accepts POST operations without WITH when no inputs are declared", () => {
     const page = parsePage(`# Account
 
 <!-- mdan:block auth -->
 
 \`\`\`mdan
 BLOCK auth {
-  POST "/logout" () -> logout label:"Log Out"
+  POST logout "/logout" LABEL "Log Out"
 }
 \`\`\`
 `);
@@ -147,14 +146,14 @@ BLOCK auth {
     ]);
   });
 
-  it("parses explicit auto GET operations", () => {
+  it("parses explicit AUTO GET operations", () => {
     const page = parsePage(`# Guestbook
 
 <!-- mdan:block guestbook -->
 
 \`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> load_messages auto
+  GET load_messages "/list" AUTO
 }
 \`\`\`
 `);

@@ -4,7 +4,6 @@ import { extractExecutableBlock } from "../parse/executable-block.js";
 import { parseFrontmatter } from "../parse/frontmatter.js";
 import type { MdanBlock, MdanInput, MdanOperation, MdanPage } from "../types.js";
 
-import { markPageV2 } from "./metadata.js";
 import { validatePageV2 } from "./validate.js";
 
 const identifierPattern = /^[a-zA-Z_][\w-]*$/;
@@ -231,5 +230,5 @@ export function parsePageV2(source: string): MdanPage {
     blocks: parseBlocksV2(executableContent),
     blockAnchors: parseAnchors(markdown)
   };
-  return markPageV2(validatePageV2(page));
+  return validatePageV2(page);
 }

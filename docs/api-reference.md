@@ -54,17 +54,6 @@ Serializes a full page object into canonical current-syntax Markdown.
 
 Serializes a block-level fragment into canonical current-syntax Markdown.
 
-### Legacy helpers
-
-For compatibility coverage and controlled migration work, the core package also exposes explicit legacy helpers:
-
-- `parsePageLegacy(source)`
-- `parseAndValidatePageLegacy(source)`
-- `composePageLegacy(source, options)`
-- `validatePageLegacy(page)`
-- `serializePageLegacy(page)`
-- `serializeFragmentLegacy(fragment)`
-
 ### `MdanMarkdownRenderer`
 
 The shared Markdown renderer extension point. The same renderer can be injected into:

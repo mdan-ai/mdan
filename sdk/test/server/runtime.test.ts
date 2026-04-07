@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { composePage, composePageLegacy } from "../../src/core/index.js";
+import { composePage } from "../../src/core/index.js";
 import { composePageV2 } from "../../src/core/syntax-v2/index.js";
 import { createMdanServer, ok, signIn, stream } from "../../src/server/index.js";
 
@@ -975,40 +975,6 @@ BLOCK gate {
     expect(response.body).toContain("- Hello");
     expect(response.body).toContain("```mdan");
     expect(response.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
-  });
-
-  it("preserves legacy markdown serialization for pages composed through the explicit legacy core path", async () => {
-    const server = createMdanServer();
-
-    server.page(
-      "/legacy-guestbook",
-      async () =>
-        composePageLegacy(`# Guestbook
-
-<!-- mdan:block guestbook -->
-
-\`\`\`mdan
-BLOCK guestbook {
-  INPUT text required -> message
-  POST "/post" (message) -> submit label:"Submit"
-}
-\`\`\``, {
-          blocks: {
-            guestbook: "## 1 live message\n\n- Welcome"
-          }
-        })
-    );
-
-    const response = await server.handle({
-      method: "GET",
-      url: "https://example.test/legacy-guestbook",
-      headers: { accept: "text/markdown" },
-      cookies: {}
-    });
-
-    expect(response.status).toBe(200);
-    expect(response.body).toContain('POST "/post" (message) -> submit label:"Submit"');
-    expect(response.body).not.toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 
   it("treats hand-built unmarked pages as current syntax when serializing markdown responses", async () => {

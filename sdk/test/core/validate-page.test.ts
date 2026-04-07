@@ -1,77 +1,77 @@
 import { describe, expect, it } from "vitest";
 
-import { MdanValidationError, parsePageLegacy as parsePage, validatePageLegacy as validatePage } from "../../src/core/index.js";
+import { MdanValidationError, parsePage, validatePage } from "../../src/core/index.js";
 
 describe("validatePage", () => {
   it("rejects duplicate block names", () => {
-    const page = parsePage(`\`\`\`mdan
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> refresh
+  GET refresh "/list"
 }
 
 BLOCK guestbook {
-  GET "/list-2" -> refresh2
+  GET refresh2 "/list-2"
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(MdanValidationError);
+`)
+    ).toThrow(MdanValidationError);
   });
 
   it("rejects missing anchor mappings when anchors exist", () => {
-    const page = parsePage(`# Demo
+    expect(() =>
+      parsePage(`# Demo
 
 <!-- mdan:block guestbook -->
 
 \`\`\`mdan
 BLOCK other {
-  GET "/list" -> refresh
+  GET refresh "/list"
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/Anchor "guestbook" does not match/);
+`)
+    ).toThrow(/Anchor "guestbook" does not match/);
   });
 
   it("rejects invalid stream naming", () => {
-    const page = parsePage(`\`\`\`mdan
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK updates {
-  GET "/stream" -> refresh accept:"text/event-stream"
+  GET refresh "/stream" ACCEPT "text/event-stream"
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/must not define an operation name/);
+`)
+    ).toThrow(/must not define an operation name/);
   });
 
   it("rejects empty choice option lists", () => {
-    const page = parsePage(`\`\`\`mdan
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK compose {
-  INPUT choice [] -> status
-  GET "/list" -> refresh
+  INPUT status:choice []
+  GET refresh "/list"
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/must declare at least one option/);
+`)
+    ).toThrow(/must declare at least one option/);
   });
 
   it("rejects options on non-choice inputs", () => {
-    const page = parsePage(`\`\`\`mdan
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK compose {
-  INPUT text ["draft"] -> status
-  GET "/list" -> refresh
+  INPUT status:text ["draft"]
+  GET refresh "/list"
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/Only choice inputs may declare options/);
+`)
+    ).toThrow(/Only choice inputs may declare options/);
   });
 
-  it("accepts POST operations with an explicit empty input list", () => {
+  it("accepts POST operations with no inputs and no WITH clause", () => {
     const page = parsePage(`\`\`\`mdan
 BLOCK auth {
-  POST "/logout" () -> logout label:"Log Out"
+  POST logout "/logout" LABEL "Log Out"
 }
 \`\`\`
 `);
@@ -79,10 +79,10 @@ BLOCK auth {
     expect(() => validatePage(page)).not.toThrow();
   });
 
-  it("accepts a zero-input auto GET operation", () => {
+  it("accepts a zero-input AUTO GET operation", () => {
     const page = parsePage(`\`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> load_messages auto
+  GET load_messages "/list" AUTO
 }
 \`\`\`
 `);
@@ -90,49 +90,49 @@ BLOCK guestbook {
     expect(() => validatePage(page)).not.toThrow();
   });
 
-  it("rejects auto GET operations with inputs", () => {
-    const page = parsePage(`\`\`\`mdan
+  it("rejects AUTO GET operations with inputs", () => {
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK guestbook {
-  INPUT text -> cursor
-  GET "/list" (cursor) -> load_messages auto
+  INPUT cursor:text
+  GET load_messages "/list" WITH cursor AUTO
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/must not declare inputs/);
+`)
+    ).toThrow(/must not declare inputs/);
   });
 
-  it("rejects POST operations marked auto", () => {
-    const page = parsePage(`\`\`\`mdan
+  it("rejects POST operations marked AUTO", () => {
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK guestbook {
-  POST "/post" () -> submit auto
+  POST submit "/post" AUTO
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/must not declare auto/);
+`)
+    ).toThrow(/must not declare AUTO/);
   });
 
-  it("rejects auto GET operations with an accept override", () => {
-    const page = parsePage(`\`\`\`mdan
+  it("rejects AUTO GET operations with an ACCEPT override", () => {
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK guestbook {
-  GET "/stream" -> watch auto accept:"text/plain"
+  GET watch "/stream" AUTO ACCEPT "text/plain"
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/must not declare an accept override/);
+`)
+    ).toThrow(/must not declare an ACCEPT override/);
   });
 
-  it("rejects multiple auto GET operations in the same block", () => {
-    const page = parsePage(`\`\`\`mdan
+  it("rejects multiple AUTO GET operations in the same block", () => {
+    expect(() =>
+      parsePage(`\`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> load_messages auto
-  GET "/summary" -> load_summary auto
+  GET load_messages "/list" AUTO
+  GET load_summary "/summary" AUTO
 }
 \`\`\`
-`);
-
-    expect(() => validatePage(page)).toThrow(/at most one auto GET operation/);
+`)
+    ).toThrow(/at most one AUTO GET operation/);
   });
 });

@@ -54,17 +54,6 @@ description: 当前 @mdanai/sdk 包及其子路径导出的公共 API 参考。
 
 把 block 级片段序列化成当前规范下的标准 Markdown 片段。
 
-### Legacy helper
-
-为了兼容测试和受控迁移，core 包也显式导出一组 legacy helper：
-
-- `parsePageLegacy(source)`
-- `parseAndValidatePageLegacy(source)`
-- `composePageLegacy(source, options)`
-- `validatePageLegacy(page)`
-- `serializePageLegacy(page)`
-- `serializeFragmentLegacy(fragment)`
-
 ### `MdanMarkdownRenderer`
 
 统一的 Markdown 渲染扩展接口。同一个渲染器可以同时注入给：

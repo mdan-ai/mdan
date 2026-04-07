@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { composePageV2, markFragmentV2 } from "@mdanai/sdk/core";
+import { composePageV2 } from "@mdanai/sdk/core";
 import {
   block,
   createHostedApp,
@@ -75,7 +75,7 @@ function getSessionUserId(session: MdanSessionSnapshot | null): string | null {
 function createRecoverableVaultFragment(markdown: string) {
   return fail({
     status: 401,
-    fragment: markFragmentV2({
+    fragment: {
       markdown,
       blocks: [
         {
@@ -92,7 +92,7 @@ function createRecoverableVaultFragment(markdown: string) {
           ]
         }
       ]
-    })
+    }
   });
 }
 

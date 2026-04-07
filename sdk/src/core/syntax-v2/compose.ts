@@ -1,6 +1,5 @@
 import type { MdanComposedPage, MdanFragment, MdanPage } from "../types.js";
 
-import { markFragmentV2, markPageV2 } from "./metadata.js";
 import { parsePageV2 } from "./parser.js";
 import { validatePageV2 } from "./validate.js";
 
@@ -10,7 +9,7 @@ export interface ComposePageV2Options {
 }
 
 export function parseAndValidatePageV2(source: string): MdanPage {
-  return markPageV2(validatePageV2(parsePageV2(source)));
+  return validatePageV2(parsePageV2(source));
 }
 
 function attachFragmentHelper(page: MdanPage): MdanComposedPage {
@@ -44,8 +43,8 @@ function resolveFragmentForBlock(page: MdanPage, blockName: string): MdanFragmen
   if (!markdown?.trim()) {
     throw new Error(`Block "${blockName}" has no composed markdown content.`);
   }
-  return markFragmentV2({
+  return {
     markdown,
     blocks: [block]
-  });
+  };
 }
