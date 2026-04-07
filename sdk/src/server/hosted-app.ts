@@ -1,8 +1,8 @@
 import type { MdanComposedPage } from "../core/index.js";
 
 import { matchRoutePattern } from "./router.js";
-import { block as createBlockResult } from "./result.js";
-import { createMdanServer, type CreateMdanServerOptions } from "./runtime.js";
+import { block as createBlockResult, fail } from "./result.js";
+import { createMdanServer, type CreateMdanServerOptions, validatePostInputs } from "./runtime.js";
 import type { MdanActionResult, MdanHandlerContext, MdanHandlerResult, MdanPageHandlerContext } from "./types.js";
 
 export interface HostedPageContext extends MdanPageHandlerContext {
@@ -66,6 +66,16 @@ function renderPage(factory: HostedPageFactory, context: HostedPageContext): Mda
 
 function getRequestPath(context: MdanHandlerContext | MdanPageHandlerContext): string {
   return new URL(context.request.url).pathname;
+}
+
+function createInvalidRequestResult(detail: string): MdanActionResult {
+  return fail({
+    status: 400,
+    fragment: {
+      markdown: `## Invalid Request Fields\n\n${detail}`,
+      blocks: []
+    }
+  });
 }
 
 function expandRoutePath(routePattern: string, params: Record<string, string>): string {
@@ -166,9 +176,44 @@ export function createHostedApp(options: CreateHostedAppOptions) {
     const register = binding.method === "GET" ? server.get.bind(server) : server.post.bind(server);
     register(binding.target, async (context) => {
       const currentRoutePath = expandRoutePath(binding.routePath, context.params);
+      const requestPath = getRequestPath(context);
       const currentPage = resolveHostedPage(options.pages, currentRoutePath);
       if (!currentPage) {
         throw new Error(`Missing hosted page renderer for "${currentRoutePath}".`);
+      }
+
+      if (binding.method === "POST") {
+        const renderedPage = renderPage(currentPage.factory, {
+          request: context.request,
+          session: context.session,
+          params: context.params,
+          routePath: currentRoutePath,
+          routePattern: currentPage.routePattern
+        });
+        const block = renderedPage.blocks.find((entry) => entry.name === binding.blockName);
+        if (!block) {
+          return createInvalidRequestResult(`Block "${binding.blockName}" is not available on route "${currentRoutePath}".`);
+        }
+        const operation = block.operations.find(
+          (entry) =>
+            entry.method === "POST" &&
+            (entry.target === requestPath || entry.target === binding.target)
+        );
+        if (!operation) {
+          return createInvalidRequestResult(
+            `Block "${binding.blockName}" does not define a POST operation for "${requestPath}".`
+          );
+        }
+
+        const validation = validatePostInputs(context.inputs, {
+          blockName: block.name,
+          operationTarget: operation.target,
+          declaredInputNames: block.inputs.map((input) => input.name),
+          allowedInputNames: operation.inputs
+        });
+        if (!validation.ok) {
+          return createInvalidRequestResult(validation.detail);
+        }
       }
 
       return binding.handler({

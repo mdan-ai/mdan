@@ -39,13 +39,7 @@ function validateOperationNames(block: MdanBlock): void {
 }
 
 function validateGetOperation(operation: MdanOperation, blockName: string): void {
-  const isStream = operation.accept === "text/event-stream";
-  if (isStream && operation.name) {
-    throw new MdanValidationError(
-      `Stream GET "${operation.target}" in block "${blockName}" must not define an operation name.`
-    );
-  }
-  if (!isStream && !operation.name) {
+  if (!operation.name) {
     throw new MdanValidationError(
       `GET "${operation.target}" in block "${blockName}" must define an operation name.`
     );

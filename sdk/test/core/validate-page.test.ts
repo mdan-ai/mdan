@@ -33,15 +33,15 @@ BLOCK other {
     ).toThrow(/Anchor "guestbook" does not match/);
   });
 
-  it("rejects invalid stream naming", () => {
-    expect(() =>
-      parsePage(`\`\`\`mdan
+  it("accepts named stream GET operations", () => {
+    const page = parsePage(`\`\`\`mdan
 BLOCK updates {
   GET refresh "/stream" ACCEPT "text/event-stream"
 }
 \`\`\`
-`)
-    ).toThrow(/must not define an operation name/);
+`);
+
+    expect(() => validatePage(page)).not.toThrow();
   });
 
   it("rejects empty choice option lists", () => {

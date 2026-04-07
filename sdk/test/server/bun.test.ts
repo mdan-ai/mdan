@@ -91,7 +91,9 @@ describe("bun host adapter", () => {
     );
 
     expect(response.status).toBe(200);
-    await expect(response.text()).resolves.toContain("## Saved From Bun multipart from hello.txt");
+    await expect(response.text()).resolves.toContain(
+      "## Saved From Bun multipart from mdan-asset://hello.txt?type=text%2Fplain&size=4"
+    );
   });
 
   it("serves static files, redirects root, and streams event-stream responses", async () => {

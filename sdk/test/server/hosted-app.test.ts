@@ -430,6 +430,91 @@ BLOCK guestbook {
     expect(actionResponse.headers.link).toContain('</guides/guestbook.md>; rel="alternate"; type="text/markdown"');
   });
 
+  it("returns a recoverable 400 when POST fields include undeclared inputs", async () => {
+    const app = createHostedApp({
+      pages: {
+        "/guestbook": () =>
+          composePage(`# Guestbook
+
+<!-- mdan:block guestbook -->
+
+\`\`\`mdan
+BLOCK guestbook {
+  INPUT message:text required
+  POST submit "/post" WITH message LABEL "Submit"
+}
+\`\`\``)
+      },
+      actions: [
+        {
+          target: "/post",
+          methods: ["POST"],
+          routePath: "/guestbook",
+          blockName: "guestbook",
+          handler: ({ block }) => block()
+        }
+      ]
+    });
+
+    const response = await app.handle({
+      method: "POST",
+      url: "https://example.test/post",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "text/markdown"
+      },
+      body: 'message: "hello", admin: "true"',
+      cookies: {}
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toContain("## Invalid Request Fields");
+    expect(response.body).toContain('does not declare input(s): admin');
+  });
+
+  it("returns a recoverable 400 when POST fields are not referenced by the active operation", async () => {
+    const app = createHostedApp({
+      pages: {
+        "/guestbook": () =>
+          composePage(`# Guestbook
+
+<!-- mdan:block guestbook -->
+
+\`\`\`mdan
+BLOCK guestbook {
+  INPUT message:text required
+  INPUT internal_note:text
+  POST submit "/post" WITH message LABEL "Submit"
+}
+\`\`\``)
+      },
+      actions: [
+        {
+          target: "/post",
+          methods: ["POST"],
+          routePath: "/guestbook",
+          blockName: "guestbook",
+          handler: ({ block }) => block()
+        }
+      ]
+    });
+
+    const response = await app.handle({
+      method: "POST",
+      url: "https://example.test/post",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "text/markdown"
+      },
+      body: 'message: "hello", internal_note: "ignore-me"',
+      cookies: {}
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toContain("## Invalid Request Fields");
+    expect(response.body).toContain('POST "/post" only accepts input(s): message. Rejected: internal_note');
+  });
+
   it("rejects duplicate method and target registrations", () => {
     expect(() =>
       createHostedApp({

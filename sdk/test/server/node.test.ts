@@ -182,8 +182,12 @@ describe("createNodeRequestListener", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(seenBody).toBe('message: "Hello multipart", attachment: "hello.txt"');
-    await expect(response.text()).resolves.toContain("## Saved Hello multipart from hello.txt");
+    expect(seenBody).toBe(
+      'message: "Hello multipart", attachment: "mdan-asset://hello.txt?type=text%2Fplain&size=4"'
+    );
+    await expect(response.text()).resolves.toContain(
+      "## Saved Hello multipart from mdan-asset://hello.txt?type=text%2Fplain&size=4"
+    );
   });
 
   it("can transform rendered html responses before writing them", async () => {

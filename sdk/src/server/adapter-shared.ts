@@ -3,6 +3,7 @@ import { extname, resolve } from "node:path";
 import { serializeMarkdownBody } from "../core/markdown-body.js";
 
 export const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
+export const MDAN_ASSET_REFERENCE_SCHEME = "mdan-asset://";
 
 export class PayloadTooLargeError extends Error {
   constructor() {
@@ -40,6 +41,13 @@ export function isFormEncodedContentType(contentType: string | null | undefined)
   );
 }
 
+function toAssetReference(file: File): string {
+  const name = encodeURIComponent(file.name ?? "");
+  const type = encodeURIComponent(file.type || "application/octet-stream");
+  const size = Number.isFinite(file.size) ? String(file.size) : "0";
+  return `${MDAN_ASSET_REFERENCE_SCHEME}${name}?type=${type}&size=${size}`;
+}
+
 export async function normalizeMultipartBody(
   body: string,
   contentType: string
@@ -54,7 +62,7 @@ export async function normalizeMultipartBody(
   const formData = await request.formData();
   const values: Record<string, string> = {};
   formData.forEach((value, key) => {
-    values[key] = typeof value === "string" ? value : value.name;
+    values[key] = typeof value === "string" ? value : toAssetReference(value);
   });
   return serializeMarkdownBody(values);
 }
