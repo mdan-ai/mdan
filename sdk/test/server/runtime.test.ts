@@ -974,7 +974,7 @@ BLOCK gate {
     expect(response.body).toContain("## 2 live messages");
     expect(response.body).toContain("- Hello");
     expect(response.body).toContain("```mdan");
-    expect(response.body).toContain('POST "/post" (message) -> submit');
+    expect(response.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 
   it("serves rendered html to browser consumers for page routes", async () => {
@@ -1100,7 +1100,7 @@ BLOCK gate {
     expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/spec/v1"');
     expect(listHandler).toHaveBeenCalledTimes(1);
     expect(response.body).toContain("2 live messages");
-    expect(response.body).not.toContain('GET "/list" -> load_messages auto');
+    expect(response.body).not.toContain('GET load_messages "/list" AUTO');
   });
 
   it("does not auto-resolve manual labeled GET operations for html page responses", async () => {
@@ -1199,7 +1199,7 @@ BLOCK gate {
     expect(response.body).toContain("No private notes yet");
     expect(response.body).toContain('action="/vault"');
     expect(response.body).not.toContain("Use `open_vault` to continue.");
-    expect(response.body).not.toContain('GET "/vault" -> open_vault');
+    expect(response.body).not.toContain('GET open_vault "/vault"');
   });
 
   it("propagates session mutations from implicit html GET dependencies to later implicit steps", async () => {
@@ -1327,7 +1327,7 @@ BLOCK gate {
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe('text/markdown; profile="https://mdan.ai/spec/v1"');
     expect(response.body).toContain("# Vault");
-    expect(response.body).not.toContain('GET "/vault" -> open_vault auto');
+    expect(response.body).not.toContain('GET open_vault "/vault" AUTO');
     expect(response.body).not.toContain("Welcome Ada");
   });
 

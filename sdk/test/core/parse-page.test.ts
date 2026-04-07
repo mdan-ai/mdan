@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parsePage } from "../../src/core/index.js";
+import { parsePageLegacy as parsePage } from "../../src/core/index.js";
 
 describe("parsePage", () => {
   it("extracts frontmatter, markdown, executable block, and anchors", () => {

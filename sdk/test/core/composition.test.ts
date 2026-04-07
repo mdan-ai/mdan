@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import * as core from "../../src/core/index.js";
-import { composePage } from "../../src/core/index.js";
+import { composePageLegacy as composePage } from "../../src/core/index.js";
 
 describe("composePage", () => {
   it("keeps block extraction on the composed page instead of the package root API", () => {

@@ -44,9 +44,9 @@ This example adds two important patterns:
 
 Typical transitions:
 
-- register success -> sign-in mutation plus `auto GET` follow-up to `/vault`
-- login success -> `auto GET` follow-up to `/vault`
-- logout -> sign-out mutation plus `auto GET` follow-up to `/login`
+- register success -> sign-in mutation plus an automatic follow-up to `/vault`
+- login success -> an automatic follow-up to `/vault`
+- logout -> sign-out mutation plus an automatic follow-up to `/login`
 
 That means the agent does not have to guess where to go next. The returned content already carries the next path.
 
@@ -76,7 +76,7 @@ If you want the most complete runnable example in the repository, start here.
 
 Avoid opaque errors. Return actionable Markdown fragments that include the next legal operation.
 
-In `auth-session`, unauthenticated writes to `vault` return a recoverable fragment that includes a `GET "/login"` operation.
+In `auth-session`, unauthenticated writes to `vault` return a recoverable fragment that includes a recover operation targeting `/login`.
 
 ## Verification Checklist
 

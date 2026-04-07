@@ -107,7 +107,7 @@ describe("auth-session example over real node http", () => {
     const registerBody = await register.text();
     expect(registerBody).toContain("# Vault");
     expect(registerBody).toContain("No private notes yet");
-    expect(registerBody).not.toContain('GET "/vault" -> open_vault auto');
+    expect(registerBody).not.toContain('GET open_vault "/vault" AUTO');
 
     const loginHtml = await fetch(`${baseUrl}/login`, {
       method: "POST",
@@ -165,7 +165,7 @@ describe("auth-session example over real node http", () => {
     const logoutBody = await logout.text();
     expect(logoutBody).toContain("# Sign In");
     expect(logoutBody).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
-    expect(logoutBody).not.toContain('GET "/login" -> open_login auto');
+    expect(logoutBody).not.toContain('GET open_login "/login" AUTO');
     expect(logoutBody).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
 
     const replayAfterLogout = await fetch(`${baseUrl}/vault`, {

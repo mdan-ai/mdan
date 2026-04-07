@@ -66,7 +66,7 @@ describe("auth-session example", () => {
 
     expect(registerResponse.body).toContain("# Starter Vault");
     expect(registerResponse.body).toContain("No private notes yet");
-    expect(registerResponse.body).not.toContain('GET "/vault" -> open_vault auto');
+    expect(registerResponse.body).not.toContain('GET open_vault "/vault" AUTO');
     const sessionCookie = cookieValueFromSetCookie(registerResponse.headers["set-cookie"]);
     expect(sessionCookie).toBeTruthy();
     expect(decodeURIComponent(sessionCookie)).not.toBe("Ada");
@@ -118,7 +118,7 @@ describe("auth-session example", () => {
 
     expect(logoutResponse.body).toContain("# Starter Sign In");
     expect(logoutResponse.body).toContain('POST login "/login" WITH nickname, password LABEL "Sign In"');
-    expect(logoutResponse.body).not.toContain('GET "/login" -> open_login auto');
+    expect(logoutResponse.body).not.toContain('GET open_login "/login" AUTO');
     expect(logoutResponse.body).not.toContain('POST save "/vault" WITH message LABEL "Save Note"');
     expect(logoutResponse.headers["set-cookie"]).toContain("Max-Age=0");
 

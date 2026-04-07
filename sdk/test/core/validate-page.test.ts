@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MdanValidationError, parsePage, validatePage } from "../../src/core/index.js";
+import { MdanValidationError, parsePageLegacy as parsePage, validatePageLegacy as validatePage } from "../../src/core/index.js";
 
 describe("validatePage", () => {
   it("rejects duplicate block names", () => {

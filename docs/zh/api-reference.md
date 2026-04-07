@@ -17,11 +17,11 @@ description: 当前 @mdanai/sdk 包及其子路径导出的公共 API 参考。
 
 ### `parsePage(source)`
 
-解析 `.md` 页面源，返回页面对象。
+用当前 MDAN 语法解析 `.md` 页面源，返回页面对象。
 
 ### `composePage(source, { blocks })`
 
-解析页面并附加运行时 block 内容，返回组合后的页面对象。
+用当前 MDAN 语法解析页面并附加运行时 block 内容，返回组合后的页面对象。
 
 返回值还提供：
 
@@ -31,7 +31,7 @@ description: 当前 @mdanai/sdk 包及其子路径导出的公共 API 参考。
 
 ### `validatePage(page)`
 
-校验页面结构，包括：
+按当前 MDAN 语法校验页面结构，包括：
 
 - block 名称
 - anchor 对齐
@@ -48,11 +48,22 @@ description: 当前 @mdanai/sdk 包及其子路径导出的公共 API 参考。
 
 ### `serializePage(page)`
 
-把完整页面对象序列化成完整页面 Markdown。
+把完整页面对象序列化成当前规范下的标准 Markdown。
 
 ### `serializeFragment(fragment)`
 
-把 block 级片段序列化成 Markdown 片段。
+把 block 级片段序列化成当前规范下的标准 Markdown 片段。
+
+### Legacy helper
+
+为了兼容测试和受控迁移，core 包也显式导出一组 legacy helper：
+
+- `parsePageLegacy(source)`
+- `parseAndValidatePageLegacy(source)`
+- `composePageLegacy(source, options)`
+- `validatePageLegacy(page)`
+- `serializePageLegacy(page)`
+- `serializeFragmentLegacy(fragment)`
 
 ### `MdanMarkdownRenderer`
 

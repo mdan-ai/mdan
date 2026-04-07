@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  serializeFragment,
-  serializePage,
+  serializeFragmentLegacy as serializeFragment,
+  serializePageLegacy as serializePage,
   type MdanFragment,
   type MdanPage
 } from "../../src/core/index.js";
