@@ -154,6 +154,38 @@ describe("createNodeRequestListener", () => {
     expect(seenBody).toBe('nickname: "Guest", message: "Hello bridge"');
   });
 
+  it("normalizes multipart form data into comma-separated markdown body", async () => {
+    let seenBody = "";
+    const mdan = createMdanServer();
+
+    mdan.post("/post", async (ctx) => {
+      seenBody = ctx.request.body ?? "";
+      return ok({
+        fragment: {
+          markdown: `## Saved ${ctx.inputs.message ?? ""} from ${ctx.inputs.attachment ?? ""}`,
+          blocks: []
+        }
+      });
+    });
+
+    const baseUrl = await listen(createNodeRequestListener(mdan));
+    const form = new FormData();
+    form.set("message", "Hello multipart");
+    form.set("attachment", new File(["demo"], "hello.txt", { type: "text/plain" }));
+
+    const response = await fetch(`${baseUrl}/post`, {
+      method: "POST",
+      headers: {
+        accept: "text/markdown"
+      },
+      body: form
+    });
+
+    expect(response.status).toBe(200);
+    expect(seenBody).toBe('message: "Hello multipart", attachment: "hello.txt"');
+    await expect(response.text()).resolves.toContain("## Saved Hello multipart from hello.txt");
+  });
+
   it("can transform rendered html responses before writing them", async () => {
     const mdan = createMdanServer();
 

@@ -328,6 +328,7 @@ describe("renderHtmlDocument", () => {
     expect(html).toContain('<option value="draft">draft</option>');
     expect(html).toContain('<option value="published">published</option>');
     expect(html).toContain('input name="attachment" type="file" required');
+    expect(html).toContain('enctype="multipart/form-data"');
     expect(html).toContain('input name="password" type="password" required');
   });
 

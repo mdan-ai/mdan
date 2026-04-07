@@ -54,15 +54,32 @@ function parseCookies(header: string | null): Record<string, string> {
   return cookies;
 }
 
-function normalizeBody(body: string | undefined, contentType: string | null): string | undefined {
-  if (!body) {
-    return undefined;
+function isFormEncodedContentType(contentType: string | null): boolean {
+  return (
+    contentType?.includes("application/x-www-form-urlencoded") === true ||
+    contentType?.includes("multipart/form-data") === true
+  );
+}
+
+async function normalizeBody(request: Request, maxBodyBytes: number): Promise<string | undefined> {
+  const contentType = request.headers.get("content-type");
+  if (contentType?.includes("application/x-www-form-urlencoded")) {
+    const body = await readBody(request, maxBodyBytes);
+    if (!body) {
+      return undefined;
+    }
+    const params = new URLSearchParams(body);
+    return serializeMarkdownBody(Object.fromEntries(params.entries()));
   }
-  if (!contentType?.includes("application/x-www-form-urlencoded")) {
-    return body;
+  if (contentType?.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    const values: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      values[key] = typeof value === "string" ? value : value.name;
+    });
+    return serializeMarkdownBody(values);
   }
-  const params = new URLSearchParams(body);
-  return serializeMarkdownBody(Object.fromEntries(params.entries()));
+  return readBody(request, maxBodyBytes);
 }
 
 async function readBody(request: Request, maxBodyBytes: number): Promise<string | undefined> {
@@ -153,7 +170,7 @@ function toMdanRequest(request: Request, body: string | undefined): MdanRequest 
     headers[key] = value;
   });
   headers.accept ??= "text/html";
-  if (body && headers["content-type"]?.includes("application/x-www-form-urlencoded")) {
+  if (body && isFormEncodedContentType(headers["content-type"] ?? null)) {
     headers["content-type"] = "text/markdown";
   }
 
@@ -243,7 +260,7 @@ export function createHost(handler: MdanRequestHandler, options: CreateBunHostOp
     const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
     let normalizedBody: string | undefined;
     try {
-      normalizedBody = normalizeBody(await readBody(request, maxBodyBytes), request.headers.get("content-type"));
+      normalizedBody = await normalizeBody(request, maxBodyBytes);
     } catch (error) {
       if (error instanceof PayloadTooLargeError) {
         return new Response("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.", {

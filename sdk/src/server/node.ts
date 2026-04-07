@@ -39,19 +39,21 @@ class PayloadTooLargeError extends Error {
 }
 
 async function readBody(request: IncomingMessage, maxBodyBytes: number): Promise<string | undefined> {
-  let body = "";
+  const chunks: Buffer[] = [];
   let totalBytes = 0;
 
   for await (const chunk of request) {
-    const textChunk = typeof chunk === "string" ? chunk : chunk.toString("utf8");
     const chunkBytes = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.byteLength;
     totalBytes += chunkBytes;
     if (totalBytes > maxBodyBytes) {
       throw new PayloadTooLargeError();
     }
-    body += textChunk;
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk, "utf8") : Buffer.from(chunk));
   }
-  return body || undefined;
+  if (chunks.length === 0) {
+    return undefined;
+  }
+  return Buffer.concat(chunks).toString("utf8");
 }
 
 function normalizeHeaderValue(value: string | string[] | undefined): string | undefined {
@@ -83,15 +85,37 @@ function parseCookies(header: string | undefined): Record<string, string> {
   return cookies;
 }
 
-function normalizeBody(body: string | undefined, contentType: string): string | undefined {
+function isFormEncodedContentType(contentType: string): boolean {
+  return (
+    contentType.includes("application/x-www-form-urlencoded") ||
+    contentType.includes("multipart/form-data")
+  );
+}
+
+async function normalizeBody(body: string | undefined, contentType: string): Promise<string | undefined> {
   if (!body) {
     return undefined;
   }
-  if (!contentType.includes("application/x-www-form-urlencoded")) {
-    return body;
+  if (contentType.includes("application/x-www-form-urlencoded")) {
+    const params = new URLSearchParams(body);
+    return serializeMarkdownBody(Object.fromEntries(params.entries()));
   }
-  const params = new URLSearchParams(body);
-  return serializeMarkdownBody(Object.fromEntries(params.entries()));
+  if (contentType.includes("multipart/form-data")) {
+    const request = new Request("http://mdan.local/", {
+      method: "POST",
+      headers: {
+        "content-type": contentType
+      },
+      body
+    });
+    const formData = await request.formData();
+    const values: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      values[key] = typeof value === "string" ? value : value.name;
+    });
+    return serializeMarkdownBody(values);
+  }
+  return body;
 }
 
 function getContentType(filePath: string): string {
@@ -177,7 +201,7 @@ function toMdanRequest(request: IncomingMessage, body: string | undefined): Mdan
     Object.entries(request.headers).map(([key, value]) => [key, normalizeHeaderValue(value)])
   ) as Record<string, string | undefined>;
   headers.accept ??= "text/html";
-  if (body && headers["content-type"]?.includes("application/x-www-form-urlencoded")) {
+  if (body && isFormEncodedContentType(headers["content-type"] ?? "")) {
     headers["content-type"] = "text/markdown";
   }
 
@@ -216,7 +240,7 @@ export function createNodeRequestListener(
     const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
     let normalizedBody: string | undefined;
     try {
-      normalizedBody = normalizeBody(await readBody(request, maxBodyBytes), contentType);
+      normalizedBody = await normalizeBody(await readBody(request, maxBodyBytes), contentType);
     } catch (error) {
       if (error instanceof PayloadTooLargeError) {
         response.statusCode = 413;
