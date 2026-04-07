@@ -16,6 +16,6 @@
 
 ```mdan
 BLOCK runtime {
-  GET "/tasks/{{id}}/runtime" -> refresh label:"Refresh"
+  GET refresh "/tasks/{{id}}/runtime" LABEL "Refresh"
 }
 ```

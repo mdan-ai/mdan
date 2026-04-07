@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { composePage, type MdanBlock, type MdanFragment, type MdanInput } from "@mdanai/sdk/core";
+import { composePageV2, markFragmentV2, type MdanBlock, type MdanFragment, type MdanInput } from "@mdanai/sdk/core";
 import { createMdanServer, fail, signIn, signOut, type MdanResponse, type MdanSessionProvider, type MdanSessionSnapshot } from "@mdanai/sdk/server";
 
 import { createTaskStore } from "./task-store.js";
@@ -26,10 +26,10 @@ Sign in to open your task queue.
 
 \`\`\`mdan
 BLOCK login {
-  INPUT text required -> nickname
-  INPUT text required secret -> password
-  POST "/login" (nickname, password) -> login label:"Sign In"
-  GET "/register" -> register label:"Create account"
+  INPUT nickname:text required
+  INPUT password:text required secret
+  POST login "/login" WITH nickname, password LABEL "Sign In"
+  GET register "/register" LABEL "Create account"
 }
 \`\`\`
 `;
@@ -42,10 +42,10 @@ Create an agent identity for this demo.
 
 \`\`\`mdan
 BLOCK register {
-  INPUT text required -> nickname
-  INPUT text required secret -> password
-  POST "/register" (nickname, password) -> register label:"Create account"
-  GET "/login" -> login label:"Back to sign in"
+  INPUT nickname:text required
+  INPUT password:text required secret
+  POST register "/register" WITH nickname, password LABEL "Create account"
+  GET login "/login" LABEL "Back to sign in"
 }
 \`\`\`
 `;
@@ -160,7 +160,7 @@ function input(name: string, required = false, secret = false): MdanInput {
 
 function renderRuntimeBlock(task: TaskRecord): MdanFragment {
   if (task.status === "claimed") {
-    return {
+    return markFragmentV2({
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -177,11 +177,11 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           ]
         }
       ]
-    };
+    });
   }
 
   if (task.status === "submitted") {
-    return {
+    return markFragmentV2({
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -205,11 +205,11 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           ]
         }
       ]
-    };
+    });
   }
 
   if (task.status === "needs_revision") {
-    return {
+    return markFragmentV2({
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -226,11 +226,11 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           ]
         }
       ]
-    };
+    });
   }
 
   if (task.status === "completed") {
-    return {
+    return markFragmentV2({
       markdown: renderRuntimeMarkdown(task),
       blocks: [
         {
@@ -239,10 +239,10 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
           operations: []
         }
       ]
-    };
+    });
   }
 
-  return {
+  return markFragmentV2({
     markdown: renderRuntimeMarkdown(task),
     blocks: [
       {
@@ -259,7 +259,7 @@ function renderRuntimeBlock(task: TaskRecord): MdanFragment {
         ]
       }
     ]
-  };
+  });
 }
 
 function renderOverviewSection(title: string, tasks: TaskRecord[]): string {
@@ -279,7 +279,7 @@ Next step: ${task.status === "open" ? "accept task" : task.status === "submitted
 
 \`\`\`mdan
 BLOCK ${task.id.replace(/[^a-z0-9_]/gi, "_")} {
-  GET "/tasks/${task.id}" -> open label:"Open task"
+  GET open "/tasks/${task.id}" LABEL "Open task"
 }
 \`\`\``
     )
@@ -301,17 +301,18 @@ function renderCreateTaskBlockContent(): string {
 }
 
 function renderAuthPage(source: string, blockName: "login" | "register", blockMarkdown: string) {
-  return composePage(source, {
+  return composePageV2(source, {
     blocks: {
       [blockName]: blockMarkdown
-    }
+    },
+    visibleBlocks: [blockName]
   });
 }
 
 function authRecovery(message: string) {
   return fail({
     status: 401,
-    fragment: {
+    fragment: markFragmentV2({
       markdown: `## ${message}\n\nOpen \`/login\` to continue.`,
       blocks: [
         {
@@ -328,12 +329,12 @@ function authRecovery(message: string) {
           ]
         }
       ]
-    }
+    })
   });
 }
 
 function taskRecovery(taskId: string, status: number, title: string, detail: string): MdanFragment {
-  return {
+  return markFragmentV2({
     markdown: `## ${title}\n\n${detail}`,
     blocks: [
       {
@@ -350,7 +351,7 @@ function taskRecovery(taskId: string, status: number, title: string, detail: str
         ]
       }
     ]
-  };
+  });
 }
 
 function recoverTaskError(taskId: string, error: unknown): { status: number; fragment: MdanFragment } {
@@ -398,10 +399,11 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
   function renderTaskPage(task: TaskRecord) {
     const runtimeFragment = renderRuntimeBlock(task);
     const runtimeBlock = runtimeFragment.blocks[0];
-    const page = composePage(replaceTemplate(options.detailSource, task), {
+    const page = composePageV2(replaceTemplate(options.detailSource, task), {
       blocks: {
         runtime: runtimeFragment.markdown
-      }
+      },
+      visibleBlocks: ["runtime"]
     });
     page.blocks = page.blocks.map((block): MdanBlock => (block.name === "runtime" && runtimeBlock ? runtimeBlock : block));
     return page;
@@ -409,12 +411,13 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
 
   function renderOverviewPage(agentId: string) {
     const buckets = store.listForAgent(agentId);
-    const page = composePage(options.overviewSource, {
+    const page = composePageV2(options.overviewSource, {
       blocks: {
         waiting_for_you: renderOverviewSection("Waiting for you", buckets.waitingForYou),
         in_progress: renderOverviewSection("In progress", buckets.inProgress),
         available: renderOverviewSection("Available", buckets.available)
-      }
+      },
+      visibleBlocks: ["waiting_for_you", "in_progress", "available"]
     });
     page.blocks = page.blocks.map((block) => {
       if (block.name === "waiting_for_you") {
@@ -620,7 +623,10 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
       return { fragment: agentId, route: "/tasks/new", status: 401 };
     }
     return {
-      page: composePage(options.newTaskSource, { blocks: { create_task: renderCreateTaskBlockContent() } }),
+      page: composePageV2(options.newTaskSource, {
+        blocks: { create_task: renderCreateTaskBlockContent() },
+        visibleBlocks: ["create_task"]
+      }),
       route: "/tasks/new"
     };
   });

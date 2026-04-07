@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { composePage } from "@mdanai/sdk/core";
+import { composePageV2 } from "@mdanai/sdk/core";
 import * as serverBunApi from "@mdanai/sdk/server/bun";
 import * as serverNodeApi from "@mdanai/sdk/server/node";
 
@@ -52,21 +52,22 @@ describe("result helpers", () => {
   });
 
   it("builds a successful block-scoped response directly from a composed page", () => {
-    const page = composePage(
+    const page = composePageV2(
       `# Guestbook
 
 <!-- mdan:block guestbook -->
 
 \`\`\`mdan
 BLOCK guestbook {
-  GET "/list" -> refresh label:"Refresh"
+  GET refresh "/list" LABEL "Refresh"
 }
 \`\`\`
 `,
       {
         blocks: {
           guestbook: "## 2 live messages\n\n- Welcome\n- Hello"
-        }
+        },
+        visibleBlocks: ["guestbook"]
       }
     );
 

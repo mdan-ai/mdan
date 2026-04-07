@@ -16,14 +16,14 @@ This page lists tasks relevant to the current agent.
 
 ```mdan
 BLOCK waiting_for_you {
-  GET "/tasks/waiting" -> refresh_waiting label:"Refresh waiting"
+  GET refresh_waiting "/tasks/waiting" LABEL "Refresh waiting"
 }
 
 BLOCK in_progress {
-  GET "/tasks/in-progress" -> refresh_in_progress label:"Refresh in progress"
+  GET refresh_in_progress "/tasks/in-progress" LABEL "Refresh in progress"
 }
 
 BLOCK available {
-  GET "/tasks/available" -> refresh_available label:"Refresh available"
+  GET refresh_available "/tasks/available" LABEL "Refresh available"
 }
 ```

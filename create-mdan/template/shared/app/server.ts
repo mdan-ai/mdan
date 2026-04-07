@@ -1,4 +1,4 @@
-import { composePage } from "@mdanai/sdk/core";
+import { composePageV2 } from "@mdanai/sdk/core";
 import { createHostedApp } from "@mdanai/sdk/server";
 
 export interface CreateAppServerOptions {
@@ -15,10 +15,11 @@ export function createAppServer(options: CreateAppServerOptions) {
   }
 
   function renderPage() {
-    return composePage(options.source, {
+    return composePageV2(options.source, {
       blocks: {
         main: renderMainBlock()
-      }
+      },
+      visibleBlocks: ["main"]
     });
   }
 
