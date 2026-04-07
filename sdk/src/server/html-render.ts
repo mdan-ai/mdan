@@ -8,6 +8,8 @@ import type {
   MdanOperation
 } from "../core/index.js";
 import { basicMarkdownRenderer } from "../core/index.js";
+import { serializeBootstrapScript } from "../shared/headless-bootstrap.js";
+import { humanizeInputLabel, resolveActionVariant } from "../shared/render-semantics.js";
 import type { MdanProtocolDiscovery } from "./types.js";
 
 interface MdanRenderableDocument extends MdanFragment {
@@ -35,29 +37,11 @@ function escapeHtml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
-function humanizeLabel(value: string): string {
-  return value
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function resolveActionVariant(operation: MdanOperation): "primary" | "secondary" | "quiet" {
-  const signature = `${operation.name ?? ""} ${operation.label ?? ""} ${operation.target}`.toLowerCase();
-  if (signature.includes("logout") || signature.includes("log out")) {
-    return "quiet";
-  }
-  if (operation.method === "GET") {
-    return "secondary";
-  }
-  return "primary";
-}
-
 function renderInput(input: MdanInput): string {
   const required = input.required ? ' required aria-required="true" data-required="true"' : "";
   const placeholder = input.name === "message" ? ` placeholder="Write something worth keeping"` : "";
   const name = escapeHtml(input.name);
-  const labelText = humanizeLabel(name);
+  const labelText = humanizeInputLabel(name);
   const label = input.required
     ? `<span class="mdan-label-text">${escapeHtml(labelText)} <span class="mdan-required" aria-hidden="true">*</span></span>`
     : `<span class="mdan-label-text">${escapeHtml(labelText)}</span>`;
@@ -108,10 +92,6 @@ function renderOperation(operation: MdanOperation, inputs: MdanInput[]): string 
 function renderBlock(block: MdanBlock, innerHtml = ""): string {
   const operations = block.operations.map((operation) => renderOperation(operation, block.inputs)).join("");
   return `<mdan-block data-mdan-block="${escapeHtml(block.name)}">${innerHtml}${operations}</mdan-block>`;
-}
-
-function escapeScriptJson(value: string): string {
-  return value.replaceAll("</script>", "<\\/script>");
 }
 
 function resolveBlockMarkdown(
@@ -280,7 +260,7 @@ export function renderHtmlDocument(fragment: MdanRenderableDocument, options: Re
       : fragment.blocks.map((block) => renderBlock(block)).join("\n");
   const bootstrap = createHeadlessBootstrap(fragment, options, hasAnchors, isSingleBlockResponse);
   const bootstrapScript = bootstrap
-    ? `\n    <script id="mdan-bootstrap" type="application/json">${escapeScriptJson(JSON.stringify(bootstrap))}</script>`
+    ? `\n    ${serializeBootstrapScript(bootstrap)}`
     : "";
   const discoveryLinks = renderHtmlDiscoveryLinks(options);
   const discoveryHead = discoveryLinks ? `\n    ${discoveryLinks}` : "";

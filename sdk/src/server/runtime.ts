@@ -10,6 +10,7 @@ import {
   type MdanOperation,
   type MdanPage
 } from "../core/index.js";
+import { serializeSseMessage } from "../shared/sse.js";
 
 import { toMarkdownContentType } from "./content-type.js";
 import { injectHtmlDiscoveryLinks, renderHtmlDocument } from "./html-render.js";
@@ -472,12 +473,6 @@ function toAsyncIterable(stream: AsyncIterable<MdanStreamChunk> | Iterable<MdanS
   return (async function* () {
     yield* stream as Iterable<MdanStreamChunk>;
   })();
-}
-
-function serializeSseMessage(markdown: string): string {
-  const normalized = markdown.replaceAll("\r\n", "\n");
-  const lines = normalized.split("\n");
-  return `${lines.map((line) => `data: ${line}`).join("\n")}\n\n`;
 }
 
 function serializeMarkdownPage(page: MdanPage): string {

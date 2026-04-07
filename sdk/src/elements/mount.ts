@@ -1,7 +1,8 @@
 import { basicMarkdownRenderer, type MdanMarkdownRenderer } from "../core/index.js";
-import { type MdanHeadlessHost, type HeadlessSnapshot } from "../web/index.js";
 import { html, render } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { humanizeInputLabel, resolveActionVariant } from "../shared/render-semantics.js";
+import type { HeadlessSnapshot, MdanHeadlessHost } from "../web/protocol.js";
 
 import { registerMdanElements } from "./register.js";
 
@@ -24,14 +25,6 @@ interface WindowWithMdanDebug extends Window {
   __MDAN_DEBUG__?: {
     messages: DebugMessageRecord[];
   };
-}
-
-function humanizeLabel(value: string): string {
-  return value
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
 function renderMarkdown(markdown: string, markdownRenderer: MdanMarkdownRenderer) {
@@ -156,6 +149,7 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                 ${getOperations.map((operation) => {
                   const formKey = getFormKey(block.name, operation);
                   const formValues = getFormValues(formKey);
+                  const actionVariant = resolveActionVariant(operation);
                   const renderableInputs = operation.inputs
                     .map((name) => inputsByName.get(name))
                     .filter((input): input is NonNullable<typeof input> => Boolean(input));
@@ -166,6 +160,7 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                         <mdan-action>
                           <button
                             type="button"
+                            data-mdan-action-variant=${actionVariant}
                             @click=${() => {
                               void host.submit(operation, {});
                             }}
@@ -180,6 +175,7 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                   return html`
                     <mdan-form>
                       <form
+                        data-mdan-action-variant=${actionVariant}
                         enctype=${renderableInputs.some((input) => input.type === "asset")
                           ? "multipart/form-data"
                           : "application/x-www-form-urlencoded"}
@@ -199,7 +195,7 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                       >
                         ${renderableInputs.map((input) => {
                           const label = html`<span class="mdan-label-text">
-                            ${humanizeLabel(input.name)}
+                            ${humanizeInputLabel(input.name, { titleCase: true })}
                             ${input.required ? html`<span class="mdan-required" aria-hidden="true">*</span>` : ""}
                           </span>`;
 
@@ -289,7 +285,9 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                           `;
                         })}
                         <mdan-action>
-                          <button type="submit">${operation.label ?? operation.name ?? operation.target}</button>
+                          <button type="submit" data-mdan-action-variant=${actionVariant}>
+                            ${operation.label ?? operation.name ?? operation.target}
+                          </button>
                         </mdan-action>
                       </form>
                     </mdan-form>
@@ -299,6 +297,7 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                 ${postOperations.map((operation) => {
                   const formKey = getFormKey(block.name, operation);
                   const formValues = getFormValues(formKey);
+                  const actionVariant = resolveActionVariant(operation);
                   const renderableInputs = operation.inputs
                     .map((name) => inputsByName.get(name))
                     .filter((input): input is NonNullable<typeof input> => Boolean(input));
@@ -306,6 +305,7 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                   return html`
                     <mdan-form>
                       <form
+                        data-mdan-action-variant=${actionVariant}
                         enctype=${renderableInputs.some((input) => input.type === "asset")
                           ? "multipart/form-data"
                           : "application/x-www-form-urlencoded"}
@@ -326,7 +326,7 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                       >
                         ${renderableInputs.map((input) => {
                               const label = html`<span class="mdan-label-text">
-                                ${humanizeLabel(input.name)}
+                                ${humanizeInputLabel(input.name, { titleCase: true })}
                                 ${input.required ? html`<span class="mdan-required" aria-hidden="true">*</span>` : ""}
                               </span>`;
 
@@ -416,7 +416,9 @@ export function mountMdanElements(options: MountMdanElementsOptions): MdanElemen
                               `;
                             })}
                         <mdan-action>
-                          <button type="submit">${operation.label ?? operation.name ?? operation.target}</button>
+                          <button type="submit" data-mdan-action-variant=${actionVariant}>
+                            ${operation.label ?? operation.name ?? operation.target}
+                          </button>
                         </mdan-action>
                       </form>
                     </mdan-form>

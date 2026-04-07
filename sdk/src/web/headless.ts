@@ -2,10 +2,19 @@ import {
   parsePage,
   serializeMarkdownBody,
   type MdanBlock,
-  type MdanHeadlessBlock,
   type MdanHeadlessBootstrap,
+  type MdanHeadlessBlock,
   type MdanOperation
 } from "../core/index.js";
+import { parseBootstrapFromHtml, parseBootstrapFromRoot } from "../shared/headless-bootstrap.js";
+import { drainSseBuffer, parseSseMessages } from "../shared/sse.js";
+import type {
+  HeadlessDebugMessage,
+  HeadlessListener,
+  HeadlessRuntimeState,
+  HeadlessSnapshot,
+  MdanHeadlessHost
+} from "./protocol.js";
 
 export interface CreateHeadlessHostOptions {
   root: ParentNode;
@@ -13,80 +22,10 @@ export interface CreateHeadlessHostOptions {
   debugMessages?: boolean;
 }
 
-export interface HeadlessRuntimeState {
-  status: "idle" | "loading" | "error";
-  error?: string;
-}
-
-export interface HeadlessSnapshot extends HeadlessRuntimeState {
-  route?: string;
-  markdown: string;
-  blocks: MdanHeadlessBlock[];
-}
-
-export type HeadlessListener = (snapshot: HeadlessSnapshot) => void;
-
-export interface HeadlessDebugMessage {
-  direction: "send" | "receive";
-  method: string;
-  url: string;
-  markdown: string;
-}
-
-export interface MdanHeadlessHost {
-  mount(): void;
-  unmount(): void;
-  subscribe(listener: HeadlessListener): () => void;
-  getSnapshot(): HeadlessSnapshot;
-  submit(operation: MdanOperation, values?: Record<string, string>): Promise<void>;
-  visit(target: string): Promise<void>;
-}
-
 interface WindowWithMdanDebug extends Window {
   __MDAN_DEBUG__?: {
     messages: HeadlessDebugMessage[];
   };
-}
-
-function findBootstrapScript(root: ParentNode): HTMLScriptElement | null {
-  if (root instanceof Document) {
-    const element = root.getElementById("mdan-bootstrap");
-    return element instanceof HTMLScriptElement ? element : null;
-  }
-
-  for (const child of Array.from(root.childNodes)) {
-    if (child instanceof HTMLScriptElement && child.id === "mdan-bootstrap") {
-      return child;
-    }
-    if (child instanceof Element) {
-      const nested = findBootstrapScript(child);
-      if (nested) {
-        return nested;
-      }
-    }
-  }
-
-  return null;
-}
-
-function getDocument(root: ParentNode): Document {
-  if (root instanceof Document) {
-    return root;
-  }
-  return root.ownerDocument ?? document;
-}
-
-function parseBootstrap(root: ParentNode): MdanHeadlessBootstrap {
-  const element = findBootstrapScript(root);
-  if (!(element instanceof HTMLScriptElement) || !element.textContent?.trim()) {
-    throw new Error("Missing mdan bootstrap data.");
-  }
-  return JSON.parse(element.textContent) as MdanHeadlessBootstrap;
-}
-
-function parseBootstrapFromHtml(content: string): MdanHeadlessBootstrap {
-  const document = new DOMParser().parseFromString(content, "text/html");
-  return parseBootstrap(document);
 }
 
 function toHeadlessBlock(block: MdanBlock, markdown: string): MdanHeadlessBlock {
@@ -127,54 +66,6 @@ function fragmentBlockFromMarkdown(markdown: string, fallbackBlock: MdanHeadless
   };
 }
 
-function parseSseMessages(content: string): string[] {
-  return content
-    .split(/\n\n+/)
-    .map((chunk) =>
-      chunk
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.startsWith("data:"))
-        .map((line) => line.slice(5).trimStart())
-        .join("\n")
-    )
-    .filter(Boolean);
-}
-
-function parseSseEvent(rawEvent: string): string | null {
-  const message = rawEvent
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.startsWith("data:"))
-    .map((line) => line.slice(5).trimStart())
-    .join("\n");
-
-  return message || null;
-}
-
-function drainSseBuffer(
-  buffer: string,
-  onMessage: (message: string) => void
-): string {
-  const normalized = buffer.replaceAll("\r\n", "\n");
-  let cursor = normalized;
-
-  while (true) {
-    const separatorIndex = cursor.indexOf("\n\n");
-    if (separatorIndex === -1) {
-      break;
-    }
-
-    const rawEvent = cursor.slice(0, separatorIndex);
-    cursor = cursor.slice(separatorIndex + 2);
-    const message = parseSseEvent(rawEvent);
-    if (message) {
-      onMessage(message);
-    }
-  }
-
-  return cursor;
-}
 
 function replaceBlock(blocks: MdanHeadlessBlock[], nextBlock: MdanHeadlessBlock): MdanHeadlessBlock[] {
   let replaced = false;
@@ -249,7 +140,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions): MdanHead
   const fetchImpl = options.fetchImpl ?? fetch;
   const debugMessages = options.debugMessages === true;
   let mounted = false;
-  let snapshot = toSnapshot(parseBootstrap(options.root), null);
+  let snapshot = toSnapshot(parseBootstrapFromRoot(options.root), null);
   let status: HeadlessRuntimeState = { status: "idle" };
   const listeners = new Set<HeadlessListener>();
 

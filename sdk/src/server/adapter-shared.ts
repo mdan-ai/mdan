@@ -1,6 +1,6 @@
 import { extname, resolve } from "node:path";
 
-import { serializeMarkdownBody } from "../core/index.js";
+import { serializeMarkdownBody } from "../core/markdown-body.js";
 
 export const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
 
