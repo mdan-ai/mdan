@@ -6,6 +6,8 @@ import { parseFrontmatter } from "./parse/frontmatter.js";
 import { serializeFragment as serializeFragmentLegacyImpl, serializePage as serializePageLegacyImpl } from "./serialize.js";
 import {
   composePageV2,
+  markFragmentLegacy,
+  markPageLegacy,
   parseAndValidatePageV2,
   parsePageV2,
   serializeFragmentV2,
@@ -31,12 +33,12 @@ export function parsePageLegacy(source: string): MdanPage {
   const { frontmatter, body } = parseFrontmatter(source);
   const { markdown, executableContent } = extractExecutableBlock(body);
   try {
-    return {
+    return markPageLegacy({
       frontmatter,
       markdown,
       blocks: parseBlocks(executableContent),
       blockAnchors: parseAnchors(markdown)
-    };
+    });
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -81,8 +83,10 @@ function resolveFragmentForBlock(page: MdanPage, blockName: string): MdanFragmen
     throw new Error(`Block "${blockName}" has no composed markdown content.`);
   }
   return {
-    markdown,
-    blocks: [block]
+    ...markFragmentLegacy({
+      markdown,
+      blocks: [block]
+    })
   };
 }
 
