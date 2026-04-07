@@ -1,15 +1,15 @@
 import type { MdanComposedPage, MdanFragment, MdanPage } from "../types.js";
 
-import { parsePageV2 } from "./parser.js";
-import { validatePageV2 } from "./validate.js";
+import { parsePage } from "./parser.js";
+import { validatePage } from "./validate.js";
 
-export interface ComposePageV2Options {
+export interface ComposePageOptions {
   blocks?: Record<string, string>;
   visibleBlocks?: string[];
 }
 
-export function parseAndValidatePageV2(source: string): MdanPage {
-  return validatePageV2(parsePageV2(source));
+export function parseAndValidatePage(source: string): MdanPage {
+  return validatePage(parsePage(source));
 }
 
 function attachFragmentHelper(page: MdanPage): MdanComposedPage {
@@ -23,8 +23,8 @@ function attachFragmentHelper(page: MdanPage): MdanComposedPage {
   return composed;
 }
 
-export function composePageV2(source: string, options: ComposePageV2Options = {}): MdanComposedPage {
-  const page = parseAndValidatePageV2(source);
+export function composePage(source: string, options: ComposePageOptions = {}): MdanComposedPage {
+  const page = parseAndValidatePage(source);
   if (options.blocks) {
     page.blockContent = { ...options.blocks };
   }

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { parsePageV2 } from "../../../src/core/syntax-v2/index.js";
+import { parsePage } from "../../../src/core/syntax/index.js";
 
-describe("parsePageV2", () => {
-  it("extracts frontmatter, anchors, markdown, and v2 executable blocks", () => {
-    const page = parsePageV2(`---
+describe("parsePage", () => {
+  it("extracts frontmatter, anchors, markdown, and executable blocks", () => {
+    const page = parsePage(`---
 title: Login
 ---
 

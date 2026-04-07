@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { composePage } from "../../src/core/index.js";
-import { composePageV2 } from "../../src/core/syntax-v2/index.js";
+import { composePage } from "../../src/core/syntax/index.js";
 import { createMdanServer, ok, signIn, stream } from "../../src/server/index.js";
 
 async function readBody(body: string | AsyncIterable<string>): Promise<string> {
@@ -357,7 +356,7 @@ describe("createMdanServer", () => {
 
     server.get("/step-1", async () =>
       ok({
-        page: composePageV2(
+        page: composePage(
           `# Step 1
 
 <!-- mdan:block gate -->
@@ -417,7 +416,7 @@ BLOCK gate {
     });
 
     server.page("/welcome", async () =>
-      composePageV2(
+      composePage(
         `# Welcome
 
 <!-- mdan:block auth -->
@@ -468,7 +467,7 @@ BLOCK auth {
     const server = createMdanServer();
 
     server.page("/vault", async () =>
-      composePageV2(
+      composePage(
         `# Vault
 
 <!-- mdan:block gate -->
@@ -516,7 +515,7 @@ BLOCK gate {
     });
 
     server.page("/vault", async () =>
-      composePageV2(
+      composePage(
         `# Vault
 
 <!-- mdan:block gate -->
@@ -567,7 +566,7 @@ BLOCK gate {
     const server = createMdanServer();
 
     server.page("/vault", async () =>
-      composePageV2(
+      composePage(
         `# Vault
 
 <!-- mdan:block gate -->
@@ -604,7 +603,7 @@ BLOCK gate {
 
   it("stops auto resolution after 10 passes instead of looping forever", async () => {
     const server = createMdanServer();
-    const loopPage = composePageV2(
+    const loopPage = composePage(
       `# Loop
 
 <!-- mdan:block gate -->
@@ -625,7 +624,7 @@ BLOCK gate {
     const loop = vi.fn(async () => ok({ fragment: loopPage.fragment("gate") }));
 
     server.page("/loop", async () =>
-      composePageV2(
+      composePage(
         `# Loop
 
 <!-- mdan:block gate -->

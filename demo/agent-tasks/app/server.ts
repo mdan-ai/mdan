@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { composePageV2, type MdanBlock, type MdanFragment, type MdanInput } from "@mdanai/sdk/core";
+import { composePage, type MdanBlock, type MdanFragment, type MdanInput } from "@mdanai/sdk/core";
 import { createMdanServer, fail, signIn, signOut, type MdanResponse, type MdanSessionProvider, type MdanSessionSnapshot } from "@mdanai/sdk/server";
 
 import { createTaskStore } from "./task-store.js";
@@ -301,7 +301,7 @@ function renderCreateTaskBlockContent(): string {
 }
 
 function renderAuthPage(source: string, blockName: "login" | "register", blockMarkdown: string) {
-  return composePageV2(source, {
+  return composePage(source, {
     blocks: {
       [blockName]: blockMarkdown
     },
@@ -399,7 +399,7 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
   function renderTaskPage(task: TaskRecord) {
     const runtimeFragment = renderRuntimeBlock(task);
     const runtimeBlock = runtimeFragment.blocks[0];
-    const page = composePageV2(replaceTemplate(options.detailSource, task), {
+    const page = composePage(replaceTemplate(options.detailSource, task), {
       blocks: {
         runtime: runtimeFragment.markdown
       },
@@ -411,7 +411,7 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
 
   function renderOverviewPage(agentId: string) {
     const buckets = store.listForAgent(agentId);
-    const page = composePageV2(options.overviewSource, {
+    const page = composePage(options.overviewSource, {
       blocks: {
         waiting_for_you: renderOverviewSection("Waiting for you", buckets.waitingForYou),
         in_progress: renderOverviewSection("In progress", buckets.inProgress),
@@ -623,7 +623,7 @@ export function createAgentTasksServer(options: CreateAgentTasksServerOptions) {
       return { fragment: agentId, route: "/tasks/new", status: 401 };
     }
     return {
-      page: composePageV2(options.newTaskSource, {
+      page: composePage(options.newTaskSource, {
         blocks: { create_task: renderCreateTaskBlockContent() },
         visibleBlocks: ["create_task"]
       }),

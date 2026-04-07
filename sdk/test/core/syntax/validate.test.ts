@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { validatePageV2 } from "../../../src/core/syntax-v2/index.js";
+import { validatePage } from "../../../src/core/syntax/index.js";
 import type { MdanPage } from "../../../src/core/types.js";
 
-describe("validatePageV2", () => {
+describe("validatePage", () => {
   it("rejects duplicate operation names in the same block", () => {
     const page: MdanPage = {
       frontmatter: {},
@@ -21,7 +21,7 @@ describe("validatePageV2", () => {
       blockAnchors: ["login"]
     };
 
-    expect(() => validatePageV2(page)).toThrow(/Duplicate operation "sign_in"/);
+    expect(() => validatePage(page)).toThrow(/Duplicate operation "sign_in"/);
   });
 
   it("rejects AUTO on POST operations", () => {
@@ -38,6 +38,6 @@ describe("validatePageV2", () => {
       blockAnchors: ["login"]
     };
 
-    expect(() => validatePageV2(page)).toThrow(/must not declare AUTO/i);
+    expect(() => validatePage(page)).toThrow(/must not declare AUTO/i);
   });
 });

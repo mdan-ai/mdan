@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { composePageV2 as composePageV2FromCore } from "../../../src/core/index.js";
-import { composePageV2 } from "../../../src/core/syntax-v2/index.js";
+import { composePage as composePageFromCore } from "../../../src/core/index.js";
+import { composePage } from "../../../src/core/syntax/index.js";
 
-describe("composePageV2", () => {
+describe("composePage", () => {
   it("is re-exported from the core entrypoint", () => {
-    expect(composePageV2FromCore).toBeTypeOf("function");
+    expect(composePageFromCore).toBeTypeOf("function");
   });
 
-  it("composes a v2 page with block content and visible blocks", () => {
-    const page = composePageV2(`---
+  it("composes a page with block content and visible blocks", () => {
+    const page = composePage(`---
 title: "Guestbook"
 ---
 

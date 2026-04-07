@@ -4,7 +4,7 @@ import { extractExecutableBlock } from "../parse/executable-block.js";
 import { parseFrontmatter } from "../parse/frontmatter.js";
 import type { MdanBlock, MdanInput, MdanOperation, MdanPage } from "../types.js";
 
-import { validatePageV2 } from "./validate.js";
+import { validatePage } from "./validate.js";
 
 const identifierPattern = /^[a-zA-Z_][\w-]*$/;
 const continuationKeywords = ["WITH", "LABEL", "AUTO", "ACCEPT"] as const;
@@ -156,7 +156,7 @@ function parseOperation(lines: string[], startIndex: number): { operation: MdanO
   };
 }
 
-export function parseBlocksV2(source: string): MdanBlock[] {
+export function parseBlocks(source: string): MdanBlock[] {
   if (!source.trim()) {
     return [];
   }
@@ -221,14 +221,14 @@ export function parseBlocksV2(source: string): MdanBlock[] {
   return blocks;
 }
 
-export function parsePageV2(source: string): MdanPage {
+export function parsePage(source: string): MdanPage {
   const { frontmatter, body } = parseFrontmatter(source);
   const { markdown, executableContent } = extractExecutableBlock(body);
   const page: MdanPage = {
     frontmatter,
     markdown,
-    blocks: parseBlocksV2(executableContent),
+    blocks: parseBlocks(executableContent),
     blockAnchors: parseAnchors(markdown)
   };
-  return validatePageV2(page);
+  return validatePage(page);
 }

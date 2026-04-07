@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { serializeBlockV2, serializePageV2 } from "../../../src/core/syntax-v2/index.js";
+import { serializeBlock, serializePage } from "../../../src/core/syntax/index.js";
 import type { MdanPage } from "../../../src/core/types.js";
 
-describe("serializeBlockV2", () => {
-  it("serializes inputs and operations in canonical v2 syntax", () => {
+describe("serializeBlock", () => {
+  it("serializes inputs and operations in canonical syntax", () => {
     expect(
-      serializeBlockV2({
+      serializeBlock({
         name: "login",
         inputs: [
           { name: "nickname", type: "text", required: true, secret: false },
@@ -48,8 +48,8 @@ describe("serializeBlockV2", () => {
   });
 });
 
-describe("serializePageV2", () => {
-  it("serializes pages using the v2 block syntax", () => {
+describe("serializePage", () => {
+  it("serializes pages using the current block syntax", () => {
     const page: MdanPage = {
       frontmatter: { title: "Login" },
       markdown: "# Login\n\n<!-- mdan:block login -->",
@@ -77,9 +77,9 @@ describe("serializePageV2", () => {
       blockAnchors: ["login"]
     };
 
-    expect(serializePageV2(page)).toContain('INPUT nickname:text required');
-    expect(serializePageV2(page)).toContain('POST sign_in "/login" WITH nickname, password LABEL "Sign In"');
-    expect(serializePageV2(page)).not.toContain("INPUT text");
-    expect(serializePageV2(page)).not.toContain("-> sign_in");
+    expect(serializePage(page)).toContain('INPUT nickname:text required');
+    expect(serializePage(page)).toContain('POST sign_in "/login" WITH nickname, password LABEL "Sign In"');
+    expect(serializePage(page)).not.toContain("INPUT text");
+    expect(serializePage(page)).not.toContain("-> sign_in");
   });
 });

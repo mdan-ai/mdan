@@ -102,7 +102,7 @@ function validateOperationReferences(block: MdanBlock): void {
   }
 }
 
-export function validatePageV2(page: MdanPage): MdanPage {
+export function validatePage(page: MdanPage): MdanPage {
   assertUnique(page.blocks.map((block) => block.name), (name) => `Duplicate block "${name}".`);
   assertUnique(page.blockAnchors, (name) => `Duplicate block anchor "${name}".`);
 

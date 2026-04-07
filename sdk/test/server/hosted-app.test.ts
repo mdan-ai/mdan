@@ -1,11 +1,10 @@
-import { composePage } from "@mdanai/sdk/core";
 import { describe, expect, it } from "vitest";
 
-import { composePageV2 } from "../../src/core/syntax-v2/index.js";
+import { composePage } from "../../src/core/syntax/index.js";
 import { createHostedApp, stream } from "../../src/server/index.js";
 
 describe("createHostedApp", () => {
-  it("serves hosted pages composed from v2 syntax through the existing runtime", async () => {
+  it("serves hosted pages composed from the current syntax through the existing runtime", async () => {
     const messages = ["Welcome"];
     const source = `---
 title: Guestbook
@@ -24,7 +23,7 @@ BLOCK guestbook {
 \`\`\``;
 
     function renderPage() {
-      return composePageV2(source, {
+      return composePage(source, {
         blocks: {
           guestbook: `## ${messages.length} live message${messages.length === 1 ? "" : "s"}\n\n${messages
             .map((message) => `- ${message}`)
@@ -35,20 +34,20 @@ BLOCK guestbook {
 
     const app = createHostedApp({
       pages: {
-        "/guestbook-v2": renderPage
+        "/guestbook": renderPage
       },
       actions: [
         {
           target: "/list",
           methods: ["GET"],
-          routePath: "/guestbook-v2",
+          routePath: "/guestbook",
           blockName: "guestbook",
           handler: ({ block }) => block()
         },
         {
           target: "/post",
           methods: ["POST"],
-          routePath: "/guestbook-v2",
+          routePath: "/guestbook",
           blockName: "guestbook",
           handler: ({ inputs, block }) => {
             if (inputs.message) {
@@ -62,7 +61,7 @@ BLOCK guestbook {
 
     const pageResponse = await app.handle({
       method: "GET",
-      url: "https://example.test/guestbook-v2",
+      url: "https://example.test/guestbook",
       headers: { accept: "text/markdown" },
       cookies: {}
     });
@@ -97,7 +96,7 @@ BLOCK guestbook {
     const app = createHostedApp({
       pages: {
         "/surfaces/:surfaceId": ({ params, routePath }) =>
-          composePageV2(
+          composePage(
             `# Surface ${params.surfaceId}
 
 <!-- mdan:block runtime -->
@@ -176,7 +175,7 @@ BLOCK guestbook {
 \`\`\``;
 
     function renderPage() {
-      return composePageV2(source, {
+      return composePage(source, {
         blocks: {
           guestbook: `## ${messages.length} live message${messages.length === 1 ? "" : "s"}\n\n${messages
             .map((message) => `- ${message}`)
@@ -255,7 +254,7 @@ BLOCK updates {
     const app = createHostedApp({
       pages: {
         "/updates": () =>
-          composePageV2(source, {
+          composePage(source, {
             blocks: {
               updates: "## Waiting"
             },
@@ -322,7 +321,7 @@ BLOCK secure {
       pages: {
         "/account": ({ session }) =>
           session
-            ? composePageV2(signedInSource, {
+            ? composePage(signedInSource, {
                 blocks: {
                   secure: `## Saved for ${session.userId}`
                 },
@@ -384,7 +383,7 @@ BLOCK guestbook {
       },
       pages: {
         "/guestbook": () =>
-          composePageV2(source, {
+          composePage(source, {
             blocks: {
               guestbook: "## 1 live message\n\n- Welcome"
             },
@@ -497,7 +496,7 @@ BLOCK guestbook {
       createHostedApp({
         pages: {
           "/account": () =>
-            composePageV2(`# Account
+            composePage(`# Account
 
 <!-- mdan:block account -->
 

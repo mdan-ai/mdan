@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { composePageV2 } from "@mdanai/sdk/core";
+import { composePage } from "@mdanai/sdk/core";
 import {
   block,
   createHostedApp,
@@ -144,7 +144,7 @@ export function createAuthServer(options: CreateAuthServerOptions) {
   }
 
   function renderLoginPage(userId: string | null, banner?: { login?: string }) {
-    return composePageV2(options.loginSource, {
+    return composePage(options.loginSource, {
       blocks: {
         login: renderLoginBlock(userId, banner?.login)
       },
@@ -153,7 +153,7 @@ export function createAuthServer(options: CreateAuthServerOptions) {
   }
 
   function renderRegisterPage(userId: string | null, banner?: { register?: string }) {
-    return composePageV2(options.registerSource, {
+    return composePage(options.registerSource, {
       blocks: {
         register: renderRegisterBlock(userId, banner?.register)
       },
@@ -162,7 +162,7 @@ export function createAuthServer(options: CreateAuthServerOptions) {
   }
 
   function renderVaultPage(userId: string | null, banner?: { session?: string; vault?: string }) {
-    return composePageV2(options.vaultSource, {
+    return composePage(options.vaultSource, {
       blocks: {
         session: userId ? renderSessionBlock(userId, banner?.session) : "",
         vault: renderVaultBlock(userId, banner?.vault)

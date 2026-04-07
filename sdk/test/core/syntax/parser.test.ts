@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { parseBlocksV2 } from "../../../src/core/syntax-v2/index.js";
+import { parseBlocks } from "../../../src/core/syntax/index.js";
 
-describe("parseBlocksV2", () => {
+describe("parseBlocks", () => {
   it("parses input declarations with name-first syntax", () => {
-    const blocks = parseBlocksV2(`BLOCK login {
+    const blocks = parseBlocks(`BLOCK login {
   INPUT nickname:text required
   INPUT password:text required secret
   INPUT status:choice ["draft", "published"]
@@ -24,7 +24,7 @@ describe("parseBlocksV2", () => {
   });
 
   it("parses compact single-line operations", () => {
-    const blocks = parseBlocksV2(`BLOCK login {
+    const blocks = parseBlocks(`BLOCK login {
   POST sign_in "/login" WITH nickname, password LABEL "Sign In"
   GET register "/register" LABEL "Register"
   GET events "/events" ACCEPT "text/event-stream"
@@ -72,7 +72,7 @@ describe("parseBlocksV2", () => {
   });
 
   it("parses multiline continuation clauses with the same semantics", () => {
-    const blocks = parseBlocksV2(`BLOCK login {
+    const blocks = parseBlocks(`BLOCK login {
   POST sign_in "/login"
     WITH nickname, password
     LABEL "Sign In"
@@ -105,7 +105,7 @@ describe("parseBlocksV2", () => {
 
   it("rejects unknown continuation clauses", () => {
     expect(() =>
-      parseBlocksV2(`BLOCK login {
+      parseBlocks(`BLOCK login {
   POST sign_in "/login"
     TARGET "/other"
 }`)

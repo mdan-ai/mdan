@@ -57,7 +57,7 @@ function serializeOperation(operation: MdanOperation): string {
   return `  ${parts.join(" ")}`;
 }
 
-export function serializeBlockV2(block: MdanBlock): string {
+export function serializeBlock(block: MdanBlock): string {
   const lines = [
     `BLOCK ${block.name} {`,
     ...block.inputs.map(serializeInput),
@@ -67,11 +67,11 @@ export function serializeBlockV2(block: MdanBlock): string {
   return lines.join("\n");
 }
 
-function serializeBlocksV2(blocks: MdanBlock[]): string {
+function serializeBlocks(blocks: MdanBlock[]): string {
   if (blocks.length === 0) {
     return "";
   }
-  return `\`\`\`mdan\n${blocks.map(serializeBlockV2).join("\n\n")}\n\`\`\`\n`;
+  return `\`\`\`mdan\n${blocks.map(serializeBlock).join("\n\n")}\n\`\`\`\n`;
 }
 
 function getVisibleBlockNames(page: MdanPage): Set<string> | null {
@@ -119,7 +119,7 @@ function injectBlockContent(markdown: string, blockContent: Record<string, strin
   return lines.join("\n");
 }
 
-export function serializePageV2(page: MdanPage): string {
+export function serializePage(page: MdanPage): string {
   const frontmatter = serializeFrontmatter(page.frontmatter);
   const visibleBlockNames = getVisibleBlockNames(page);
   const markdown = injectBlockContent(
@@ -136,12 +136,12 @@ export function serializePageV2(page: MdanPage): string {
       .join("\n"),
     getVisibleBlockContent(page)
   );
-  const blocks = serializeBlocksV2(getVisibleBlocks(page));
+  const blocks = serializeBlocks(getVisibleBlocks(page));
   return `${frontmatter}${markdown}${blocks ? `\n\n${blocks}` : "\n"}`;
 }
 
-export function serializeFragmentV2(fragment: MdanFragment): string {
+export function serializeFragment(fragment: MdanFragment): string {
   const markdown = fragment.markdown.trim();
-  const blocks = serializeBlocksV2(fragment.blocks);
+  const blocks = serializeBlocks(fragment.blocks);
   return `${markdown}${blocks ? `\n\n${blocks}` : "\n"}`;
 }
