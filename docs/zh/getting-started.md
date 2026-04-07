@@ -15,8 +15,8 @@ MDAN 现在官方支持 Node 和 Bun。
 
 当前 npm 版本：
 
-- `create-mdan@0.5.0`
-- `@mdanai/sdk@0.5.0`
+- `create-mdan@0.6.0`
+- `@mdanai/sdk@0.6.0`
 
 ## 1. 创建并启动项目
 

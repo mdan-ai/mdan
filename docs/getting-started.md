@@ -15,8 +15,8 @@ MDAN officially supports Node and Bun.
 
 Current npm releases:
 
-- `create-mdan@0.5.0`
-- `@mdanai/sdk@0.5.0`
+- `create-mdan@0.6.0`
+- `@mdanai/sdk@0.6.0`
 
 ## 1. Create and Start a Project
 

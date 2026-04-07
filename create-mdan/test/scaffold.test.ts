@@ -70,12 +70,12 @@ describe("create-mdan starter scaffold", () => {
     await scaffoldStarterProject({
       targetDir,
       projectName: "latest-app",
-      sdkVersion: toCompatibleSdkRange("0.5.0"),
+      sdkVersion: toCompatibleSdkRange("0.6.0"),
       runtime: "node"
     });
 
     const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
-    expect(packageJson).toContain('"@mdanai/sdk": "^0.5.0"');
+    expect(packageJson).toContain('"@mdanai/sdk": "^0.6.0"');
   });
 
   it("can scaffold a Bun-native starter", async () => {
@@ -104,9 +104,9 @@ describe("create-mdan starter scaffold", () => {
   });
 
   it("maps package versions to same-series sdk ranges", () => {
-    expect(toCompatibleSdkRange("0.5.0")).toBe("^0.5.0");
+    expect(toCompatibleSdkRange("0.6.0")).toBe("^0.6.0");
     expect(toCompatibleSdkRange("1.3.7")).toBe("^1.3.0");
-    expect(toCompatibleSdkRange("0.5.0-beta.1")).toBe("^0.5.0");
+    expect(toCompatibleSdkRange("0.6.0-beta.1")).toBe("^0.6.0");
   });
 
   it("rejects invalid package versions when deriving sdk ranges", () => {

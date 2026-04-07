@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This changelog starts at `0.4.0`. Earlier releases were not backfilled.
 
+## 0.6.0 - 2026-04-07
+
+### Changed
+
+- `@mdanai/sdk@0.6.0` makes the new MDAN syntax the default core syntax
+- legacy syntax support has been removed from the mainline SDK surface
+- core syntax modules and exports have been aligned to their canonical names without `v2` suffixes
+- public examples, starter templates, docs, and mainline tests now use the current syntax by default
+- `create-mdan@0.6.0` now generates apps against the `^0.6.0` SDK line
+- direct-write request semantics are now documented around shared named input fields across `text/markdown`, `application/x-www-form-urlencoded`, and `multipart/form-data`
+
 ## 0.5.0 - 2026-04-05
 
 ### Changed

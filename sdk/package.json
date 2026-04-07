@@ -1,6 +1,6 @@
 {
   "name": "@mdanai/sdk",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": false,
   "description": "TypeScript reference SDK for building MDAN agent apps with interactive Markdown pages and actions.",
   "license": "MIT",
