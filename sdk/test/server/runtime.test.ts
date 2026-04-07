@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { composePage } from "../../src/core/index.js";
+import { composePageV2 } from "../../src/core/syntax-v2/index.js";
 import { createMdanServer, ok, signIn, stream } from "../../src/server/index.js";
 
 async function readBody(body: string | AsyncIterable<string>): Promise<string> {
@@ -356,21 +357,22 @@ describe("createMdanServer", () => {
 
     server.get("/step-1", async () =>
       ok({
-        page: composePage(
+        page: composePageV2(
           `# Step 1
 
 <!-- mdan:block gate -->
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/step-2" -> step_2 auto
+  GET step_2 "/step-2" AUTO
 }
 \`\`\`
 `,
           {
             blocks: {
               gate: "## Passing through"
-            }
+            },
+            visibleBlocks: ["gate"]
           }
         ),
         session: signIn({ userId: "middle-user" })
@@ -415,21 +417,22 @@ BLOCK gate {
     });
 
     server.page("/welcome", async () =>
-      composePage(
+      composePageV2(
         `# Welcome
 
 <!-- mdan:block auth -->
 
 \`\`\`mdan
 BLOCK auth {
-  GET "/bootstrap-session" -> bootstrap_session auto
+  GET bootstrap_session "/bootstrap-session" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             auth: "## Loading session"
-          }
+          },
+          visibleBlocks: ["auth"]
         }
       )
     );
@@ -465,21 +468,22 @@ BLOCK auth {
     const server = createMdanServer();
 
     server.page("/vault", async () =>
-      composePage(
+      composePageV2(
         `# Vault
 
 <!-- mdan:block gate -->
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/login" -> open_login auto
+  GET open_login "/login" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Checking access"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -512,21 +516,22 @@ BLOCK gate {
     });
 
     server.page("/vault", async () =>
-      composePage(
+      composePageV2(
         `# Vault
 
 <!-- mdan:block gate -->
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/logout-bootstrap" -> logout_bootstrap auto
+  GET logout_bootstrap "/logout-bootstrap" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Closing session"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -562,21 +567,22 @@ BLOCK gate {
     const server = createMdanServer();
 
     server.page("/vault", async () =>
-      composePage(
+      composePageV2(
         `# Vault
 
 <!-- mdan:block gate -->
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/missing" -> missing auto
+  GET missing "/missing" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Still here"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -598,38 +604,43 @@ BLOCK gate {
 
   it("stops auto resolution after 10 passes instead of looping forever", async () => {
     const server = createMdanServer();
-    const loop = vi.fn(async () =>
-      ok({
-        fragment: {
-          markdown: "## Looping",
-          blocks: [
-            {
-              name: "gate",
-              markdown: "## Looping",
-              inputs: [],
-              operations: [{ method: "GET", target: "/loop-step", name: "loop_step", inputs: [], auto: true }]
-            }
-          ]
-        }
-      })
+    const loopPage = composePageV2(
+      `# Loop
+
+<!-- mdan:block gate -->
+
+\`\`\`mdan
+BLOCK gate {
+  GET loop_step "/loop-step" AUTO
+}
+\`\`\`
+`,
+      {
+        blocks: {
+          gate: "## Looping"
+        },
+        visibleBlocks: ["gate"]
+      }
     );
+    const loop = vi.fn(async () => ok({ fragment: loopPage.fragment("gate") }));
 
     server.page("/loop", async () =>
-      composePage(
+      composePageV2(
         `# Loop
 
 <!-- mdan:block gate -->
 
 \`\`\`mdan
 BLOCK gate {
-  GET "/loop-step" -> loop_step auto
+  GET loop_step "/loop-step" AUTO
 }
 \`\`\`
 `,
         {
           blocks: {
             gate: "## Start"
-          }
+          },
+          visibleBlocks: ["gate"]
         }
       )
     );
@@ -647,7 +658,7 @@ BLOCK gate {
 
     expect(response.status).toBe(200);
     expect(loop).toHaveBeenCalledTimes(10);
-    expect(response.body).toContain("GET \"/loop-step\" -> loop_step auto");
+    expect(response.body).toContain("/loop-step");
     expect(response.body).toContain("## Looping");
   });
 

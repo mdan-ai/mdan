@@ -97,21 +97,22 @@ BLOCK guestbook {
     const app = createHostedApp({
       pages: {
         "/surfaces/:surfaceId": ({ params, routePath }) =>
-          composePage(
+          composePageV2(
             `# Surface ${params.surfaceId}
 
 <!-- mdan:block runtime -->
 
 \`\`\`mdan
 BLOCK runtime {
-  INPUT text -> actor_name
-  POST "${routePath}/accept" (actor_name) -> accept label:"Accept"
+  INPUT actor_name:text
+  POST accept "${routePath}/accept" WITH actor_name LABEL "Accept"
 }
 \`\`\``,
             {
               blocks: {
                 runtime: `## Waiting on ${params.surfaceId}`
-              }
+              },
+              visibleBlocks: ["runtime"]
             }
           )
       },
@@ -138,7 +139,7 @@ BLOCK runtime {
 
     expect(pageResponse.status).toBe(200);
     expect(pageResponse.body).toContain("# Surface dynamic-task");
-    expect(pageResponse.body).toContain('POST "/surfaces/dynamic-task/accept" (actor_name) -> accept');
+    expect(pageResponse.body).toContain('POST accept "/surfaces/dynamic-task/accept" WITH actor_name LABEL "Accept"');
 
     const actionResponse = await app.handle({
       method: "POST",
@@ -153,7 +154,7 @@ BLOCK runtime {
 
     expect(actionResponse.status).toBe(200);
     expect(actionResponse.body).toContain("## Waiting on dynamic-task");
-    expect(actionResponse.body).toContain('POST "/surfaces/dynamic-task/accept" (actor_name) -> accept');
+    expect(actionResponse.body).toContain('POST accept "/surfaces/dynamic-task/accept" WITH actor_name LABEL "Accept"');
   });
 
   it("serves pages and block-bound actions from a compact hosted app definition", async () => {
@@ -168,19 +169,20 @@ title: Guestbook
 
 \`\`\`mdan
 BLOCK guestbook {
-  INPUT text required -> message
-  GET "/list" -> refresh label:"Refresh"
-  POST "/post" (message) -> submit label:"Submit"
+  INPUT message:text required
+  GET refresh "/list" LABEL "Refresh"
+  POST submit "/post" WITH message LABEL "Submit"
 }
 \`\`\``;
 
     function renderPage() {
-      return composePage(source, {
+      return composePageV2(source, {
         blocks: {
           guestbook: `## ${messages.length} live message${messages.length === 1 ? "" : "s"}\n\n${messages
             .map((message) => `- ${message}`)
             .join("\n")}`
-        }
+        },
+        visibleBlocks: ["guestbook"]
       });
     }
 
@@ -220,7 +222,7 @@ BLOCK guestbook {
 
     expect(pageResponse.status).toBe(200);
     expect(pageResponse.body).toContain('title: "Guestbook"');
-    expect(pageResponse.body).toContain('GET "/list" -> refresh');
+    expect(pageResponse.body).toContain('GET refresh "/list" LABEL "Refresh"');
 
     const actionResponse = await app.handle({
       method: "POST",
@@ -236,7 +238,7 @@ BLOCK guestbook {
     expect(actionResponse.status).toBe(200);
     expect(actionResponse.body).toContain("## 2 live messages");
     expect(actionResponse.body).toContain("- Hello");
-    expect(actionResponse.body).toContain('POST "/post" (message) -> submit');
+    expect(actionResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 
   it("binds stream GET targets and preserves event-stream behavior", async () => {
@@ -246,17 +248,18 @@ BLOCK guestbook {
 
 \`\`\`mdan
 BLOCK updates {
-  GET "/stream" accept:"text/event-stream"
+  GET stream "/stream" ACCEPT "text/event-stream"
 }
 \`\`\``;
 
     const app = createHostedApp({
       pages: {
         "/updates": () =>
-          composePage(source, {
+          composePageV2(source, {
             blocks: {
               updates: "## Waiting"
-            }
+            },
+            visibleBlocks: ["updates"]
           })
       },
       actions: [
@@ -303,8 +306,8 @@ BLOCK updates {
 
 \`\`\`mdan
 BLOCK secure {
-  INPUT text -> message
-  POST "/shared" (message) -> save
+  INPUT message:text
+  POST save "/shared" WITH message
 }
 \`\`\``;
 
@@ -319,10 +322,11 @@ BLOCK secure {
       pages: {
         "/account": ({ session }) =>
           session
-            ? composePage(signedInSource, {
+            ? composePageV2(signedInSource, {
                 blocks: {
                   secure: `## Saved for ${session.userId}`
-                }
+                },
+                visibleBlocks: ["secure"]
               })
             : composePage(signedOutSource)
       },
@@ -352,7 +356,7 @@ BLOCK secure {
 
     expect(response.status).toBe(200);
     expect(response.body).toContain("## Saved for Ada");
-    expect(response.body).toContain('POST "/shared" (message) -> save');
+    expect(response.body).toContain('POST save "/shared" WITH message');
   });
 
   it("uses hosted route context to emit markdown discovery links for html pages and actions", async () => {
@@ -366,8 +370,8 @@ title: Guestbook
 
 \`\`\`mdan
 BLOCK guestbook {
-  INPUT text required -> message
-  POST "/post" (message) -> submit label:"Submit"
+  INPUT message:text required
+  POST submit "/post" WITH message LABEL "Submit"
 }
 \`\`\``;
 
@@ -380,10 +384,11 @@ BLOCK guestbook {
       },
       pages: {
         "/guestbook": () =>
-          composePage(source, {
+          composePageV2(source, {
             blocks: {
               guestbook: "## 1 live message\n\n- Welcome"
-            }
+            },
+            visibleBlocks: ["guestbook"]
           })
       },
       actions: [
@@ -492,16 +497,16 @@ BLOCK guestbook {
       createHostedApp({
         pages: {
           "/account": () =>
-            composePage(`# Account
+            composePageV2(`# Account
 
 <!-- mdan:block account -->
 
 \`\`\`mdan
 BLOCK account {
-  GET "/account" -> refresh
+  GET refresh "/account" LABEL "Refresh"
 }
 \`\`\`
-`)
+`, { visibleBlocks: ["account"] })
         },
         actions: [
           {
