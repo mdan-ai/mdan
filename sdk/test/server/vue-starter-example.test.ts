@@ -42,6 +42,7 @@ describe("vue starter example", () => {
 
     expect(postResponse.body).toContain("## 3 live messages");
     expect(postResponse.body).toContain("- Vue Three");
+    expect(postResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 
   it("keeps the browser entry client-only and Vue-hosted", async () => {

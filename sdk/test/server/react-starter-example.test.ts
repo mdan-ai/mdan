@@ -42,6 +42,7 @@ describe("react starter example", () => {
 
     expect(postResponse.body).toContain("## 3 live messages");
     expect(postResponse.body).toContain("- React Three");
+    expect(postResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 
   it("keeps the browser entry client-only and React-hosted", async () => {

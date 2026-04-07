@@ -1,4 +1,4 @@
-import { composePage } from "@mdanai/sdk/core";
+import { composePageV2 } from "@mdanai/sdk/core";
 import { createHostedApp } from "@mdanai/sdk/server";
 import { marked } from "marked";
 
@@ -22,7 +22,7 @@ export function createAppServer(options: CreateAppServerOptions) {
   }
 
   function renderPage() {
-    return composePage(options.source, {
+    return composePageV2(options.source, {
       blocks: {
         main: renderMainBlock()
       }

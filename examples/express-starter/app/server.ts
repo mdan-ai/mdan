@@ -1,4 +1,4 @@
-import { composePage } from "@mdanai/sdk/core";
+import { composePageV2 } from "@mdanai/sdk/core";
 import { createHostedApp } from "@mdanai/sdk/server";
 
 export interface CreateExpressStarterServerOptions {
@@ -15,7 +15,7 @@ export function createExpressStarterServer(options: CreateExpressStarterServerOp
   }
 
   function renderGuestbookPage() {
-    return composePage(options.source, {
+    return composePageV2(options.source, {
       blocks: {
         guestbook: renderGuestbookBlock()
       }

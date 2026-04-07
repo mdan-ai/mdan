@@ -43,5 +43,6 @@ describe("starter example", () => {
     expect(postResponse.body).toContain("## 3 live messages");
     expect(postResponse.body).toContain("- Third");
     expect(postResponse.body).not.toContain('title: "Agent App"');
+    expect(postResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 });

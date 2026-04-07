@@ -27,6 +27,15 @@ describe("marked starter example", () => {
     expect(response.headers["content-type"]).toBe("text/html");
     expect(response.body).toContain("<strong>shared</strong>");
     expect(response.body).toContain("<strong>Bold</strong> entry");
+
+    const markdownResponse = await server.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: { accept: "text/markdown" },
+      cookies: {}
+    });
+
+    expect(markdownResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
   });
 
   it("keeps the browser entry client-only and injects the same third-party renderer into elements", async () => {
