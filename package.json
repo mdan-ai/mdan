@@ -10,7 +10,7 @@
     "demo/*"
   ],
   "scripts": {
-    "build": "tsc -b tsconfig.build.json",
+    "build": "node scripts/clean-build-artifacts.mjs && tsc -b tsconfig.build.json",
     "docs:build": "tsc -b docs-site/tsconfig.json",
     "docs:dev": "node scripts/docs-dev.mjs",
     "docs:start": "tsc -b docs-site/tsconfig.json && node docs-site/dev.mjs",
@@ -21,7 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b tsconfig.build.json --pretty false",
-    "clean": "rm -rf node_modules sdk/dist examples/*/dist docs-site/dist .vitest-cache"
+    "clean": "node scripts/clean-build-artifacts.mjs && rm -rf node_modules .vitest-cache"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

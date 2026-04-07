@@ -1,8 +1,15 @@
 import { readFile, stat } from "node:fs/promises";
-import { extname, resolve } from "node:path";
 
-import { serializeMarkdownBody } from "../core/index.js";
-
+import {
+  DEFAULT_MAX_BODY_BYTES,
+  PayloadTooLargeError,
+  getStaticContentType,
+  isFormEncodedContentType,
+  normalizeMultipartBody,
+  normalizeUrlEncodedBody,
+  parseCookies,
+  resolveMountedFile
+} from "./adapter-shared.js";
 import { toMarkdownContentType } from "./content-type.js";
 import type { MdanRequest, MdanResponse } from "./types.js";
 
@@ -24,43 +31,6 @@ export interface BunStaticMount {
   directory: string;
 }
 
-const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
-
-class PayloadTooLargeError extends Error {
-  constructor() {
-    super("Payload Too Large");
-  }
-}
-
-function parseCookies(header: string | null): Record<string, string> {
-  if (!header?.trim()) {
-    return {};
-  }
-
-  const cookies: Record<string, string> = {};
-  for (const pair of header.split(";")) {
-    const [rawName, ...rawValue] = pair.split("=");
-    const name = rawName?.trim();
-    if (!name) {
-      continue;
-    }
-    const serializedValue = rawValue.join("=").trim();
-    try {
-      cookies[name] = decodeURIComponent(serializedValue);
-    } catch {
-      cookies[name] = serializedValue;
-    }
-  }
-  return cookies;
-}
-
-function isFormEncodedContentType(contentType: string | null): boolean {
-  return (
-    contentType?.includes("application/x-www-form-urlencoded") === true ||
-    contentType?.includes("multipart/form-data") === true
-  );
-}
-
 async function normalizeBody(request: Request, maxBodyBytes: number): Promise<string | undefined> {
   const contentType = request.headers.get("content-type");
   if (contentType?.includes("application/x-www-form-urlencoded")) {
@@ -68,16 +38,14 @@ async function normalizeBody(request: Request, maxBodyBytes: number): Promise<st
     if (!body) {
       return undefined;
     }
-    const params = new URLSearchParams(body);
-    return serializeMarkdownBody(Object.fromEntries(params.entries()));
+    return normalizeUrlEncodedBody(body);
   }
   if (contentType?.includes("multipart/form-data")) {
-    const formData = await request.formData();
-    const values: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      values[key] = typeof value === "string" ? value : value.name;
-    });
-    return serializeMarkdownBody(values);
+    const body = await readBody(request, maxBodyBytes);
+    if (!body) {
+      return undefined;
+    }
+    return normalizeMultipartBody(body, contentType);
   }
   return readBody(request, maxBodyBytes);
 }
@@ -101,49 +69,6 @@ async function readBody(request: Request, maxBodyBytes: number): Promise<string 
   return text;
 }
 
-function getContentType(filePath: string): string {
-  const extension = extname(filePath);
-  return extension === ".js" || extension === ".mjs"
-    ? "text/javascript"
-    : extension === ".css"
-      ? "text/css"
-      : extension === ".map" || extension === ".json"
-        ? "application/json"
-        : extension === ".html"
-          ? "text/html"
-          : extension === ".svg"
-            ? "image/svg+xml"
-            : extension === ".txt"
-              ? "text/plain"
-              : "application/octet-stream";
-}
-
-function resolveMountedFile(directory: string, urlPrefix: string, pathname: string): string | null {
-  const normalizedPrefix =
-    urlPrefix.length > 1 && urlPrefix.endsWith("/") ? urlPrefix.slice(0, -1) : urlPrefix;
-
-  if (normalizedPrefix === "/") {
-    const baseDirectory = resolve(directory);
-    const target = resolve(baseDirectory, pathname.replace(/^\/+/, ""));
-    if (target !== baseDirectory && !target.startsWith(`${baseDirectory}/`)) {
-      return null;
-    }
-    return target;
-  }
-
-  if (pathname !== normalizedPrefix && !pathname.startsWith(`${normalizedPrefix}/`)) {
-    return null;
-  }
-
-  const relativePath = pathname.slice(normalizedPrefix.length).replace(/^\/+/, "");
-  const baseDirectory = resolve(directory);
-  const target = resolve(baseDirectory, relativePath);
-  if (target !== baseDirectory && !target.startsWith(`${baseDirectory}/`)) {
-    return null;
-  }
-  return target;
-}
-
 async function tryServeStaticFile(filePath: string): Promise<Response | null> {
   try {
     const fileStat = await stat(filePath);
@@ -155,7 +80,7 @@ async function tryServeStaticFile(filePath: string): Promise<Response | null> {
     return new Response(body, {
       status: 200,
       headers: {
-        "content-type": getContentType(filePath),
+        "content-type": getStaticContentType(filePath),
         "cache-control": "public, max-age=0, must-revalidate"
       }
     });

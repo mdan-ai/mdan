@@ -1,11 +1,18 @@
 import type { IncomingMessage, RequestListener, ServerResponse } from "node:http";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
-import { extname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
 
-import { serializeMarkdownBody } from "../core/index.js";
-
+import {
+  DEFAULT_MAX_BODY_BYTES,
+  PayloadTooLargeError,
+  getStaticContentType,
+  isFormEncodedContentType,
+  normalizeMultipartBody,
+  normalizeUrlEncodedBody,
+  parseCookies,
+  resolveMountedFile
+} from "./adapter-shared.js";
 import { toMarkdownContentType } from "./content-type.js";
 import type { MdanRequest, MdanResponse } from "./types.js";
 
@@ -30,14 +37,6 @@ export interface CreateNodeHostOptions extends CreateNodeRequestListenerOptions 
   staticMounts?: NodeStaticMount[];
 }
 
-const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
-
-class PayloadTooLargeError extends Error {
-  constructor() {
-    super("Payload Too Large");
-  }
-}
-
 async function readBody(request: IncomingMessage, maxBodyBytes: number): Promise<string | undefined> {
   const chunks: Buffer[] = [];
   let totalBytes = 0;
@@ -56,85 +55,17 @@ async function readBody(request: IncomingMessage, maxBodyBytes: number): Promise
   return Buffer.concat(chunks).toString("utf8");
 }
 
-function normalizeHeaderValue(value: string | string[] | undefined): string | undefined {
-  if (Array.isArray(value)) {
-    return value.join(", ");
-  }
-  return value;
-}
-
-function parseCookies(header: string | undefined): Record<string, string> {
-  if (!header?.trim()) {
-    return {};
-  }
-
-  const cookies: Record<string, string> = {};
-  for (const pair of header.split(";")) {
-    const [rawName, ...rawValue] = pair.split("=");
-    const name = rawName?.trim();
-    if (!name) {
-      continue;
-    }
-    const serializedValue = rawValue.join("=").trim();
-    try {
-      cookies[name] = decodeURIComponent(serializedValue);
-    } catch {
-      cookies[name] = serializedValue;
-    }
-  }
-  return cookies;
-}
-
-function isFormEncodedContentType(contentType: string): boolean {
-  return (
-    contentType.includes("application/x-www-form-urlencoded") ||
-    contentType.includes("multipart/form-data")
-  );
-}
-
 async function normalizeBody(body: string | undefined, contentType: string): Promise<string | undefined> {
   if (!body) {
     return undefined;
   }
   if (contentType.includes("application/x-www-form-urlencoded")) {
-    const params = new URLSearchParams(body);
-    return serializeMarkdownBody(Object.fromEntries(params.entries()));
+    return normalizeUrlEncodedBody(body);
   }
   if (contentType.includes("multipart/form-data")) {
-    const request = new Request("http://mdan.local/", {
-      method: "POST",
-      headers: {
-        "content-type": contentType
-      },
-      body
-    });
-    const formData = await request.formData();
-    const values: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      values[key] = typeof value === "string" ? value : value.name;
-    });
-    return serializeMarkdownBody(values);
+    return normalizeMultipartBody(body, contentType);
   }
   return body;
-}
-
-function getContentType(filePath: string): string {
-  const extension = extname(filePath);
-  return extension === ".js"
-    ? "text/javascript"
-    : extension === ".css"
-      ? "text/css"
-      : extension === ".map" || extension === ".json"
-        ? "application/json"
-        : extension === ".html"
-          ? "text/html"
-          : extension === ".svg"
-            ? "image/svg+xml"
-            : extension === ".mjs"
-              ? "text/javascript"
-              : extension === ".txt"
-                ? "text/plain"
-                : "application/octet-stream";
 }
 
 function toEtag(size: number, mtimeMs: number): string {
@@ -148,7 +79,7 @@ async function tryServeStaticFile(request: IncomingMessage, response: ServerResp
       return false;
     }
 
-    const contentType = getContentType(filePath);
+    const contentType = getStaticContentType(filePath);
     const etag = toEtag(fileStat.size, fileStat.mtimeMs);
     response.setHeader("content-type", contentType);
     response.setHeader("cache-control", "public, max-age=0, must-revalidate");
@@ -168,30 +99,11 @@ async function tryServeStaticFile(request: IncomingMessage, response: ServerResp
   }
 }
 
-function resolveMountedFile(directory: string, urlPrefix: string, pathname: string): string | null {
-  const normalizedPrefix =
-    urlPrefix.length > 1 && urlPrefix.endsWith("/") ? urlPrefix.slice(0, -1) : urlPrefix;
-
-  if (normalizedPrefix === "/") {
-    const baseDirectory = resolve(directory);
-    const target = resolve(baseDirectory, pathname.replace(/^\/+/, ""));
-    if (target !== baseDirectory && !target.startsWith(`${baseDirectory}/`)) {
-      return null;
-    }
-    return target;
+function normalizeHeaderValue(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) {
+    return value.join(", ");
   }
-
-  if (pathname !== normalizedPrefix && !pathname.startsWith(`${normalizedPrefix}/`)) {
-    return null;
-  }
-
-  const relativePath = pathname.slice(normalizedPrefix.length).replace(/^\/+/, "");
-  const baseDirectory = resolve(directory);
-  const target = resolve(baseDirectory, relativePath);
-  if (target !== baseDirectory && !target.startsWith(`${baseDirectory}/`)) {
-    return null;
-  }
-  return target;
+  return value;
 }
 
 function toMdanRequest(request: IncomingMessage, body: string | undefined): MdanRequest {

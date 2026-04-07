@@ -1,7 +1,6 @@
 import type { MdanComposedPage, MdanFragment, MdanPage } from "../types.js";
 
 import { parsePage } from "./parser.js";
-import { validatePage } from "./validate.js";
 
 export interface ComposePageOptions {
   blocks?: Record<string, string>;
@@ -9,7 +8,7 @@ export interface ComposePageOptions {
 }
 
 export function parseAndValidatePage(source: string): MdanPage {
-  return validatePage(parsePage(source));
+  return parsePage(source);
 }
 
 function attachFragmentHelper(page: MdanPage): MdanComposedPage {

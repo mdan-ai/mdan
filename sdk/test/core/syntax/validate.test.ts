@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { validatePage as validatePageFromCore } from "../../../src/core/index.js";
 import { validatePage } from "../../../src/core/syntax/index.js";
 import type { MdanPage } from "../../../src/core/types.js";
 
 describe("validatePage", () => {
+  it("is the same implementation re-exported from the core entrypoint", () => {
+    expect(validatePage).toBe(validatePageFromCore);
+  });
+
   it("rejects duplicate operation names in the same block", () => {
     const page: MdanPage = {
       frontmatter: {},

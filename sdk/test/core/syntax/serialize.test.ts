@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { serializePage as serializePageFromCore } from "../../../src/core/index.js";
 import { serializeBlock, serializePage } from "../../../src/core/syntax/index.js";
 import type { MdanPage } from "../../../src/core/types.js";
 
@@ -49,37 +50,7 @@ describe("serializeBlock", () => {
 });
 
 describe("serializePage", () => {
-  it("serializes pages using the current block syntax", () => {
-    const page: MdanPage = {
-      frontmatter: { title: "Login" },
-      markdown: "# Login\n\n<!-- mdan:block login -->",
-      blockContent: {
-        login: "## Please sign in"
-      },
-      blocks: [
-        {
-          name: "login",
-          inputs: [
-            { name: "nickname", type: "text", required: true, secret: false },
-            { name: "password", type: "text", required: true, secret: true }
-          ],
-          operations: [
-            {
-              method: "POST",
-              name: "sign_in",
-              target: "/login",
-              inputs: ["nickname", "password"],
-              label: "Sign In"
-            }
-          ]
-        }
-      ],
-      blockAnchors: ["login"]
-    };
-
-    expect(serializePage(page)).toContain('INPUT nickname:text required');
-    expect(serializePage(page)).toContain('POST sign_in "/login" WITH nickname, password LABEL "Sign In"');
-    expect(serializePage(page)).not.toContain("INPUT text");
-    expect(serializePage(page)).not.toContain("-> sign_in");
+  it("is the same implementation re-exported from the core entrypoint", () => {
+    expect(serializePage).toBe(serializePageFromCore);
   });
 });
