@@ -37,6 +37,7 @@ export interface CreateMdanServerOptions {
   renderHtml?: typeof renderHtmlDocument;
   markdownRenderer?: MdanMarkdownRenderer;
   htmlDiscovery?: MdanHtmlDiscoveryResolver;
+  validatePostRequest?: MdanPostInputValidator;
 }
 
 export interface PostInputValidationPolicy {
@@ -54,6 +55,18 @@ export interface PostInputValidationFailure {
   ok: false;
   detail: string;
 }
+
+export interface PostInputValidationContext {
+  request: MdanRequest;
+  routePath: string;
+  params: Record<string, string>;
+  inputs: Record<string, string>;
+  session: MdanSessionSnapshot | null;
+}
+
+export type MdanPostInputValidator = (
+  context: PostInputValidationContext
+) => PostInputValidationResult | PostInputValidationFailure | null | undefined;
 
 export function validatePostInputs(
   inputs: Record<string, string>,
@@ -764,6 +777,28 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
           );
         }
         throw error;
+      }
+
+      if (request.method === "POST" && options.validatePostRequest) {
+        const validation = options.validatePostRequest({
+          request,
+          routePath: match.routePath,
+          params: match.params,
+          inputs,
+          session
+        });
+        if (validation && !validation.ok) {
+          return createResponse(
+            fail({
+              status: 400,
+              fragment: createErrorFragment("Invalid Request Fields", validation.detail)
+            }),
+            representation,
+            htmlRenderer,
+            request,
+            options.htmlDiscovery
+          );
+        }
       }
 
       let result: MdanHandlerResult;

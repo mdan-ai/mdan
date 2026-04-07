@@ -235,6 +235,41 @@ describe("createMdanServer", () => {
     expect(response.body).toContain("Unsupported Media Type");
   });
 
+  it("applies runtime-level post input validation policies before calling handlers", async () => {
+    const invoked = vi.fn(async () =>
+      ok({
+        fragment: {
+          markdown: "# Should not run",
+          blocks: []
+        }
+      })
+    );
+    const server = createMdanServer({
+      validatePostRequest: ({ inputs }) =>
+        inputs.admin
+          ? { ok: false, detail: 'POST "/login" only accepts input(s): nickname. Rejected: admin.' }
+          : { ok: true }
+    });
+
+    server.post("/login", invoked);
+
+    const response = await server.handle({
+      method: "POST",
+      url: "https://example.test/login",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "text/markdown"
+      },
+      body: 'nickname: "Guest", admin: "true"',
+      cookies: {}
+    });
+
+    expect(invoked).not.toHaveBeenCalled();
+    expect(response.status).toBe(400);
+    expect(response.body).toContain("## Invalid Request Fields");
+    expect(response.body).toContain('POST "/login" only accepts input(s): nickname. Rejected: admin.');
+  });
+
   it("passes the current session into sessionProvider.clear during sign-out", async () => {
     const clear = vi.fn(async () => undefined);
     const server = createMdanServer({
