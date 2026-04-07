@@ -6,10 +6,15 @@ This changelog starts at `0.4.0`. Earlier releases were not backfilled.
 
 ## 0.6.0 - 2026-04-07
 
+### Breaking
+
+- `@mdanai/sdk@0.6.0` is the major syntax transition release for the current MDAN line
+- the new MDAN syntax is now the default syntax across the main SDK surface
+- legacy syntax support has been removed from the mainline SDK surface
+- existing apps that still depend on the legacy syntax need to migrate before upgrading to `0.6.0`
+
 ### Changed
 
-- `@mdanai/sdk@0.6.0` makes the new MDAN syntax the default core syntax
-- legacy syntax support has been removed from the mainline SDK surface
 - core syntax modules and exports have been aligned to their canonical names without `v2` suffixes
 - public examples, starter templates, docs, and mainline tests now use the current syntax by default
 - `create-mdan@0.6.0` now generates apps against the `^0.6.0` SDK line
