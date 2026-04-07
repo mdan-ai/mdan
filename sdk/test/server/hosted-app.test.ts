@@ -1,9 +1,94 @@
 import { composePage } from "@mdanai/sdk/core";
 import { describe, expect, it } from "vitest";
 
+import { composePageV2 } from "../../src/core/syntax-v2/index.js";
 import { createHostedApp, stream } from "../../src/server/index.js";
 
 describe("createHostedApp", () => {
+  it("serves hosted pages composed from v2 syntax through the existing runtime", async () => {
+    const messages = ["Welcome"];
+    const source = `---
+title: Guestbook
+---
+
+# Guestbook
+
+<!-- mdan:block guestbook -->
+
+\`\`\`mdan
+BLOCK guestbook {
+  INPUT message:text required
+  GET refresh "/list" LABEL "Refresh"
+  POST submit "/post" WITH message LABEL "Submit"
+}
+\`\`\``;
+
+    function renderPage() {
+      return composePageV2(source, {
+        blocks: {
+          guestbook: `## ${messages.length} live message${messages.length === 1 ? "" : "s"}\n\n${messages
+            .map((message) => `- ${message}`)
+            .join("\n")}`
+        }
+      });
+    }
+
+    const app = createHostedApp({
+      pages: {
+        "/guestbook-v2": renderPage
+      },
+      actions: [
+        {
+          target: "/list",
+          methods: ["GET"],
+          routePath: "/guestbook-v2",
+          blockName: "guestbook",
+          handler: ({ block }) => block()
+        },
+        {
+          target: "/post",
+          methods: ["POST"],
+          routePath: "/guestbook-v2",
+          blockName: "guestbook",
+          handler: ({ inputs, block }) => {
+            if (inputs.message) {
+              messages.push(inputs.message);
+            }
+            return block();
+          }
+        }
+      ]
+    });
+
+    const pageResponse = await app.handle({
+      method: "GET",
+      url: "https://example.test/guestbook-v2",
+      headers: { accept: "text/markdown" },
+      cookies: {}
+    });
+
+    expect(pageResponse.status).toBe(200);
+    expect(pageResponse.body).toContain('title: "Guestbook"');
+    expect(pageResponse.body).toContain("## 1 live message");
+    expect(pageResponse.body).toContain("- Welcome");
+
+    const actionResponse = await app.handle({
+      method: "POST",
+      url: "https://example.test/post",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "text/markdown"
+      },
+      body: 'message: "Hello"',
+      cookies: {}
+    });
+
+    expect(actionResponse.status).toBe(200);
+    expect(actionResponse.body).toContain("## 2 live messages");
+    expect(actionResponse.body).toContain("- Hello");
+    expect(actionResponse.body).toContain('POST "/post" (message) -> submit');
+  });
+
   it("supports parameterized hosted page routes and action targets", async () => {
     const app = createHostedApp({
       pages: {

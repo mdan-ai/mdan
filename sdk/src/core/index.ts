@@ -11,6 +11,7 @@ export * from "./markdown-renderer.js";
 export * from "./markdown-body.js";
 export * from "./negotiate.js";
 export * from "./serialize.js";
+export * from "./syntax-v2/index.js";
 export * from "./types.js";
 export * from "./validate.js";
 
