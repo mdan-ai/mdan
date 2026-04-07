@@ -1,9 +1,12 @@
 import {
   MdanParseError,
+  isMarkedV2,
   negotiateRepresentation,
   parseMarkdownBody,
   serializeFragment,
+  serializeFragmentV2,
   serializePage,
+  serializePageV2,
   type MdanBlock,
   type MdanFragment,
   type MdanMarkdownRenderer,
@@ -432,7 +435,7 @@ function resolveResponseBody(
 ): string {
   if (result.page) {
     return representation === "markdown"
-      ? serializePage(result.page)
+      ? (isMarkedV2(result.page) ? serializePageV2(result.page) : serializePage(result.page))
       : renderHtml(
           getRenderablePage(result.page),
           {
@@ -450,7 +453,7 @@ function resolveResponseBody(
   }
 
   return representation === "markdown"
-    ? serializeFragment(result.fragment)
+    ? (isMarkedV2(result.fragment) ? serializeFragmentV2(result.fragment) : serializeFragment(result.fragment))
     : renderHtml(result.fragment, {
         kind: "fragment",
         ...(result.route ? { route: result.route } : {}),
@@ -485,12 +488,12 @@ function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<str
     if (!result.fragment) {
       throw new Error("Non-stream event-stream responses must include a fragment.");
     }
-    return serializeSseMessage(serializeFragment(result.fragment));
+    return serializeSseMessage(isMarkedV2(result.fragment) ? serializeFragmentV2(result.fragment) : serializeFragment(result.fragment));
   }
 
   return (async function* () {
     for await (const chunk of toAsyncIterable(result.stream)) {
-      const markdown = typeof chunk === "string" ? chunk : serializeFragment(chunk);
+      const markdown = typeof chunk === "string" ? chunk : isMarkedV2(chunk) ? serializeFragmentV2(chunk) : serializeFragment(chunk);
       yield serializeSseMessage(markdown);
     }
   })();
@@ -556,7 +559,9 @@ function createPageResponse(
     }, discoveryLinksToHeader(discoveryLinks)),
     body:
       representation === "markdown"
-        ? serializePage(page)
+        ? isMarkedV2(page)
+          ? serializePageV2(page)
+          : serializePage(page)
         : renderHtml(getRenderablePage(page), {
             kind: "page",
             ...(route ? { route } : {}),

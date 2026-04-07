@@ -71,6 +71,9 @@ BLOCK guestbook {
     expect(pageResponse.body).toContain('title: "Guestbook"');
     expect(pageResponse.body).toContain("## 1 live message");
     expect(pageResponse.body).toContain("- Welcome");
+    expect(pageResponse.body).toContain('GET refresh "/list" LABEL "Refresh"');
+    expect(pageResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
+    expect(pageResponse.body).not.toContain('GET "/list" -> refresh');
 
     const actionResponse = await app.handle({
       method: "POST",
@@ -86,7 +89,8 @@ BLOCK guestbook {
     expect(actionResponse.status).toBe(200);
     expect(actionResponse.body).toContain("## 2 live messages");
     expect(actionResponse.body).toContain("- Hello");
-    expect(actionResponse.body).toContain('POST "/post" (message) -> submit');
+    expect(actionResponse.body).toContain('POST submit "/post" WITH message LABEL "Submit"');
+    expect(actionResponse.body).not.toContain('POST "/post" (message) -> submit');
   });
 
   it("supports parameterized hosted page routes and action targets", async () => {
