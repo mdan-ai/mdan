@@ -54,6 +54,8 @@
     "dev:starter": "node scripts/run-example-dev.mjs examples/starter/dev.ts",
     "lint": "eslint src test examples create-mdan/src create-mdan/test vitest.baseline.config.ts --max-warnings=0",
     "lint:names": "npm run lint",
+    "prepack": "node scripts/prepare-npm-package.mjs --package . --readme docs/npm/sdk.md",
+    "postpack": "node scripts/prepare-npm-package.mjs --package . --readme docs/npm/sdk.md --restore true",
     "test": "bun run test:baseline",
     "test:baseline": "bunx vitest run --config vitest.baseline.config.ts",
     "test:coverage": "bunx vitest run --config vitest.baseline.config.ts --coverage",

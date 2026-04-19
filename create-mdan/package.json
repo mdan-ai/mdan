@@ -34,6 +34,7 @@
   "files": [
     "dist",
     "README.md",
+    "LICENSE",
     "template/shared",
     "template/node",
     "template/bun"
@@ -44,6 +45,8 @@
   "scripts": {
     "build": "bunx tsc -b tsconfig.json --force",
     "postbuild": "chmod +x dist/cli-bin.js",
+    "prepack": "node ../scripts/prepare-npm-package.mjs --package . --readme ../docs/npm/create-mdan.md --license ../LICENSE",
+    "postpack": "node ../scripts/prepare-npm-package.mjs --package . --readme ../docs/npm/create-mdan.md --license ../LICENSE --restore true",
     "test": "bunx vitest run test"
   },
   "exports": {
