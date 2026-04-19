@@ -1,61 +1,31 @@
-# MDAN Starter
+# starter (surface runtime)
 
-This is the smallest runnable MDAN starter.
-
-## Files
+Source layout:
 
 - `app/index.md`
-  - page source and interaction definition
-- `app/server.ts`
-  - state and action handlers
-- `app/client.ts`
-  - browser runtime mount
-- `index.mjs`
-  - local Node host
+- `app/actions/main.json`
+- `app.ts` (loads sources and injects runtime state)
 
-## Start
+Runtime contract:
 
-If you are browsing the [MDAN repository](https://github.com/mdan-ai/mdan), this example is the in-repo version of the published starter.
+- `GET page` supports `text/html`, `application/json`, and `text/markdown`
+- `POST action/block` supports `application/json` only
+- HTML page responses are rendered on the server from the same `JsonSurfaceEnvelope`
 
-Run once from the repository root:
+Run:
 
 ```bash
-npm install
+cd sdk
+bun run dev:starter
 ```
 
-Or:
+This command performs an initial SDK build, starts TypeScript watch to keep `dist/` current, and then launches the example server.
 
-```bash
-bun install
-```
+Open `http://127.0.0.1:4323/`.
 
-Then start the example:
+Quick checks:
 
-```bash
-cd examples/starter
-npm start
-```
-
-You can still use Bun for the install/build side:
-
-```bash
-bun install
-bun run build
-```
-
-Open:
-
-- `http://127.0.0.1:3000/`
-
-## Usual edit points
-
-1. `app/index.md`
-2. business state in `app/server.ts`
-3. explicit action bindings and handlers in `app/server.ts`
-
-## Core pieces
-
-- page source in `app/index.md`
-- state and actions in `app/server.ts`
-- browser runtime in `app/client.ts`
-- Node host in `index.mjs`
+- `curl -H 'Accept: text/html' http://127.0.0.1:4323/`
+- `curl -H 'Accept: application/json' http://127.0.0.1:4323/`
+- `curl -H 'Accept: text/markdown' http://127.0.0.1:4323/`
+- `curl -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"message":"From starter"}' http://127.0.0.1:4323/post`

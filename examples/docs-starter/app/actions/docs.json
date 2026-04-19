@@ -1,0 +1,22 @@
+{
+  "app_id": "docs-starter",
+  "state_id": "docs-starter:home:1",
+  "state_version": 1,
+  "response_mode": "page",
+  "blocks": ["docs"],
+  "actions": [
+    {
+      "id": "refresh_docs",
+      "label": "Refresh",
+      "verb": "read",
+      "transport": { "method": "GET" },
+      "target": "/",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ],
+  "allowed_next_actions": ["refresh_docs"]
+}

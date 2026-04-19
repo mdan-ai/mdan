@@ -3,26 +3,12 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "baseUrl": ".",
-    "paths": {
-      "@mdanai/sdk": ["./sdk/src/index.ts"],
-      "@mdanai/sdk/core": ["./sdk/src/core/index.ts"],
-      "@mdanai/sdk/server": ["./sdk/src/server/index.ts"],
-      "@mdanai/sdk/server/node": ["./sdk/src/server/node-runtime.ts"],
-      "@mdanai/sdk/server/bun": ["./sdk/src/server/bun.ts"],
-      "@mdanai/sdk/web": ["./sdk/src/web/index.ts"],
-      "@mdanai/sdk/elements": ["./sdk/src/elements/index.ts"]
-    },
-    "strict": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
     "lib": ["ES2022", "DOM"],
-    "types": ["node"]
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true
   }
 }

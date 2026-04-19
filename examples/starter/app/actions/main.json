@@ -1,0 +1,37 @@
+{
+  "app_id": "starter",
+  "state_id": "starter:home:1",
+  "state_version": 1,
+  "response_mode": "page",
+  "blocks": ["main"],
+  "actions": [
+    {
+      "id": "refresh_main",
+      "label": "Refresh",
+      "verb": "read",
+      "transport": { "method": "GET" },
+      "target": "/",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "submit_message",
+      "label": "Submit",
+      "verb": "write",
+      "transport": { "method": "POST" },
+      "target": "/post",
+      "input_schema": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  ],
+  "allowed_next_actions": ["refresh_main", "submit_message"]
+}

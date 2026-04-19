@@ -1,38 +1,99 @@
 {
-  "name": "mdan",
-  "version": "0.6.0",
-  "private": true,
-  "type": "module",
-  "workspaces": [
-    "sdk",
-    "create-mdan",
-    "examples/*",
-    "demo/*"
-  ],
-  "scripts": {
-    "build": "node scripts/clean-build-artifacts.mjs && tsc -b tsconfig.build.json",
-    "docs:build": "tsc -b docs-site/tsconfig.json",
-    "docs:dev": "node scripts/docs-dev.mjs",
-    "docs:start": "tsc -b docs-site/tsconfig.json && node docs-site/dev.mjs",
-    "release:smoke:pre": "node scripts/release-smoke.mjs --mode=prepublish --runtime=node",
-    "release:smoke:pre:bun": "node scripts/release-smoke.mjs --mode=prepublish --runtime=bun",
-    "release:smoke:post": "node scripts/release-smoke.mjs --mode=postpublish --runtime=node",
-    "release:smoke:post:bun": "node scripts/release-smoke.mjs --mode=postpublish --runtime=bun",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc -b tsconfig.build.json --pretty false",
-    "clean": "node scripts/clean-build-artifacts.mjs && rm -rf node_modules .vitest-cache"
+  "name": "@mdanai/sdk",
+  "version": "0.7.0",
+  "private": false,
+  "description": "TypeScript reference SDK for building MDAN agent apps with interactive Markdown pages and actions.",
+  "license": "MIT",
+  "homepage": "https://docs.mdan.ai",
+  "bugs": {
+    "url": "https://github.com/mdan-ai/mdan/issues"
   },
-  "devDependencies": {
-    "@types/node": "^24.6.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "jsdom": "^27.0.0",
-    "playwright": "^1.58.2",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdan-ai/mdan.git"
+  },
+  "keywords": [
+    "mdan",
+    "markdown-action-notation",
+    "agent-app",
+    "skills-app",
+    "agent-interface",
+    "agent-interaction",
+    "agent-native",
+    "agent-readable-markdown",
+    "interactive-markdown",
+    "markdown-actions",
+    "markdown-apps",
+    "agent",
+    "multi-step-agent-workflows",
+    "interactive-documents"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "dist",
+    "dist-browser",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node scripts/build-browser-bundles.mjs && bunx tsc -b tsconfig.json --force && npm run build:create-mdan",
+    "build:create-mdan": "npm --prefix create-mdan run build",
+    "build:browser": "node scripts/build-browser-bundles.mjs",
+    "build:browser:watch": "node scripts/build-browser-bundles.mjs --watch",
+    "build:watch": "bunx tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "dev:auth-guestbook": "node scripts/run-example-dev.mjs examples/auth-guestbook/dev.ts",
+    "dev:docs-starter": "node scripts/run-example-dev.mjs examples/docs-starter/dev.ts",
+    "dev:starter": "node scripts/run-example-dev.mjs examples/starter/dev.ts",
+    "lint": "eslint src test examples create-mdan/src create-mdan/test vitest.baseline.config.ts --max-warnings=0",
+    "lint:names": "npm run lint",
+    "test": "bun run test:baseline",
+    "test:baseline": "bunx vitest run --config vitest.baseline.config.ts",
+    "test:coverage": "bunx vitest run --config vitest.baseline.config.ts --coverage",
+    "test:json": "bunx vitest run test/core/surface-adapter.test.ts test/server/runtime-json-surface.test.ts test/server/runtime-json-contract-mode.test.ts test/server/runtime-json-session-isolation.test.ts test/server/auth-guestbook-json-example.test.ts",
+    "test:tssdk-migrated": "bunx vitest run test",
+    "test:create-mdan": "bunx vitest run create-mdan/test"
+  },
+  "exports": {
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "default": "./dist/server/index.js"
+    },
+    "./server/node": {
+      "types": "./dist/server/node-runtime.d.ts",
+      "default": "./dist/server/node-runtime.js"
+    },
+    "./server/bun": {
+      "types": "./dist/server/bun.d.ts",
+      "default": "./dist/server/bun.js"
+    },
+    "./surface": {
+      "types": "./dist/surface/index.d.ts",
+      "default": "./dist/surface/index.js"
+    },
+    "./ui": {
+      "types": "./dist/ui/index.d.ts",
+      "default": "./dist/ui/index.js"
+    }
   },
   "dependencies": {
-    "marked": "^17.0.5"
+    "lit": "^3.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "@vitest/coverage-v8": "^4.1.4",
+    "eslint": "^10.2.0",
+    "happy-dom": "^20.8.9",
+    "vitest": "^4.1.4"
   }
 }

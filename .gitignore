@@ -1,40 +1,8 @@
-# Dependencies
 node_modules/
-
-# Build artifacts
 dist/
-sdk/*/dist/
-examples/*/dist/
-demo/*/dist/
-*.tsbuildinfo
-sdk/*/tsconfig.tsbuildinfo
-examples/*/tsconfig.tsbuildinfo
-demo/*/tsconfig.tsbuildinfo
-
-# Test and tooling outputs
-.vitest-cache/
+dist-browser/
 coverage/
-output/
-.playwright-cli/
-sdk/*/test/**/*.js
-sdk/*/test/**/*.js.map
-sdk/*/test/**/*.d.ts
-sdk/*/test/**/*.d.ts.map
-
-# Temp/cache files
+*.tsbuildinfo
+.mdan/
 .DS_Store
-*.log
-tmp/
-temp/
-sdk/LICENSE
-create-mdan/LICENSE
-
-# Internal docs and local notes
-docs/superpowers/
-zh-spec.md
-
-# Temporary scripts
-scripts/*
-!scripts/release-smoke.mjs
-!scripts/sync-package-license.mjs
-!scripts/docs-dev.mjs
+.gstack/

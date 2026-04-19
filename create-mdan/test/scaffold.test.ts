@@ -1,116 +1,117 @@
-import { mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { scaffoldStarterProject, toCompatibleSdkRange } from "../src/index.js";
+import { scaffoldStarterProject } from "../src/scaffold.js";
 
-describe("create-mdan starter scaffold", () => {
-  it("creates the starter with app-oriented structure and filled placeholders", async () => {
-    const parent = await mkdtemp(join(tmpdir(), "mdan-create-"));
-    const targetDir = join(parent, "my-mdan-app");
+const fixtureModuleUrl = new URL("../src/scaffold.ts", import.meta.url).href;
+const tmpRoots: string[] = [];
+
+async function makeTempDir(): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), "create-mdan-test-"));
+  tmpRoots.push(dir);
+  return dir;
+}
+
+async function readGenerated(root: string, path: string): Promise<string> {
+  return readFile(join(root, path), "utf8");
+}
+
+describe("create-mdan scaffold", () => {
+  afterEach(async () => {
+    await Promise.all(tmpRoots.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
+  });
+
+  it("generates a node starter against the current sdk public API", async () => {
+    const root = await makeTempDir();
+    const targetDir = join(root, "agent-app");
 
     await scaffoldStarterProject({
       targetDir,
-      projectName: "my-mdan-app",
-      sdkVersion: "0.1.0-test",
+      projectName: "agent-app",
+      sdkVersion: "^0.7.0",
       runtime: "node"
-    });
+    }, fixtureModuleUrl);
 
-    const topLevelEntries = await readdir(targetDir);
-    expect(topLevelEntries.sort()).toEqual(["README.md", "app", "index.mjs", "package.json", "tsconfig.json"]);
+    const packageJson = await readGenerated(targetDir, "package.json");
+    const indexSource = await readGenerated(targetDir, "index.mjs");
+    const serverSource = await readGenerated(targetDir, "app/server.mjs");
 
-    const appEntries = await readdir(join(targetDir, "app"));
-    expect(appEntries.sort()).toEqual(["client.ts", "index.md", "server.ts"]);
-
-    const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
-    expect(packageJson).toContain('"name": "my-mdan-app"');
-    expect(packageJson).toContain('"@mdanai/sdk": "0.1.0-test"');
-    expect(packageJson).toContain('"start": "tsc -p tsconfig.json && node index.mjs"');
-
-    const readme = await readFile(join(targetDir, "README.md"), "utf8");
-    expect(readme).toContain("# my-mdan-app");
-    expect(readme).toContain("app/index.md");
-    expect(readme).toContain("http://127.0.0.1:3000/");
-    expect(readme).toContain("npm install");
-    expect(readme).toContain("npm start");
-    expect(readme).toContain("Node host");
-    expect(readme).not.toContain("Bun-native");
-
-    const indexSource = await readFile(join(targetDir, "index.mjs"), "utf8");
-    expect(indexSource).toContain('import { createAppServer } from "./dist/server.js";');
+    expect(packageJson).toContain('"name": "agent-app"');
+    expect(packageJson).toContain('"@mdanai/sdk": "^0.7.0"');
     expect(indexSource).toContain('@mdanai/sdk/server/node');
-    expect(indexSource).toContain('"/app/client.js"');
-    expect(indexSource).toContain("process.env.PORT || 3000");
-
-    const serverSource = await readFile(join(targetDir, "app", "server.ts"), "utf8");
-    expect(serverSource).toContain("createHostedApp");
-    expect(serverSource).toContain('target: "/post"');
+    expect(indexSource).not.toContain("rootRedirect");
+    expect(serverSource).toContain('@mdanai/sdk/server');
+    expect(`${indexSource}\n${serverSource}`).not.toMatch(/@mdanai\/sdk\/(?:core|web|elements)|createHostedApp/);
   });
 
-  it("rejects scaffolding into a non-empty target directory", async () => {
-    const parent = await mkdtemp(join(tmpdir(), "mdan-create-"));
-    await writeFile(join(parent, "keep.txt"), "occupied", "utf8");
-
-    await expect(
-      scaffoldStarterProject({
-        targetDir: parent,
-        projectName: "already-here",
-        sdkVersion: "0.1.0-test",
-        runtime: "node"
-      })
-    ).rejects.toThrow(/must be empty/);
-  });
-
-  it("can scaffold a starter with a compatible sdk range", async () => {
-    const parent = await mkdtemp(join(tmpdir(), "mdan-create-latest-"));
-    const targetDir = join(parent, "latest-app");
-
-    await scaffoldStarterProject({
-      targetDir,
-      projectName: "latest-app",
-      sdkVersion: toCompatibleSdkRange("0.6.0"),
-      runtime: "node"
-    });
-
-    const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
-    expect(packageJson).toContain('"@mdanai/sdk": "^0.6.0"');
-  });
-
-  it("can scaffold a Bun-native starter", async () => {
-    const parent = await mkdtemp(join(tmpdir(), "mdan-create-bun-"));
-    const targetDir = join(parent, "bun-app");
+  it("generates a bun starter with bun host import", async () => {
+    const root = await makeTempDir();
+    const targetDir = join(root, "bun-app");
 
     await scaffoldStarterProject({
       targetDir,
       projectName: "bun-app",
-      sdkVersion: "0.1.0-test",
+      sdkVersion: "^0.7.0",
       runtime: "bun"
-    });
+    }, fixtureModuleUrl);
 
-    const packageJson = await readFile(join(targetDir, "package.json"), "utf8");
-    expect(packageJson).toContain('"start": "tsc -p tsconfig.json && bun run index.mjs"');
+    const indexSource = await readGenerated(targetDir, "index.mjs");
+    const packageJson = await readGenerated(targetDir, "package.json");
 
-    const readme = await readFile(join(targetDir, "README.md"), "utf8");
-    expect(readme).toContain("Bun host");
-    expect(readme).toContain("bun install");
-    expect(readme).toContain("bun start");
-    expect(readme).toContain("without installing Node");
-
-    const indexSource = await readFile(join(targetDir, "index.mjs"), "utf8");
     expect(indexSource).toContain('@mdanai/sdk/server/bun');
     expect(indexSource).toContain("Bun.serve");
+    expect(indexSource).not.toContain("rootRedirect");
+    expect(packageJson).toContain('"start": "bun index.mjs"');
   });
 
-  it("maps package versions to same-series sdk ranges", () => {
-    expect(toCompatibleSdkRange("0.6.0")).toBe("^0.6.0");
-    expect(toCompatibleSdkRange("1.3.7")).toBe("^1.3.0");
-    expect(toCompatibleSdkRange("0.6.0-beta.1")).toBe("^0.6.0");
+  it("normalizes package names and app ids independently from display names", async () => {
+    const root = await makeTempDir();
+    const targetDir = join(root, "My \"Fancy\" App!");
+
+    await scaffoldStarterProject({
+      targetDir,
+      sdkVersion: "^0.7.0",
+      runtime: "node"
+    }, fixtureModuleUrl);
+
+    const packageJson = JSON.parse(await readGenerated(targetDir, "package.json")) as {
+      name: string;
+    };
+    const actionSpec = JSON.parse(await readGenerated(targetDir, "app/actions/main.json")) as {
+      app_id: string;
+      state_id: string;
+    };
+    const indexSource = await readGenerated(targetDir, "index.mjs");
+    const serverSource = await readGenerated(targetDir, "app/server.mjs");
+    const pageSource = await readGenerated(targetDir, "app/index.md");
+
+    expect(packageJson.name).toBe("my-fancy-app");
+    expect(actionSpec.app_id).toBe("my-fancy-app");
+    expect(actionSpec.state_id).toBe("my-fancy-app:home:1");
+    expect(indexSource).toContain('const projectName = "My \\"Fancy\\" App!";');
+    expect(serverSource).toContain('const appId = "my-fancy-app";');
+    expect(serverSource).toContain('const projectName = "My \\"Fancy\\" App!";');
+    expect(pageSource).toContain('# My "Fancy" App!');
   });
 
-  it("rejects invalid package versions when deriving sdk ranges", () => {
-    expect(() => toCompatibleSdkRange("latest")).toThrow(/Unsupported package version/);
-    expect(() => toCompatibleSdkRange("0.4")).toThrow(/Unsupported package version/);
+  it("rejects non-empty target directories", async () => {
+    const root = await makeTempDir();
+    const targetDir = join(root, "occupied");
+    await mkdir(targetDir);
+    await writeFile(join(targetDir, "README.md"), "already here", "utf8");
+
+    await expect(scaffoldStarterProject({
+      targetDir,
+      sdkVersion: "^0.7.0",
+      runtime: "node"
+    }, fixtureModuleUrl)).rejects.toThrow(/must be empty/);
+  });
+
+  it("keeps template roots tied to the create-mdan source tree", () => {
+    expect(fileURLToPath(new URL("../template/shared", fixtureModuleUrl))).toContain("create-mdan/template/shared");
   });
 });

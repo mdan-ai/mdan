@@ -1,6 +1,6 @@
 {
   "name": "create-mdan",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": false,
   "description": "Scaffold a minimal MDAN agent app with npm create or bunx.",
   "license": "MIT",
@@ -16,29 +16,24 @@
     "mdan",
     "markdown-action-notation",
     "agent-app",
-    "skills-app",
     "agent-starter",
-    "agent-app-starter",
     "interactive-markdown",
-    "agent-readable-markdown",
     "markdown-actions",
     "create",
     "scaffold",
     "starter",
     "template",
-    "cli",
-    "agent"
+    "cli"
   ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/scaffold.js",
+  "types": "./dist/scaffold.d.ts",
   "engines": {
     "node": ">=20"
   },
   "files": [
     "dist",
     "README.md",
-    "LICENSE",
     "template/shared",
     "template/node",
     "template/bun"
@@ -47,13 +42,14 @@
     "create-mdan": "./dist/cli-bin.js"
   },
   "scripts": {
-    "prepack": "node ../scripts/sync-package-license.mjs",
-    "postpack": "node ../scripts/sync-package-license.mjs --cleanup"
+    "build": "bunx tsc -b tsconfig.json --force",
+    "postbuild": "chmod +x dist/cli-bin.js",
+    "test": "bunx vitest run test"
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/scaffold.d.ts",
+      "default": "./dist/scaffold.js"
     }
   }
 }

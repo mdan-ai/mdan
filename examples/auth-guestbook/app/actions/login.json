@@ -1,0 +1,38 @@
+{
+  "app_id": "auth-guestbook",
+  "state_id": "auth-guestbook:login:1",
+  "state_version": 1,
+  "response_mode": "page",
+  "blocks": ["auth_status", "login"],
+  "actions": [
+    {
+      "id": "open_register",
+      "label": "Create Account",
+      "verb": "navigate",
+      "transport": { "method": "GET" },
+      "target": "/register",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "login",
+      "label": "Sign In",
+      "verb": "write",
+      "transport": { "method": "POST" },
+      "target": "/auth/login",
+      "input_schema": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string", "format": "password" }
+        },
+        "additionalProperties": false
+      }
+    }
+  ],
+  "allowed_next_actions": ["login", "open_register"]
+}

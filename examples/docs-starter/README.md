@@ -1,32 +1,30 @@
-# MDAN Docs Starter Example
+# docs-starter (surface runtime)
 
-This is a minimal docs website starter built with MDAN runtime primitives.
+Source layout:
 
-## What It Demonstrates
+- `app/index.md`, `app/getting-started.md`
+- `app/actions/docs.json`
+- `app.ts` (loads docs markdown/action sources)
 
-- Markdown pages as canonical docs content
-- Route-to-page mapping through `createHostedApp()`
-- Custom docs HTML shell injected via `renderHtml`
-- Static docs CSS served by `createHost()` from `@mdanai/sdk/server/node`
+Runtime contract:
 
-## Run
+- `GET page` supports `text/html`, `application/json`, and `text/markdown`
+- `POST action/block` supports `application/json` only
+- HTML page responses are rendered on the server from the same `JsonSurfaceEnvelope`
 
-From the repository root:
-
-```bash
-npm install
-cd examples/docs-starter
-npm start
-```
-
-Or with Bun for install/build work:
+Run:
 
 ```bash
-bun install
-cd examples/docs-starter
-npm start
+cd sdk
+bun run dev:docs-starter
 ```
 
-Open:
+This command performs an initial SDK build, starts TypeScript watch to keep `dist/` current, and then launches the example server.
 
-- `http://127.0.0.1:4332/docs`
+Open `http://127.0.0.1:4326/`.
+
+Quick checks:
+
+- `curl -H 'Accept: text/html' http://127.0.0.1:4326/`
+- `curl -H 'Accept: application/json' http://127.0.0.1:4326/`
+- `curl -H 'Accept: text/markdown' http://127.0.0.1:4326/`

@@ -1,17 +1,16 @@
----
-title: Agent App
----
+# Starter App
 
-# Agent App
+## Purpose
+Basic JSON-first MDAN starter flow.
 
-Use this starter as the smallest end-to-end MDAN app.
+## Context
+This page shows the current starter message feed and the next available actions.
 
-<!-- mdan:block main -->
+## Rules
+Read the current feed from the returned surface and submit new messages through the declared action contract.
 
-```mdan
-BLOCK main {
-  INPUT message:text required
-  GET refresh "/list" LABEL "Refresh"
-  POST submit "/post" WITH message LABEL "Submit"
-}
-```
+## Result
+The returned surface should show the current messages and expose the next allowed actions for the main block.
+
+::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}
+:::
