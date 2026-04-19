@@ -1,0 +1,49 @@
+{
+  "app_id": "auth-guestbook",
+  "state_id": "auth-guestbook:guestbook:3",
+  "state_version": 3,
+  "response_mode": "page",
+  "blocks": ["session_status", "messages", "composer", "session_actions"],
+  "actions": [
+    {
+      "id": "refresh_messages",
+      "label": "Refresh",
+      "verb": "read",
+      "transport": { "method": "GET" },
+      "target": "/guestbook",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "submit_message",
+      "label": "Submit Message",
+      "verb": "write",
+      "transport": { "method": "POST" },
+      "target": "/guestbook/post",
+      "input_schema": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "logout",
+      "label": "Log Out",
+      "verb": "write",
+      "transport": { "method": "POST" },
+      "target": "/guestbook/logout",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ],
+  "allowed_next_actions": ["submit_message", "refresh_messages", "logout"]
+}

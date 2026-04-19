@@ -1,7 +1,10 @@
-import { resolve } from "node:path";
-import packageJson from "../package.json" with { type: "json" };
+import { basename, resolve } from "node:path";
 
-import { scaffoldStarterProject, toCompatibleSdkRange, type StarterRuntime } from "./index.js";
+import {
+  scaffoldStarterProject,
+  toCompatibleSdkRange,
+  type StarterRuntime
+} from "./scaffold.js";
 
 export interface ParsedCliArgs {
   targetArg: string | undefined;
@@ -24,19 +27,13 @@ export function parseCliArgs(argv: string[], userAgent = process.env.npm_config_
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (!arg) {
+    if (!arg || arg === "--") {
       continue;
     }
-
     if (arg === "--help" || arg === "-h") {
       showHelp = true;
       continue;
     }
-
-    if (arg === "--") {
-      continue;
-    }
-
     if (arg === "--runtime") {
       const next = argv[index + 1];
       if (!next || !isStarterRuntime(next)) {
@@ -46,7 +43,6 @@ export function parseCliArgs(argv: string[], userAgent = process.env.npm_config_
       index += 1;
       continue;
     }
-
     if (arg.startsWith("--runtime=")) {
       const value = arg.slice("--runtime=".length);
       if (!isStarterRuntime(value)) {
@@ -55,11 +51,9 @@ export function parseCliArgs(argv: string[], userAgent = process.env.npm_config_
       runtime = value;
       continue;
     }
-
     if (arg.startsWith("-")) {
       throw new Error(`Unknown option "${arg}".`);
     }
-
     if (targetArg) {
       throw new Error(`Unexpected extra argument "${arg}".`);
     }
@@ -82,7 +76,6 @@ export function formatUsage(): string {
 export function formatNextSteps(projectDir: string, runtime: StarterRuntime, targetArg = projectDir): string {
   const installCommand = runtime === "bun" ? "bun install" : "npm install";
   const startCommand = runtime === "bun" ? "bun start" : "npm start";
-
   return [
     `Created MDAN ${runtime} starter in ${projectDir}`,
     "",
@@ -94,27 +87,19 @@ export function formatNextSteps(projectDir: string, runtime: StarterRuntime, tar
   ].join("\n");
 }
 
-function printUsage(): void {
-  console.log(formatUsage());
-}
-
-async function main(argv: string[]): Promise<void> {
+export async function runCli(argv: string[], packageVersion: string): Promise<string | null> {
   const { targetArg, runtime, showHelp } = parseCliArgs(argv);
-
   if (!targetArg || showHelp) {
-    printUsage();
-    return;
+    return formatUsage();
   }
 
   const targetDir = resolve(process.cwd(), targetArg);
+  const projectName = targetArg === "." ? undefined : basename(targetDir);
   const projectDir = await scaffoldStarterProject({
     targetDir,
-    sdkVersion: toCompatibleSdkRange(packageJson.version),
+    sdkVersion: toCompatibleSdkRange(packageVersion),
     runtime,
-    ...(targetArg === "." ? {} : { projectName: targetArg })
+    ...(projectName ? { projectName } : {})
   });
-
-  console.log(formatNextSteps(projectDir, runtime, targetArg));
+  return formatNextSteps(projectDir, runtime, targetArg);
 }
-
-export { main };

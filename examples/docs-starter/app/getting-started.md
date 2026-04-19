@@ -1,23 +1,9 @@
----
-title: Getting Started
----
-
 # Getting Started
 
-Install dependencies, build the workspace, and start the docs example server.
+## Context
+This docs region explains how to change the docs-starter example and verify the returned surface.
 
-## Run
+## Result
+After editing this file and refreshing the page, you should see the updated docs region in both HTML and JSON projections.
 
-```bash
-npm install
-npm start
-```
-
-Or with Bun for install/build work:
-
-```bash
-bun install
-npm start
-```
-
-Then open `http://127.0.0.1:4332/docs`.
+Use this starter to publish docs pages with JSON runtime envelopes.

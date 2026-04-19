@@ -1,0 +1,144 @@
+# Runtime Contract
+
+This document describes the server runtime behavior implemented by
+`createMdanServer()`. The protocol shape itself remains in
+`MDAN-APPLICATION-SURFACE-SPEC.zh.md`; this file is the practical SDK guide for
+hosts, tests, and agents.
+
+Related contract documents:
+
+- `SURFACE-ACTIONS-CONTRACT.md`: JSON surface and action validation rules
+- `SERVER-ADAPTERS.md`: Node/Bun host adapter behavior
+- `ERRORS.md`: status codes and error surface shape
+- `STREAMING.md`: `stream(...)` and `text/event-stream`
+- `UI-ACTION-SEMANTICS.md`: browser/default UI action behavior
+- `PUBLIC-API.md`: package export boundaries
+
+## Runtime Shape
+
+The runtime has two route families:
+
+- page routes, registered with `server.page(path, handler)`
+- action routes, registered with `server.get(path, handler)` or
+  `server.post(path, handler)`
+
+Page handlers return a JSON surface envelope or `null`. Action handlers return a
+JSON surface envelope, or a stream result from `stream(...)`.
+
+Every JSON surface envelope contains:
+
+- `content`: Markdown for humans and agents
+- `actions`: the executable action contract
+- `view.route_path`: the browser/history route for the returned surface
+- `view.regions`: named region markdown used for block updates
+
+For the full envelope and action schema contract, see
+`SURFACE-ACTIONS-CONTRACT.md`.
+
+## Representations
+
+The runtime negotiates the response representation from `Accept`:
+
+- `application/json` returns the JSON surface bundle
+- `text/markdown` returns page-level readable Markdown
+- `text/html` is only for page `GET` requests when a browser shell host is in
+  front of the runtime
+- `text/event-stream` is only for stream action results
+
+Action requests and block updates are JSON-first. A `POST` action with
+`Accept: text/html` or `Accept: text/markdown` returns `406 Not Acceptable`.
+
+See `STREAMING.md` for the stricter stream-action boundary and `ERRORS.md` for
+status-code behavior.
+
+## Action Request Format
+
+Action proof is enabled by default. JSON action requests should use:
+
+```json
+{
+  "action": {
+    "proof": "<server-issued action proof>"
+  },
+  "input": {
+    "field": "value"
+  }
+}
+```
+
+Form-style compatibility fields are also parsed:
+
+```json
+{
+  "action.proof": "<server-issued action proof>",
+  "field": "value"
+}
+```
+
+See `ACTION-PROOF-SECURITY.md` for the security boundary and disable escape
+hatch.
+
+## Handler Context
+
+Action handlers receive:
+
+- `request`: normalized runtime request metadata
+- `inputs`: schema-normalized values
+- `inputsRaw`: submitted values before schema coercion
+- `session`: the current session snapshot or `null`
+- `params`: route parameters
+- `readAsset(assetId)`: read an uploaded asset as a `Buffer`
+- `openAssetStream(assetId)`: stream an uploaded asset
+
+Page handlers receive:
+
+- `request`
+- `session`
+- `params`
+
+## Result Semantics
+
+An action result may return a new page or a region update depending on the
+declared action `state_effect`:
+
+- `response_mode: "page"` replaces the current page snapshot and may update
+  browser history using `view.route_path`
+- `response_mode: "region"` patches only the declared `updated_regions` when the
+  returned route still matches the current route
+- a route change or missing region data falls back to page replacement
+
+Server-side auto dependencies are resolved before responses are sent, so JSON,
+HTML, Markdown, and browser clients observe the same final state.
+
+`auto` is intentionally narrower than action execution:
+
+- only `GET` operations can be projected as auto dependencies
+- auto resolution runs inside the server runtime and does not consume client
+  action proof
+- external `POST` actions still require action proof by default
+- hosts can cap implicit auto fan-out with `autoDependencies.maxPasses`
+
+```ts
+createMdanServer({
+  autoDependencies: {
+    maxPasses: 3
+  }
+});
+```
+
+## Validation
+
+The runtime validates returned surfaces before sending them:
+
+- page handlers and action handlers must return JSON surface envelopes
+- action contracts must pass `assertActionsContractEnvelope`
+- agent blocks must be balanced and valid
+- semantic slots are enforced when `semanticSlots` is configured
+- action proof is signed on outgoing actions and verified on incoming actions by
+  default
+
+Use `actionProof: { disabled: true }` only for tests, demos, or trusted local
+experiments that intentionally bypass action execution proofing.
+
+Validation failures are returned as runtime error surfaces. See `ERRORS.md` for
+the exact status-code model.
