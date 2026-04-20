@@ -5,7 +5,7 @@ The server runtime supports streaming action responses through `stream(...)` and
 
 Streaming is useful for long-running generated output, incremental logs, or
 progress updates. Ordinary page, form, and agent flows should usually return a
-normal JSON surface instead.
+normal Markdown artifact instead.
 
 ## Handler Result
 
@@ -58,10 +58,11 @@ Accept: text/event-stream
 
 Page reads with `Accept: text/event-stream` return `406 Not Acceptable`.
 
-Normal JSON action requests should use `Accept: application/json`. If a `POST`
-action requests `text/event-stream` but the runtime path is not a stream result,
-the current runtime rejects the request as an action representation mismatch
-before calling the handler.
+Ordinary non-stream action requests should usually use `Accept: text/markdown`
+and return a normal Markdown artifact.
+If a `POST` action requests `text/event-stream` but the runtime path is not a
+stream result, the current runtime rejects the request as an action
+representation mismatch before calling the handler.
 
 ## SSE Wire Format
 
@@ -86,15 +87,16 @@ The shared SSE helpers can:
 The response serializer can serialize a non-stream fragment as a single SSE
 message when called directly with `event-stream`.
 
-The public runtime path is stricter for action requests: action and block
-updates normally require `Accept: application/json`, and page routes reject
-`text/event-stream`. Treat SSE as a stream-action feature, not as an alternate
-representation for ordinary surfaces.
+The public runtime path is stricter for action requests: page routes reject
+`text/event-stream`, and non-stream action handlers should generally return
+`text/markdown` instead. Treat SSE as a stream-action feature, not as an
+alternate representation for ordinary surfaces.
 
 ## Browser And Headless Boundary
 
-The current headless browser host is JSON-surface first. It submits actions with
-`Accept: application/json` and expects JSON surface responses.
+The current headless host is Markdown-first for page and artifact reads. It can
+still interoperate with legacy JSON responses where needed, but the preferred
+path is Markdown artifacts for page reads and normal action results.
 
 The default elements UI therefore does not yet provide a full streaming UI
 contract. Custom clients can consume stream action endpoints directly with
@@ -102,7 +104,8 @@ contract. Custom clients can consume stream action endpoints directly with
 final-state reconciliation.
 
 When a stream produces a final page state that should be visible to normal MDAN
-clients, expose a follow-up JSON action or route that returns the final surface.
+clients, expose a follow-up action or route that returns the final Markdown
+artifact.
 
 ## When To Use Streaming
 
@@ -113,21 +116,21 @@ Use streaming when:
 - the client has explicit SSE handling
 - the interaction is read/progress-oriented or has a clear final recovery route
 
-Return a normal JSON surface when:
+Return a normal Markdown artifact when:
 
 - the result is a page or region update
-- agents need to inspect `actions.allowed_next_actions`
+- agents need to inspect `allowed_next_actions`
 - the default browser UI should handle the interaction
 - the response includes recoverable validation errors
 - the action changes session state and the client needs a stable next surface
 
 ## Contract Notes
 
-Stream results are not JSON surface envelopes and do not pass through actions
-contract validation.
+Stream results are not legacy JSON surface envelopes and do not pass through
+that compatibility contract validation.
 
 Action proof can protect the request that starts a stream, but stream chunks do
 not carry action proofs and do not expose next actions.
 
 Do not put executable action metadata only in streamed Markdown. Expose
-follow-up actions through a normal JSON surface.
+follow-up actions through a normal Markdown artifact.

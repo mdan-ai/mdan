@@ -104,6 +104,30 @@ describe("serializePage", () => {
     expect(out).not.toContain("Hidden content");
     expect(out).toContain("Visible content");
   });
+
+  it("embeds executable JSON in a mdan fenced block", () => {
+    const out = serializePage({
+      frontmatter: {},
+      markdown: "# Weather",
+      executableContent: JSON.stringify(
+        {
+          actions: [
+            {
+              id: "query_weather",
+              target: "/weather/query"
+            }
+          ]
+        },
+        null,
+        2
+      ),
+      blocks: []
+    });
+
+    expect(out).toContain("```mdan");
+    expect(out).toContain('"id": "query_weather"');
+    expect(out).toContain('"target": "/weather/query"');
+  });
 });
 
 describe("serializeFragment", () => {
@@ -113,5 +137,17 @@ describe("serializeFragment", () => {
 
   it("trims and appends trailing newline", () => {
     expect(serializeFragment({ markdown: "\n## Updated\n", blocks: [] })).toBe("## Updated\n");
+  });
+
+  it("includes a mdan block for fragment executable content", () => {
+    const out = serializeFragment({
+      markdown: "## Updated",
+      executableContent: JSON.stringify({ actions: [{ id: "refresh" }] }, null, 2),
+      blocks: []
+    });
+
+    expect(out).toContain("## Updated");
+    expect(out).toContain("```mdan");
+    expect(out).toContain('"id": "refresh"');
   });
 });

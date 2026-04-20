@@ -1,0 +1,135 @@
+import {
+  parseReadableSurface,
+  type ParseMarkdownArtifactSurfaceOptions,
+  type ReadableSurface
+} from "../content/artifact-surface.js";
+import { validateAgentBlocks } from "../content/agent-blocks.js";
+import { validateContentPair } from "../content/content-actions.js";
+import { basicMarkdownRenderer } from "../content/markdown-renderer.js";
+import { validateSemanticSlots } from "../content/semantic-slots.js";
+import { serializeFragment, serializePage } from "../content/serialize.js";
+import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
+
+export type { ParseMarkdownArtifactSurfaceOptions, ReadableSurface };
+export { basicMarkdownRenderer as artifactMarkdownRenderer };
+
+export interface CreateArtifactPageOptions {
+  markdown: string;
+  frontmatter?: MdanFrontmatter;
+  executableContent?: string;
+  executableJson?: unknown;
+  blockContent?: Record<string, string>;
+  blocks?: MdanBlock[];
+  blockAnchors?: string[];
+  visibleBlockNames?: string[];
+}
+
+export interface CreateArtifactFragmentOptions {
+  markdown: string;
+  executableContent?: string;
+  executableJson?: unknown;
+  blocks?: MdanBlock[];
+}
+
+const blockAnchorPattern = /<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->/g;
+
+export function createExecutableContent(value: unknown): string {
+  return JSON.stringify(value, null, 2);
+}
+
+export function parseReadableArtifactSurface(
+  content: string,
+  options: ParseMarkdownArtifactSurfaceOptions = {}
+): ReadableSurface | null {
+  return parseReadableSurface(content, options);
+}
+
+export function serializeArtifactPage(page: MdanPage): string {
+  return serializePage(page);
+}
+
+export function serializeArtifactFragment(fragment: MdanFragment): string {
+  return serializeFragment(fragment);
+}
+
+export function validateArtifactContentPair(markdown: string, actionIds: string[]) {
+  return validateContentPair(markdown, actionIds);
+}
+
+export function validateArtifactAgentBlocks(markdown: string) {
+  return validateAgentBlocks(markdown);
+}
+
+export function validateArtifactSemanticSlots(
+  markdown: string,
+  options?: Parameters<typeof validateSemanticSlots>[1]
+) {
+  return validateSemanticSlots(markdown, options);
+}
+
+export function createArtifactPage(options: CreateArtifactPageOptions): MdanPage {
+  const blocks = options.blocks ?? [];
+  const blockAnchors = resolveBlockAnchors(options.markdown, options.blockAnchors, options.blockContent, blocks);
+  const visibleBlockNames = options.visibleBlockNames ?? (blockAnchors.length > 0 ? [...blockAnchors] : undefined);
+
+  return {
+    frontmatter: options.frontmatter ?? {},
+    markdown: options.markdown,
+    ...(resolveExecutableContent(options.executableContent, options.executableJson)
+      ? { executableContent: resolveExecutableContent(options.executableContent, options.executableJson) }
+      : {}),
+    ...(options.blockContent ? { blockContent: options.blockContent } : {}),
+    blocks,
+    blockAnchors,
+    ...(visibleBlockNames ? { visibleBlockNames } : {})
+  };
+}
+
+export function createArtifactFragment(options: CreateArtifactFragmentOptions): MdanFragment {
+  return {
+    markdown: options.markdown,
+    ...(resolveExecutableContent(options.executableContent, options.executableJson)
+      ? { executableContent: resolveExecutableContent(options.executableContent, options.executableJson) }
+      : {}),
+    blocks: options.blocks ?? []
+  };
+}
+
+function resolveExecutableContent(
+  executableContent: string | undefined,
+  executableJson: unknown
+): string | undefined {
+  if (typeof executableContent === "string" && executableContent.trim().length > 0) {
+    return executableContent;
+  }
+  if (executableJson !== undefined) {
+    return createExecutableContent(executableJson);
+  }
+  return undefined;
+}
+
+function resolveBlockAnchors(
+  markdown: string,
+  explicit: string[] | undefined,
+  blockContent: Record<string, string> | undefined,
+  blocks: MdanBlock[]
+): string[] {
+  const names = new Set<string>(explicit ?? []);
+
+  let match: RegExpExecArray | null;
+  while ((match = blockAnchorPattern.exec(markdown)) !== null) {
+    if (match[1]) {
+      names.add(match[1]);
+    }
+  }
+
+  for (const name of Object.keys(blockContent ?? {})) {
+    names.add(name);
+  }
+
+  for (const block of blocks) {
+    names.add(block.name);
+  }
+
+  return [...names];
+}

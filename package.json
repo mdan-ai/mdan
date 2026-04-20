@@ -52,6 +52,7 @@
     "dev:auth-guestbook": "node scripts/run-example-dev.mjs examples/auth-guestbook/dev.ts",
     "dev:docs-starter": "node scripts/run-example-dev.mjs examples/docs-starter/dev.ts",
     "dev:starter": "node scripts/run-example-dev.mjs examples/starter/dev.ts",
+    "dev:weather-markdown": "node scripts/run-example-dev.mjs demo/weather-markdown/dev.ts",
     "lint": "eslint src test examples create-mdan/src create-mdan/test vitest.baseline.config.ts --max-warnings=0",
     "lint:names": "npm run lint",
     "prepack": "node scripts/prepare-npm-package.mjs --package . --readme docs/npm/sdk.md",
@@ -59,7 +60,8 @@
     "test": "bun run test:baseline",
     "test:baseline": "bunx vitest run --config vitest.baseline.config.ts",
     "test:coverage": "bunx vitest run --config vitest.baseline.config.ts --coverage",
-    "test:json": "bunx vitest run test/core/surface-adapter.test.ts test/server/runtime-json-surface.test.ts test/server/runtime-json-contract-mode.test.ts test/server/runtime-json-session-isolation.test.ts test/server/auth-guestbook-json-example.test.ts",
+    "test:legacy-compat": "bunx vitest run test/core/surface-adapter.test.ts test/server/runtime-json-contract-mode.test.ts test/server/auth-guestbook-artifact-example.test.ts",
+    "test:json": "bun run test:legacy-compat",
     "test:tssdk-migrated": "bunx vitest run test",
     "test:create-mdan": "bunx vitest run create-mdan/test"
   },
@@ -96,6 +98,7 @@
     "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^10.2.0",
     "happy-dom": "^20.8.9",
+    "marked": "^18.0.2",
     "vitest": "^4.1.4"
   }
 }

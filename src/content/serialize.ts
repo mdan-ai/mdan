@@ -1,4 +1,4 @@
-import type { MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
+import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
 
 const blockAnchorPattern = /^<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
 
@@ -72,6 +72,123 @@ function injectBlockContent(markdown: string, blockContent: Record<string, strin
   return appended.filter(Boolean).join("\n\n");
 }
 
+function serializeExecutableJsonFromBlocks(blocks: MdanBlock[]): string | null {
+  if (blocks.length === 0) {
+    return null;
+  }
+  return JSON.stringify({ blocks }, null, 2);
+}
+
+function isJsonObjectRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function toJsonAction(block: MdanBlock, operation: MdanBlock["operations"][number]): Record<string, unknown> {
+  const inputSchema =
+    operation.inputSchema && typeof operation.inputSchema === "object" && !Array.isArray(operation.inputSchema)
+      ? operation.inputSchema
+      : {
+          type: "object",
+          properties: {},
+          additionalProperties: false
+        };
+
+  return {
+    id: operation.name ?? `${operation.method}:${operation.target}`,
+    ...(operation.label ? { label: operation.label } : {}),
+    ...(operation.verb ? { verb: operation.verb } : {}),
+    target: operation.target,
+    ...(operation.auto === true ? { auto: true } : {}),
+    ...(operation.actionId ? { action_id: operation.actionId } : {}),
+    ...(operation.actionProof ? { action_proof: operation.actionProof } : {}),
+    ...(typeof operation.actionIssuedAt === "number" ? { action_issued_at: operation.actionIssuedAt } : {}),
+    ...(operation.submitFormat ? { submit_format: operation.submitFormat } : {}),
+    ...(typeof operation.requiresConfirmation === "boolean"
+      ? { requires_confirmation: operation.requiresConfirmation }
+      : {}),
+    ...(operation.submitExample ? { submit_example: operation.submitExample } : {}),
+    ...(operation.stateEffect
+      ? {
+          state_effect: {
+            ...(operation.stateEffect.responseMode ? { response_mode: operation.stateEffect.responseMode } : {}),
+            ...(operation.stateEffect.updatedRegions ? { updated_regions: operation.stateEffect.updatedRegions } : {})
+          }
+        }
+      : {}),
+    ...(operation.guard?.riskLevel ? { guard: { risk_level: operation.guard.riskLevel } } : {}),
+    ...(operation.security?.confirmationPolicy
+      ? { security: { confirmation_policy: operation.security.confirmationPolicy } }
+      : {}),
+    transport: {
+      method: operation.method
+    },
+    input_schema: inputSchema,
+    block: block.name
+  };
+}
+
+function toExecutablePayloadFromPage(page: MdanPage): Record<string, unknown> {
+  const frontmatter = page.frontmatter;
+  const actions = page.blocks.flatMap((block) => block.operations.map((operation) => toJsonAction(block, operation)));
+  const actionIds = actions
+    .map((action) => (typeof action.id === "string" ? action.id : null))
+    .filter((id): id is string => Boolean(id));
+
+  return {
+    ...(typeof frontmatter.app_id === "string" ? { app_id: frontmatter.app_id } : {}),
+    ...(typeof frontmatter.state_id === "string" ? { state_id: frontmatter.state_id } : {}),
+    ...(typeof frontmatter.state_version === "number" ? { state_version: frontmatter.state_version } : {}),
+    ...(typeof frontmatter.response_mode === "string" ? { response_mode: frontmatter.response_mode } : {}),
+    blocks: page.blocks.map((block) => block.name),
+    actions,
+    allowed_next_actions: actionIds
+  };
+}
+
+function toExecutablePayloadFromFragment(fragment: MdanFragment): Record<string, unknown> {
+  const actions = fragment.blocks.flatMap((block) => block.operations.map((operation) => toJsonAction(block, operation)));
+  const actionIds = actions
+    .map((action) => (typeof action.id === "string" ? action.id : null))
+    .filter((id): id is string => Boolean(id));
+
+  return {
+    blocks: fragment.blocks.map((block) => block.name),
+    actions,
+    allowed_next_actions: actionIds
+  };
+}
+
+function mergeExecutableContent(
+  executableContent: string | undefined,
+  dynamicPayload: Record<string, unknown> | null
+): string | undefined {
+  const trimmed = executableContent?.trim();
+  if (!trimmed) {
+    return dynamicPayload ? JSON.stringify(dynamicPayload, null, 2) : undefined;
+  }
+  if (!dynamicPayload) {
+    return trimmed;
+  }
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (!isJsonObjectRecord(parsed)) {
+      return trimmed;
+    }
+    return JSON.stringify({ ...parsed, ...dynamicPayload }, null, 2);
+  } catch {
+    return trimmed;
+  }
+}
+
+function serializeExecutableBlock(payload: string | undefined): string {
+  const trimmed = payload?.trim();
+  const payloadText = trimmed || null;
+  if (!payloadText) {
+    return "";
+  }
+  return `\`\`\`mdan\n${payloadText}\n\`\`\``;
+}
+
 export function serializePage(page: MdanPage): string {
   const frontmatter = serializeFrontmatter(page.frontmatter);
   const visibleBlockNames = getVisibleBlockNames(page);
@@ -89,13 +206,27 @@ export function serializePage(page: MdanPage): string {
       .join("\n"),
     getVisibleBlockContent(page)
   );
-  return `${frontmatter}${markdown}\n`;
+  const executableBlock = serializeExecutableBlock(
+    mergeExecutableContent(
+      page.executableContent,
+      page.blocks.length > 0 ? toExecutablePayloadFromPage(page) : null
+    ) ?? serializeExecutableJsonFromBlocks(page.blocks) ?? undefined
+  );
+  const body = executableBlock ? `${markdown}\n\n${executableBlock}` : markdown;
+  return `${frontmatter}${body}\n`;
 }
 
 export function serializeFragment(fragment: MdanFragment): string {
   const markdown = fragment.markdown.trim();
-  if (!markdown) {
+  const executableBlock = serializeExecutableBlock(
+    mergeExecutableContent(
+      fragment.executableContent,
+      fragment.blocks.length > 0 ? toExecutablePayloadFromFragment(fragment) : null
+    ) ?? serializeExecutableJsonFromBlocks(fragment.blocks) ?? undefined
+  );
+  if (!markdown && !executableBlock) {
     return "";
   }
-  return `${markdown}\n`;
+  const body = [markdown, executableBlock].filter(Boolean).join("\n\n");
+  return `${body}\n`;
 }

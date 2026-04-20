@@ -1,6 +1,6 @@
-# auth-guestbook (surface runtime)
+# auth-guestbook (Markdown surface runtime)
 
-This example organizes assets into explicit source files while following the page-surface runtime contract:
+This example organizes assets into explicit source files while following the Markdown surface runtime contract:
 
 - `app/login.md`, `app/register.md`, `app/guestbook.md`
 - `app/actions/login.json`, `app/actions/register.json`, `app/actions/guestbook.json`
@@ -8,9 +8,10 @@ This example organizes assets into explicit source files while following the pag
 
 Runtime contract:
 
-- `GET page` supports `text/html`, `application/json`, and `text/markdown`
-- `POST action/block` supports `application/json` only
-- HTML page responses are rendered on the server from the same `JsonSurfaceEnvelope`
+- `GET page` supports `text/html` and `text/markdown`
+- `GET page` no longer exposes `application/json`; page discovery happens through the Markdown artifact
+- `POST action/block` accepts `application/json` request bodies and returns Markdown artifacts with `Accept: text/markdown`
+- HTML page responses are rendered on the server from the same underlying runtime state
 
 ## Run with Bun
 
@@ -31,6 +32,5 @@ Open:
 Quick checks:
 
 - `curl -H 'Accept: text/html' http://127.0.0.1:4321/login`
-- `curl -H 'Accept: application/json' http://127.0.0.1:4321/login`
 - `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/login`
-- `curl -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"username":"ada","password":"pw"}' http://127.0.0.1:4321/auth/register`
+- `curl -X POST -H 'Accept: text/markdown' -H 'Content-Type: application/json' -d '{"action":{"proof":"<proof>"},"input":{"username":"ada","password":"pw"}}' http://127.0.0.1:4321/auth/register`

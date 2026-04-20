@@ -7,7 +7,7 @@ hosts, tests, and agents.
 
 Related contract documents:
 
-- `SURFACE-ACTIONS-CONTRACT.md`: JSON surface and action validation rules
+- `SURFACE-ACTIONS-CONTRACT.md`: legacy JSON surface bridge and action validation rules
 - `SERVER-ADAPTERS.md`: Node/Bun host adapter behavior
 - `ERRORS.md`: status codes and error surface shape
 - `STREAMING.md`: `stream(...)` and `text/event-stream`
@@ -22,31 +22,45 @@ The runtime has two route families:
 - action routes, registered with `server.get(path, handler)` or
   `server.post(path, handler)`
 
-Page handlers return a JSON surface envelope or `null`. Action handlers return a
-JSON surface envelope, or a stream result from `stream(...)`.
+Page handlers may return an artifact-native page, a legacy JSON surface
+envelope, or `null`. Action handlers may return an artifact-native action
+result, that same legacy envelope, or a stream result from `stream(...)`.
 
-Every JSON surface envelope contains:
+Legacy JSON envelopes are currently used as an internal compatibility bridge
+while the runtime moves toward artifact-native handlers. The SDK projects them
+into the canonical Markdown artifact shape before `text/markdown` responses are
+serialized.
+
+Every legacy JSON surface envelope contains:
 
 - `content`: Markdown for humans and agents
 - `actions`: the executable action contract
 - `view.route_path`: the browser/history route for the returned surface
 - `view.regions`: named region markdown used for block updates
 
-For the full envelope and action schema contract, see
+For the full legacy envelope and action schema contract, see
 `SURFACE-ACTIONS-CONTRACT.md`.
 
 ## Representations
 
 The runtime negotiates the response representation from `Accept`:
 
-- `application/json` returns the JSON surface bundle
-- `text/markdown` returns page-level readable Markdown
+- `text/markdown` returns the canonical page artifact
 - `text/html` is only for page `GET` requests when a browser shell host is in
   front of the runtime
 - `text/event-stream` is only for stream action results
+- `application/json` is only available for handlers that still expose the
+  legacy JSON compatibility bridge
 
-Action requests and block updates are JSON-first. A `POST` action with
-`Accept: text/html` or `Accept: text/markdown` returns `406 Not Acceptable`.
+`text/markdown` is the recommended public read path for both page reads and
+ordinary action results. `text/html` remains the browser projection for page
+`GET` requests. The `application/json` representation remains available only as
+a compatibility bridge while the runtime still supports legacy envelope paths.
+
+Raw action submissions still use JSON request bodies, but ordinary action
+results can now be returned as Markdown artifacts. A `POST` action with
+`Accept: text/html` returns `406 Not Acceptable`; `Accept: text/markdown` is
+the preferred non-stream action response.
 
 See `STREAMING.md` for the stricter stream-action boundary and `ERRORS.md` for
 status-code behavior.
@@ -107,8 +121,9 @@ declared action `state_effect`:
   returned route still matches the current route
 - a route change or missing region data falls back to page replacement
 
-Server-side auto dependencies are resolved before responses are sent, so JSON,
-HTML, Markdown, and browser clients observe the same final state.
+Server-side auto dependencies are resolved before responses are sent, so the
+compatibility JSON bridge, Markdown artifacts, HTML projections, and browser
+clients observe the same final state.
 
 `auto` is intentionally narrower than action execution:
 
@@ -128,9 +143,10 @@ createMdanServer({
 
 ## Validation
 
-The runtime validates returned surfaces before sending them:
+The runtime validates returned results before sending them:
 
-- page handlers and action handlers must return JSON surface envelopes
+- page handlers and action handlers may return artifact-native results or the
+  legacy JSON compatibility shape
 - action contracts must pass `assertActionsContractEnvelope`
 - agent blocks must be balanced and valid
 - semantic slots are enforced when `semanticSlots` is configured

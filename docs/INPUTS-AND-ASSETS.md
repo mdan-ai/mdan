@@ -28,21 +28,27 @@ The same model drives:
 Action handlers receive both normalized and raw values:
 
 ```ts
+import { createArtifactPage } from "@mdanai/sdk/server";
+```
+
+```ts
 server.post("/submit", async ({ inputs, inputsRaw }) => {
-  return {
-    content: `# Saved\n\nCount: ${inputs.count}`,
-    actions: {
+  return createArtifactPage({
+    frontmatter: {
+      route: "/submit",
+      app_id: "demo",
+      state_id: "demo:saved",
+      state_version: 1
+    },
+    markdown: `# Saved\n\nCount: ${inputs.count}`,
+    executableJson: {
       app_id: "demo",
       state_id: "demo:saved",
       state_version: 1,
       blocks: [],
       actions: []
-    },
-    view: {
-      route_path: "/submit",
-      regions: {}
     }
-  };
+  });
 });
 ```
 
@@ -82,8 +88,8 @@ type MdanAssetHandle = {
 };
 ```
 
-The handle is safe to serialize in JSON surfaces. The file bytes stay in the
-configured asset store.
+The handle is safe to serialize in action inputs or compatibility JSON
+surfaces. The file bytes stay in the configured asset store.
 
 ## Local Asset Store
 
@@ -122,20 +128,22 @@ server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
   const bytes = await readAsset(attachment.id);
   const stream = openAssetStream(attachment.id);
 
-  return {
-    content: `# Uploaded\n\n${attachment.name} (${bytes.byteLength} bytes)`,
-    actions: {
+  return createArtifactPage({
+    frontmatter: {
+      route: "/upload",
+      app_id: "upload-demo",
+      state_id: "upload-demo:done",
+      state_version: 1
+    },
+    markdown: `# Uploaded\n\n${attachment.name} (${bytes.byteLength} bytes)`,
+    executableJson: {
       app_id: "upload-demo",
       state_id: "upload-demo:done",
       state_version: 1,
       blocks: [],
       actions: []
-    },
-    view: {
-      route_path: "/upload",
-      regions: {}
     }
-  };
+  });
 });
 ```
 

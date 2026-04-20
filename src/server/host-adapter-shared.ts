@@ -35,7 +35,7 @@ export function finalizeMdanHeaders(options: FinalizeMdanHeadersOptions): Record
   const headers = {
     ...options.headers
   };
-  headers.accept ??= "application/json";
+  headers.accept ??= "text/markdown";
   if (options.body && isFormEncodedContentType(headers["content-type"] ?? "")) {
     headers["content-type"] = "application/json";
   }

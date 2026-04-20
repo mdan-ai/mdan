@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { parseMarkdownArtifactSurface } from "../../src/content/artifact-surface.js";
 import { createMdanServer } from "../../src/server/index.js";
-import { adaptJsonEnvelopeToHeadlessSnapshot } from "../../src/surface/adapter.js";
+import { adaptReadableSurfaceToHeadlessSnapshot } from "../../src/surface/adapter.js";
 
 type TestServer = ReturnType<typeof createMdanServer>;
 
 function createEnvelope() {
   return {
-    content: `# Demo
+    markdown: `# Demo
 
 ::: block{id="editor" actions="createResource"}
 Create resource.
@@ -35,11 +36,19 @@ Create resource.
       ],
       allowed_next_actions: ["createResource"]
     },
-    view: {
-      route_path: "/demo",
-      regions: {
-        editor: "Create resource."
-      }
+    route: "/demo",
+    regions: {
+      editor: "Create resource."
+    }
+  };
+}
+
+function withEditorRegion<T extends ReturnType<typeof createEnvelope>>(surface: T, editor: string): T {
+  return {
+    ...surface,
+    regions: {
+      ...surface.regions,
+      editor
     }
   };
 }
@@ -91,30 +100,35 @@ function createEnvelopeWithActionSemantics(options: {
   };
 }
 
-function readJsonOperation(payload: string) {
-  const envelope = JSON.parse(payload);
-  return envelope.actions?.actions?.[0] as Record<string, unknown>;
+function readArtifactSurface(payload: string) {
+  const surface = parseMarkdownArtifactSurface(payload);
+  expect(surface).toBeTruthy();
+  return surface!;
+}
+
+function readActionOperation(payload: string) {
+  return readArtifactSurface(payload).actions.actions?.[0] as Record<string, unknown>;
 }
 
 function readHeadlessOperation(payload: string) {
-  return adaptJsonEnvelopeToHeadlessSnapshot(JSON.parse(payload)).blocks[0]?.operations[0];
+  return adaptReadableSurfaceToHeadlessSnapshot(readArtifactSurface(payload)).blocks[0]?.operations[0];
 }
 
-async function handleJsonGet(server: TestServer, path: string) {
+async function handleMarkdownGet(server: TestServer, path: string) {
   return server.handle({
     method: "GET",
     url: `https://example.test${path}`,
-    headers: { accept: "application/json" },
+    headers: { accept: "text/markdown" },
     cookies: {}
   });
 }
 
-async function handleJsonPost(server: TestServer, path: string, body: string | Record<string, unknown>) {
+async function handleMarkdownPost(server: TestServer, path: string, body: string | Record<string, unknown>) {
   return server.handle({
     method: "POST",
     url: `https://example.test${path}`,
     headers: {
-      accept: "application/json",
+      accept: "text/markdown",
       "content-type": "application/json"
     },
     body: typeof body === "string" ? body : JSON.stringify(body),
@@ -123,27 +137,21 @@ async function handleJsonPost(server: TestServer, path: string, body: string | R
 }
 
 async function readEntryOperation(server: TestServer, path = "/entry") {
-  return readHeadlessOperation(String((await handleJsonGet(server, path)).body));
+  return readHeadlessOperation(String((await handleMarkdownGet(server, path)).body));
 }
 
 describe("runtime action proof", () => {
   it("issues and requires action proof by default", async () => {
     const server = createMdanServer();
     server.page("/entry", async () => createEnvelope());
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
 
     const operation = await readEntryOperation(server);
 
     expect(operation?.actionProof).toBeTypeOf("string");
     expect(operation?.submitFormat).toBe("mdan-action-input-v1");
 
-    const bareResponse = await handleJsonPost(server, "/resources", {
+    const bareResponse = await handleMarkdownPost(server, "/resources", {
       input: {
         title: "Doc"
       }
@@ -152,7 +160,7 @@ describe("runtime action proof", () => {
     expect(bareResponse.status).toBe(400);
     expect(String(bareResponse.body)).toContain("Invalid Action Request Format");
 
-    const proofResponse = await handleJsonPost(server, "/resources", {
+    const proofResponse = await handleMarkdownPost(server, "/resources", {
       action: {
         proof: String(operation?.actionProof)
       },
@@ -170,20 +178,14 @@ describe("runtime action proof", () => {
       actionProof: { disabled: true }
     });
     server.page("/entry", async () => createEnvelope());
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
 
     const operation = await readEntryOperation(server);
 
     expect(operation?.actionProof).toBeUndefined();
     expect(operation?.submitFormat).toBeUndefined();
 
-    const response = await handleJsonPost(server, "/resources", {
+    const response = await handleMarkdownPost(server, "/resources", {
       input: {
         title: "Doc"
       }
@@ -199,11 +201,11 @@ describe("runtime action proof", () => {
     });
     server.post("/resources", async () => createEnvelope());
 
-    const response = await handleJsonPost(server, "/resources", '{"title":"Doc"}');
+    const response = await handleMarkdownPost(server, "/resources", '{"title":"Doc"}');
 
     expect(response.status).toBe(400);
     expect(String(response.body)).toContain("Invalid Action Request Format");
-    expect(String(response.body)).toContain('\\"expected_format\\": \\"mdan-action-input-v1\\"');
+    expect(String(response.body)).toContain('"expected_format": "mdan-action-input-v1"');
     expect(String(response.body)).toContain("action.proof");
   });
 
@@ -212,13 +214,7 @@ describe("runtime action proof", () => {
       actionProof: { secret: "proof-secret" }
     });
     server.page("/entry", async () => createEnvelope());
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
 
     const operation = await readEntryOperation(server);
     expect(operation?.submitFormat).toBe("mdan-action-input-v1");
@@ -234,35 +230,29 @@ describe("runtime action proof", () => {
       }
     });
 
-    const response = await handleJsonPost(server, "/resources", proofBody);
+    const response = await handleMarkdownPost(server, "/resources", proofBody);
 
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("Created: Doc");
   });
 
-  it("emits action proof metadata in json page responses and accepts json-issued proof", async () => {
+  it("emits action proof metadata in markdown artifact pages and accepts issued proof", async () => {
     const server = createMdanServer({
       actionProof: { secret: "proof-secret" }
     });
     server.page("/entry", async () => createEnvelope());
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
 
-    const pageResponse = await handleJsonGet(server, "/entry");
+    const pageResponse = await handleMarkdownGet(server, "/entry");
 
     expect(pageResponse.status).toBe(200);
-    expect(pageResponse.headers["content-type"]).toBe("application/json");
-    const operation = readJsonOperation(String(pageResponse.body));
+    expect(pageResponse.headers["content-type"]).toContain("text/markdown");
+    const operation = readActionOperation(String(pageResponse.body));
     expect(operation.action_proof).toBeTypeOf("string");
     expect(operation.submit_format).toBe("mdan-action-input-v1");
     expect(operation.submit_example).toBeTruthy();
 
-    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(JSON.parse(String(pageResponse.body)));
+    const snapshot = adaptReadableSurfaceToHeadlessSnapshot(readArtifactSurface(String(pageResponse.body)));
     const headlessOperation = snapshot.blocks[0]?.operations[0];
     expect(headlessOperation?.actionProof).toBeTypeOf("string");
     expect(headlessOperation?.submitFormat).toBe("mdan-action-input-v1");
@@ -276,7 +266,7 @@ describe("runtime action proof", () => {
       }
     });
 
-    const response = await handleJsonPost(server, "/resources", proofBody);
+    const response = await handleMarkdownPost(server, "/resources", proofBody);
 
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("Created: Doc");
@@ -287,7 +277,7 @@ describe("runtime action proof", () => {
       actionProof: { secret: "proof-secret" }
     });
     server.page("/entry", async () => ({
-      content: `# Demo
+      markdown: `# Demo
 
 ::: block{id="editor" actions="createResource"}
 Create resource.
@@ -317,24 +307,16 @@ Create resource.
         ],
         allowed_next_actions: ["createResource"]
       },
-      view: {
-        route_path: "/demo",
-        regions: {
-          editor: "Create resource."
-        }
+      route: "/demo",
+      regions: {
+        editor: "Create resource."
       }
     }));
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
 
     const operation = await readEntryOperation(server);
 
-    const response = await handleJsonPost(server, "/resources", {
+    const response = await handleMarkdownPost(server, "/resources", {
       action: {
         proof: String(operation?.actionProof)
       },
@@ -357,7 +339,7 @@ Create resource.
     let seenInputs: Record<string, unknown> | null = null;
     let seenRaw: Record<string, unknown> | null = null;
     server.page("/entry", async () => ({
-      content: `# Demo
+      markdown: `# Demo
 
 ::: block{id="editor" actions="createResource"}
 Create resource.
@@ -391,11 +373,9 @@ Create resource.
         ],
         allowed_next_actions: ["createResource"]
       },
-      view: {
-        route_path: "/demo",
-        regions: {
-          editor: "Create resource."
-        }
+      route: "/demo",
+      regions: {
+        editor: "Create resource."
       }
     }));
     server.post("/resources", async ({ inputs, inputsRaw }) => {
@@ -406,7 +386,7 @@ Create resource.
 
     const operation = await readEntryOperation(server);
 
-    const response = await handleJsonPost(server, "/resources", {
+    const response = await handleMarkdownPost(server, "/resources", {
       action: {
         proof: String(operation?.actionProof)
       },
@@ -444,17 +424,11 @@ Create resource.
       actionProof: { secret: "proof-secret" }
     });
     server.page("/entry", async () => createEnvelope());
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
 
     const operation = await readEntryOperation(server);
 
-    const response = await handleJsonPost(server, "/resources", {
+    const response = await handleMarkdownPost(server, "/resources", {
       "action.proof": String(operation?.actionProof),
       title: "Doc"
     });
@@ -468,13 +442,7 @@ Create resource.
       actionProof: { secret: "proof-secret" }
     });
     server.page("/entry", async () => createEnvelope());
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
 
     const operation = await readEntryOperation(server);
 
@@ -488,7 +456,7 @@ Create resource.
       }
     });
 
-    const response = await handleJsonPost(server, "/resources", proofBody);
+    const response = await handleMarkdownPost(server, "/resources", proofBody);
 
     expect(response.status).toBe(400);
     expect(String(response.body)).toContain("Invalid Action Payload");
@@ -499,13 +467,9 @@ Create resource.
       actionProof: { secret: "proof-secret" }
     });
     server.page("/entry", async () => createEnvelopeWithConfirmationPolicy("always"));
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelopeWithConfirmationPolicy("always"),
-      view: {
-        ...createEnvelopeWithConfirmationPolicy("always").view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) =>
+      withEditorRegion(createEnvelopeWithConfirmationPolicy("always"), `Created: ${inputs.title}`)
+    );
 
     const operation = await readEntryOperation(server);
 
@@ -518,7 +482,7 @@ Create resource.
       }
     });
 
-    const response = await handleJsonPost(server, "/resources", proofBody);
+    const response = await handleMarkdownPost(server, "/resources", proofBody);
 
     expect(response.status).toBe(400);
     expect(String(response.body)).toContain("Action Confirmation Required");
@@ -529,13 +493,12 @@ Create resource.
       actionProof: { secret: "proof-secret" }
     });
     server.page("/entry", async () => createEnvelopeWithConfirmationPolicy("always"));
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelopeWithConfirmationPolicy("always"),
-      view: {
-        ...createEnvelopeWithConfirmationPolicy("always").view,
-        regions: { editor: `Created: ${inputs.title}; confirmed=${String("actionConfirmed" in inputs)}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) =>
+      withEditorRegion(
+        createEnvelopeWithConfirmationPolicy("always"),
+        `Created: ${inputs.title}; confirmed=${String("actionConfirmed" in inputs)}`
+      )
+    );
 
     const operation = await readEntryOperation(server);
 
@@ -549,7 +512,7 @@ Create resource.
       }
     });
 
-    const response = await handleJsonPost(server, "/resources", proofBody);
+    const response = await handleMarkdownPost(server, "/resources", proofBody);
 
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("Created: Doc; confirmed=false");
@@ -562,13 +525,12 @@ Create resource.
     server.page("/entry", async () =>
       createEnvelopeWithActionSemantics({ policy: "high-and-above", riskLevel: "medium" })
     );
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelopeWithActionSemantics({ policy: "high-and-above", riskLevel: "medium" }),
-      view: {
-        ...createEnvelope().view,
-        regions: { editor: `Created: ${inputs.title}` }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) =>
+      withEditorRegion(
+        createEnvelopeWithActionSemantics({ policy: "high-and-above", riskLevel: "medium" }),
+        `Created: ${inputs.title}`
+      )
+    );
 
     const operation = await readEntryOperation(server);
 
@@ -582,7 +544,7 @@ Create resource.
       }
     });
 
-    const response = await handleJsonPost(server, "/resources", {
+    const response = await handleMarkdownPost(server, "/resources", {
       action: {
         proof: String(operation?.actionProof)
       },
@@ -621,17 +583,14 @@ Create resource.
     const server = createMdanServer({
       actionProof: { disabled: true }
     });
-    server.post("/resources", async ({ inputs }) => ({
-      ...createEnvelope(),
-      view: {
-        ...createEnvelope().view,
-        regions: {
-          editor: `ProofField=${inputs.actionProof ?? "missing"}; ConfirmField=${inputs.actionConfirmed ?? "missing"}`
-        }
-      }
-    }));
+    server.post("/resources", async ({ inputs }) =>
+      withEditorRegion(
+        createEnvelope(),
+        `ProofField=${inputs.actionProof ?? "missing"}; ConfirmField=${inputs.actionConfirmed ?? "missing"}`
+      )
+    );
 
-    const response = await handleJsonPost(server, "/resources", {
+    const response = await handleMarkdownPost(server, "/resources", {
       actionProof: "business-proof",
       actionConfirmed: "business-flag"
     });

@@ -1,4 +1,4 @@
-# starter (surface runtime)
+# starter (artifact-native example)
 
 Source layout:
 
@@ -8,9 +8,10 @@ Source layout:
 
 Runtime contract:
 
-- `GET page` supports `text/html`, `application/json`, and `text/markdown`
-- `POST action/block` supports `application/json` only
-- HTML page responses are rendered on the server from the same `JsonSurfaceEnvelope`
+- `GET page` supports `text/html` and `text/markdown`
+- `GET page` no longer exposes `application/json`; page discovery happens through the Markdown artifact
+- `POST action/block` accepts `application/json` request bodies and returns Markdown artifacts with `Accept: text/markdown`
+- HTML page responses are rendered on the server from the same underlying MDAN state, while Markdown remains the canonical readout
 
 Run:
 
@@ -26,6 +27,5 @@ Open `http://127.0.0.1:4323/`.
 Quick checks:
 
 - `curl -H 'Accept: text/html' http://127.0.0.1:4323/`
-- `curl -H 'Accept: application/json' http://127.0.0.1:4323/`
 - `curl -H 'Accept: text/markdown' http://127.0.0.1:4323/`
-- `curl -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' -d '{"message":"From starter"}' http://127.0.0.1:4323/post`
+- `curl -X POST -H 'Accept: text/markdown' -H 'Content-Type: application/json' -d '{"action":{"proof":"<proof>"},"input":{"message":"From starter"}}' http://127.0.0.1:4323/post`

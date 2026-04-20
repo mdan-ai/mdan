@@ -1,5 +1,5 @@
-import type { MdanHeadlessBlock, MdanOperation, MdanSubmitValues } from "../protocol/types.js";
-export type { MdanSubmitValue, MdanSubmitValues } from "../protocol/types.js";
+import type { MdanHeadlessBlock, MdanOperation, MdanSubmitValues } from "./protocol-model.js";
+export type { MdanSubmitValue, MdanSubmitValues } from "./protocol-model.js";
 
 export interface HeadlessRuntimeState {
   status: "idle" | "loading" | "error";

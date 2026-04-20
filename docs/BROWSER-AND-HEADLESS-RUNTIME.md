@@ -22,15 +22,17 @@ const server = createMdanServer({
 });
 ```
 
-For `GET` requests that negotiate `text/html`, the host renders a browser shell:
+For `GET` requests that negotiate `text/html`, the host renders a browser shell
+from the current artifact:
 
-- readable HTML from the current JSON surface
-- an embedded bootstrap JSON surface
+- readable HTML projected from the current Markdown artifact
+- optional embedded bootstrap surface state when hydration is enabled
 - `createHeadlessHost({ initialSurface })`
 - `mountMdanUi({ root, host })`
 
-When the initial surface is embedded, the browser does not fetch the same page a
-second time on startup.
+Artifact-native pages may also render as pure server HTML without embedding a
+bootstrap JSON surface. In that mode the browser does not hydrate, and the
+first paint is simply the projected artifact.
 
 ## Module Modes
 
@@ -73,7 +75,7 @@ and whether the last transition was `page`, `region`, or `stream`.
 
 ## Action Submission
 
-POST actions are submitted as JSON by default:
+POST actions are submitted with JSON request bodies by default:
 
 ```json
 {
@@ -85,6 +87,10 @@ POST actions are submitted as JSON by default:
   }
 }
 ```
+
+The headless host now requests `Accept: text/markdown` for both page reads and
+ordinary action results, so the returned body is the same artifact contract that
+an agent or curl client would read directly.
 
 If any submitted value is a `File`, the host sends multipart form data and
 includes `action.proof` as a form field.
@@ -102,11 +108,11 @@ replacement.
 ## Error State
 
 Non-2xx responses move the host into `error` status. If the response body is a
-JSON surface, the host still adapts it so the UI can show the server-provided
-error content.
+Markdown artifact or a legacy JSON surface, the host adapts it so the UI can
+show the server-provided error content.
 
-Responses that are not JSON surfaces are treated as runtime errors for browser
-clients.
+Responses that are neither readable Markdown artifacts nor legacy JSON surfaces
+are treated as runtime errors for browser clients.
 
 ## Debug Messages
 

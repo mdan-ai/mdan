@@ -182,8 +182,9 @@ Example: open a list item, then complete it from the detail page.
 
 ## Proof-Aware Submission
 
-Fixtures discover actions from JSON surfaces using the same surface adapter as
-the browser runtime.
+Fixtures discover actions from Markdown artifacts first, falling back to legacy
+JSON surfaces where compatibility coverage is still needed. They use the same
+adapter path as the browser runtime.
 
 When an operation exposes `actionProof`, probe submissions wrap input as:
 
@@ -208,7 +209,8 @@ To add a fixture:
 
 1. Define a case with `defineAgentEvalCase()`.
 2. Create a `createMdanServer()` instance.
-3. Return JSON surfaces with valid actions contracts.
+3. Return Markdown artifacts with valid embedded actions contracts, or legacy
+   JSON surfaces where a compatibility fixture is intentional.
 4. Include stable block ids and `allowed_next_actions`.
 5. Add `seed()`, `reset()`, and state inspection helpers.
 6. Add a verifier that returns business, UI, and protocol oracle results.

@@ -1,14 +1,11 @@
 import { assertActionsContractEnvelope } from "../protocol/contracts.js";
-import { validateAgentBlocks } from "../content/agent-blocks.js";
 import { validateContentActionConsistency } from "./contracts.js";
 import { negotiateRepresentation } from "../protocol/negotiate.js";
-import { isJsonSurfaceEnvelope, type JsonSurfaceEnvelope } from "../protocol/surface.js";
-import { validateSemanticSlots } from "../content/semantic-slots.js";
 
+import { validateArtifactAgentBlocks, validateArtifactSemanticSlots } from "./artifact.js";
 import {
   validateActionProofRequest,
   withActionProofs,
-  withActionProofsForJsonEnvelope,
   resolveActionProofOptions,
   type ActionProofOptions,
   type ResolvedActionProofOptions
@@ -18,9 +15,17 @@ import type { BrowserShellOptions } from "./browser-shell.js";
 import { MdanRouter } from "./router.js";
 import { fail } from "./result.js";
 import { parseRequestInputs, type ParsedRequestAction } from "./request-inputs.js";
-import { executeValidatedEnvelopeHandler } from "./runtime-handler-shared.js";
 import { normalizeActionHandlerResult, normalizePageHandlerResult } from "./result-normalization.js";
-import { createHtmlSurfaceResponse, createJsonSurfaceResponse, createPageResponse, createResponse } from "./response.js";
+import {
+  isProjectableReadableSurface,
+  type ProjectableReadableSurface
+} from "./surface-projection.js";
+import {
+  createHtmlPageResponse,
+  createHtmlSurfaceResponse,
+  createPageResponse,
+  createResponse
+} from "./response.js";
 import { openAssetStream as openStoredAssetStream, readAsset as readStoredAsset, type MdanAssetStoreOptions } from "./assets.js";
 import type {
   MdanActionResult,
@@ -156,13 +161,6 @@ function createInternalServerErrorResult() {
   });
 }
 
-function createJsonOnlyContractErrorResult(detail: string): MdanActionResult {
-  return fail({
-    status: 500,
-    fragment: createErrorFragment("JSON Contract Violation", detail)
-  });
-}
-
 function createActionsContractViolationResult(detail: string): MdanActionResult {
   return fail({
     status: 500,
@@ -170,9 +168,9 @@ function createActionsContractViolationResult(detail: string): MdanActionResult 
   });
 }
 
-function assertEnvelopeContracts(envelope: JsonSurfaceEnvelope): void {
-  assertActionsContractEnvelope(envelope);
-  const consistencyViolations = validateContentActionConsistency(envelope);
+function assertReadableSurfaceContracts(surface: ProjectableReadableSurface): void {
+  assertActionsContractEnvelope({ actions: surface.actions });
+  const consistencyViolations = validateContentActionConsistency(surface);
   if (consistencyViolations.length === 0) {
     return;
   }
@@ -217,21 +215,21 @@ function resolveSemanticSlotOptions(
   };
 }
 
-function validateEnvelopePromptContracts(
-  envelope: MdanPageHandlerResult,
+function validateReadableSurfacePromptContracts(
+  surface: ProjectableReadableSurface | null,
   options: CreateMdanServerOptions
 ): { kind: "semantic" | "agent"; errors: string[] } | null {
-  if (!envelope) {
+  if (!surface) {
     return null;
   }
 
-  const agentBlockErrors = validateAgentBlocks(envelope.content);
+  const agentBlockErrors = validateArtifactAgentBlocks(surface.markdown);
   if (agentBlockErrors.length > 0) {
     return { kind: "agent", errors: agentBlockErrors.map((message) => `page: ${message}`) };
   }
 
-  for (const [blockName, markdown] of Object.entries(envelope.view?.regions ?? {})) {
-    const blockErrors = validateAgentBlocks(markdown);
+  for (const [blockName, markdown] of Object.entries(surface.regions ?? {})) {
+    const blockErrors = validateArtifactAgentBlocks(markdown);
     if (blockErrors.length > 0) {
       return {
         kind: "agent",
@@ -243,7 +241,7 @@ function validateEnvelopePromptContracts(
   const semanticSlotOptions = resolveSemanticSlotOptions(options.semanticSlots);
 
   if (semanticSlotOptions.requireOnPage) {
-    const semanticSlotErrors = validateSemanticSlots(envelope.content);
+    const semanticSlotErrors = validateArtifactSemanticSlots(surface.markdown);
     if (semanticSlotErrors.length > 0) {
       return { kind: "semantic", errors: semanticSlotErrors };
     }
@@ -251,8 +249,8 @@ function validateEnvelopePromptContracts(
 
   if (semanticSlotOptions.requireOnBlock) {
     const errors: string[] = [];
-    for (const [blockName, markdown] of Object.entries(envelope.view?.regions ?? {})) {
-      const blockErrors = validateSemanticSlots(markdown, {
+    for (const [blockName, markdown] of Object.entries(surface.regions ?? {})) {
+      const blockErrors = validateArtifactSemanticSlots(markdown, {
         requiredNames: ["Context", "Result"]
       });
       for (const message of blockErrors) {
@@ -265,6 +263,10 @@ function validateEnvelopePromptContracts(
   }
 
   return null;
+}
+
+function isArtifactNativePageHandlerResult(result: unknown): boolean {
+  return Boolean(result && typeof result === "object" && ("markdown" in result || "page" in result));
 }
 
 function createActionProofViolationResult(): MdanActionResult {
@@ -325,28 +327,26 @@ function createHtmlPageOnlyResult(): MdanActionResult {
     status: 406,
     fragment: createErrorFragment(
       "Not Acceptable",
-      "HTML responses are only available for page GET requests. Use application/json or text/markdown for action and fragment requests."
+      "HTML responses are only available for page GET requests. Use text/markdown for page reads."
     )
   });
 }
 
-function createJsonActionOnlyResult(requestedRepresentation: "markdown" | "event-stream" | "html"): MdanActionResult {
+function createNonMarkdownActionOnlyResult(requestedRepresentation: "event-stream" | "html"): MdanActionResult {
   const requestedType =
-    requestedRepresentation === "markdown"
-      ? "text/markdown"
-      : requestedRepresentation === "event-stream"
-        ? "text/event-stream"
-        : "text/html";
+    requestedRepresentation === "event-stream"
+      ? "text/event-stream"
+      : "text/html";
   return fail({
     status: 406,
     fragment: createErrorFragment(
       "Not Acceptable",
-      `Action and block update requests must use Accept: application/json. ${requestedType} is only supported for page reads where applicable.`
+      `${requestedType} is not available for action or block update requests. Use text/markdown.`
     )
   });
 }
 
-type RequestRepresentation = "json" | "markdown" | "event-stream" | "html";
+type RequestRepresentation = "markdown" | "event-stream" | "html";
 type PageMatch = NonNullable<ReturnType<MdanRouter["resolvePage"]>>;
 type ActionMatch = NonNullable<ReturnType<MdanRouter["resolve"]>>;
 
@@ -371,19 +371,8 @@ type ValidatedActionRequest =
       inputsRaw: Record<string, unknown>;
     };
 
-function errorRepresentation(requested: RequestRepresentation): "json" | "markdown" {
-  return requested === "json" ? "json" : "markdown";
-}
-
 function createInternalErrorResponseFor(representation: RequestRepresentation): MdanResponse {
-  return createResponse(createInternalServerErrorResult(), errorRepresentation(representation));
-}
-
-function createJsonContractResponseFor(
-  representation: RequestRepresentation,
-  detail: string
-): MdanResponse {
-  return createResponse(createJsonOnlyContractErrorResult(detail), errorRepresentation(representation));
+  return createResponse(createInternalServerErrorResult(), "markdown");
 }
 
 function createActionHandlerContext(
@@ -408,27 +397,27 @@ function createActionHandlerContext(
   };
 }
 
-function validateRuntimeEnvelope(
-  envelope: JsonSurfaceEnvelope,
+function validateRuntimeSurface(
+  surface: ProjectableReadableSurface,
   context: RuntimeContext,
   representation: RequestRepresentation
 ): MdanResponse | null {
-  const promptValidation = validateEnvelopePromptContracts(envelope, context.options);
+  const promptValidation = validateReadableSurfacePromptContracts(surface, context.options);
   if (promptValidation) {
     return createResponse(
       promptValidation.kind === "agent"
         ? createAgentBlocksViolationResult(promptValidation.errors)
         : createSemanticSlotsViolationResult(promptValidation.errors),
-      errorRepresentation(representation)
+      "markdown"
     );
   }
   try {
-    assertEnvelopeContracts(envelope);
+    assertReadableSurfaceContracts(surface);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     return createResponse(
       createActionsContractViolationResult(detail),
-      errorRepresentation(representation)
+      "markdown"
     );
   }
   return null;
@@ -443,9 +432,9 @@ function validateActionRequest(
   params: Record<string, string>,
   session: MdanSessionSnapshot | null
 ): ValidatedActionRequest {
-  if (request.method === "POST" && representation !== "json") {
+  if (request.method === "POST" && representation !== "markdown") {
     return {
-      response: createResponse(createJsonActionOnlyResult(representation), "markdown")
+      response: createResponse(createNonMarkdownActionOnlyResult(representation), "markdown")
     };
   }
 
@@ -589,38 +578,65 @@ async function handlePageRequest(
     );
   }
 
-  const executedPage = await executeValidatedEnvelopeHandler<MdanPageHandlerResult, JsonSurfaceEnvelope, MdanResponse>({
-    execute: () =>
+  let pageResult: MdanPageHandlerResult;
+  try {
+    pageResult = await Promise.resolve(
       pageMatch.handler({
         request,
         session,
         params: pageMatch.params
-      }),
-    invalidContractDetail: "Page handlers must return JSON surface envelopes.",
-    createInternalErrorResponse: () => createResponse(createInternalServerErrorResult(), errorRepresentation(representation)),
-    createInvalidContractResponse: (detail) =>
-      createJsonContractResponseFor(representation, detail),
-    validateEnvelope: (envelope) => validateRuntimeEnvelope(envelope, context, representation),
-    isEnvelope: isJsonSurfaceEnvelope,
-    skipValidation: (result) => !result
-  });
-  if (executedPage.response) {
-    return executedPage.response;
+      })
+    );
+  } catch {
+    return createResponse(createInternalServerErrorResult(), "markdown");
   }
-  const pageResult = executedPage.result;
+
+  const readablePageSurface: ProjectableReadableSurface | null =
+    pageResult && isProjectableReadableSurface(pageResult) ? pageResult : null;
+
+  if (readablePageSurface) {
+    const invalid = validateRuntimeSurface(readablePageSurface, context, representation);
+    if (invalid) {
+      return invalid;
+    }
+  } else if (pageResult && !isArtifactNativePageHandlerResult(pageResult)) {
+    return createResponse(
+      fail({
+        status: 500,
+        fragment: createErrorFragment(
+          "Invalid Page Handler Result",
+          "Page handlers must return a readable surface or an artifact-native page result."
+        )
+      }),
+      "markdown"
+    );
+  }
 
   const normalizedPageResult = normalizePageHandlerResult(pageResult);
   if (pageResult && representation === "html") {
-    return createHtmlSurfaceResponse(
-      context.actionProof ? withActionProofsForJsonEnvelope(pageResult, context.actionProof) : pageResult,
-      context.options.browserShell,
-      200
-    );
-  }
-  if (pageResult && representation === "json") {
-    return createJsonSurfaceResponse(
-      context.actionProof ? withActionProofsForJsonEnvelope(pageResult, context.actionProof) : pageResult
-    );
+    if (readablePageSurface && !context.actionProof) {
+      return createHtmlSurfaceResponse(
+        readablePageSurface,
+        {
+          ...context.options.browserShell,
+          hydrate: false
+        },
+        normalizedPageResult.status ?? 200,
+        normalizedPageResult.headers
+      );
+    }
+    if (normalizedPageResult.page) {
+      return createHtmlPageResponse(
+        normalizedPageResult.page,
+        {
+          ...context.options.browserShell,
+          hydrate: false
+        },
+        normalizedPageResult.status ?? 200,
+        normalizedPageResult.headers
+      );
+    }
+    return createResponse(createInternalServerErrorResult(), "markdown");
   }
 
   const page = normalizedPageResult.page;
@@ -639,7 +655,9 @@ async function handlePageRequest(
   const response = createPageResponse(
     context.actionProof
       ? (withActionProofs({ page: resolvedPage.page }, context.actionProof).page ?? resolvedPage.page)
-      : resolvedPage.page
+      : resolvedPage.page,
+    normalizedPageResult.status ?? 200,
+    normalizedPageResult.headers
   );
   const sessionError = await commitSessionMutation(
     context,
@@ -683,36 +701,13 @@ async function handleActionRequest(
   if ("stream" in handlerResult) {
     resultLike = handlerResult;
   } else {
-    const executedAction = await executeValidatedEnvelopeHandler<JsonSurfaceEnvelope, JsonSurfaceEnvelope, MdanResponse>({
-      execute: async () => handlerResult,
-      invalidContractDetail: "Action handlers must return JSON surface envelopes.",
-      createInternalErrorResponse: () => createInternalErrorResponseFor(representation),
-      createInvalidContractResponse: (detail) => createJsonContractResponseFor(representation, detail),
-      validateEnvelope: (envelope) => validateRuntimeEnvelope(envelope, context, representation),
-      isEnvelope: isJsonSurfaceEnvelope
-    });
-    if (executedAction.response) {
-      return executedAction.response;
+    if (isProjectableReadableSurface(handlerResult)) {
+      const invalid = validateRuntimeSurface(handlerResult, context, representation);
+      if (invalid) {
+        return invalid;
+      }
     }
-    resultLike = executedAction.result;
-  }
-
-  if (!("stream" in resultLike) && representation === "json") {
-    const normalizedResult = normalizeActionHandlerResult(resultLike);
-    const response = createJsonSurfaceResponse(
-      context.actionProof ? withActionProofsForJsonEnvelope(resultLike, context.actionProof) : resultLike,
-      normalizedResult.status ?? 200,
-      normalizedResult.headers
-    );
-    const sessionError = await commitSessionMutation(
-      context,
-      session,
-      response,
-      request,
-      normalizedResult.session,
-      representation
-    );
-    return sessionError ?? response;
+    resultLike = handlerResult;
   }
 
   const resolvedResult =
@@ -815,7 +810,7 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
       return await handleActionRequest(
         context,
         request,
-        representation as Exclude<RequestRepresentation, "html">,
+        representation,
         pathname,
         match,
         session

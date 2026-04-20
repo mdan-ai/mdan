@@ -94,9 +94,10 @@ describe("asset handle runtime", () => {
         streamText: ""
       };
       return {
-        content: "# ok",
+        markdown: "# ok",
         actions: { app_id: "x", state_id: "x", state_version: 1, blocks: [], actions: [] },
-        view: { route_path: "/upload-capture", regions: {} }
+        route: "/upload-capture",
+        regions: {}
       };
     });
 
@@ -104,7 +105,7 @@ describe("asset handle runtime", () => {
       method: "POST",
       url: "https://example.test/upload-capture",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: normalizedBody,

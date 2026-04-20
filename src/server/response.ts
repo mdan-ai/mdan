@@ -1,8 +1,8 @@
-import { serializeFragment, serializePage } from "../content/serialize.js";
 import type { MdanFragment, MdanPage } from "../protocol/types.js";
-import type { JsonSurfaceEnvelope } from "../protocol/surface.js";
+import { serializeArtifactFragment, serializeArtifactPage } from "./artifact.js";
 import { serializeSseMessage } from "./sse.js";
 import { renderBrowserShell, type BrowserShellOptions } from "./browser-shell.js";
+import type { ProjectableReadableSurface } from "./surface-projection.js";
 import { toMarkdownContentType } from "./content-type.js";
 import type {
   MdanActionResult,
@@ -39,11 +39,11 @@ function toAsyncIterable(stream: AsyncIterable<MdanStreamChunk> | Iterable<MdanS
 }
 
 function serializeMarkdownPage(page: MdanPage): string {
-  return serializePage(page);
+  return serializeArtifactPage(page);
 }
 
 function serializeMarkdownFragment(fragment: MdanFragment): string {
-  return serializeFragment(fragment);
+  return serializeArtifactFragment(fragment);
 }
 
 function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<string> {
@@ -62,51 +62,8 @@ function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<str
   })();
 }
 
-function createJsonErrorSurface(result: MdanHandlerResult): JsonSurfaceEnvelope {
-  const status = result.status ?? 500;
-  const content =
-    "page" in result && result.page
-      ? serializeMarkdownPage(result.page)
-      : "fragment" in result && result.fragment
-        ? serializeMarkdownFragment(result.fragment)
-        : `## Error\n\nStatus ${status}`;
-  return {
-    content,
-    actions: {
-      app_id: "mdan",
-      state_id: `mdan:error:${status}`,
-      state_version: 1,
-      blocks: [],
-      actions: [],
-      allowed_next_actions: []
-    },
-    view: {
-      route_path: result.route ?? ""
-    }
-  };
-}
-
-export function createJsonSurfaceResponse(
-  envelope: JsonSurfaceEnvelope,
-  status = 200,
-  headers?: Record<string, string>
-): MdanResponse {
-  return {
-    status,
-    headers: {
-      "content-type": "application/json",
-      ...(headers ?? {})
-    },
-    body: JSON.stringify({
-      content: envelope.content,
-      actions: envelope.actions,
-      ...(envelope.view ? { view: envelope.view } : {})
-    })
-  };
-}
-
 export function createHtmlSurfaceResponse(
-  envelope: JsonSurfaceEnvelope,
+  surface: ProjectableReadableSurface,
   options: BrowserShellOptions = {},
   status = 200,
   headers?: Record<string, string>
@@ -119,31 +76,28 @@ export function createHtmlSurfaceResponse(
     },
     body: renderBrowserShell({
       ...options,
-      initialSurface: envelope
+      initialReadableSurface: surface,
+      hydrate: false
     })
   };
 }
 
 export function createResponse(
   result: MdanHandlerResult,
-  representation: "json" | "markdown" | "event-stream"
+  representation: "markdown" | "event-stream"
 ): MdanResponse {
   const headers = {
     "content-type":
-      representation === "json"
-        ? "application/json"
-        : representation === "markdown"
-          ? toMarkdownContentType()
-          : "text/event-stream",
+      representation === "markdown"
+        ? toMarkdownContentType()
+        : "text/event-stream",
     ...(result.headers ?? {})
   };
 
   const body =
-    representation === "json"
-      ? JSON.stringify(createJsonErrorSurface(result))
-      : representation === "markdown"
+    representation === "markdown"
       ? resolveResponseBody(result as MdanActionResult)
-        : createStreamBody(result);
+      : createStreamBody(result);
 
   return {
     status: result.status ?? 200,
@@ -153,13 +107,35 @@ export function createResponse(
 }
 
 export function createPageResponse(
-  page: MdanPage
+  page: MdanPage,
+  status = 200,
+  headers?: Record<string, string>
 ): MdanResponse {
   return {
-    status: 200,
+    status,
     headers: {
-      "content-type": toMarkdownContentType()
+      "content-type": toMarkdownContentType(),
+      ...(headers ?? {})
     },
     body: serializeMarkdownPage(page)
+  };
+}
+
+export function createHtmlPageResponse(
+  page: MdanPage,
+  options: BrowserShellOptions = {},
+  status = 200,
+  headers?: Record<string, string>
+): MdanResponse {
+  return {
+    status,
+    headers: {
+      "content-type": "text/html",
+      ...(headers ?? {})
+    },
+    body: renderBrowserShell({
+      ...options,
+      initialPage: page
+    })
   };
 }

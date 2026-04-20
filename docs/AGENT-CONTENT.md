@@ -82,8 +82,10 @@ Human-visible projections strip agent blocks:
 - default elements rendering
 - Markdown rendering helpers that call `stripAgentBlocks`
 
-JSON surfaces still include the original Markdown content so agent-capable
-clients can read the instructions.
+The primary Markdown artifact still includes the original Markdown content so
+agent-capable clients can read the instructions directly. Legacy JSON
+compatibility surfaces continue to carry that same content when compatibility
+transport is needed.
 
 ## Recommended Pattern
 

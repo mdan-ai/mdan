@@ -1,20 +1,6 @@
-import type { JsonSurfaceEnvelope } from "../protocol/surface.js";
-
+import { parseReadableArtifactSurface, type ReadableSurface } from "./artifact.js";
 import { renderBrowserShell, type BrowserShellOptions } from "./browser-shell.js";
 import type { MdanResponse } from "./types.js";
-
-function isJsonSurfaceEnvelope(value: unknown): value is JsonSurfaceEnvelope {
-  return value !== null && typeof value === "object" && typeof (value as JsonSurfaceEnvelope).content === "string";
-}
-
-function parseJsonSurface(body: string): JsonSurfaceEnvelope | null {
-  try {
-    const parsed = JSON.parse(body) as unknown;
-    return isJsonSurfaceEnvelope(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
 
 export function isBrowserFormRequest(
   method: string,
@@ -36,36 +22,49 @@ export function isBrowserFormRequest(
 export function adaptBrowserFormRequestHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined> {
   return {
     ...headers,
-    accept: "application/json",
+    accept: "text/markdown",
     "x-mdan-browser-form": "true"
   };
+}
+
+function parseBrowserFormSurface(response: MdanResponse): ReadableSurface | null {
+  if (typeof response.body !== "string") {
+    return null;
+  }
+  return parseReadableArtifactSurface(response.body, {
+    allowBareMarkdown: true
+  });
 }
 
 export function adaptBrowserFormResponse(
   response: MdanResponse,
   options: BrowserShellOptions | undefined
 ): MdanResponse {
-  if (typeof response.body !== "string") {
-    return response;
-  }
-  if ((response.headers["content-type"] ?? "") !== "application/json") {
-    return response;
-  }
-
-  const surface = parseJsonSurface(response.body);
+  const surface = parseBrowserFormSurface(response);
   if (!surface) {
     return response;
   }
 
   if (response.status >= 200 && response.status < 300) {
-    const route = surface.view?.route_path;
+    const route = surface.route;
     if (!route) {
-      return response;
+      return {
+        status: response.status,
+        headers: {
+          "content-type": "text/html",
+          ...(response.headers["set-cookie"] ? { "set-cookie": response.headers["set-cookie"] } : {})
+        },
+        body: renderBrowserShell({
+          ...(options ?? {}),
+          initialReadableSurface: surface
+        })
+      };
     }
     return {
       status: 303,
       headers: {
-        location: route
+        location: route,
+        ...(response.headers["set-cookie"] ? { "set-cookie": response.headers["set-cookie"] } : {})
       },
       body: ""
     };
@@ -79,7 +78,7 @@ export function adaptBrowserFormResponse(
     },
     body: renderBrowserShell({
       ...(options ?? {}),
-      initialSurface: surface
+      initialReadableSurface: surface
     })
   };
 }

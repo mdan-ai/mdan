@@ -1,6 +1,110 @@
 import { describe, expect, it } from "vitest";
 
-import { createSubmitMessageFixture, runSubmitMessageFixtureProbe, serveAgentEvalFixture } from "./support/index.js";
+import { createArtifactPage, createMdanServer } from "../../src/server/index.js";
+import { createSubmitMessageFixture, defineAgentEvalCase, runSubmitMessageFixtureProbe, serveAgentEvalFixture } from "./support/index.js";
+
+function createArtifactSubmitMessageFixture() {
+  const messages: string[] = [];
+  const server = createMdanServer();
+
+  function pageArtifact() {
+    const latest = messages[0];
+    const main = latest
+      ? `## Message submitted\n\nLatest message: ${latest}`
+      : "Use this page to submit one message.";
+
+    return createArtifactPage({
+      frontmatter: {
+        route: "/",
+        app_id: "agent-eval-submit-message",
+        state_id: `submit-message:${messages.length}`,
+        state_version: messages.length + 1
+      },
+      markdown: `# Submit Message
+
+Use this page to submit one message.
+
+<!-- mdan:block main -->`,
+      blockContent: {
+        main
+      },
+      blocks: [
+        {
+          name: "main",
+          inputs: [],
+          operations: [
+            {
+              method: "POST",
+              name: "submit_message",
+              target: "/messages",
+              inputs: ["message"],
+              label: "Submit message",
+              verb: "write",
+              stateEffect: {
+                responseMode: "page"
+              },
+              inputSchema: {
+                type: "object",
+                required: ["message"],
+                properties: {
+                  message: {
+                    type: "string",
+                    minLength: 1,
+                    description: "The message text to submit."
+                  }
+                },
+                additionalProperties: false
+              },
+              security: {
+                confirmationPolicy: "never"
+              }
+            }
+          ]
+        }
+      ]
+    });
+  }
+
+  server.page("/", async () => pageArtifact());
+  server.post("/messages", async ({ inputs }) => {
+    const message = String(inputs.message ?? "").trim();
+    if (message) {
+      messages.unshift(message);
+    }
+    return {
+      route: "/",
+      page: pageArtifact()
+    };
+  });
+
+  return {
+    id: "single-step/submit-message" as const,
+    case: defineAgentEvalCase({
+      id: "submit-message",
+      tier: "single-step",
+      title: "Submit a message",
+      goal: "Create a message through the page interaction.",
+      url: "/",
+      prompt: "Open the URL and submit the message: hello from probe.",
+      tags: ["single-step", "form", "create"],
+      oracle: {
+        business: "A message record exists with the submitted text.",
+        ui: "The page shows the submitted message or a success confirmation.",
+        protocol: "The agent used the page-exposed submit action."
+      }
+    }),
+    server,
+    seed(nextMessages: string[]) {
+      messages.splice(0, messages.length, ...nextMessages);
+    },
+    reset() {
+      messages.splice(0, messages.length);
+    },
+    getMessages() {
+      return [...messages];
+    }
+  };
+}
 
 describe("agent eval probe runner", () => {
   it("discovers the submit-message page surface and produces a passing A0 run", async () => {
@@ -27,7 +131,7 @@ describe("agent eval probe runner", () => {
       runId: "probe-run-1",
       caseId: "submit-message",
       fixtureId: "single-step/submit-message",
-      agentId: "json-surface-probe",
+      agentId: "artifact-probe",
       assumptionLevel: "A0",
       startedAt: "2026-04-12T08:00:00.000Z"
     });
@@ -57,5 +161,19 @@ describe("agent eval probe runner", () => {
     } finally {
       await hosted.close();
     }
+  });
+
+  it("can run the submit-message probe against an artifact-native fixture", async () => {
+    const fixture = createArtifactSubmitMessageFixture();
+
+    const result = await runSubmitMessageFixtureProbe({
+      fixture,
+      runId: "probe-run-artifact",
+      message: "hello from artifact probe",
+      startedAt: "2026-04-12T08:06:00.000Z"
+    });
+
+    expect(result.outcome.status).toBe("PASS");
+    expect(fixture.getMessages()).toEqual(["hello from artifact probe"]);
   });
 });

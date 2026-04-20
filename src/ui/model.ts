@@ -1,9 +1,18 @@
-import { basicMarkdownRenderer, type MdanMarkdownRenderer } from "../content/markdown-renderer.js";
-import { resolveFieldFormat, resolveFieldKind } from "../protocol/input/field-schema.js";
-import { normalizeInputValuesByFieldSchemas } from "../protocol/input/input-schema.js";
-import type { FieldSchema } from "../protocol/input/types.js";
-import type { MdanOperation, MdanSubmitValue, MdanSubmitValues } from "../protocol/types.js";
-import { humanizeInputLabel, resolveActionBehavior, resolveActionVariant, resolveDispatchMode } from "../surface/render-semantics.js";
+import {
+  basicMarkdownRenderer,
+  humanizeInputLabel,
+  normalizeInputValuesByFieldSchemas,
+  resolveActionBehavior,
+  resolveActionVariant,
+  resolveDispatchMode,
+  resolveFieldFormat,
+  resolveFieldKind,
+  type FieldSchema,
+  type MdanMarkdownRenderer,
+  type MdanOperation,
+  type MdanSubmitValue,
+  type MdanSubmitValues
+} from "../surface/presentation.js";
 
 export { basicMarkdownRenderer, humanizeInputLabel, type MdanMarkdownRenderer };
 export type { FieldSchema, MdanOperation, MdanSubmitValue, MdanSubmitValues };

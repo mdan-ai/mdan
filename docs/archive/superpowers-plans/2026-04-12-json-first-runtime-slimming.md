@@ -288,7 +288,7 @@ returns readable content.
 Run:
 
 ```bash
-bunx vitest run test/server/browser-shell.test.ts test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts test/web/surface-host.test.ts
+bunx vitest run test/server/browser-shell.test.ts test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts test/web/surface-host.test.ts
 ```
 
 Expected: PASS.

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { adaptJsonEnvelopeToHeadlessSnapshot } from "../../src/surface/adapter.js";
 
 import {
   createAgentEvalTrace,
@@ -9,9 +8,19 @@ import {
   verifyPreviewConfirmFixtureRun
 } from "./support/index.js";
 
+function extractActionProof(markdown: string): string {
+  const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
+  expect(match?.[1]).toBeTruthy();
+  const payload = JSON.parse(String(match?.[1])) as {
+    actions?: Array<{ action_proof?: string }>;
+  };
+  expect(payload.actions?.[0]?.action_proof).toBeTypeOf("string");
+  return String(payload.actions?.[0]?.action_proof);
+}
+
 describe("preview-confirm agent eval fixture", () => {
-	  it("requires preview before confirmation and only persists after confirm", async () => {
-	    const fixture = createPreviewConfirmFixture();
+  it("requires preview before confirmation and only persists after confirm", async () => {
+    const fixture = createPreviewConfirmFixture();
 
     expect(fixture.id).toBe("multi-step/preview-confirm-message");
     expect(fixture.case.tier).toBe("multi-step");
@@ -19,16 +28,16 @@ describe("preview-confirm agent eval fixture", () => {
 	    const initial = await fixture.server.handle({
 	      method: "GET",
 	      url: "https://example.test/",
-	      headers: { accept: "application/json" },
+	      headers: { accept: "text/markdown" },
 	      cookies: {}
 	    });
-	    const previewProof = JSON.parse(String(initial.body)).actions.actions[0].action_proof;
+	    const previewProof = extractActionProof(String(initial.body));
 
 	    const preview = await fixture.server.handle({
 	      method: "POST",
 	      url: "https://example.test/preview",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
 	      body: JSON.stringify({
@@ -43,19 +52,18 @@ describe("preview-confirm agent eval fixture", () => {
     });
 
     expect(preview.status).toBe(200);
-    const previewSurface = JSON.parse(String(preview.body));
-    expect(preview.headers["content-type"]).toBe("application/json");
-    expect(previewSurface.view.regions.main).toContain("Preview message");
-    expect(previewSurface.view.regions.main).toContain("hello multi-step");
+    expect(preview.headers["content-type"]).toContain("text/markdown");
+    expect(String(preview.body)).toContain("Preview message");
+    expect(String(preview.body)).toContain("hello multi-step");
     expect(fixture.getMessages()).toEqual([]);
     expect(fixture.getDraft()).toBe("hello multi-step");
 
-	    const confirmProof = previewSurface.actions.actions[0].action_proof;
+	    const confirmProof = extractActionProof(String(preview.body));
 	    const confirm = await fixture.server.handle({
 	      method: "POST",
 	      url: "https://example.test/confirm",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
 	      body: JSON.stringify({
@@ -68,12 +76,24 @@ describe("preview-confirm agent eval fixture", () => {
     });
 
     expect(confirm.status).toBe(200);
-    const confirmSurface = JSON.parse(String(confirm.body));
-    expect(confirm.headers["content-type"]).toBe("application/json");
-    expect(confirmSurface.view.regions.main).toContain("Message confirmed");
-    expect(adaptJsonEnvelopeToHeadlessSnapshot(confirmSurface).route).toBe("/");
+    expect(confirm.headers["content-type"]).toContain("text/markdown");
+    expect(String(confirm.body)).toContain("Message confirmed");
     expect(fixture.getMessages()).toEqual(["hello multi-step"]);
     expect(fixture.getDraft()).toBeUndefined();
+  });
+
+  it("serves the preview-confirm page as an artifact-native read instead of page JSON", async () => {
+    const fixture = createPreviewConfirmFixture();
+
+    const jsonPage = await fixture.server.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: { accept: "application/json" },
+      cookies: {}
+    });
+
+    expect(jsonPage.status).toBe(406);
+    expect(String(jsonPage.body)).toContain("## Not Acceptable");
   });
 
   it("does not pass oracle with only a draft preview", () => {
@@ -88,7 +108,7 @@ describe("preview-confirm agent eval fixture", () => {
           runId: "draft-only",
           caseId: fixture.case.id,
           fixtureId: fixture.id,
-          agentId: "json-surface-probe",
+          agentId: "artifact-probe",
           assumptionLevel: "A0",
           startedAt: "2026-04-12T09:00:00.000Z"
         })

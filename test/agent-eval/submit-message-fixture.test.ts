@@ -7,6 +7,16 @@ import {
   verifySubmitMessageFixtureRun
 } from "./support/index.js";
 
+function extractActionProof(markdown: string): string {
+  const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
+  expect(match?.[1]).toBeTruthy();
+  const payload = JSON.parse(String(match?.[1])) as {
+    actions?: Array<{ action_proof?: string }>;
+  };
+  expect(payload.actions?.[0]?.action_proof).toBeTypeOf("string");
+  return String(payload.actions?.[0]?.action_proof);
+}
+
 describe("submit message agent eval fixture", () => {
   it("defines a resettable single-step case", () => {
     const fixture = createSubmitMessageFixture();
@@ -37,19 +47,19 @@ describe("submit message agent eval fixture", () => {
 	    expect(String(page.body)).toContain("Use this page to submit one message.");
 	    expect(String(page.body)).toContain("<!-- mdan:block main -->");
 
-	    const jsonPage = await fixture.server.handle({
+	    const artifactPage = await fixture.server.handle({
 	      method: "GET",
 	      url: "https://example.test/",
-	      headers: { accept: "application/json" },
+	      headers: { accept: "text/markdown" },
 	      cookies: {}
 	    });
-	    const proof = JSON.parse(String(jsonPage.body)).actions.actions[0].action_proof;
+	    const proof = extractActionProof(String(artifactPage.body));
 
 	    const post = await fixture.server.handle({
       method: "POST",
       url: "https://example.test/messages",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
 	      body: JSON.stringify({
@@ -64,10 +74,24 @@ describe("submit message agent eval fixture", () => {
     });
 
     expect(post.status).toBe(200);
-    expect(post.headers["content-type"]).toBe("application/json");
+    expect(post.headers["content-type"]).toContain("text/markdown");
     expect(String(post.body)).toContain("Message submitted");
     expect(String(post.body)).toContain("hello from test");
     expect(fixture.getMessages()).toEqual(["hello from test"]);
+  });
+
+  it("serves the fixture page as an artifact-native read instead of page JSON", async () => {
+    const fixture = createSubmitMessageFixture();
+
+    const jsonPage = await fixture.server.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: { accept: "application/json" },
+      cookies: {}
+    });
+
+    expect(jsonPage.status).toBe(406);
+    expect(String(jsonPage.body)).toContain("## Not Acceptable");
   });
 
   it("verifies business, UI, and protocol evidence from a completed run", () => {

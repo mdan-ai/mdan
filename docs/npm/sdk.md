@@ -1,6 +1,6 @@
 # @mdanai/sdk
 
-TypeScript SDK for building MDAN apps with JSON surface bundles, Markdown content, explicit actions, and browser/headless runtimes.
+TypeScript SDK for building MDAN apps with Markdown artifacts, structured action contracts, and browser/headless runtimes.
 
 ## Install
 
@@ -19,7 +19,7 @@ npm install @mdanai/sdk
 ## Minimal Bun App
 
 ```ts
-import { createMdanServer } from "@mdanai/sdk/server";
+import { createArtifactPage, createMdanServer } from "@mdanai/sdk/server";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const server = createMdanServer({
@@ -28,11 +28,18 @@ const server = createMdanServer({
   }
 });
 
-server.page("/", async () => ({
-  content: `# Hello MDAN
+server.page("/", async () =>
+  createArtifactPage({
+    frontmatter: {
+      route: "/",
+      app_id: "hello-mdan",
+      state_id: "hello-mdan:home:1",
+      state_version: 1
+    },
+    markdown: `# Hello MDAN
 
 ## Purpose
-Show a minimal JSON-first MDAN surface.
+Show a minimal MDAN surface with readable Markdown content and explicit actions.
 
 ## Context
 The page exposes a readable block and a refresh action.
@@ -51,35 +58,33 @@ Minimal starter block.
 - Ready
 :::
 `,
-  actions: {
-    app_id: "hello-mdan",
-    state_id: "hello-mdan:home:1",
-    state_version: 1,
-    response_mode: "page",
-    blocks: ["main"],
-    actions: [
-      {
-        id: "refresh_main",
-        label: "Refresh",
-        verb: "read",
-        transport: { method: "GET" },
-        target: "/",
-        input_schema: {
-          type: "object",
-          properties: {},
-          additionalProperties: false
+    executableJson: {
+      app_id: "hello-mdan",
+      state_id: "hello-mdan:home:1",
+      state_version: 1,
+      response_mode: "page",
+      blocks: ["main"],
+      actions: [
+        {
+          id: "refresh_main",
+          label: "Refresh",
+          verb: "read",
+          transport: { method: "GET" },
+          target: "/",
+          input_schema: {
+            type: "object",
+            properties: {},
+            additionalProperties: false
+          }
         }
-      }
-    ],
-    allowed_next_actions: ["refresh_main"]
-  },
-  view: {
-    route_path: "/",
-    regions: {
+      ],
+      allowed_next_actions: ["refresh_main"]
+    },
+    blockContent: {
       main: "## Context\nMinimal starter block.\n\n## Result\n- Ready"
     }
-  }
-}));
+  })
+);
 
 Bun.serve({
   port: 4321,
@@ -107,7 +112,8 @@ bun start
 
 ## Runtime Notes
 
-- JSON surface responses include Markdown `content`, an `actions` contract, and `view` metadata.
+- Markdown artifact responses are the preferred public read path.
+- Legacy JSON surface responses remain available only as a compatibility bridge.
 - POST actions require action proof by default.
 - Server-side `auto` dependencies are GET-only and do not bypass external POST proof validation.
 - Browser shells can serve local `dist-browser` bundles with `browserShell.moduleMode = "local-dist"`.

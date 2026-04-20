@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createMdanServer } from "@mdanai/sdk/server";
+import { createArtifactPage, createMdanServer, type MdanPage } from "../../src/server/index.js";
 
-type JsonActionSpec = {
+type ActionManifest = {
   app_id: string;
   state_id: string;
   state_version: number;
@@ -17,7 +17,7 @@ type JsonActionSpec = {
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
 const gettingStarted = readFileSync(join(root, "app", "getting-started.md"), "utf8").trim();
-const baseActions = JSON.parse(readFileSync(join(root, "app", "actions", "docs.json"), "utf8")) as JsonActionSpec;
+const baseActions = JSON.parse(readFileSync(join(root, "app", "actions", "docs.json"), "utf8")) as ActionManifest;
 
 function render(templateText: string, values: Record<string, string>): string {
   return templateText.replace(/:::\s*block\{([^}]*)\}\n:::/g, (full, attrs: string) => {
@@ -30,28 +30,56 @@ function render(templateText: string, values: Record<string, string>): string {
   });
 }
 
-function envelope() {
+function pageArtifact(): MdanPage {
   const stateId = "docs-starter:home:1";
   const stateVersion = 1;
 
-  const actions = JSON.parse(JSON.stringify(baseActions)) as JsonActionSpec;
+  const actions = JSON.parse(JSON.stringify(baseActions)) as ActionManifest;
   actions.state_id = stateId;
   actions.state_version = stateVersion;
 
-  return {
-    content: `---\napp_id: "docs-starter"\nstate_id: "${stateId}"\nstate_version: ${stateVersion}\nactions: "./app/actions/docs.json"\nresponse_mode: "page"\n---\n\n${render(template, { docs: gettingStarted })}`,
-    actions,
-    view: {
-      route_path: "/",
-      regions: {
-        docs: gettingStarted
+  return createArtifactPage({
+    frontmatter: {
+      app_id: "docs-starter",
+      state_id: stateId,
+      state_version: stateVersion,
+      actions: "./app/actions/docs.json",
+      response_mode: "page"
+    },
+    markdown: `${render(template, { docs: gettingStarted })}\n\n<!-- mdan:block docs -->`,
+    executableJson: actions,
+    blockContent: {
+      docs: gettingStarted
+    },
+    blocks: [
+      {
+        name: "docs",
+        inputs: [],
+        operations: [
+          {
+            method: "GET",
+            name: "refresh_docs",
+            target: "/",
+            inputs: [],
+            label: "Refresh",
+            verb: "read",
+            inputSchema: {
+              type: "object",
+              properties: {},
+              additionalProperties: false
+            },
+            security: {
+              confirmationPolicy: "never"
+            }
+          }
+        ]
       }
-    }
-  };
+    ]
+  });
 }
 
 export function createDocsStarterServer() {
   const server = createMdanServer();
-  server.page("/", async () => envelope());
+  server.page("/", async () => pageArtifact());
   return server;
 }

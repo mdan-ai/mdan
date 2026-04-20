@@ -41,7 +41,7 @@
   - `src/elements/mount.ts`
   - `test/server/runtime-html-mode.test.ts`
   - `test/web/headless-transition.test.ts`
-  - `test/server/auth-guestbook-json-example.test.ts`
+  - `test/server/auth-guestbook-artifact-example.test.ts`
 - 交付标准：
   - 现有 auth flow 测试覆盖登录、注册、写入、登出
   - 页面地址、重定向、history 行为在三条消费路径上对齐

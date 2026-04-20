@@ -9,7 +9,7 @@ describe("semantic slots", () => {
 Ship stable baseline.
 
 ## Context
-Runtime is JSON-first.
+Runtime is artifact-first.
 `;
 
     expect(validateSemanticSlots(content)).toEqual([

@@ -1,11 +1,19 @@
-import { stripAgentBlocks } from "../content/agent-blocks.js";
-import { basicMarkdownRenderer } from "../content/markdown-renderer.js";
-import { resolveFieldFormat, resolveFieldKind } from "../protocol/input/field-schema.js";
-import type { FieldSchema } from "../protocol/input/types.js";
-import type { MdanHeadlessBlock, MdanOperation } from "../protocol/types.js";
-import type { JsonSurfaceEnvelope } from "../protocol/surface.js";
+import {
+  basicMarkdownRenderer,
+  stripReadableBlockMarkdown,
+  stripReadablePageMarkdown,
+  type MdanMarkdownRenderer,
+  type ReadableSurface
+} from "./content.js";
+import {
+  resolveFieldFormat,
+  resolveFieldKind,
+  type FieldSchema,
+  type MdanHeadlessBlock,
+  type MdanOperation
+} from "./protocol-model.js";
 import { humanizeInputLabel } from "./render-semantics.js";
-import { adaptJsonEnvelopeToHeadlessSnapshot } from "./adapter.js";
+import { adaptReadableSurfaceToHeadlessSnapshot } from "./adapter.js";
 
 function escapeHtml(value: string): string {
   return value
@@ -13,13 +21,6 @@ function escapeHtml(value: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-function stripContentBlocks(markdown: string): string {
-  return markdown
-    .replace(/:::\s*block\{[^}]*\}[\s\S]*?:::/g, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
 }
 
 function defaultValueForInput(input: FieldSchema): string {
@@ -98,19 +99,27 @@ function renderOperation(block: MdanHeadlessBlock, operation: MdanOperation): st
   return `<form action="${escapeHtml(operation.target)}" method="${method}" enctype="${enctype}">${actionProof}${inputSchema}${fields}<button type="submit">${label}</button></form>`;
 }
 
-function renderBlock(block: MdanHeadlessBlock): string {
-  const markdown = block.markdown ? basicMarkdownRenderer.render(stripAgentBlocks(block.markdown)) : "";
+export interface RenderSurfaceSnapshotOptions {
+  markdownRenderer?: MdanMarkdownRenderer;
+}
+
+function renderBlock(block: MdanHeadlessBlock, markdownRenderer: MdanMarkdownRenderer): string {
+  const markdown = block.markdown ? markdownRenderer.render(stripReadableBlockMarkdown(block.markdown)) : "";
   const operations = block.operations.map((operation) => renderOperation(block, operation)).join("");
   return `<section data-mdan-block="${escapeHtml(block.name)}">${markdown}${operations}</section>`;
 }
 
-export function renderSurfaceSnapshot(surface: JsonSurfaceEnvelope | undefined): string {
+export function renderSurfaceSnapshot(
+  surface: ReadableSurface | undefined,
+  options: RenderSurfaceSnapshotOptions = {}
+): string {
   if (!surface) {
     return "";
   }
 
-  const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(surface);
-  const pageHtml = basicMarkdownRenderer.render(stripAgentBlocks(stripContentBlocks(surface.content)));
-  const blocks = snapshot.blocks.map((block) => renderBlock(block)).join("\n");
+  const markdownRenderer = options.markdownRenderer ?? basicMarkdownRenderer;
+  const snapshot = adaptReadableSurfaceToHeadlessSnapshot(surface);
+  const pageHtml = markdownRenderer.render(stripReadablePageMarkdown(surface.markdown));
+  const blocks = snapshot.blocks.map((block) => renderBlock(block, markdownRenderer)).join("\n");
   return [pageHtml, blocks].filter(Boolean).join("\n");
 }

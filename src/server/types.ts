@@ -1,5 +1,5 @@
 import type { MdanFragment, MdanPage } from "../protocol/types.js";
-import type { JsonSurfaceEnvelope } from "../protocol/surface.js";
+import type { ReadableSurface } from "./artifact.js";
 import type { MdanAssetHandle } from "./asset-types.js";
 
 export interface MdanRequest {
@@ -66,6 +66,14 @@ export interface MdanActionResult {
   session?: MdanSessionMutation;
 }
 
+export interface MdanPageResult {
+  page: MdanPage;
+  route?: string;
+  status?: number;
+  headers?: Record<string, string>;
+  session?: MdanSessionMutation;
+}
+
 export type MdanStreamChunk = string | MdanFragment;
 
 export interface MdanStreamResult {
@@ -88,7 +96,7 @@ export interface MdanHandlerContext {
 
 export type MdanHandlerResult = MdanActionResult | MdanStreamResult;
 
-export type MdanHandlerResultLike = MdanStreamResult | JsonSurfaceEnvelope;
+export type MdanHandlerResultLike = MdanStreamResult | ReadableSurface | MdanActionResult;
 
 export type MdanHandler = (
   context: MdanHandlerContext
@@ -100,7 +108,7 @@ export interface MdanPageHandlerContext {
   params: Record<string, string>;
 }
 
-export type MdanPageHandlerResult = JsonSurfaceEnvelope | null;
+export type MdanPageHandlerResult = ReadableSurface | MdanPage | MdanPageResult | null;
 
 export type MdanPageHandler = (
   context: MdanPageHandlerContext

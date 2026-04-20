@@ -20,8 +20,8 @@ describe("negotiateRepresentation", () => {
     expect(negotiateRepresentation("text/markdown;q=0, text/html")).toBe("html");
   });
 
-  it("returns json when explicitly requested", () => {
-    expect(negotiateRepresentation("application/json")).toBe("json");
+  it("treats application/json as unsupported for content negotiation", () => {
+    expect(negotiateRepresentation("application/json")).toBe("not-acceptable");
   });
 
   it("honors q-weight preferences across supported representations", () => {
