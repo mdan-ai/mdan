@@ -36,7 +36,7 @@
 - Modify: `examples/auth-session/app/actions/vault.json`
 
 **Primary test suites**
-- Modify: `test/server/auth-guestbook-json-example.test.ts`
+- Modify: `test/server/auth-guestbook-artifact-example.test.ts`
 - Modify: `test/server/auth-session-json-example.test.ts`
 - Modify: `test/server/runtime-html-mode.test.ts`
 - Modify: `test/server/runtime-json-bridge.test.ts`
@@ -101,7 +101,7 @@ Expected: both examples and their test files are the primary end-to-end semantic
 **Files:**
 - Modify: `src/server/runtime.ts`
 - Modify: `src/web/headless.ts`
-- Modify: `test/server/auth-guestbook-json-example.test.ts`
+- Modify: `test/server/auth-guestbook-artifact-example.test.ts`
 - Modify: `test/server/auth-session-json-example.test.ts`
 - Modify: `test/server/runtime-html-mode.test.ts`
 - Modify: `test/web/headless-browser-flow.test.ts`
@@ -127,7 +127,7 @@ expect(pushState).not.toHaveBeenCalledWith({}, "", "/auth/login");
 Run:
 
 ```bash
-bunx vitest run test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts test/server/runtime-html-mode.test.ts test/web/headless-browser-flow.test.ts test/web/headless-transition.test.ts
+bunx vitest run test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts test/server/runtime-html-mode.test.ts test/web/headless-browser-flow.test.ts test/web/headless-transition.test.ts
 ```
 
 Expected: failures tied to incorrect redirect/location/history behavior, not syntax errors.
@@ -166,7 +166,7 @@ Expected: all targeted navigation tests PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/server/runtime.ts src/web/headless.ts test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts test/server/runtime-html-mode.test.ts test/web/headless-browser-flow.test.ts test/web/headless-transition.test.ts
+git add src/server/runtime.ts src/web/headless.ts test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts test/server/runtime-html-mode.test.ts test/web/headless-browser-flow.test.ts test/web/headless-transition.test.ts
 git commit -m "fix: unify html and headless navigation semantics"
 ```
 
@@ -183,7 +183,7 @@ git commit -m "fix: unify html and headless navigation semantics"
 - Modify: `examples/auth-session/app/actions/login.json`
 - Modify: `examples/auth-session/app/actions/register.json`
 - Modify: `examples/auth-session/app/actions/vault.json`
-- Modify: `test/server/auth-guestbook-json-example.test.ts`
+- Modify: `test/server/auth-guestbook-artifact-example.test.ts`
 - Modify: `test/server/auth-session-json-example.test.ts`
 
 - [ ] **Step 1: Add failing assertions that examples keep semantic page routes and explicit action endpoints**
@@ -202,7 +202,7 @@ expect(html).toContain('action="/vault/logout"');
 Run:
 
 ```bash
-bunx vitest run test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts
+bunx vitest run test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts
 ```
 
 Expected: failures if example action targets no longer match server routes.
@@ -223,7 +223,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add examples/auth-guestbook examples/auth-session test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts
+git add examples/auth-guestbook examples/auth-session test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts
 git commit -m "test: lock example route and action semantics"
 ```
 
@@ -239,7 +239,7 @@ git commit -m "test: lock example route and action semantics"
 - Modify: `src/server/bun.ts`
 - Modify: `test/server/adapter-shared.test.ts`
 - Modify: `test/server/runtime-html-mode.test.ts`
-- Modify: `test/server/auth-guestbook-json-example.test.ts`
+- Modify: `test/server/auth-guestbook-artifact-example.test.ts`
 - Modify: `test/server/auth-session-json-example.test.ts`
 
 - [ ] **Step 1: Add failing tests for form-encoded and multipart no-JS flows**
@@ -255,7 +255,7 @@ Cover:
 Run:
 
 ```bash
-bunx vitest run test/server/adapter-shared.test.ts test/server/runtime-html-mode.test.ts test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts
+bunx vitest run test/server/adapter-shared.test.ts test/server/runtime-html-mode.test.ts test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts
 ```
 
 Expected: failures point to missing normalization or action/input wrapper mismatches.
@@ -281,7 +281,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/server/adapter-shared.ts src/server/runtime.ts src/server/html-render.ts src/server/node.ts src/server/bun.ts test/server/adapter-shared.test.ts test/server/runtime-html-mode.test.ts test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts
+git add src/server/adapter-shared.ts src/server/runtime.ts src/server/html-render.ts src/server/node.ts src/server/bun.ts test/server/adapter-shared.test.ts test/server/runtime-html-mode.test.ts test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts
 git commit -m "fix: close no-js form compatibility gaps"
 ```
 

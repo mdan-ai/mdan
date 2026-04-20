@@ -94,7 +94,7 @@ Only `GET` and `POST` are passed to the runtime. Other HTTP methods are
 normalized to `GET` by the current adapters.
 
 If the incoming request has no `Accept` header, adapters default it to
-`application/json`.
+`text/markdown`.
 
 Cookies are parsed from the incoming `Cookie` header and exposed through
 `request.cookies`. Cookie signing, encryption, and persistence are application
@@ -143,11 +143,11 @@ The high-level host detects no-JavaScript browser form action submissions:
 - content type is `application/x-www-form-urlencoded` or `multipart/form-data`
 
 For those requests, the host changes the runtime request to
-`Accept: application/json` and adds `x-mdan-browser-form: true`.
+`Accept: text/markdown` and adds `x-mdan-browser-form: true`.
 
-Successful JSON surface responses become `303` redirects to
-`view.route_path`. Non-2xx JSON surface responses become HTML browser shell
-responses with the returned error surface embedded.
+Successful Markdown artifact responses become `303` redirects to the resolved
+route when one is available. Non-2xx responses become HTML browser shell
+responses with the returned readable error content embedded.
 
 This bridge lets native browser form submissions and JavaScript headless
 submissions share the same action handlers.
@@ -166,8 +166,10 @@ createHost(server, {
 ```
 
 For HTML page reads, the host asks the runtime for a page response and writes
-the browser shell. The shell embeds the initial JSON surface, then boots
-`@mdanai/sdk/surface` and `@mdanai/sdk/ui` in the browser.
+the browser shell. Depending on hydration mode, the shell may embed a
+compatibility bootstrap payload or render directly from the current Markdown
+artifact before booting `@mdanai/sdk/surface` and `@mdanai/sdk/ui` in the
+browser.
 
 See `BROWSER-AND-HEADLESS-RUNTIME.md` for the browser client contract.
 

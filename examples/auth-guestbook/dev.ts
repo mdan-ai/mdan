@@ -16,4 +16,4 @@ Bun.serve({
   fetch: host
 });
 
-console.log(`auth-guestbook-json dev server listening on http://127.0.0.1:${port}`);
+console.log(`auth-guestbook dev server listening on http://127.0.0.1:${port}`);

@@ -32,7 +32,7 @@ function page(name: string, autoTarget?: string): MdanPage {
 
 function envelope(name: string, autoTarget?: string) {
   return {
-    content: `# ${name}`,
+    markdown: `# ${name}`,
     actions: {
       app_id: "auto-test",
       state_id: `auto-test:${name}`,
@@ -49,11 +49,9 @@ function envelope(name: string, autoTarget?: string) {
           ]
         : []
     },
-    view: {
-      route_path: `/${name}`,
-      regions: {
-        main: name
-      }
+    route: `/${name}`,
+    regions: {
+      main: name
     }
   };
 }

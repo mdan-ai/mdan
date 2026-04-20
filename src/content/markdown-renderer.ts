@@ -119,7 +119,10 @@ export const basicMarkdownRenderer: MdanMarkdownRenderer = {
         if (node.type === "p") {
           return `<p>${escapeHtml(node.text)}</p>`;
         }
-        return `<ul>${node.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+        if (node.type === "ul") {
+          return `<ul>${node.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+        }
+        return "";
       })
       .join("\n");
   }

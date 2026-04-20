@@ -2,16 +2,18 @@ import type {
   MdanBlock,
   MdanConfirmationPolicy,
   MdanHeadlessBlock,
-  MdanHeadlessBootstrap,
   MdanOperation,
-  MdanPage
-} from "../protocol/types.js";
-import { type JsonAction, type JsonSurfaceEnvelope, isJsonSurfaceEnvelope } from "../protocol/surface.js";
-import { stripAgentBlocks } from "../content/agent-blocks.js";
+  MdanPage,
+  JsonAction
+} from "./protocol-model.js";
+import {
+  stripReadableBlockMarkdown,
+  stripReadablePageMarkdown,
+  type ReadableSurface
+} from "./content.js";
 import { blockInputsFromActions, toOperation } from "./surface-actions.js";
 
-export { isJsonSurfaceEnvelope };
-export type { JsonAction, JsonSurfaceEnvelope } from "../protocol/surface.js";
+export type { JsonAction } from "./protocol-model.js";
 
 export type HeadlessSnapshotLike = {
   status: "idle" | "loading" | "error";
@@ -19,17 +21,6 @@ export type HeadlessSnapshotLike = {
   markdown: string;
   blocks: MdanHeadlessBlock[];
 };
-
-function stripFrontmatter(markdown: string): string {
-  return markdown.replace(/^---\n[\s\S]*?\n---\n?/, "");
-}
-
-function stripContentBlocks(markdown: string): string {
-  return markdown
-    .replace(/:::\s*block\{[^}]*\}[\s\S]*?:::/g, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
 
 function toConfirmationPolicy(value: unknown): MdanConfirmationPolicy | null {
   if (typeof value !== "string") {
@@ -57,14 +48,18 @@ function parseContentBlocks(content: string): Map<string, string[]> {
   return byBlock;
 }
 
-function resolveBlockNames(input: JsonSurfaceEnvelope, blockActionRefs: Map<string, string[]>): string[] {
+function resolveBlockNames(
+  actions: ReadableSurface["actions"],
+  regions: Record<string, string> | undefined,
+  blockActionRefs: Map<string, string[]>
+): string[] {
   const names: string[] = [];
-  for (const name of input.actions.blocks ?? []) {
+  for (const name of actions.blocks ?? []) {
     if (typeof name === "string" && !names.includes(name)) {
       names.push(name);
     }
   }
-  for (const name of Object.keys(input.view?.regions ?? {})) {
+  for (const name of Object.keys(regions ?? {})) {
     if (!names.includes(name)) {
       names.push(name);
     }
@@ -74,12 +69,43 @@ function resolveBlockNames(input: JsonSurfaceEnvelope, blockActionRefs: Map<stri
       names.push(name);
     }
   }
+  for (const action of actions.actions ?? []) {
+    if (typeof action.block === "string" && !names.includes(action.block)) {
+      names.push(action.block);
+    }
+  }
   return names;
 }
 
-export function adaptJsonEnvelopeToHeadlessSnapshot(input: JsonSurfaceEnvelope): HeadlessSnapshotLike {
-  const rawContent = stripFrontmatter(String(input.content ?? ""));
-  const content = stripAgentBlocks(stripContentBlocks(rawContent));
+function resolveActionsForBlock(
+  blockName: string,
+  actionList: JsonAction[],
+  blockActionRefs: Map<string, string[]>,
+  allowed: Set<string> | null
+): JsonAction[] {
+  const referencedActions = blockActionRefs.get(blockName);
+  if (referencedActions) {
+    const actionById = new Map<string, JsonAction>();
+    for (const action of actionList) {
+      if (typeof action?.id === "string") {
+        actionById.set(action.id, action);
+      }
+    }
+    return referencedActions
+      .filter((id) => allowed === null || allowed.has(id))
+      .map((id) => actionById.get(id))
+      .filter((value): value is JsonAction => Boolean(value));
+  }
+
+  return actionList.filter((action) => {
+    const id = typeof action.id === "string" ? action.id : null;
+    return action.block === blockName && (allowed === null || (id !== null && allowed.has(id)));
+  });
+}
+
+export function adaptReadableSurfaceToHeadlessSnapshot(input: ReadableSurface): HeadlessSnapshotLike {
+  const rawContent = String(input.markdown ?? "");
+  const content = stripReadablePageMarkdown(rawContent);
   const blockActionRefs = parseContentBlocks(rawContent);
   const actionList = Array.isArray(input.actions.actions) ? input.actions.actions : [];
   const allowedNextActions = Array.isArray(input.actions.allowed_next_actions)
@@ -88,20 +114,10 @@ export function adaptJsonEnvelopeToHeadlessSnapshot(input: JsonSurfaceEnvelope):
   const allowed = allowedNextActions ? new Set(allowedNextActions) : null;
   const defaultConfirmationPolicy =
     toConfirmationPolicy(input.actions.security?.default_confirmation_policy) ?? "never";
-  const actionById = new Map<string, JsonAction>();
-  for (const action of actionList) {
-    if (typeof action?.id === "string") {
-      actionById.set(action.id, action);
-    }
-  }
 
   const blocks: MdanHeadlessBlock[] = [];
-  for (const blockName of resolveBlockNames(input, blockActionRefs)) {
-    const referencedActions = blockActionRefs.get(blockName) ?? [];
-    const actionsForBlock = referencedActions
-      .filter((id) => allowed === null || allowed.has(id))
-      .map((id) => actionById.get(id))
-      .filter((value): value is JsonAction => Boolean(value));
+  for (const blockName of resolveBlockNames(input.actions, input.regions, blockActionRefs)) {
+    const actionsForBlock = resolveActionsForBlock(blockName, actionList, blockActionRefs, allowed);
 
     const operations = actionsForBlock
       .map((action) => toOperation(action, defaultConfirmationPolicy))
@@ -109,7 +125,7 @@ export function adaptJsonEnvelopeToHeadlessSnapshot(input: JsonSurfaceEnvelope):
 
     blocks.push({
       name: blockName,
-      markdown: stripAgentBlocks(input.view?.regions?.[blockName] ?? ""),
+      markdown: stripReadableBlockMarkdown(input.regions?.[blockName] ?? ""),
       inputs: blockInputsFromActions(actionsForBlock),
       operations
     });
@@ -117,19 +133,9 @@ export function adaptJsonEnvelopeToHeadlessSnapshot(input: JsonSurfaceEnvelope):
 
   return {
     status: "idle",
-    ...(input.view?.route_path ? { route: input.view.route_path } : {}),
+    ...(input.route ? { route: input.route } : {}),
     markdown: content,
     blocks
-  };
-}
-
-export function adaptJsonEnvelopeToHeadlessBootstrap(input: JsonSurfaceEnvelope): MdanHeadlessBootstrap {
-  const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(input);
-  return {
-    kind: "page",
-    ...(snapshot.route ? { route: snapshot.route } : {}),
-    markdown: snapshot.markdown,
-    blocks: snapshot.blocks
   };
 }
 
@@ -141,15 +147,18 @@ function toMdanBlock(block: MdanHeadlessBlock): MdanBlock {
   };
 }
 
-export function adaptJsonEnvelopeToMdanPage(input: JsonSurfaceEnvelope): MdanPage {
-  const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(input);
+export function adaptReadableSurfaceToMdanPage(input: ReadableSurface): MdanPage {
+  const snapshot = adaptReadableSurfaceToHeadlessSnapshot(input);
   const blockNames = snapshot.blocks.map((block) => block.name);
   const blockContent = Object.fromEntries(snapshot.blocks.map((block) => [block.name, block.markdown]));
   const anchorMarkdown = blockNames.map((name) => `<!-- mdan:block ${name} -->`).join("\n\n");
   const markdown = [snapshot.markdown.trim(), anchorMarkdown].filter(Boolean).join("\n\n");
   return {
-    frontmatter: {},
+    frontmatter: {
+      ...(input.route ? { route: input.route } : {})
+    },
     markdown,
+    executableContent: JSON.stringify(input.actions, null, 2),
     blockContent,
     blocks: snapshot.blocks.map(toMdanBlock),
     blockAnchors: [...blockNames],

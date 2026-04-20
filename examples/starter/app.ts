@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createMdanServer, type BrowserShellOptions } from "@mdanai/sdk/server";
+import { createArtifactPage, createMdanServer, type BrowserShellOptions, type MdanPage } from "../../src/server/index.js";
 
-type JsonActionSpec = {
+type ActionManifest = {
   app_id: string;
   state_id: string;
   state_version: number;
@@ -16,7 +16,7 @@ type JsonActionSpec = {
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
-const baseActions = JSON.parse(readFileSync(join(root, "app", "actions", "main.json"), "utf8")) as JsonActionSpec;
+const baseActions = JSON.parse(readFileSync(join(root, "app", "actions", "main.json"), "utf8")) as ActionManifest;
 
 function render(templateText: string, values: Record<string, string>): string {
   return templateText.replace(/:::\s*block\{([^}]*)\}\n:::/g, (full, attrs: string) => {
@@ -29,7 +29,7 @@ function render(templateText: string, values: Record<string, string>): string {
   });
 }
 
-function envelope(messages: string[]) {
+function pageArtifact(messages: string[]): MdanPage {
   const stateVersion = messages.length + 1;
   const stateId = `starter:home:${stateVersion}`;
   const list = messages.length > 0 ? messages.map((line) => `- ${line}`).join("\n") : "- No messages yet";
@@ -39,20 +39,74 @@ This block shows the current starter message feed and accepts a new message subm
 ## Result
 ${list}`;
 
-  const actions = JSON.parse(JSON.stringify(baseActions)) as JsonActionSpec;
+  const actions = JSON.parse(JSON.stringify(baseActions)) as ActionManifest;
   actions.state_id = stateId;
   actions.state_version = stateVersion;
 
-  return {
-    content: `---\napp_id: "starter"\nstate_id: "${stateId}"\nstate_version: ${stateVersion}\nactions: "./app/actions/main.json"\nresponse_mode: "page"\n---\n\n${render(template, { main: block })}`,
-    actions,
-    view: {
-      route_path: "/",
-      regions: {
-        main: block
+  return createArtifactPage({
+    frontmatter: {
+      app_id: "starter",
+      state_id: stateId,
+      state_version: stateVersion,
+      actions: "./app/actions/main.json",
+      response_mode: "page",
+      route: "/"
+    },
+    markdown: `${render(template, { main: block })}\n\n<!-- mdan:block main -->`,
+    executableJson: actions,
+    blockContent: {
+      main: block
+    },
+    blocks: [
+      {
+        name: "main",
+        inputs: [],
+        operations: [
+          {
+            method: "GET",
+            name: "refresh_main",
+            target: "/",
+            inputs: [],
+            label: "Refresh",
+            verb: "read",
+            stateEffect: {
+              responseMode: "page"
+            },
+            security: {
+              confirmationPolicy: "never"
+            },
+            inputSchema: {
+              type: "object",
+              properties: {},
+              additionalProperties: false
+            }
+          },
+          {
+            method: "POST",
+            name: "submit_message",
+            target: "/post",
+            inputs: ["message"],
+            label: "Submit",
+            verb: "write",
+            stateEffect: {
+              responseMode: "page"
+            },
+            security: {
+              confirmationPolicy: "never"
+            },
+            inputSchema: {
+              type: "object",
+              required: ["message"],
+              properties: {
+                message: { type: "string" }
+              },
+              additionalProperties: false
+            }
+          }
+        ]
       }
-    }
-  };
+    ]
+  });
 }
 
 export function createStarterServer(
@@ -62,7 +116,7 @@ export function createStarterServer(
   const messages = [...initialMessages];
   const server = createMdanServer({ browserShell });
 
-  server.page("/", async () => envelope(messages));
+  server.page("/", async () => pageArtifact(messages));
 
   server.post("/post", async ({ inputs }) => {
     const message = (inputs.message ?? "").trim();
@@ -71,7 +125,7 @@ export function createStarterServer(
     }
     return {
       route: "/",
-      ...envelope(messages)
+      page: pageArtifact(messages)
     };
   });
 

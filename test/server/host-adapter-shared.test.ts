@@ -21,7 +21,7 @@ describe("normalizeDecodedBody", () => {
 });
 
 describe("finalizeMdanHeaders", () => {
-  it("defaults accept to json and rewrites form submissions to json content-type", () => {
+  it("defaults accept to markdown and rewrites form submissions to json content-type", () => {
     expect(
       finalizeMdanHeaders({
         headers: {
@@ -30,7 +30,7 @@ describe("finalizeMdanHeaders", () => {
         body: '{"message":"hello"}'
       })
     ).toEqual({
-      accept: "application/json",
+      accept: "text/markdown",
       "content-type": "application/json"
     });
   });

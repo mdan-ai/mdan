@@ -1,4 +1,4 @@
-import type { MdanOperation, MdanSubmitValues } from "../protocol/types.js";
+import type { MdanOperation, MdanSubmitValues } from "./protocol-model.js";
 
 export type UiActionBehavior = "page" | "region" | "submit" | "read";
 export type UiActionVariant = "primary" | "secondary" | "quiet" | "danger";

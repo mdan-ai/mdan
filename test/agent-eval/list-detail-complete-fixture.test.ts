@@ -8,6 +8,16 @@ import {
   verifyListDetailCompleteFixtureRun
 } from "./support/index.js";
 
+function extractActionProof(markdown: string): string {
+  const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
+  expect(match?.[1]).toBeTruthy();
+  const payload = JSON.parse(String(match?.[1])) as {
+    actions?: Array<{ action_proof?: string }>;
+  };
+  expect(payload.actions?.[0]?.action_proof).toBeTypeOf("string");
+  return String(payload.actions?.[0]?.action_proof);
+}
+
 describe("list-detail-complete agent eval fixture", () => {
   it("requires navigating from list to detail before completing the target item", async () => {
     const fixture = createListDetailCompleteFixture();
@@ -36,19 +46,19 @@ describe("list-detail-complete agent eval fixture", () => {
 	    expect(detail.status).toBe(200);
 	    expect(String(detail.body)).toContain("Alpha task detail");
 
-	    const detailJson = await fixture.server.handle({
+	    const detailArtifact = await fixture.server.handle({
 	      method: "GET",
 	      url: "https://example.test/items/alpha",
-	      headers: { accept: "application/json" },
+	      headers: { accept: "text/markdown" },
 	      cookies: {}
 	    });
-	    const completeProof = JSON.parse(String(detailJson.body)).actions.actions[0].action_proof;
+	    const completeProof = extractActionProof(String(detailArtifact.body));
 
 	    const complete = await fixture.server.handle({
       method: "POST",
       url: "https://example.test/items/alpha/complete",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
 	      body: JSON.stringify({
@@ -61,9 +71,23 @@ describe("list-detail-complete agent eval fixture", () => {
     });
 
     expect(complete.status).toBe(200);
-    expect(complete.headers["content-type"]).toBe("application/json");
+    expect(complete.headers["content-type"]).toContain("text/markdown");
     expect(String(complete.body)).toContain("Alpha task completed");
     expect(fixture.getCompletedItems()).toEqual(["alpha"]);
+  });
+
+  it("serves the list-detail pages as artifact-native reads instead of page JSON", async () => {
+    const fixture = createListDetailCompleteFixture();
+
+    const jsonList = await fixture.server.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: { accept: "application/json" },
+      cookies: {}
+    });
+
+    expect(jsonList.status).toBe(406);
+    expect(String(jsonList.body)).toContain("## Not Acceptable");
   });
 
   it("does not pass oracle when the item was opened but not completed", () => {
@@ -77,7 +101,7 @@ describe("list-detail-complete agent eval fixture", () => {
           runId: "detail-only",
           caseId: fixture.case.id,
           fixtureId: fixture.id,
-          agentId: "json-surface-probe",
+          agentId: "artifact-probe",
           assumptionLevel: "A0",
           startedAt: "2026-04-12T10:00:00.000Z"
         })

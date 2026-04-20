@@ -7,8 +7,7 @@ import {
 } from "./action-proof.js";
 import { normalizeInputValuesBySchema } from "../protocol/input/input-schema.js";
 import type { MdanConfirmationPolicy, MdanOperation } from "../protocol/types.js";
-import type { JsonAction, JsonSurfaceEnvelope } from "../protocol/surface.js";
-import { projectJsonSurfaceToPage } from "./surface-projection.js";
+import type { JsonAction } from "../protocol/surface.js";
 
 import type { ParsedRequestAction } from "./request-inputs.js";
 import type { MdanActionResult, MdanRequest } from "./types.js";
@@ -179,51 +178,6 @@ export function withActionProofs(result: MdanActionResult, actionProof: Resolved
     };
   }
   return result;
-}
-
-export function withActionProofsForJsonEnvelope(
-  envelope: JsonSurfaceEnvelope,
-  actionProof: ResolvedActionProofOptions
-): JsonSurfaceEnvelope {
-  const signed = withActionProofs(
-    {
-      page: projectJsonSurfaceToPage(envelope)
-    },
-    actionProof
-  );
-  const operationsByName = new Map<string, MdanOperation>();
-  for (const block of signed.page?.blocks ?? []) {
-    for (const operation of block.operations) {
-      if (typeof operation.name === "string" && operation.name.length > 0) {
-        operationsByName.set(operation.name, operation);
-      }
-    }
-  }
-
-  return {
-    ...envelope,
-    actions: {
-      ...envelope.actions,
-      actions: (envelope.actions.actions ?? []).map((action: JsonAction) => {
-        const id = typeof action?.id === "string" ? action.id : "";
-        const operation = id ? operationsByName.get(id) : undefined;
-        if (!operation) {
-          return action;
-        }
-        return {
-          ...action,
-          ...(typeof operation.actionId === "string" ? { action_id: operation.actionId } : {}),
-          ...(typeof operation.actionProof === "string" ? { action_proof: operation.actionProof } : {}),
-          ...(typeof operation.actionIssuedAt === "number" ? { action_issued_at: operation.actionIssuedAt } : {}),
-          ...(typeof operation.submitFormat === "string" ? { submit_format: operation.submitFormat } : {}),
-          ...(typeof operation.requiresConfirmation === "boolean"
-            ? { requires_confirmation: operation.requiresConfirmation }
-            : {}),
-          ...(operation.submitExample ? { submit_example: operation.submitExample } : {})
-        };
-      })
-    }
-  };
 }
 
 function validateRequestActionProof(request: MdanRequest, actionProof: ResolvedActionProofOptions, token: string) {

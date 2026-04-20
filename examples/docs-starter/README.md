@@ -1,4 +1,4 @@
-# docs-starter (surface runtime)
+# docs-starter (artifact-native docs example)
 
 Source layout:
 
@@ -8,9 +8,10 @@ Source layout:
 
 Runtime contract:
 
-- `GET page` supports `text/html`, `application/json`, and `text/markdown`
-- `POST action/block` supports `application/json` only
-- HTML page responses are rendered on the server from the same `JsonSurfaceEnvelope`
+- `GET page` supports `text/html` and `text/markdown`
+- `GET page` no longer exposes `application/json`; page discovery happens through the Markdown artifact
+- the example exposes a `GET` refresh action and returns the same Markdown artifact contract for action reads
+- HTML page responses are rendered on the server from the same underlying artifact
 
 Run:
 
@@ -26,5 +27,4 @@ Open `http://127.0.0.1:4326/`.
 Quick checks:
 
 - `curl -H 'Accept: text/html' http://127.0.0.1:4326/`
-- `curl -H 'Accept: application/json' http://127.0.0.1:4326/`
 - `curl -H 'Accept: text/markdown' http://127.0.0.1:4326/`

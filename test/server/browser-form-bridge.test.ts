@@ -10,7 +10,7 @@ import type { MdanResponse } from "../../src/server/types.js";
 
 function createSurface(message: string, route: string) {
   return {
-    content: `# Demo\n\n::: block{id="main" actions="submit"}\n${message}\n:::`,
+    markdown: `# Demo\n\n::: block{id="main" actions="submit"}\n${message}\n:::`,
     actions: {
       app_id: "demo",
       state_id: `demo:${route}:1`,
@@ -35,11 +35,9 @@ function createSurface(message: string, route: string) {
       ],
       allowed_next_actions: ["submit"]
     },
-    view: {
-      route_path: route,
-      regions: {
-        main: message
-      }
+    route,
+    regions: {
+      main: message
     }
   };
 }
@@ -48,7 +46,7 @@ describe("browser form bridge", () => {
   it("renders no-js forms in the browser shell snapshot", async () => {
     const html = renderBrowserShell({
       title: "Demo",
-      initialSurface: createSurface("Current value", "/demo")
+      initialReadableSurface: createSurface("Current value", "/demo")
     });
 
     expect(html).toContain('<form action="/submit" method="post"');
@@ -100,14 +98,191 @@ describe("browser form bridge", () => {
     expect(receivedCount).toBe(4);
   });
 
+  it("keeps set-cookie headers when a browser-form success redirects", async () => {
+    const host = createNodeHost(
+      {
+        async handle(): Promise<MdanResponse> {
+          return {
+            status: 200,
+            headers: {
+              "content-type": 'text/markdown; profile="https://mdan.ai/spec/v1"',
+              "set-cookie": "session=abc; Path=/; HttpOnly"
+            },
+            body: `---
+route: "/done"
+---
+
+# Done
+
+\`\`\`mdan
+{
+  "app_id": "demo",
+  "state_id": "demo:done:1",
+  "state_version": 1,
+  "blocks": [],
+  "actions": [],
+  "allowed_next_actions": []
+}
+\`\`\`
+`
+          };
+        }
+      },
+      {
+        browserShell: {
+          title: "Demo"
+        }
+      }
+    );
+
+    const response = await new Promise<{ status: number; headers: Record<string, string | string[]>; body: string }>((resolve, reject) => {
+      const request = new PassThrough() as any;
+      request.method = "POST";
+      request.url = "/submit";
+      request.headers = {
+        host: "example.test",
+        accept: "text/html",
+        "content-type": "application/x-www-form-urlencoded"
+      };
+
+      const chunks: Buffer[] = [];
+      const reply = new PassThrough() as any;
+      reply.statusCode = 200;
+      const headers: Record<string, string | string[]> = {};
+      reply.setHeader = (key: string, value: string | string[]) => {
+        headers[key.toLowerCase()] = value;
+      };
+      reply.write = (chunk: string | Buffer) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        return true;
+      };
+      reply.end = (chunk?: string | Buffer) => {
+        if (chunk) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        resolve({
+          status: reply.statusCode,
+          headers,
+          body: Buffer.concat(chunks).toString("utf8")
+        });
+      };
+      reply.on("error", reject);
+
+      host(request, reply);
+      request.end("count=4");
+    });
+
+    expect(response.status).toBe(303);
+    expect(String(response.headers["set-cookie"])).toContain("session=abc");
+    expect(String(response.headers["location"])).toBe("/done");
+  });
+
+  it("renders successful markdown responses without a route as html instead of leaking raw markdown", async () => {
+    const host = createNodeHost(
+      {
+        async handle(): Promise<MdanResponse> {
+          return {
+            status: 200,
+            headers: { "content-type": 'text/markdown; profile="https://mdan.ai/spec/v1"' },
+            body: "# Saved\n\nSubmitted successfully."
+          };
+        }
+      },
+      {
+        browserShell: {
+          title: "Demo"
+        }
+      }
+    );
+
+    const response = await new Promise<{ status: number; headers: Record<string, string | string[]>; body: string }>((resolve, reject) => {
+      const request = new PassThrough() as any;
+      request.method = "POST";
+      request.url = "/submit";
+      request.headers = {
+        host: "example.test",
+        accept: "text/html",
+        "content-type": "application/x-www-form-urlencoded"
+      };
+
+      const chunks: Buffer[] = [];
+      const reply = new PassThrough() as any;
+      reply.statusCode = 200;
+      const headers: Record<string, string | string[]> = {};
+      reply.setHeader = (key: string, value: string | string[]) => {
+        headers[key.toLowerCase()] = value;
+      };
+      reply.write = (chunk: string | Buffer) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        return true;
+      };
+      reply.end = (chunk?: string | Buffer) => {
+        if (chunk) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        resolve({
+          status: reply.statusCode,
+          headers,
+          body: Buffer.concat(chunks).toString("utf8")
+        });
+      };
+      reply.on("error", reject);
+
+      host(request, reply);
+      request.end("count=4");
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.headers["content-type"])).toContain("text/html");
+    expect(response.body).toContain("Submitted successfully.");
+    expect(response.body).not.toContain("```mdan");
+  });
+
   it("bridges html form POST errors to an html page without changing the route", async () => {
     const host = createNodeHost(
       {
         async handle(): Promise<MdanResponse> {
           return {
             status: 400,
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(createSurface("Count must be an integer", "/submit"))
+            headers: { "content-type": 'text/markdown; profile="https://mdan.ai/spec/v1"' },
+            body: `---
+route: "/submit"
+---
+
+# Demo
+
+::: block{id="main" actions="submit"}
+Count must be an integer
+:::
+
+\`\`\`mdan
+{
+  "app_id": "demo",
+  "state_id": "demo:/submit:1",
+  "state_version": 1,
+  "blocks": ["main"],
+  "actions": [
+    {
+      "id": "submit",
+      "label": "Submit",
+      "verb": "write",
+      "transport": { "method": "POST" },
+      "target": "/submit",
+      "input_schema": {
+        "type": "object",
+        "required": ["count"],
+        "properties": {
+          "count": { "type": "integer" }
+        },
+        "additionalProperties": false
+      },
+      "block": "main"
+    }
+  ],
+  "allowed_next_actions": ["submit"]
+}
+\`\`\`
+`
           };
         }
       },

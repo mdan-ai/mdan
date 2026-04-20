@@ -28,7 +28,6 @@ export function negotiateRepresentation(acceptHeader?: string): MdanRepresentati
 
   const accepted = parseAcceptHeader(acceptHeader);
   const weightByRepresentation: Record<Exclude<MdanRepresentation, "not-acceptable">, number> = {
-    json: 0,
     "event-stream": 0,
     markdown: 0,
     html: 0
@@ -41,11 +40,6 @@ export function negotiateRepresentation(acceptHeader?: string): MdanRepresentati
 
     if (entry.mediaType === "text/event-stream") {
       weightByRepresentation["event-stream"] = Math.max(weightByRepresentation["event-stream"], entry.q);
-      continue;
-    }
-
-    if (entry.mediaType === "application/json") {
-      weightByRepresentation.json = Math.max(weightByRepresentation.json, entry.q);
       continue;
     }
 
@@ -67,7 +61,6 @@ export function negotiateRepresentation(acceptHeader?: string): MdanRepresentati
   }
 
   const tieBreaker: Record<Exclude<MdanRepresentation, "not-acceptable">, number> = {
-    json: 4,
     "event-stream": 3,
     markdown: 2,
     html: 1

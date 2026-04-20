@@ -1,4 +1,9 @@
 export {
+  createArtifactFragment,
+  createArtifactPage,
+  createExecutableContent
+} from "./artifact.js";
+export {
   LOCAL_BROWSER_UI_MODULE_PATH,
   LOCAL_BROWSER_SURFACE_MODULE_PATH,
   renderBrowserShell,
@@ -45,6 +50,7 @@ export type {
   MdanProtocolDiscovery,
   MdanPageHandler,
   MdanPageHandlerContext,
+  MdanPageResult,
   MdanRequest,
   MdanResponse,
   MdanSessionMutation,

@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import { createAuthGuestbookServer } from "../../examples/auth-guestbook/app.js";
-import type { JsonSurfaceEnvelope } from "../../src/surface/adapter.js";
 import type { MdanResponse } from "../../src/server/index.js";
+import { parseFrontmatter } from "../../src/content/content-actions.js";
+
+type ArtifactActions = {
+  allowed_next_actions?: string[];
+  actions?: Array<Record<string, unknown>>;
+};
+
+type ArtifactSurface = {
+  content: string;
+  route?: string;
+  actions: ArtifactActions;
+};
 
 function cookieValue(setCookie: string | undefined): string {
   return (setCookie ?? "").split(";", 1)[0] ?? "";
@@ -18,13 +29,21 @@ function cookieMap(cookieHeader: string): Record<string, string> {
   };
 }
 
-function parseAgentSurface(response: MdanResponse): JsonSurfaceEnvelope {
-  expect(response.headers["content-type"]).toBe("application/json");
+function parseAgentSurface(response: MdanResponse): ArtifactSurface {
+  expect(response.headers["content-type"]).toContain("text/markdown");
   expect(typeof response.body).toBe("string");
-  return JSON.parse(String(response.body)) as JsonSurfaceEnvelope;
+  const content = String(response.body);
+  const frontmatter = parseFrontmatter(content);
+  const match = content.match(/```mdan\n([\s\S]*?)\n```/);
+  expect(match?.[1]).toBeTruthy();
+  return {
+    content,
+    ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
+    actions: JSON.parse(String(match?.[1])) as ArtifactActions
+  };
 }
 
-function expectAction(surface: JsonSurfaceEnvelope, id: string) {
+function expectAction(surface: ArtifactSurface, id: string) {
   const action = surface.actions.actions?.find((candidate) => candidate.id === id);
   expect(action).toBeTruthy();
   return action!;
@@ -34,12 +53,12 @@ async function getSurface(
   server: ReturnType<typeof createAuthGuestbookServer>,
   path: string,
   cookies: Record<string, string> = {}
-): Promise<JsonSurfaceEnvelope> {
+): Promise<ArtifactSurface> {
   const response = await server.handle({
     method: "GET",
     url: `https://example.test${path}`,
     headers: {
-      accept: "application/json"
+      accept: "text/markdown"
     },
     cookies
   });
@@ -58,14 +77,14 @@ function actionBody(action: { action_proof?: unknown }, input: Record<string, un
 }
 
 describe("auth-guestbook agent consumption", () => {
-  it("supports register, post, logout, and rejected old-session submit through JSON surfaces", async () => {
+  it("supports register, post, logout, and rejected old-session submit through markdown artifacts", async () => {
     const server = createAuthGuestbookServer();
 
     const loginPage = await server.handle({
       method: "GET",
       url: "https://example.test/login",
       headers: {
-        accept: "application/json"
+        accept: "text/markdown"
       },
       cookies: {}
     });
@@ -73,7 +92,7 @@ describe("auth-guestbook agent consumption", () => {
     const loginSurface = parseAgentSurface(loginPage);
     const loginAction = expectAction(loginSurface, "login");
     const openRegisterAction = expectAction(loginSurface, "open_register");
-    expect(loginSurface.view?.route_path).toBe("/login");
+    expect(loginSurface.content).toContain("# Sign In");
     expect(loginSurface.actions.allowed_next_actions).toEqual(["login", "open_register"]);
     expect(loginAction.target).toBe("/auth/login");
     expect(loginAction.transport?.method).toBe("POST");
@@ -84,7 +103,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "GET",
       url: "https://example.test/register",
       headers: {
-        accept: "application/json"
+        accept: "text/markdown"
       },
       cookies: {}
     });
@@ -99,7 +118,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "POST",
       url: "https://example.test/auth/register",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(registerAction, { username: "agent", password: "pw" }),
@@ -109,20 +128,20 @@ describe("auth-guestbook agent consumption", () => {
     const sessionCookie = cookieValue(register.headers["set-cookie"]);
     expect(sessionCookie).toContain("mdan_session=");
     const registeredSurface = parseAgentSurface(register);
-    expect(registeredSurface.view?.route_path).toBe("/guestbook");
+    expect(registeredSurface.content).toContain("# Guestbook");
 
     const guestbook = await server.handle({
       method: "GET",
       url: "https://example.test/guestbook",
       headers: {
-        accept: "application/json"
+        accept: "text/markdown"
       },
       cookies: cookieMap(sessionCookie)
     });
     expect(guestbook.status).toBe(200);
     const guestbookSurface = parseAgentSurface(guestbook);
-    expect(guestbookSurface.view?.route_path).toBe("/guestbook");
-    expect(guestbookSurface.actions.allowed_next_actions).toEqual(["submit_message", "refresh_messages", "logout"]);
+    expect(guestbookSurface.content).toContain("# Guestbook");
+    expect(guestbookSurface.actions.allowed_next_actions).toEqual(["refresh_messages", "submit_message", "logout"]);
     const submitMessageAction = expectAction(guestbookSurface, "submit_message");
     const logoutAction = expectAction(guestbookSurface, "logout");
     expect(submitMessageAction.target).toBe("/guestbook/post");
@@ -133,7 +152,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "POST",
       url: "https://example.test/guestbook/post",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(submitMessageAction, { message: "hello from a direct agent" }),
@@ -141,14 +160,13 @@ describe("auth-guestbook agent consumption", () => {
     });
     expect(post.status).toBe(200);
     const postSurface = parseAgentSurface(post);
-    expect(postSurface.view?.route_path).toBe("/guestbook");
     expect(postSurface.content).toContain("hello from a direct agent");
 
     const logout = await server.handle({
       method: "POST",
       url: "https://example.test/guestbook/logout",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(logoutAction, {}),
@@ -157,13 +175,13 @@ describe("auth-guestbook agent consumption", () => {
     expect(logout.status).toBe(200);
     expect(logout.headers["set-cookie"]).toContain("Max-Age=0");
     const logoutSurface = parseAgentSurface(logout);
-    expect(logoutSurface.view?.route_path).toBe("/login");
+    expect(logoutSurface.content).toContain("# Sign In");
 
     const rejectedOldSessionPost = await server.handle({
       method: "POST",
       url: "https://example.test/guestbook/post",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(submitMessageAction, { message: "should fail" }),
@@ -171,7 +189,6 @@ describe("auth-guestbook agent consumption", () => {
     });
     expect(rejectedOldSessionPost.status).toBe(401);
     const rejectedSurface = parseAgentSurface(rejectedOldSessionPost);
-    expect(rejectedSurface.view?.route_path).toBe("/login");
     expect(rejectedSurface.content).toContain("Sign in required");
   });
 
@@ -186,7 +203,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "POST",
       url: "https://example.test/auth/login",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(loginAction, { username: "missing", password: "bad" }),
@@ -194,7 +211,6 @@ describe("auth-guestbook agent consumption", () => {
     });
     expect(invalidLogin.status).toBe(401);
     const invalidLoginSurface = parseAgentSurface(invalidLogin);
-    expect(invalidLoginSurface.view?.route_path).toBe("/login");
     expect(invalidLoginSurface.content).toContain("Login rejected");
     expect(invalidLoginSurface.actions.allowed_next_actions).toEqual(["login", "open_register"]);
 
@@ -202,7 +218,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "POST",
       url: "https://example.test/auth/register",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(registerAction, { username: "", password: "" }),
@@ -210,7 +226,6 @@ describe("auth-guestbook agent consumption", () => {
     });
     expect(missingRegisterInput.status).toBe(400);
     const missingRegisterSurface = parseAgentSurface(missingRegisterInput);
-    expect(missingRegisterSurface.view?.route_path).toBe("/register");
     expect(missingRegisterSurface.content).toContain("Invalid input");
     expect(missingRegisterSurface.actions.allowed_next_actions).toEqual(["register", "open_login"]);
 
@@ -218,7 +233,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "POST",
       url: "https://example.test/auth/register",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(registerAction, { username: "duplicate", password: "pw" }),
@@ -230,7 +245,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "POST",
       url: "https://example.test/auth/register",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(registerAction, { username: "duplicate", password: "pw" }),
@@ -238,7 +253,6 @@ describe("auth-guestbook agent consumption", () => {
     });
     expect(duplicateRegister.status).toBe(409);
     const duplicateSurface = parseAgentSurface(duplicateRegister);
-    expect(duplicateSurface.view?.route_path).toBe("/register");
     expect(duplicateSurface.content).toContain("Username already exists");
 
     const duplicateCookie = cookieValue(register.headers["set-cookie"]);
@@ -248,7 +262,7 @@ describe("auth-guestbook agent consumption", () => {
       method: "POST",
       url: "https://example.test/guestbook/post",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: actionBody(unauthenticatedSubmitAction, { message: "not signed in" }),
@@ -256,7 +270,6 @@ describe("auth-guestbook agent consumption", () => {
     });
     expect(unauthenticatedWrite.status).toBe(401);
     const unauthenticatedSurface = parseAgentSurface(unauthenticatedWrite);
-    expect(unauthenticatedSurface.view?.route_path).toBe("/login");
     expect(unauthenticatedSurface.content).toContain("Sign in required");
   });
 });

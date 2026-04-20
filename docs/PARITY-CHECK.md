@@ -21,5 +21,5 @@
 - `test/server/runtime-json-bridge.test.ts`
 - `test/server/runtime-json-session-isolation.test.ts`
 - `test/server/runtime-json-contract-mode.test.ts`
-- `test/server/auth-guestbook-json-example.test.ts`
+- `test/server/auth-guestbook-artifact-example.test.ts`
 - `test/server/runtime-html-mode.test.ts`

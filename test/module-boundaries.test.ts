@@ -57,7 +57,7 @@ describe("module boundaries", () => {
     );
     expect(source).toContain("createHeadlessHost");
     expect(source).toContain("mountMdanUi");
-    expect(source).toContain("renderSurfaceSnapshot");
+    expect(source).toContain("renderInitialProjection");
   });
 
   it("keeps adapter-shared as a compatibility barrel instead of a mixed implementation module", async () => {
@@ -87,6 +87,57 @@ describe("module boundaries", () => {
       ],
       "src/surface/render-semantics.ts"
     );
+  });
+
+  it("keeps ui model code behind the surface presentation boundary", async () => {
+    const files = ["src/ui/model.ts", "src/ui/mount.ts"];
+    const forbidden = [
+      /from\s+["']\.\.\/content(?:\/|["'])/,
+      /from\s+["']\.\.\/protocol(?:\/|["'])/,
+      /from\s+["']\.\.\/input(?:\/|["'])/,
+      /from\s+["']\.\.\/shared(?:\/|["'])/
+    ];
+
+    for (const file of files) {
+      expectSourceNotToImport(await readSource(file), forbidden, relative(repoRoot, join(repoRoot, file)));
+    }
+  });
+
+  it("keeps surface content helpers behind the surface content gateway", async () => {
+    const files = [
+      "src/surface/adapter.ts",
+      "src/surface/headless.ts",
+      "src/surface/presentation.ts",
+      "src/surface/snapshot.ts"
+    ];
+
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["']\.\.\/content(?:\/|["'])/],
+        file
+      );
+    }
+  });
+
+  it("keeps surface protocol helpers behind the surface protocol model gateway", async () => {
+    const files = [
+      "src/surface/adapter.ts",
+      "src/surface/headless.ts",
+      "src/surface/presentation.ts",
+      "src/surface/protocol.ts",
+      "src/surface/render-semantics.ts",
+      "src/surface/snapshot.ts",
+      "src/surface/surface-actions.ts"
+    ];
+
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["']\.\.\/protocol(?:\/|["'])/],
+        file
+      );
+    }
   });
 
   it("keeps server public types independent from asset store implementation", async () => {
@@ -213,7 +264,7 @@ describe("module boundaries", () => {
 
     expect(source).toContain("async function handlePageRequest(");
     expect(source).toContain("async function handleActionRequest(");
-    expect(source).toContain("function validateRuntimeEnvelope(");
+    expect(source).toContain("function validateRuntimeSurface(");
     expect(source).toContain("function validateActionRequest(");
     expect(source).toMatch(/await handlePageRequest\(/);
     expect(source).toMatch(/return await handleActionRequest\(/);
@@ -273,6 +324,44 @@ describe("module boundaries", () => {
       expectSourceNotToImport(
         await readSource(file),
         [/from\s+["']\.\.\/surface\/(?:adapter|snapshot)\.js["']/],
+        file
+      );
+    }
+  });
+
+  it("keeps runtime-facing server modules from depending directly on artifact-surface helpers", async () => {
+    const files = [
+      "src/server/runtime.ts",
+      "src/server/result-normalization.ts",
+      "src/server/action-proofing.ts",
+      "src/server/response.ts"
+    ];
+
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["']\.\.\/content\/artifact-surface\.js["']/],
+        file
+      );
+    }
+  });
+
+  it("keeps server content dependencies behind the artifact gateway", async () => {
+    const files = [
+      "src/server/browser-form-bridge.ts",
+      "src/server/browser-shell.ts",
+      "src/server/contracts.ts",
+      "src/server/response.ts",
+      "src/server/result-normalization.ts",
+      "src/server/runtime.ts",
+      "src/server/surface-projection.ts",
+      "src/server/types.ts"
+    ];
+
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["']\.\.\/content(?:\/|["'])/],
         file
       );
     }
@@ -353,6 +442,6 @@ describe("module boundaries", () => {
       [/from\s+["']\.\.\/surface(?:\/|["'])/],
       "src/protocol/surface.ts"
     );
-    expect(source).toContain("isJsonSurfaceEnvelope");
+    expect(source).not.toContain("JsonSurfaceEnvelope");
   });
 });

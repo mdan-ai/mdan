@@ -1,18 +1,32 @@
 # Error Model And Status Codes
 
 MDAN errors are part of the runtime contract. Clients should handle non-2xx
-responses as recoverable protocol states whenever the response body is a JSON
-surface.
+responses as recoverable protocol states whenever the response body remains
+directly readable, whether that body is a Markdown artifact or a legacy JSON
+compatibility surface.
 
 ## Response Representations
 
-When a client requests:
+Preferred clients should request:
+
+```http
+Accept: text/markdown
+```
+
+In that path, runtime-generated errors are returned as readable Markdown:
+
+```md
+## Not Found
+```
+
+Legacy clients may still request:
 
 ```http
 Accept: application/json
 ```
 
-runtime-generated errors are returned as JSON surface envelopes:
+In compatibility paths, runtime-generated errors may still be returned as legacy
+JSON surface envelopes:
 
 ```json
 {
@@ -31,12 +45,8 @@ runtime-generated errors are returned as JSON surface envelopes:
 }
 ```
 
-The error surface exposes no executable actions unless the application handler
-returns a custom error surface with actions.
-
-When a client requests Markdown, the body is readable Markdown. When a request
-asks for an unsupported representation, the runtime usually falls back to a
-Markdown error so the failure remains readable.
+Default runtime-generated error responses expose no executable actions unless
+the application handler returns a richer custom recovery surface.
 
 ## Common Status Codes
 
@@ -57,9 +67,8 @@ The requested `Accept` representation is not available for that route or
 request kind. Examples:
 
 - page reads do not support `Accept: text/event-stream`
-- action requests must use `Accept: application/json`
-- HTML is only available for page `GET` requests where a browser shell host is
-  involved
+- action requests do not support `Accept: text/html`
+- HTML is only available for page `GET` requests where a browser shell host is involved
 
 `413 Payload Too Large`
 
@@ -73,7 +82,7 @@ application/json` after host-level form normalization.
 
 `500 Internal Server Error`
 
-The handler threw, session commit/clear failed, or the returned surface violated
+The handler threw, session commit/clear failed, or the returned result violated
 one of the SDK contracts.
 
 ## Contract Violations
@@ -82,8 +91,8 @@ Contract violations are host/application bugs, not user input errors.
 
 The runtime returns `500` for:
 
-- page handlers that do not return JSON surface envelopes
-- action handlers that do not return JSON surface envelopes or stream results
+- page handlers that do not return artifact-native pages or legacy compatibility envelopes
+- action handlers that do not return artifact-native action results, legacy compatibility envelopes, or stream results
 - invalid actions contracts
 - invalid semantic slots when semantic-slot validation is enabled
 - invalid agent blocks
@@ -106,9 +115,9 @@ These include:
 - missing explicit confirmation for an action that requires it
 - custom `validatePostRequest` rejection
 
-Applications may also return their own `400` JSON surface when business-level
-validation fails. Prefer returning a normal surface with useful content and
-allowed recovery actions.
+Applications may also return their own `400` Markdown artifact or legacy JSON
+compatibility surface when business-level validation fails. Prefer returning a
+normal artifact with useful content and allowed recovery actions.
 
 ## Action Proof Errors
 
@@ -136,11 +145,12 @@ See `ACTION-PROOF-SECURITY.md` for proof semantics and boundaries.
 
 ## Invalid Request Body
 
-Malformed request bodies return `400` with an `Invalid Request Body` surface.
+Malformed request bodies return `400` with an `Invalid Request Body` response.
 
-For JSON clients, parse the body as a JSON surface first. The body content
-contains the readable error detail, and `allowed_next_actions` is empty unless
-an application handler produced a richer recovery surface.
+For artifact-first clients, read the body directly. For legacy JSON clients,
+parse the body as a JSON surface first. In both cases,
+`allowed_next_actions` is empty unless an application handler produced a richer
+recovery surface.
 
 ## Unsupported Media Type
 
@@ -148,7 +158,7 @@ Raw JSON action submissions must use:
 
 ```http
 Content-Type: application/json
-Accept: application/json
+Accept: text/markdown
 ```
 
 Browser form requests are normalized by host adapters before they reach the
@@ -159,26 +169,28 @@ will be rejected with `415`.
 
 Use these defaults:
 
-- page read: `Accept: application/json`
-- action request: `Accept: application/json`
+- page read: `Accept: text/markdown`
+- action request: `Accept: text/markdown`
 - stream action request: `Accept: text/event-stream`
-- human/debug page read: `Accept: text/markdown`
+- legacy compatibility read: `Accept: application/json`
 
 Do not request `text/html` directly from the runtime for actions. HTML is a host
 adapter/browser-shell concern.
 
 ## Headless Host Error State
 
-The headless browser host treats non-2xx responses as `error` status.
+The headless host treats non-2xx responses as `error` status.
 
-If the response body is a JSON surface, the host still adapts the surface so the
-UI can show the server-provided error content. If the body is not a JSON
-surface, the host reports a runtime error such as `Expected JSON surface bundle
-response.`
+If the response body is a Markdown artifact, the host can still adapt and show
+the server-provided error content. If the response is a legacy JSON surface,
+the host can still bridge it. If the body is unreadable as either artifact or
+legacy JSON, the host reports a runtime error such as
+`Runtime returned an unreadable response.`
 
 Custom frontends should follow the same pattern:
 
 1. check HTTP status
-2. try to parse a JSON surface
-3. render the returned content if present
-4. avoid inventing next actions when `allowed_next_actions` is empty
+2. try to parse a Markdown artifact first
+3. fall back to legacy JSON only when needed
+4. render the returned content if present
+5. avoid inventing next actions when `allowed_next_actions` is empty

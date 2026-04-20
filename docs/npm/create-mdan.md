@@ -33,7 +33,7 @@ bunx create-mdan agent-app --runtime node
 
 The generated app includes:
 
-- a JSON-first MDAN page
+- a Markdown-first MDAN page
 - a simple message action
 - Node or Bun hosting
 - `@mdanai/sdk` dependency pinned to the compatible minor line

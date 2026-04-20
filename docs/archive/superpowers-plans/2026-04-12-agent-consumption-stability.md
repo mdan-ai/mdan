@@ -61,7 +61,7 @@ Out of scope for this phase:
 - Reference: `examples/auth-session/app/actions/login.json`
 - Reference: `examples/auth-session/app/actions/register.json`
 - Reference: `examples/auth-session/app/actions/vault.json`
-- Reference: `test/server/auth-guestbook-json-example.test.ts`
+- Reference: `test/server/auth-guestbook-artifact-example.test.ts`
 - Reference: `test/server/auth-session-json-example.test.ts`
 - Reference: `test/server/runtime-json-bridge.test.ts`
 - Reference: `test/server/runtime-json-session-isolation.test.ts`
@@ -261,7 +261,7 @@ If this test fails:
 Run the same test plus:
 
 ```bash
-bunx vitest run test/server/auth-guestbook-json-example.test.ts test/server/runtime-json-session-isolation.test.ts
+bunx vitest run test/server/auth-guestbook-artifact-example.test.ts test/server/runtime-json-session-isolation.test.ts
 ```
 
 Expected: all PASS.
@@ -463,7 +463,7 @@ Expected: all PASS.
 Then run the existing baseline examples:
 
 ```bash
-bunx vitest run test/server/auth-guestbook-json-example.test.ts test/server/auth-session-json-example.test.ts
+bunx vitest run test/server/auth-guestbook-artifact-example.test.ts test/server/auth-session-json-example.test.ts
 ```
 
 Expected: PASS.

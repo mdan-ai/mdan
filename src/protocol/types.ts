@@ -71,6 +71,7 @@ export interface MdanBlock {
 export interface MdanPage {
   frontmatter: MdanFrontmatter;
   markdown: string;
+  executableContent?: string;
   blockContent?: Record<string, string>;
   blocks: MdanBlock[];
   blockAnchors: string[];
@@ -83,6 +84,7 @@ export interface MdanComposedPage extends MdanPage {
 
 export interface MdanFragment {
   markdown: string;
+  executableContent?: string;
   blocks: MdanBlock[];
 }
 
@@ -117,4 +119,4 @@ export interface MdanHeadlessFragmentBootstrap {
 
 export type MdanHeadlessBootstrap = MdanHeadlessPageBootstrap | MdanHeadlessFragmentBootstrap;
 
-export type MdanRepresentation = "json" | "markdown" | "html" | "event-stream" | "not-acceptable";
+export type MdanRepresentation = "markdown" | "html" | "event-stream" | "not-acceptable";

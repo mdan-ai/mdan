@@ -1,6 +1,6 @@
-import type { JsonSurfaceEnvelope } from "../protocol/surface.js";
-import type { MdanHeadlessBlock, MdanOperation, MdanSubmitValues } from "../protocol/types.js";
-import { adaptJsonEnvelopeToHeadlessSnapshot } from "./adapter.js";
+import { adaptReadableSurfaceToHeadlessSnapshot } from "./adapter.js";
+import { parseReadableSurface, type ReadableSurface } from "./content.js";
+import type { MdanHeadlessBlock, MdanOperation, MdanSubmitValues } from "./protocol-model.js";
 import type {
   HeadlessDebugMessage,
   HeadlessListener,
@@ -10,7 +10,7 @@ import type {
 } from "./protocol.js";
 
 export interface CreateHeadlessHostOptions {
-  initialSurface?: JsonSurfaceEnvelope;
+  initialArtifact?: string;
   initialRoute?: string;
   fetchImpl?: typeof fetch;
   debugMessages?: boolean;
@@ -99,8 +99,8 @@ function patchSnapshotByRegions(
   };
 }
 
-function toSnapshot(surface: JsonSurfaceEnvelope, current: HeadlessSnapshot | null): HeadlessSnapshot {
-  const adapted = adaptJsonEnvelopeToHeadlessSnapshot(surface);
+function toSnapshot(surface: ReadableSurface, current: HeadlessSnapshot | null): HeadlessSnapshot {
+  const adapted = adaptReadableSurfaceToHeadlessSnapshot(surface);
   return {
     status: current?.status ?? "idle",
     ...(adapted.route ?? current?.route ? { route: adapted.route ?? current?.route } : {}),
@@ -188,11 +188,11 @@ function isResponseOk(response: unknown): boolean {
   return true;
 }
 
-function extractResponseErrorMessage(response: unknown, surface: JsonSurfaceEnvelope | null, fallbackContent: string): string {
+function extractResponseErrorMessage(response: unknown, surface: ReadableSurface | null, fallbackContent: string): string {
   const candidate = response as { status?: unknown; statusText?: unknown };
   const status = typeof candidate.status === "number" ? candidate.status : undefined;
   const statusText = typeof candidate.statusText === "string" ? candidate.statusText.trim() : "";
-  const content = surface?.content ?? fallbackContent;
+  const content = surface ? adaptReadableSurfaceToHeadlessSnapshot(surface).markdown : fallbackContent;
   const firstLine = content
     .split("\n")
     .map((line) => line.trim())
@@ -205,23 +205,19 @@ function extractResponseErrorMessage(response: unknown, surface: JsonSurfaceEnve
   return parts.join(": ");
 }
 
-function parseSurface(content: string): JsonSurfaceEnvelope | null {
-  try {
-    const parsed = JSON.parse(content) as unknown;
-    if (parsed && typeof parsed === "object" && "content" in parsed && "actions" in parsed) {
-      return parsed as JsonSurfaceEnvelope;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
 export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): MdanHeadlessHost {
   const fetchImpl = options.fetchImpl ?? fetch;
   const debugMessages = options.debugMessages === true;
   let mounted = false;
-  let snapshot = options.initialSurface ? toSnapshot(options.initialSurface, null) : emptySnapshot(options.initialRoute);
+  const initialParsedArtifact = options.initialArtifact
+    ? parseReadableSurface(options.initialArtifact, {
+        fallbackRoute: options.initialRoute,
+        allowBareMarkdown: true
+      })
+    : null;
+  let snapshot = initialParsedArtifact
+      ? toSnapshot(initialParsedArtifact, null)
+      : emptySnapshot(options.initialRoute);
   let status: HeadlessRuntimeState = { status: "idle", transition: "page" };
   const listeners = new Set<HeadlessListener>();
 
@@ -268,7 +264,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
     const transition = operation?.stateEffect?.responseMode === "region" ? "region" : "page";
     setStatus({ status: "loading", transition });
 
-    const headers = new Headers({ Accept: "application/json" });
+    const headers = new Headers({ Accept: "text/markdown" });
     let url = target;
     let body: string | FormData | undefined;
 
@@ -296,7 +292,10 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
         ...(body ? { body } : {})
       });
       const text = await response.text();
-      const surface = parseSurface(text);
+      const surface = parseReadableSurface(text, {
+        ...(method === "GET" ? { fallbackRoute: target } : {}),
+        allowBareMarkdown: true
+      });
 
       if (!isResponseOk(response)) {
         const errorMessage = extractResponseErrorMessage(response, surface, text);
@@ -308,13 +307,13 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
           direction: "receive",
           method,
           url,
-          markdown: surface?.content ?? text
+          markdown: surface?.markdown ?? text
         });
         return;
       }
 
       if (!surface) {
-        setStatus({ status: "error", transition, error: "Runtime returned a non-surface response." });
+        setStatus({ status: "error", transition, error: "Runtime returned an unreadable response." });
         recordDebugMessage({
           direction: "receive",
           method,
@@ -338,7 +337,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
         direction: "receive",
         method,
         url,
-        markdown: surface.content
+        markdown: surface.markdown
       });
     } catch (error) {
       setStatus({

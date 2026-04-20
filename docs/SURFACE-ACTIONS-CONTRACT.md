@@ -1,15 +1,20 @@
-# Surface And Actions Contract
+# Legacy Surface And Actions Contract
 
-This document defines the SDK-level contract for JSON surface envelopes and
-their action metadata. It is the practical validation contract enforced by the
-runtime before a surface is returned to clients.
+This document defines the SDK-level contract for the legacy JSON surface bridge
+and its action metadata. It is the practical validation contract still enforced
+by the runtime before a compatibility surface is returned to clients that still
+consume `application/json`.
 
 For the broader product model, see `MDAN-APPLICATION-SURFACE-SPEC.zh.md`. For
 action proof submission and signing, see `ACTION-PROOF-SECURITY.md`.
 
+This is not the primary public MDAN response shape. The primary public contract
+is the Markdown artifact described in `RUNTIME-CONTRACT.md` and
+`2026-04-12-agent-consumption-contract.md`.
+
 ## Surface Envelope
 
-Interactive handlers must return a JSON surface envelope:
+Compatibility handlers may still return a legacy JSON surface envelope:
 
 ```ts
 type JsonSurfaceEnvelope = {
@@ -23,10 +28,14 @@ type JsonSurfaceEnvelope = {
 ```
 
 `content` is Markdown. It may include frontmatter, block directives, semantic
-slots, and agent blocks.
+slots, and agent blocks. When projected into the primary artifact contract, the
+same readable body is paired with an embedded `mdan` fenced block for
+executable state.
 
 `actions` is the executable contract. It is not just display metadata; clients
-and agents use it to decide what may be submitted next.
+and agents use it to decide what may be submitted next. In the artifact-native
+direction, this contract belongs inside the Markdown artifact, but the runtime
+still validates and projects it from this compatibility envelope when needed.
 
 `view.route_path` is the semantic route for the returned surface. `view.regions`
 contains named region Markdown used by browser/headless clients for block
@@ -185,21 +194,21 @@ authorization.
 
 ## Runtime Validation
 
-`createMdanServer()` validates every non-stream JSON surface before it leaves
-the runtime:
+`createMdanServer()` validates every non-stream legacy JSON surface before it
+leaves the runtime:
 
 - page handler results
 - action handler results
-- JSON responses
-- browser shell bootstrap surfaces
+- compatibility JSON responses
+- browser shell bootstrap surfaces that still use the legacy bridge
 
 If validation fails, the runtime returns a `500` error surface titled
 `Actions Contract Violation`. The response representation follows normal
-negotiation: JSON clients receive a JSON error surface, while Markdown/HTML
-fallbacks receive Markdown where applicable.
+negotiation: compatibility JSON clients receive a JSON error surface, while
+Markdown/HTML fallbacks receive Markdown where applicable.
 
-Stream results are not JSON surface envelopes and do not pass through this
-contract validation. See `STREAMING.md`.
+Stream results are not legacy JSON surface envelopes and do not pass through
+this contract validation. See `STREAMING.md`.
 
 ## Authoring Checklist
 

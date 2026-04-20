@@ -15,4 +15,4 @@ Bun.serve({
   fetch: host
 });
 
-console.log(`docs-starter-json dev server listening on http://127.0.0.1:${port}`);
+console.log(`docs-starter dev server listening on http://127.0.0.1:${port}`);

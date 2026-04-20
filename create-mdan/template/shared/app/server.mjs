@@ -21,7 +21,7 @@ function render(templateText, values) {
   });
 }
 
-function createEnvelope(messages) {
+function createSurface(messages) {
   const stateVersion = messages.length + 1;
   const stateId = `${appId}:home:${stateVersion}`;
   const list = messages.length > 0 ? messages.map((line) => `- ${line}`).join("\n") : "- No messages yet";
@@ -36,13 +36,11 @@ ${list}`;
   actions.state_version = stateVersion;
 
   return {
-    content: `---\napp_id: "${appId}"\nstate_id: "${stateId}"\nstate_version: ${stateVersion}\nactions: "./app/actions/main.json"\nresponse_mode: "page"\n---\n\n${render(template, { main: block })}`,
+    markdown: `---\napp_id: "${appId}"\nstate_id: "${stateId}"\nstate_version: ${stateVersion}\nactions: "./app/actions/main.json"\nresponse_mode: "page"\n---\n\n${render(template, { main: block })}`,
     actions,
-    view: {
-      route_path: "/",
-      regions: {
-        main: block
-      }
+    route: "/",
+    regions: {
+      main: block
     }
   };
 }
@@ -56,7 +54,7 @@ export function createAppServer(initialMessages = ["Welcome to MDAN"]) {
     }
   });
 
-  server.page("/", async () => createEnvelope(messages));
+  server.page("/", async () => createSurface(messages));
 
   server.post("/post", async ({ inputs }) => {
     const message = String(inputs.message ?? "").trim();
@@ -65,7 +63,7 @@ export function createAppServer(initialMessages = ["Welcome to MDAN"]) {
     }
     return {
       route: "/",
-      ...createEnvelope(messages)
+      ...createSurface(messages)
     };
   });
 

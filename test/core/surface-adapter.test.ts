@@ -1,11 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  adaptJsonEnvelopeToHeadlessBootstrap,
-  adaptJsonEnvelopeToHeadlessSnapshot,
-  adaptJsonEnvelopeToMdanPage,
-  isJsonSurfaceEnvelope
-} from "../../src/surface/adapter.js";
+import { adaptReadableSurfaceToHeadlessSnapshot } from "../../src/surface/adapter.js";
+import type { ReadableSurface } from "../../src/content/artifact-surface.js";
+import type { MdanActionManifest } from "../../src/protocol/surface.js";
+
+type LegacyFixtureSurface = {
+  content: string;
+  actions: MdanActionManifest;
+  view?: {
+    route_path?: string;
+    regions?: Record<string, string>;
+  };
+};
+
+function adaptJsonEnvelopeToHeadlessSnapshot(input: LegacyFixtureSurface) {
+  const surface: ReadableSurface = {
+    markdown: input.content,
+    actions: input.actions,
+    ...(input.view?.route_path ? { route: input.view.route_path } : {}),
+    ...(input.view?.regions ? { regions: input.view.regions } : {})
+  };
+  return adaptReadableSurfaceToHeadlessSnapshot(surface);
+}
 
 describe("adaptJsonEnvelopeToHeadlessSnapshot", () => {
   it("maps JSON surface envelope into headless route, blocks, inputs, and operations", () => {
@@ -682,54 +698,5 @@ Body
         kind: "string"
       })
     ]);
-  });
-});
-
-describe("json adapter guards and projections", () => {
-  it("validates envelope shape with content + actions object", () => {
-    expect(isJsonSurfaceEnvelope({ content: "# x", actions: {} })).toBe(true);
-    expect(isJsonSurfaceEnvelope({ content: "# x" })).toBe(false);
-    expect(isJsonSurfaceEnvelope({ actions: {} })).toBe(false);
-    expect(isJsonSurfaceEnvelope(null)).toBe(false);
-  });
-
-  it("adapts envelope into bootstrap page shape", () => {
-    const bootstrap = adaptJsonEnvelopeToHeadlessBootstrap({
-      content: "# Demo",
-      actions: {
-        blocks: []
-      },
-      view: {
-        route_path: "/demo"
-      }
-    });
-
-    expect(bootstrap.kind).toBe("page");
-    expect(bootstrap.route).toBe("/demo");
-    expect(bootstrap.markdown).toBe("# Demo");
-  });
-
-  it("adapts envelope into mdan page with block anchors", () => {
-    const page = adaptJsonEnvelopeToMdanPage({
-      content: `# Demo
-
-::: block{id="main"}
-Body
-:::`,
-      actions: {
-        blocks: ["main"],
-        actions: []
-      },
-      view: {
-        regions: {
-          main: "Body"
-        }
-      }
-    });
-
-    expect(page.blockAnchors).toEqual(["main"]);
-    expect(page.visibleBlockNames).toEqual(["main"]);
-    expect(page.markdown).toContain("<!-- mdan:block main -->");
-    expect(page.blockContent.main).toBe("Body");
   });
 });

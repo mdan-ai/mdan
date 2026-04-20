@@ -1,40 +1,14 @@
-export type JsonSurfaceEnvelope = {
-  content: string;
-  actions: {
-    app_id?: string;
-    state_id?: string;
-    state_version?: number;
-    blocks?: string[];
-    actions?: JsonAction[];
-    allowed_next_actions?: string[];
-    security?: {
-      default_confirmation_policy?: unknown;
-    };
-  };
-  view?: {
-    route_path?: string;
-    regions?: Record<string, string>;
+export type MdanActionManifest = {
+  app_id?: string;
+  state_id?: string;
+  state_version?: number;
+  blocks?: string[];
+  actions?: JsonAction[];
+  allowed_next_actions?: string[];
+  security?: {
+    default_confirmation_policy?: unknown;
   };
 };
-
-type JsonObject = Record<string, unknown>;
-
-function isRecord(value: unknown): value is JsonObject {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-export function isJsonSurfaceEnvelope(value: unknown): value is JsonSurfaceEnvelope {
-  if (!isRecord(value)) {
-    return false;
-  }
-  if (typeof value.content !== "string") {
-    return false;
-  }
-  if (!isRecord(value.actions)) {
-    return false;
-  }
-  return true;
-}
 
 export type JsonAction = {
   id?: unknown;
@@ -48,6 +22,7 @@ export type JsonAction = {
   submit_format?: unknown;
   requires_confirmation?: unknown;
   submit_example?: unknown;
+  block?: unknown;
   state_effect?: {
     response_mode?: unknown;
     updated_regions?: unknown;

@@ -1,8 +1,8 @@
 import { createServer, type Server } from "node:http";
 
+import { extractSections, parseFrontmatter } from "../../../src/content/content-actions.js";
 import { createNodeHost } from "../../../src/server/node.js";
-import { createMdanServer, type MdanRequest } from "../../../src/server/index.js";
-import { adaptJsonEnvelopeToHeadlessSnapshot, type JsonSurfaceEnvelope } from "../../../src/surface/adapter.js";
+import { createArtifactPage, createMdanServer, type MdanRequest } from "../../../src/server/index.js";
 
 export type AgentEvalAssumptionLevel = "A0" | "A1" | "A2" | "A3";
 
@@ -316,72 +316,70 @@ export function appendAgentEvalTraceEvent(trace: AgentEvalTrace, event: AgentEva
   };
 }
 
-function submitMessageEnvelope(messages: string[]): JsonSurfaceEnvelope {
+function submitMessagePage(messages: string[]) {
   const latest = messages[0];
-  const region = latest
+  const main = latest
     ? `## Message submitted\n\nLatest message: ${latest}`
     : "No message has been submitted yet.";
 
-  return {
-    content: [
-      "---",
-      'title: "Submit Message"',
-      "---",
-      "",
-      "# Submit Message",
-      "",
-      "Use this page to submit one message.",
-      "",
-      '::: block{id="main" actions="submit_message"}',
-      ":::"
-    ].join("\n"),
-    actions: {
+  return createArtifactPage({
+    frontmatter: {
+      title: "Submit Message",
+      route: "/",
       app_id: "agent-eval-submit-message",
       state_id: `submit-message:${messages.length}`,
-      state_version: messages.length + 1,
-      blocks: ["main"],
-      actions: [
-        {
-          id: "submit_message",
-          label: "Submit message",
-          verb: "write",
-          target: "/messages",
-          transport: {
-            method: "POST"
-          },
-          state_effect: {
-            response_mode: "page"
-          },
-          input_schema: {
-            type: "object",
-            required: ["message"],
-            properties: {
-              message: {
-                type: "string",
-                minLength: 1,
-                description: "The message text to submit."
-              }
-            },
-            additionalProperties: false
-          }
-        }
-      ],
-      allowed_next_actions: ["submit_message"]
+      state_version: messages.length + 1
     },
-    view: {
-      route_path: "/",
-      regions: {
-        main: region
+    markdown: `# Submit Message
+
+Use this page to submit one message.
+
+<!-- mdan:block main -->`,
+    blockContent: {
+      main
+    },
+    blocks: [
+      {
+        name: "main",
+        inputs: [],
+        operations: [
+          {
+            method: "POST",
+            name: "submit_message",
+            label: "Submit message",
+            verb: "write",
+            target: "/messages",
+            inputs: ["message"],
+            stateEffect: {
+              responseMode: "page"
+            },
+            inputSchema: {
+              type: "object",
+              required: ["message"],
+              properties: {
+                message: {
+                  type: "string",
+                  minLength: 1,
+                  description: "The message text to submit."
+                }
+              },
+              additionalProperties: false
+            },
+            security: {
+              confirmationPolicy: "never"
+            }
+          }
+        ]
       }
-    }
-  };
+    ]
+  });
 }
 
 export function createSubmitMessageFixture(): SubmitMessageFixture {
   const messages: string[] = [];
   const server = createMdanServer();
 
-  server.page("/", async () => submitMessageEnvelope(messages));
+  server.page("/", async () => submitMessagePage(messages));
 
   server.post("/messages", async ({ inputs }) => {
     const message = String(inputs.message ?? "").trim();
@@ -390,7 +388,7 @@ export function createSubmitMessageFixture(): SubmitMessageFixture {
     }
     return {
       route: "/",
-      ...submitMessageEnvelope(messages)
+      page: submitMessagePage(messages)
     };
   });
 
@@ -464,85 +462,85 @@ export function verifySubmitMessageFixtureRun(input: VerifySubmitMessageFixtureR
   };
 }
 
-function previewConfirmEnvelope(state: { draft?: string; messages: string[] }): JsonSurfaceEnvelope {
+function previewConfirmPage(state: { draft?: string; messages: string[] }) {
   const confirmed = state.messages[0];
-  const block = confirmed
+  const main = confirmed
     ? `## Message confirmed\n\nLatest message: ${confirmed}`
     : state.draft
       ? `## Preview message\n\nDraft message: ${state.draft}\n\nConfirm this message to finish the task.`
       : "No draft has been previewed yet.";
-  const action = state.draft
-    ? {
-        id: "confirm_message",
-        label: "Confirm message",
-        verb: "write",
-        target: "/confirm",
-        transport: {
-          method: "POST"
-        },
-        state_effect: {
-          response_mode: "page"
-        },
-        input_schema: {
-          type: "object",
-          required: [],
-          properties: {},
-          additionalProperties: false
-        }
-      }
-    : {
-        id: "preview_message",
-        label: "Preview message",
-        verb: "write",
-        target: "/preview",
-        transport: {
-          method: "POST"
-        },
-        state_effect: {
-          response_mode: "page"
-        },
-        input_schema: {
-          type: "object",
-          required: ["message"],
-          properties: {
-            message: {
-              type: "string",
-              minLength: 1,
-              description: "The message text to preview before confirmation."
-            }
-          },
-          additionalProperties: false
-        }
-      };
-
-  return {
-    content: [
-      "---",
-      'title: "Preview Confirm Message"',
-      "---",
-      "",
-      "# Preview Confirm Message",
-      "",
-      "Use this page to preview one message, then confirm it.",
-      "",
-      '::: block{id="main" actions="' + action.id + '"}',
-      ":::"
-    ].join("\n"),
-    actions: {
+  return createArtifactPage({
+    frontmatter: {
+      title: "Preview Confirm Message",
+      route: "/",
       app_id: "agent-eval-preview-confirm",
       state_id: `preview-confirm:${state.messages.length}:${state.draft ?? "none"}`,
-      state_version: state.messages.length + (state.draft ? 1 : 0) + 1,
-      blocks: ["main"],
-      actions: [action],
-      allowed_next_actions: [action.id]
+      state_version: state.messages.length + (state.draft ? 1 : 0) + 1
     },
-    view: {
-      route_path: "/",
-      regions: {
-        main: block
+    markdown: `# Preview Confirm Message
+
+Use this page to preview one message, then confirm it.
+
+<!-- mdan:block main -->`,
+    blockContent: {
+      main
+    },
+    blocks: [
+      {
+        name: "main",
+        inputs: [],
+        operations: [
+          state.draft
+            ? {
+                method: "POST" as const,
+                name: "confirm_message",
+                label: "Confirm message",
+                verb: "write",
+                target: "/confirm",
+                inputs: [],
+                stateEffect: {
+                  responseMode: "page"
+                },
+                inputSchema: {
+                  type: "object",
+                  required: [],
+                  properties: {},
+                  additionalProperties: false
+                },
+                security: {
+                  confirmationPolicy: "never" as const
+                }
+              }
+            : {
+                method: "POST" as const,
+                name: "preview_message",
+                label: "Preview message",
+                verb: "write",
+                target: "/preview",
+                inputs: ["message"],
+                stateEffect: {
+                  responseMode: "page"
+                },
+                inputSchema: {
+                  type: "object",
+                  required: ["message"],
+                  properties: {
+                    message: {
+                      type: "string",
+                      minLength: 1,
+                      description: "The message text to preview before confirmation."
+                    }
+                  },
+                  additionalProperties: false
+                },
+                security: {
+                  confirmationPolicy: "never" as const
+                }
+              }
+        ]
       }
-    }
-  };
+    ]
+  });
 }
 
 export function createPreviewConfirmFixture(): PreviewConfirmFixture {
@@ -551,7 +549,7 @@ export function createPreviewConfirmFixture(): PreviewConfirmFixture {
   };
   const server = createMdanServer();
 
-  server.page("/", async () => previewConfirmEnvelope(state));
+  server.page("/", async () => previewConfirmPage(state));
   server.post("/preview", async ({ inputs }) => {
     const message = String(inputs.message ?? "").trim();
     if (message) {
@@ -559,7 +557,7 @@ export function createPreviewConfirmFixture(): PreviewConfirmFixture {
     }
     return {
       route: "/",
-      ...previewConfirmEnvelope(state)
+      page: previewConfirmPage(state)
     };
   });
   server.post("/confirm", async () => {
@@ -569,7 +567,7 @@ export function createPreviewConfirmFixture(): PreviewConfirmFixture {
     }
     return {
       route: "/",
-      ...previewConfirmEnvelope(state)
+      page: previewConfirmPage(state)
     };
   });
 
@@ -646,9 +644,9 @@ export function verifyPreviewConfirmFixtureRun(input: VerifyPreviewConfirmFixtur
   };
 }
 
-function listDetailEnvelope(completedItems: Set<string>, route: "list" | "detail", itemId: string = "alpha"): JsonSurfaceEnvelope {
+function listDetailPage(completedItems: Set<string>, route: "list" | "detail", itemId: string = "alpha") {
   const isCompleted = completedItems.has(itemId);
-  const block =
+  const main =
     route === "list"
       ? [
           "## Task list",
@@ -663,86 +661,85 @@ function listDetailEnvelope(completedItems: Set<string>, route: "list" | "detail
           "",
           isCompleted ? "Alpha task completed." : "Alpha task is ready to complete."
         ].join("\n");
-  const action =
-    route === "list"
-      ? {
-          id: "open_alpha",
-          label: "Open Alpha task",
-          verb: "navigate",
-          target: "/items/alpha",
-          transport: {
-            method: "GET"
-          },
-          state_effect: {
-            response_mode: "page"
-          },
-          input_schema: {
-            type: "object",
-            required: [],
-            properties: {},
-            additionalProperties: false
-          }
-        }
-      : {
-          id: "complete_alpha",
-          label: "Complete Alpha task",
-          verb: "write",
-          target: "/items/alpha/complete",
-          transport: {
-            method: "POST"
-          },
-          state_effect: {
-            response_mode: "page"
-          },
-          input_schema: {
-            type: "object",
-            required: [],
-            properties: {},
-            additionalProperties: false
-          }
-        };
-
-  return {
-    content: [
-      "---",
-      'title: "List Detail Complete"',
-      "---",
-      "",
-      "# List Detail Complete",
-      "",
-      "Use this page to open the Alpha task from the list, then complete it on the detail page.",
-      "",
-      '::: block{id="main" actions="' + action.id + '"}',
-      ":::"
-    ].join("\n"),
-    actions: {
+  return createArtifactPage({
+    frontmatter: {
+      title: "List Detail Complete",
+      route: route === "list" ? "/" : `/items/${itemId}`,
       app_id: "agent-eval-list-detail-complete",
       state_id: `list-detail:${route}:${itemId}:${isCompleted ? "done" : "open"}`,
-      state_version: completedItems.size + (route === "detail" ? 2 : 1),
-      blocks: ["main"],
-      actions: [action],
-      allowed_next_actions: [action.id]
+      state_version: completedItems.size + (route === "detail" ? 2 : 1)
     },
-    view: {
-      route_path: route === "list" ? "/" : `/items/${itemId}`,
-      regions: {
-        main: block
+    markdown: `# List Detail Complete
+
+Use this page to open the Alpha task from the list, then complete it on the detail page.
+
+<!-- mdan:block main -->`,
+    blockContent: {
+      main
+    },
+    blocks: [
+      {
+        name: "main",
+        inputs: [],
+        operations: [
+          route === "list"
+            ? {
+                method: "GET" as const,
+                name: "open_alpha",
+                label: "Open Alpha task",
+                verb: "navigate",
+                target: "/items/alpha",
+                inputs: [],
+                stateEffect: {
+                  responseMode: "page"
+                },
+                inputSchema: {
+                  type: "object",
+                  required: [],
+                  properties: {},
+                  additionalProperties: false
+                },
+                security: {
+                  confirmationPolicy: "never" as const
+                }
+              }
+            : {
+                method: "POST" as const,
+                name: "complete_alpha",
+                label: "Complete Alpha task",
+                verb: "write",
+                target: "/items/alpha/complete",
+                inputs: [],
+                stateEffect: {
+                  responseMode: "page"
+                },
+                inputSchema: {
+                  type: "object",
+                  required: [],
+                  properties: {},
+                  additionalProperties: false
+                },
+                security: {
+                  confirmationPolicy: "never" as const
+                }
+              }
+        ]
       }
-    }
-  };
+    ]
+  });
 }
 
 export function createListDetailCompleteFixture(): ListDetailCompleteFixture {
   const completedItems = new Set<string>();
   const server = createMdanServer();
 
-  server.page("/", async () => listDetailEnvelope(completedItems, "list"));
-  server.page("/items/:id", async ({ params }) => listDetailEnvelope(completedItems, "detail", params.id));
+  server.page("/", async () => listDetailPage(completedItems, "list"));
+  server.page("/items/:id", async ({ params }) => listDetailPage(completedItems, "detail", params.id));
   server.post("/items/:id/complete", async ({ params }) => {
     completedItems.add(params.id);
     return {
       route: `/items/${params.id}`,
-      ...listDetailEnvelope(completedItems, "detail", params.id)
+      page: listDetailPage(completedItems, "detail", params.id)
     };
   });
 
@@ -819,21 +816,65 @@ type DiscoveredAction = {
   content: string;
 };
 
-function discoverAction(envelope: JsonSurfaceEnvelope, index = 0): DiscoveredAction {
-  const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(envelope);
-  const block = snapshot.blocks.find((candidate) => candidate.operations.length > index);
-  const operation = block?.operations[index];
-  if (!block || !operation) {
+type AgentArtifactAction = {
+  id?: unknown;
+  label?: unknown;
+  verb?: unknown;
+  target?: unknown;
+  transport?: {
+    method?: unknown;
+  };
+  input_schema?: {
+    properties?: unknown;
+  };
+  action_proof?: unknown;
+};
+
+type AgentArtifactSurface = {
+  content: string;
+  route?: string;
+  regions?: Record<string, string>;
+  actions: {
+    allowed_next_actions?: string[];
+    actions?: AgentArtifactAction[];
+  };
+};
+
+function discoverAction(surface: AgentArtifactSurface, index = 0): DiscoveredAction {
+  const allowed = new Set(
+    Array.isArray(surface.actions.allowed_next_actions)
+      ? surface.actions.allowed_next_actions.filter((value): value is string => typeof value === "string")
+      : []
+  );
+  const actions = (surface.actions.actions ?? []).filter((action) => {
+    const id = typeof action.id === "string" ? action.id : "";
+    return id.length > 0 && (allowed.size === 0 || allowed.has(id));
+  });
+  const action = actions[index];
+  if (!action) {
     throw new Error("fixture did not expose a discoverable action");
   }
 
+  const method =
+    typeof action.transport?.method === "string"
+      ? action.transport.method.toUpperCase() === "GET"
+        ? "GET"
+        : "POST"
+      : typeof action.verb === "string" && ["navigate", "read"].includes(action.verb)
+        ? "GET"
+        : "POST";
+  const inputs =
+    action.input_schema?.properties && typeof action.input_schema.properties === "object"
+      ? Object.keys(action.input_schema.properties as Record<string, unknown>)
+      : [];
+
 	  return {
-	    method: operation.method,
-	    target: operation.target,
-	    inputs: operation.inputs.map((input) => input.name),
-	    actions: [operation.label ?? operation.name],
-	    ...(typeof operation.actionProof === "string" ? { actionProof: operation.actionProof } : {}),
-	    content: envelope.content
+	    method,
+	    target: typeof action.target === "string" ? action.target : "",
+	    inputs,
+	    actions: [typeof action.label === "string" ? action.label : typeof action.id === "string" ? action.id : "action"],
+	    ...(typeof action.action_proof === "string" ? { actionProof: action.action_proof } : {}),
+	    content: surface.content
 	  };
 	}
 
@@ -849,62 +890,90 @@ function actionRequestBody(action: DiscoveredAction, input: Record<string, unkno
   };
 }
 
-function parseJsonSurfaceEnvelope(body: string): JsonSurfaceEnvelope | null {
+function parseMarkdownArtifactSurface(body: string): AgentArtifactSurface | null {
+  const executableMatch = body.match(/```mdan\n([\s\S]*?)\n```/);
+  if (!executableMatch?.[1]) {
+    return null;
+  }
+
   try {
-    const parsed = JSON.parse(body) as unknown;
-    if (parsed && typeof parsed === "object" && "content" in parsed && "actions" in parsed) {
-      return parsed as JsonSurfaceEnvelope;
+    const actions = JSON.parse(executableMatch[1]) as unknown;
+    if (!actions || typeof actions !== "object" || Array.isArray(actions)) {
+      return null;
     }
+    const actionEnvelope = actions as AgentArtifactSurface["actions"];
+    const frontmatter = parseFrontmatter(body);
+    const sections = extractSections(body);
+    const regions = Object.fromEntries(sections.map((section) => [section.id, section.body]));
+    return {
+      content: body,
+      ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
+      ...(Object.keys(regions).length > 0 ? { regions } : {}),
+      actions: actionEnvelope,
+    };
   } catch {
     return null;
   }
-  return null;
 }
 
-function summarizeSurface(surface: JsonSurfaceEnvelope | null, fallbackBody: string): string {
+function parseAgentReadableEnvelope(body: string): AgentArtifactSurface | null {
+  return parseMarkdownArtifactSurface(body);
+}
+
+function summarizeSurface(surface: AgentArtifactSurface | null, fallbackBody: string): string {
   if (!surface) {
     return fallbackBody;
   }
 
-  const regionSummary = Object.values(surface.view?.regions ?? {})
+  const regionSummary = Object.values(surface.regions ?? {})
     .filter((value) => typeof value === "string" && value.length > 0)
     .join("\n");
 
   return [surface.content, regionSummary].filter(Boolean).join("\n");
 }
 
-async function readJsonSurface(fixture: AgentEvalFixture, baseUrl: string, useHttp: boolean): Promise<JsonSurfaceEnvelope> {
+async function readAgentSurface(fixture: AgentEvalFixture, baseUrl: string, useHttp: boolean): Promise<AgentArtifactSurface> {
   if (useHttp) {
-    return fetch(baseUrl, { headers: { accept: "application/json" } }).then((response) => response.json());
+    return fetch(baseUrl, { headers: { accept: "text/markdown" } }).then(async (response) => {
+      const body = await response.text();
+      const surface = parseAgentReadableEnvelope(body);
+      if (!surface) {
+        throw new Error("agent-eval probe could not parse the initial artifact response");
+      }
+      return surface;
+    });
   }
 
-  return JSON.parse(
-    String(
-      (
-        await fixture.server.handle({
-          method: "GET",
-          url: baseUrl,
-          headers: { accept: "application/json" },
-          cookies: {}
-        })
-      ).body
-    )
-  ) as JsonSurfaceEnvelope;
+  const body = String(
+    (
+      await fixture.server.handle({
+        method: "GET",
+        url: baseUrl,
+        headers: { accept: "text/markdown" },
+        cookies: {}
+      })
+    ).body
+  );
+  const surface = parseAgentReadableEnvelope(body);
+  if (!surface) {
+    throw new Error("agent-eval probe could not parse the initial artifact response");
+  }
+  return surface;
 }
 
-async function postJson(
+async function submitAgentAction(
   fixture: AgentEvalFixture,
   baseUrl: string,
   action: DiscoveredAction,
   body: Record<string, unknown>,
   useHttp: boolean
-): Promise<{ status: number; body: string; surface: JsonSurfaceEnvelope | null }> {
+): Promise<{ status: number; body: string; surface: AgentArtifactSurface | null }> {
   const requestBody = actionRequestBody(action, body);
   if (useHttp) {
     return fetch(new URL(action.target, baseUrl), {
       method: "POST",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: JSON.stringify(requestBody)
@@ -913,16 +982,16 @@ async function postJson(
         return {
           status: response.status,
           body: responseBody,
-          surface: parseJsonSurfaceEnvelope(responseBody)
+          surface: parseAgentReadableEnvelope(responseBody)
         };
       });
   }
 
-	  const response = await fixture.server.handle({
+  const response = await fixture.server.handle({
 	    method: "POST",
 	    url: new URL(action.target, baseUrl).toString(),
     headers: {
-      accept: "application/json",
+      accept: "text/markdown",
       "content-type": "application/json"
     },
 	    body: JSON.stringify(requestBody),
@@ -933,7 +1002,7 @@ async function postJson(
   return {
     status: response.status,
     body: responseBody,
-    surface: parseJsonSurfaceEnvelope(responseBody)
+    surface: parseAgentReadableEnvelope(responseBody)
   };
 }
 
@@ -945,12 +1014,12 @@ export async function runSubmitMessageFixtureProbe(
     runId: input.runId,
     caseId: input.fixture.case.id,
     fixtureId: input.fixture.id,
-    agentId: "json-surface-probe",
+    agentId: "artifact-probe",
     assumptionLevel: "A0",
     startedAt: input.startedAt
   });
 
-  const pageSurface = await readJsonSurface(input.fixture, baseUrl, Boolean(input.baseUrl));
+  const pageSurface = await readAgentSurface(input.fixture, baseUrl, Boolean(input.baseUrl));
   const discovered = discoverAction(pageSurface);
 
   trace = appendAgentEvalTraceEvent(trace, {
@@ -962,7 +1031,7 @@ export async function runSubmitMessageFixtureProbe(
     discoveredActions: discovered.actions
   });
 
-  const post = await postJson(input.fixture, baseUrl, discovered, { message: input.message }, Boolean(input.baseUrl));
+  const post = await submitAgentAction(input.fixture, baseUrl, discovered, { message: input.message }, Boolean(input.baseUrl));
 
   trace = appendAgentEvalTraceEvent(trace, {
     kind: "system",
@@ -1006,12 +1075,12 @@ export async function runPreviewConfirmFixtureProbe(
     runId: input.runId,
     caseId: input.fixture.case.id,
     fixtureId: input.fixture.id,
-    agentId: "json-surface-probe",
+    agentId: "artifact-probe",
     assumptionLevel: "A0",
     startedAt: input.startedAt
   });
 
-  const initialSurface = await readJsonSurface(input.fixture, baseUrl, useHttp);
+  const initialSurface = await readAgentSurface(input.fixture, baseUrl, useHttp);
   const previewForm = discoverAction(initialSurface);
   if (previewForm.method !== "POST") {
     throw new Error("preview-confirm fixture did not expose a POST preview form");
@@ -1025,7 +1094,7 @@ export async function runPreviewConfirmFixtureProbe(
     discoveredActions: previewForm.actions
   });
 
-  const preview = await postJson(input.fixture, baseUrl, previewForm, { message: input.message }, useHttp);
+  const preview = await submitAgentAction(input.fixture, baseUrl, previewForm, { message: input.message }, useHttp);
   trace = appendAgentEvalTraceEvent(trace, {
     kind: "system",
     at: input.startedAt,
@@ -1043,12 +1112,12 @@ export async function runPreviewConfirmFixtureProbe(
     contentSummary: summarizeSurface(preview.surface, preview.body)
   });
 
-  const confirmSurface = await readJsonSurface(input.fixture, baseUrl, useHttp);
+  const confirmSurface = await readAgentSurface(input.fixture, baseUrl, useHttp);
   const confirmForm = discoverAction(confirmSurface);
   if (confirmForm.method !== "POST") {
     throw new Error("preview-confirm fixture did not expose a POST confirm form");
   }
-  const confirm = await postJson(input.fixture, baseUrl, confirmForm, {}, useHttp);
+  const confirm = await submitAgentAction(input.fixture, baseUrl, confirmForm, {}, useHttp);
   trace = appendAgentEvalTraceEvent(trace, {
     kind: "system",
     at: input.startedAt,
@@ -1091,12 +1160,12 @@ export async function runListDetailCompleteFixtureProbe(
     runId: input.runId,
     caseId: input.fixture.case.id,
     fixtureId: input.fixture.id,
-    agentId: "json-surface-probe",
+    agentId: "artifact-probe",
     assumptionLevel: "A0",
     startedAt: input.startedAt
   });
 
-  const listSurface = await readJsonSurface(input.fixture, baseUrl, useHttp);
+  const listSurface = await readAgentSurface(input.fixture, baseUrl, useHttp);
   const openForm = discoverAction(listSurface);
   trace = appendAgentEvalTraceEvent(trace, {
     kind: "observation",
@@ -1108,7 +1177,7 @@ export async function runListDetailCompleteFixtureProbe(
   });
 
   const detailResponse = useHttp
-    ? await fetch(new URL(openForm.target, baseUrl), { headers: { accept: "application/json" } }).then(async (response) => ({
+    ? await fetch(new URL(openForm.target, baseUrl), { headers: { accept: "text/markdown" } }).then(async (response) => ({
         status: response.status,
         body: await response.text()
       }))
@@ -1119,7 +1188,7 @@ export async function runListDetailCompleteFixtureProbe(
             await input.fixture.server.handle({
               method: "GET",
               url: new URL(openForm.target, baseUrl).toString(),
-              headers: { accept: "application/json" },
+              headers: { accept: "text/markdown" },
               cookies: {}
             })
           ).body
@@ -1142,11 +1211,15 @@ export async function runListDetailCompleteFixtureProbe(
     contentSummary: detailResponse.body
   });
 
-  const completeForm = discoverAction(JSON.parse(detailResponse.body) as JsonSurfaceEnvelope);
+  const detailSurface = parseAgentReadableEnvelope(detailResponse.body);
+  if (!detailSurface) {
+    throw new Error("list-detail fixture detail response was not parseable as an agent-readable artifact");
+  }
+  const completeForm = discoverAction(detailSurface);
   if (completeForm.method !== "POST") {
     throw new Error("list-detail fixture did not expose a POST completion form");
   }
-  const completeResponse = await postJson(input.fixture, baseUrl, completeForm, {}, useHttp);
+  const completeResponse = await submitAgentAction(input.fixture, baseUrl, completeForm, {}, useHttp);
   trace = appendAgentEvalTraceEvent(trace, {
     kind: "system",
     at: input.startedAt,

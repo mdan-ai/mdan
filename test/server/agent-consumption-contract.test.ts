@@ -1,17 +1,32 @@
 import { describe, expect, it } from "vitest";
 
-import { adaptJsonEnvelopeToHeadlessSnapshot, type JsonSurfaceEnvelope } from "../../src/surface/adapter.js";
+import type { ReadableSurface } from "../../src/content/artifact-surface.js";
+import { adaptReadableSurfaceToHeadlessSnapshot } from "../../src/surface/adapter.js";
+import { parseFrontmatter } from "../../src/content/content-actions.js";
 import { validateActionsContractEnvelope } from "../../src/protocol/contracts.js";
 import { createMdanServer, type MdanResponse } from "../../src/server/index.js";
 
-type AgentSurface = JsonSurfaceEnvelope;
+type AgentSurface = ReadableSurface;
+type ArtifactActions = {
+  allowed_next_actions?: string[];
+  actions?: Array<Record<string, unknown>>;
+  state_id?: string;
+  state_version?: number;
+};
+
+type ArtifactSurface = {
+  content: string;
+  route?: string;
+  actions: ArtifactActions;
+};
 
 function createEnvelope(routePath = "/login", allowedNextActions: string[] = ["login", "open_register"]): AgentSurface {
   return {
-    content: `---
+    markdown: `---
 app_id: "auth-guestbook"
 state_id: "auth-guestbook:login:1"
 state_version: 1
+route: "${routePath}"
 ---
 
 # Sign In
@@ -60,24 +75,29 @@ Sign in with your username and password.
       ],
       allowed_next_actions: allowedNextActions
     },
-    view: {
-      route_path: routePath,
-      regions: {
-        login: "Sign in with your username and password."
-      }
+    route: routePath,
+    regions: {
+      login: "Sign in with your username and password."
     }
   };
 }
 
-function expectAgentSurface(response: MdanResponse): AgentSurface {
+function expectAgentArtifact(response: MdanResponse): ArtifactSurface {
   expect(response.status).toBeGreaterThanOrEqual(200);
   expect(response.status).toBeLessThan(500);
-  expect(response.headers["content-type"]).toBe("application/json");
+  expect(response.headers["content-type"]).toContain("text/markdown");
   expect(typeof response.body).toBe("string");
-  return JSON.parse(String(response.body)) as AgentSurface;
+  const content = String(response.body);
+  const frontmatter = parseFrontmatter(content);
+  const match = content.match(/```mdan\n([\s\S]*?)\n```/);
+  return {
+    content,
+    ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
+    actions: match?.[1] ? (JSON.parse(String(match[1])) as ArtifactActions) : { actions: [], allowed_next_actions: [] }
+  };
 }
 
-function expectAction(surface: AgentSurface, id: string) {
+function expectAction(surface: ArtifactSurface, id: string) {
   const action = surface.actions.actions?.find((candidate) => candidate.id === id);
   expect(action).toBeTruthy();
   return action!;
@@ -88,12 +108,12 @@ async function readActionProof(server: ReturnType<typeof createMdanServer>, acti
     method: "GET",
     url: "https://example.test/login",
     headers: {
-      accept: "application/json"
+      accept: "text/markdown"
     },
     cookies: {}
   });
 
-  const surface = expectAgentSurface(response);
+  const surface = expectAgentArtifact(response);
   const action = expectAction(surface, actionId);
   expect(action.action_proof).toBeTypeOf("string");
   return String(action.action_proof);
@@ -125,7 +145,7 @@ describe("agent consumption contract", () => {
   });
 
   it("filters blocked actions from the headless agent snapshot", () => {
-    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(createEnvelope("/login", ["open_register"]));
+    const snapshot = adaptReadableSurfaceToHeadlessSnapshot(createEnvelope("/login", ["open_register"]));
 
     expect(snapshot.blocks[0]?.operations.map((operation) => operation.name)).toEqual(["open_register"]);
   });
@@ -135,7 +155,7 @@ describe("agent consumption contract", () => {
     delete envelope.actions.actions?.[0]?.transport;
     delete envelope.actions.actions?.[1]?.transport;
 
-    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(envelope);
+    const snapshot = adaptReadableSurfaceToHeadlessSnapshot(envelope);
 
     expect(snapshot.blocks[0]?.operations).toEqual(
       expect.arrayContaining([
@@ -146,7 +166,7 @@ describe("agent consumption contract", () => {
   });
 
   it("preserves required input schema metadata", () => {
-    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(createEnvelope());
+    const snapshot = adaptReadableSurfaceToHeadlessSnapshot(createEnvelope());
     const loginOperation = snapshot.blocks[0]?.operations.find((operation) => operation.name === "login");
 
     expect(loginOperation?.inputSchema?.required).toEqual(["username", "password"]);
@@ -160,12 +180,12 @@ describe("agent consumption contract", () => {
   });
 
   it("preserves the semantic current route", () => {
-    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot(createEnvelope("/guestbook"));
+    const snapshot = adaptReadableSurfaceToHeadlessSnapshot(createEnvelope("/guestbook"));
 
     expect(snapshot.route).toBe("/guestbook");
   });
 
-  it("serves page envelopes directly when agents request JSON", async () => {
+  it("serves page artifacts directly when agents request markdown", async () => {
     const server = createMdanServer();
     server.page("/login", async () => createEnvelope("/login"));
 
@@ -173,21 +193,21 @@ describe("agent consumption contract", () => {
       method: "GET",
       url: "https://example.test/login",
       headers: {
-        accept: "application/json"
+        accept: "text/markdown"
       },
       cookies: {}
     });
 
-    const surface = expectAgentSurface(response);
+    const surface = expectAgentArtifact(response);
     const loginAction = expectAction(surface, "login");
-    expect(surface.view?.route_path).toBe("/login");
+    expect(surface.route).toBe("/login");
     expect(surface.actions.allowed_next_actions).toContain("login");
     expect(loginAction.target).toBe("/auth/login");
     expect(loginAction.transport?.method).toBe("POST");
     expect(loginAction.input_schema?.required).toEqual(["username", "password"]);
   });
 
-  it("serves action result envelopes directly when agents request JSON", async () => {
+  it("serves action result artifacts directly when agents request markdown", async () => {
     const server = createMdanServer();
     server.page("/login", async () => createEnvelope("/login"));
     server.post("/auth/login", async () => createEnvelope("/guestbook"));
@@ -197,7 +217,7 @@ describe("agent consumption contract", () => {
       method: "POST",
       url: "https://example.test/auth/login",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: JSON.stringify({
@@ -212,12 +232,12 @@ describe("agent consumption contract", () => {
       cookies: {}
     });
 
-    const surface = expectAgentSurface(response);
-    expect(surface.view?.route_path).toBe("/guestbook");
+    const surface = expectAgentArtifact(response);
+    expect(surface.route).toBe("/guestbook");
     expect(surface.actions.state_id).toBe("auth-guestbook:login:1");
   });
 
-  it("does not rewrite action targets in direct JSON responses", async () => {
+  it("does not rewrite action targets in direct markdown responses", async () => {
     const server = createMdanServer();
     const envelope = createEnvelope("/after-action");
     const login = expectAction(envelope, "login");
@@ -230,7 +250,7 @@ describe("agent consumption contract", () => {
       method: "POST",
       url: "https://example.test/auth/login",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: JSON.stringify({
@@ -245,32 +265,29 @@ describe("agent consumption contract", () => {
       cookies: {}
     });
 
-    const surface = expectAgentSurface(response);
+    const surface = expectAgentArtifact(response);
     expect(expectAction(surface, "login").target).toBe("/custom/action-target");
-    expect(surface.view?.route_path).toBe("/after-action");
+    expect(surface.route).toBe("/after-action");
   });
 
-  it("serves not-found errors as agent-readable JSON surfaces", async () => {
+  it("serves not-found errors as agent-readable markdown responses", async () => {
     const server = createMdanServer();
 
     const response = await server.handle({
       method: "GET",
       url: "https://example.test/missing",
       headers: {
-        accept: "application/json"
+        accept: "text/markdown"
       },
       cookies: {}
     });
 
-    const surface = expectAgentSurface(response);
     expect(response.status).toBe(404);
-    expect(surface.content).toContain("## Not Found");
-    expect(surface.actions.actions).toEqual([]);
-    expect(surface.actions.allowed_next_actions).toEqual([]);
-    expect(surface.view?.route_path).toBe("/missing");
+    expect(response.headers["content-type"]).toContain("text/markdown");
+    expect(String(response.body)).toContain("## Not Found");
   });
 
-  it("serves unsupported-media-type errors as agent-readable JSON surfaces", async () => {
+  it("serves unsupported-media-type errors as agent-readable markdown responses", async () => {
     const server = createMdanServer();
     server.post("/submit", async () => createEnvelope("/submitted"));
 
@@ -278,22 +295,19 @@ describe("agent consumption contract", () => {
       method: "POST",
       url: "https://example.test/submit",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "text/plain"
       },
       body: "hello",
       cookies: {}
     });
 
-    const surface = expectAgentSurface(response);
     expect(response.status).toBe(415);
-    expect(surface.content).toContain("## Unsupported Media Type");
-    expect(surface.actions.actions).toEqual([]);
-    expect(surface.actions.allowed_next_actions).toEqual([]);
-    expect(surface.view?.route_path).toBe("/submit");
+    expect(response.headers["content-type"]).toContain("text/markdown");
+    expect(String(response.body)).toContain("## Unsupported Media Type");
   });
 
-  it("serves invalid-body errors as agent-readable JSON surfaces", async () => {
+  it("serves invalid-body errors as agent-readable markdown responses", async () => {
     const server = createMdanServer();
     server.post("/submit", async () => createEnvelope("/submitted"));
 
@@ -301,18 +315,15 @@ describe("agent consumption contract", () => {
       method: "POST",
       url: "https://example.test/submit",
       headers: {
-        accept: "application/json",
+        accept: "text/markdown",
         "content-type": "application/json"
       },
       body: "{",
       cookies: {}
     });
 
-    const surface = expectAgentSurface(response);
     expect(response.status).toBe(400);
-    expect(surface.content).toContain("## Invalid Request Body");
-    expect(surface.actions.actions).toEqual([]);
-    expect(surface.actions.allowed_next_actions).toEqual([]);
-    expect(surface.view?.route_path).toBe("/submit");
+    expect(response.headers["content-type"]).toContain("text/markdown");
+    expect(String(response.body)).toContain("## Invalid Request Body");
   });
 });

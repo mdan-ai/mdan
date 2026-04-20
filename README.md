@@ -4,7 +4,13 @@
 
 It officially supports Node and Bun through a shared server runtime plus runtime-specific host adapters.
 
-MDAN is a JSON surface bundle runtime with Markdown content and JSON actions. `@mdanai/sdk` gives you the parser, server runtime, shared surface runtime, and default UI for working with it.
+MDAN is a Markdown-first application protocol and runtime for shared human and agent interaction. Markdown carries the canonical artifact, HTML is its browser projection, and structured action contracts make the same artifact interactive and executable.
+
+With MDAN, the page is not only presentation. It is also shared working context: readable by humans, consumable by agents, and structured enough for both sides to continue from the same surface.
+
+`@mdanai/sdk` gives you the parser, server runtime, shared surface runtime, and default UI for building with that model.
+
+The name MDAN originally came from "Markdown Action Notation", but the current SDK is positioned around a broader Markdown-first application surface model.
 
 ## Why MDAN
 
@@ -22,7 +28,7 @@ The same Markdown source can carry:
 - state and task context for AI agents to interpret
 - explicit interaction structure for both sides to continue from
 
-The default server runtime returns interactive JSON surface bundles while also supporting Markdown readout for readable/debug flows. Server hosts resolve `auto` GET dependencies before returning results, so agents and browsers observe the same final state without letting auto bypass action proof for external POST actions.
+The default server runtime now centers `text/markdown` as the canonical page representation and `text/html` as the browser projection. A legacy JSON surface bridge still exists internally and can be exposed for compatibility where needed. Server hosts resolve `auto` GET dependencies before returning results, so agents and browsers observe the same final state without letting auto bypass action proof for external POST actions.
 
 ## Use Cases
 
@@ -35,15 +41,16 @@ The default server runtime returns interactive JSON surface bundles while also s
 
 ## Surface Model
 
-The current SDK is not driven by the legacy inline DSL. Source authoring can stay split across Markdown content and JSON action contracts, while the primary runtime representation is a JSON surface bundle:
+The current SDK is positioned around an artifact-first protocol:
 
-- Markdown `content` for the shared human-and-agent surface
-- an `actions` contract for executable operations
-- `view` metadata for route and region updates
+- Markdown is the canonical artifact for page reads
+- HTML is the human projection of that same artifact
+- executable MDAN state can ride inside a fenced `mdan` block in the Markdown document
+- a legacy JSON surface bridge still exists internally for compatibility and adapter paths
 
-The canonical runtime representation is still JSON. Browser document requests can receive server-rendered HTML derived from that same JSON surface, while action and region updates are JSON-only. `text/markdown` remains available for page-level readable content output.
+Today, page handlers may still return the legacy JSON surface envelope and the SDK will project it into a Markdown artifact. That bridge is transitional. The long-term direction is artifact-native handlers and Markdown-hosted action declarations.
 
-For browser-capable examples and simple apps, server adapters can serve page-level snapshot HTML while leaving action routes JSON-first:
+For browser-capable examples and simple apps, server adapters can serve page-level snapshot HTML while keeping the canonical page source in Markdown:
 
 ```ts
 const host = createHost(server, {
@@ -53,7 +60,7 @@ const host = createHost(server, {
 });
 ```
 
-For a browser document request, the host forwards `Accept: text/html` to the runtime, which renders readable HTML from the page surface, embeds that surface as bootstrap JSON, and mounts the default UI with `createHeadlessHost({ initialSurface })`. There is no second initial fetch for the same page. Runtime requests with `Accept: application/json` still receive surface bundles, and `Accept: text/markdown` returns the page source document.
+For a browser document request, the host forwards `Accept: text/html` to the runtime, which renders readable HTML from the current artifact. When hydration is enabled, the shell may embed bootstrap state for the headless runtime. Runtime requests with `Accept: text/markdown` return the canonical page document. `Accept: application/json` remains available only where compatibility handlers or adapters still need it.
 
 For custom or production frontends, prefer importing only `@mdanai/sdk/surface`. That package is the lightweight shared surface runtime and must stay independent of `@mdanai/sdk/ui`, `lit`, and Markdown rendering. The optional `@mdanai/sdk/ui` package provides the default Web Components UI for quick starts and examples.
 
@@ -70,7 +77,7 @@ In that mode the server adapter serves two browser bundle entry files, `/__mdan/
 
 The example `dev:*` scripts now do that for you: they run an initial local SDK build, keep both `dist/` and `dist-browser/` updated during development, and start the Bun example server against those local browser bundles.
 
-HTML generation for page requests is driven by `createMdanServer()` from the page surface contract. Host adapters are responsible for forwarding browser document requests and serving the optional local browser bundles. The runtime speaks `application/json` for actions and block updates, plus `text/markdown` for page-source reads.
+HTML generation for page requests is driven by `createMdanServer()` from the page contract. Host adapters are responsible for forwarding browser document requests and serving the optional local browser bundles. The public read path is `text/markdown` and `text/html`. `application/json` is now a legacy compatibility transport, not the recommended primary contract.
 
 Prompt structure and agent-only visibility are handled separately in the current runtime:
 
@@ -79,57 +86,53 @@ Prompt structure and agent-only visibility are handled separately in the current
 - `semanticSlots.requireOnBlock` enforces `## Context` and `## Result` on returned `view.regions[*]`
 - `<!-- agent:begin ... --> ... <!-- agent:end -->` is always treated as agent-only content: it is validated on every returned surface and stripped from human-visible HTML/UI projections
 
-The main baseline test suite now tracks the JSON-first runtime and browser shell path end to end.
+The main baseline test suite now tracks the Markdown artifact path, the adapter bridge, and the browser shell path end to end.
 
-Runtime surface bundle:
+Canonical page artifact:
 
-```json
+````md
+# Starter App
+
+## Purpose
+Basic MDAN starter flow.
+
+## Context
+This page shows the current starter message feed and the next available actions.
+
+## Rules
+Read the current feed from the returned artifact and submit new messages through the declared action contract.
+
+## Result
+The returned artifact should show the current messages and expose the next allowed actions for the main block.
+
+- No messages yet
+
+<!-- mdan:block main -->
+
+```mdan
 {
-  "content": "# Starter App\n\n## Purpose\nBasic JSON-first MDAN starter flow.\n\n::: block{id=\"main\" actions=\"refresh_main,submit_message\" trust=\"untrusted\"}\n- No messages yet\n:::",
-  "actions": {
-    "app_id": "starter",
-    "state_id": "starter:home:1",
-    "state_version": 1,
-    "blocks": ["main"],
-    "actions": [
-      {
-        "id": "refresh_main",
-        "label": "Refresh",
-        "verb": "read",
-        "transport": { "method": "GET" },
-        "target": "/",
-        "input_schema": {
-          "type": "object",
-          "properties": {},
-          "additionalProperties": false
-        }
-      },
-      {
-        "id": "submit_message",
-        "label": "Submit",
-        "verb": "write",
-        "transport": { "method": "POST" },
-        "target": "/post",
-        "input_schema": {
-          "type": "object",
-          "required": ["message"],
-          "properties": {
-            "message": { "type": "string" }
-          },
-          "additionalProperties": false
-        }
+  "app_id": "starter",
+  "state_id": "starter:home:1",
+  "state_version": 1,
+  "blocks": ["main"],
+  "actions": [
+    {
+      "id": "refresh_main",
+      "label": "Refresh",
+      "verb": "read",
+      "transport": { "method": "GET" },
+      "target": "/",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
       }
-    ],
-    "allowed_next_actions": ["refresh_main", "submit_message"]
-  },
-  "view": {
-    "route_path": "/",
-    "regions": {
-      "main": "- No messages yet"
     }
-  }
+  ],
+  "allowed_next_actions": ["refresh_main"]
 }
 ```
+````
 
 ## Quick Start
 
@@ -152,24 +155,26 @@ const server = createMdanServer({
 });
 
 server.page("/", async () => ({
-  content: `# Starter App
+  frontmatter: {},
+  markdown: `# Starter App
 
 ## Purpose
-Basic JSON-first MDAN starter flow.
+Basic artifact-native MDAN starter flow.
 
 ## Context
 This page shows the current starter message feed and the next available actions.
 
 ## Rules
-Read the current feed from the returned surface and submit new messages through the declared action contract.
+Read the current feed from the returned artifact and submit new messages through the declared action contract.
 
 ## Result
-The returned surface should show the current messages and expose the next allowed actions for the main block.
+The returned artifact should show the current messages and expose the next allowed actions for the main block.
 
-::: block{id="main" actions="refresh_main" trust="untrusted"}
+<!-- mdan:block main -->
+
 - No messages yet
-:::`,
-  actions: {
+`,
+  executableContent: JSON.stringify({
     app_id: "starter",
     state_id: "starter:home:1",
     state_version: 1,
@@ -189,13 +194,36 @@ The returned surface should show the current messages and expose the next allowe
       }
     ],
     allowed_next_actions: ["refresh_main"]
+  }, null, 2),
+  blockContent: {
+    main: "- No messages yet"
   },
-  view: {
-    route_path: "/",
-    regions: {
-      main: "- No messages yet"
+  blockAnchors: ["main"],
+  visibleBlockNames: ["main"],
+  blocks: [
+    {
+      name: "main",
+      inputs: [],
+      operations: [
+        {
+          method: "GET",
+          name: "refresh_main",
+          target: "/",
+          inputs: [],
+          label: "Refresh",
+          verb: "read",
+          inputSchema: {
+            type: "object",
+            properties: {},
+            additionalProperties: false
+          },
+          security: {
+            confirmationPolicy: "never"
+          }
+        }
+      ]
     }
-  }
+  ]
 }));
 
 export default createHost(server, {
@@ -204,6 +232,10 @@ export default createHost(server, {
   }
 });
 ```
+
+This is the preferred direction for new code: return the canonical Markdown
+artifact directly. The legacy JSON surface envelope is still supported as a
+compatibility bridge while older handlers migrate.
 
 Node starter:
 
@@ -232,7 +264,7 @@ You can also force either runtime with `--runtime node` or `--runtime bun`.
 - `server + surface`
   Use this when you want MDAN transport/state handling but you will render the UI yourself in React, Vue, or another frontend.
 - `server only`
-  Use this when you are serving JSON surfaces to agents, tests, or another client that does not need the bundled browser UI.
+  Use this when you are serving Markdown artifacts to agents, tests, or another client that does not need the bundled browser UI. If needed, the legacy JSON bridge can still be enabled for compatibility during migration.
 
 ## Runtime Adapters
 
@@ -328,7 +360,7 @@ Reference and product docs:
 
 ## Browser Debugging
 
-If you want to inspect raw browser-side MDAN traffic while using the default UI or your own custom renderer, enable debug messages on the JSON-first headless host:
+If you want to inspect raw browser-side MDAN traffic while using the default UI or your own custom renderer, enable debug messages on the headless host:
 
 ```ts
 import { createHeadlessHost } from "@mdanai/sdk/surface";
@@ -342,6 +374,6 @@ const host = createHeadlessHost({
 When enabled:
 
 - the browser records outgoing and incoming MDAN messages
-- each record keeps the raw request body or the adapted Markdown view of the returned surface
+- each record keeps the raw request body or the adapted Markdown view of the returned artifact
 - messages are available at `window.__MDAN_DEBUG__.messages`
 - the default `ui` package also shows a small debug drawer in the browser

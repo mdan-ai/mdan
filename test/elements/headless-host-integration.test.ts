@@ -3,10 +3,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { mountMdanUi } from "../../src/ui/index.js";
-import { createHeadlessHost, type JsonSurfaceEnvelope } from "../../src/surface/index.js";
+import type { MdanActionManifest } from "../../src/protocol/surface.js";
+import { createHeadlessHost } from "../../src/surface/index.js";
 import type { HeadlessListener, HeadlessSnapshot, MdanHeadlessUiHost } from "../../src/surface/protocol.js";
 
-function surface(content: string, regions: Record<string, string> = { main: "Say something useful." }): JsonSurfaceEnvelope {
+type FixtureSurface = {
+  content: string;
+  actions: MdanActionManifest;
+  view?: {
+    route_path?: string;
+    regions?: Record<string, string>;
+  };
+};
+
+function surface(content: string, regions: Record<string, string> = { main: "Say something useful." }): FixtureSurface {
   return {
     content,
     actions: {
@@ -38,6 +48,19 @@ function surface(content: string, regions: Record<string, string> = { main: "Say
   };
 }
 
+function artifactBody(body: FixtureSurface): string {
+  return `---
+route: "${body.view?.route_path ?? "/"}"
+---
+
+${body.content.trim()}
+
+\`\`\`mdan
+${JSON.stringify(body.actions, null, 2)}
+\`\`\`
+`;
+}
+
 async function settleLitRender(): Promise<void> {
   await Promise.resolve();
   await Promise.resolve();
@@ -49,15 +72,15 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("ui with JSON-first headless host", () => {
-  it("renders Markdown and action fields from a JSON-first headless host", async () => {
+describe("ui with artifact-first headless host", () => {
+  it("renders Markdown and action fields from an artifact-first headless host", async () => {
     const host = createHeadlessHost({
-      initialSurface: surface(`# Inbox
+      initialArtifact: artifactBody(surface(`# Inbox
 
 ::: block{id="main" actions="send"}
 Say something useful.
 :::
-`)
+`))
     });
     const runtime = mountMdanUi({ root: document, host });
 
@@ -70,10 +93,10 @@ Say something useful.
     expect(document.querySelector("button")?.textContent).toContain("Send");
   });
 
-  it("submits rendered action forms through the JSON-first headless host", async () => {
+  it("submits rendered action forms through the artifact-first headless host", async () => {
     const fetchImpl = vi.fn(async () =>
       new Response(
-        JSON.stringify(
+        artifactBody(
           surface(`# Sent
 
 ::: block{id="main" actions="send"}
@@ -81,16 +104,16 @@ Message accepted.
 :::
 `, { main: "Message accepted." })
         ),
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { "Content-Type": "text/markdown" } }
       )
     );
     const host = createHeadlessHost({
-      initialSurface: surface(`# Compose
+      initialArtifact: artifactBody(surface(`# Compose
 
 ::: block{id="main" actions="send"}
 Say something useful.
 :::
-`),
+`)),
       fetchImpl: fetchImpl as unknown as typeof fetch
     });
     const runtime = mountMdanUi({ root: document, host });
@@ -106,7 +129,7 @@ Say something useful.
     await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(1));
     const init = fetchImpl.mock.calls[0]?.[1] as RequestInit;
 
-    expect(new Headers(init.headers).get("Accept")).toBe("application/json");
+    expect(new Headers(init.headers).get("Accept")).toBe("text/markdown");
     expect(JSON.parse(String(init.body))).toEqual({ input: { message: "hello from ui" } });
   });
 
@@ -116,12 +139,12 @@ Say something useful.
     document.body.append(root);
 
     const host = createHeadlessHost({
-      initialSurface: surface(`# Inbox
+      initialArtifact: artifactBody(surface(`# Inbox
 
 ::: block{id="main" actions="send"}
 Say something useful.
 :::
-`)
+`))
     });
     const runtime = mountMdanUi({ root, host });
 
@@ -141,12 +164,12 @@ Say something useful.
     document.body.append(root);
 
     const host = createHeadlessHost({
-      initialSurface: surface(`# Inbox
+      initialArtifact: artifactBody(surface(`# Inbox
 
 ::: block{id="main" actions="send"}
 Say something useful.
 :::
-`)
+`))
     });
     const runtime = mountMdanUi({ root, host });
 

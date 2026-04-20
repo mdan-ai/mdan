@@ -1,8 +1,12 @@
 import { fileURLToPath } from "node:url";
 
 import { negotiateRepresentation } from "../protocol/negotiate.js";
-import type { JsonSurfaceEnvelope } from "../protocol/surface.js";
-import { renderSurfaceSnapshot } from "./surface-projection.js";
+import type { MdanPage } from "../protocol/types.js";
+import {
+  renderInitialProjection,
+  type ProjectableReadableSurface,
+  type RenderSurfaceSnapshotOptions
+} from "./surface-projection.js";
 
 export interface BrowserShellOptions {
   title?: string;
@@ -10,7 +14,10 @@ export interface BrowserShellOptions {
   moduleMode?: "cdn" | "local-dist";
   surfaceModuleSrc?: string;
   uiModuleSrc?: string;
-  initialSurface?: JsonSurfaceEnvelope;
+  initialReadableSurface?: ProjectableReadableSurface;
+  initialPage?: MdanPage;
+  markdownRenderer?: RenderSurfaceSnapshotOptions["markdownRenderer"];
+  hydrate?: boolean;
 }
 
 const DEFAULT_SURFACE_MODULE_SRC = "https://esm.sh/@mdanai/sdk/surface";
@@ -26,10 +33,6 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function escapeScriptJson(value: unknown): string {
-  return JSON.stringify(value).replace(/</g, "\\u003c");
-}
-
 export function renderBrowserShell(options: BrowserShellOptions = {}): string {
   const title = escapeHtml(options.title ?? "MDAN App");
   const rootId = options.rootId ?? "mdan-app";
@@ -39,10 +42,24 @@ export function renderBrowserShell(options: BrowserShellOptions = {}): string {
   const uiModuleSrc =
     options.uiModuleSrc ??
     (options.moduleMode === "local-dist" ? LOCAL_BROWSER_UI_MODULE_PATH : DEFAULT_UI_MODULE_SRC);
-  const initialSurface = options.initialSurface;
-  const initialSurfaceScript = initialSurface
-    ? `<script type="application/json" id="mdan-initial-surface">${escapeScriptJson(initialSurface)}</script>`
-    : "";
+  const initialReadableSurface = options.initialReadableSurface;
+  const initialPage = options.initialPage;
+  const shouldHydrate = options.hydrate !== false && !initialPage && !initialReadableSurface;
+  const clientRuntimeScript =
+    !shouldHydrate
+      ? ""
+      : `    <script type="module">
+      import { createHeadlessHost } from ${JSON.stringify(surfaceModuleSrc)};
+      import { mountMdanUi } from ${JSON.stringify(uiModuleSrc)};
+
+      const root = document.getElementById(${JSON.stringify(rootId)});
+      const host = createHeadlessHost({
+        initialRoute: window.location.pathname + window.location.search
+      });
+      const runtime = mountMdanUi({ root, host });
+      runtime.mount();
+      await host.sync();
+    </script>`;
 
   return `<!doctype html>
 <html lang="en">
@@ -52,31 +69,16 @@ export function renderBrowserShell(options: BrowserShellOptions = {}): string {
     <title>${title}</title>
   </head>
   <body>
-    <main id="${escapeHtml(rootId)}" data-mdan-browser-shell>${renderSurfaceSnapshot(initialSurface)}</main>
-    ${initialSurfaceScript}
-    <script type="module">
-      import { createHeadlessHost } from ${JSON.stringify(surfaceModuleSrc)};
-      import { mountMdanUi } from ${JSON.stringify(uiModuleSrc)};
-
-      const root = document.getElementById(${JSON.stringify(rootId)});
-      const initialSurfaceElement = document.getElementById("mdan-initial-surface");
-      const initialSurface = initialSurfaceElement ? JSON.parse(initialSurfaceElement.textContent ?? "null") : undefined;
-      const host = createHeadlessHost({
-        initialSurface,
-        initialRoute: window.location.pathname + window.location.search
-      });
-      const runtime = mountMdanUi({ root, host });
-      runtime.mount();
-      if (!initialSurface) {
-        await host.sync();
-      }
-    </script>
+    <main id="${escapeHtml(rootId)}" data-mdan-browser-shell>${renderInitialProjection(initialPage, initialReadableSurface, {
+      markdownRenderer: options.markdownRenderer
+    })}</main>
+${clientRuntimeScript}
   </body>
 </html>`;
 }
 
 export function shouldServeBrowserShell(method: string, acceptHeader: string | null | undefined): boolean {
-  return method === "GET" && negotiateRepresentation(acceptHeader ?? undefined) === "html";
+  return method === "GET" && typeof acceptHeader === "string" && negotiateRepresentation(acceptHeader) === "html";
 }
 
 export function resolveLocalBrowserModule(pathname: string, options: BrowserShellOptions | undefined): string | null {

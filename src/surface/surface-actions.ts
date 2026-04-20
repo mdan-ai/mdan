@@ -1,7 +1,11 @@
-import type { FieldSchema } from "../protocol/input/types.js";
-import type { MdanConfirmationPolicy, MdanOperation, MdanOperationStateEffect } from "../protocol/types.js";
-import type { JsonAction } from "../protocol/surface.js";
-import { fieldSchemasFromJsonObjectSchema } from "../protocol/input/field-schema.js";
+import {
+  fieldSchemasFromJsonObjectSchema,
+  type FieldSchema,
+  type JsonAction,
+  type MdanConfirmationPolicy,
+  type MdanOperation,
+  type MdanOperationStateEffect
+} from "./protocol-model.js";
 
 type JsonObject = Record<string, unknown>;
 

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createMdanServer, signIn, signOut, type BrowserShellOptions } from "@mdanai/sdk/server";
+import { createMdanServer, signIn, signOut, type BrowserShellOptions } from "../../src/server/index.js";
 
 type SessionState = {
   sid: string;
@@ -15,7 +15,7 @@ type MessageEntry = {
   text: string;
 };
 
-type JsonActionSpec = {
+type ActionManifest = {
   app_id: string;
   state_id: string;
   state_version: number;
@@ -25,22 +25,20 @@ type JsonActionSpec = {
   allowed_next_actions: string[];
 };
 
-type JsonEnvelope = {
-  content: string;
-  actions: JsonActionSpec;
-  view: {
-    route_path: string;
-    regions: Record<string, string>;
-  };
+type AuthSurface = {
+  markdown: string;
+  actions: ActionManifest;
+  route: string;
+  regions: Record<string, string>;
 };
 
 type ExampleAssets = {
   loginMarkdown: string;
   registerMarkdown: string;
   guestbookMarkdown: string;
-  loginActions: JsonActionSpec;
-  registerActions: JsonActionSpec;
-  guestbookActions: JsonActionSpec;
+  loginActions: ActionManifest;
+  registerActions: ActionManifest;
+  guestbookActions: ActionManifest;
 };
 
 function loadText(path: string): string {
@@ -60,16 +58,16 @@ function loadExampleAssets(): ExampleAssets {
     loginMarkdown: loadText(join(appDir, "login.md")),
     registerMarkdown: loadText(join(appDir, "register.md")),
     guestbookMarkdown: loadText(join(appDir, "guestbook.md")),
-    loginActions: loadJson<JsonActionSpec>(join(actionsDir, "login.json")),
-    registerActions: loadJson<JsonActionSpec>(join(actionsDir, "register.json")),
-    guestbookActions: loadJson<JsonActionSpec>(join(actionsDir, "guestbook.json"))
+    loginActions: loadJson<ActionManifest>(join(actionsDir, "login.json")),
+    registerActions: loadJson<ActionManifest>(join(actionsDir, "register.json")),
+    guestbookActions: loadJson<ActionManifest>(join(actionsDir, "guestbook.json"))
   };
 }
 
 const assets = loadExampleAssets();
 
-function deepCloneActionSpec(spec: JsonActionSpec): JsonActionSpec {
-  return JSON.parse(JSON.stringify(spec)) as JsonActionSpec;
+function deepCloneActionManifest(spec: ActionManifest): ActionManifest {
+  return JSON.parse(JSON.stringify(spec)) as ActionManifest;
 }
 
 function renderTemplate(template: string, values: Record<string, string>): string {
@@ -95,7 +93,7 @@ response_mode: "page"
 ${body}`.trim();
 }
 
-function loginEnvelope(message = "Not signed in."): JsonEnvelope {
+function loginSurface(message = "Not signed in."): AuthSurface {
   const stateId = "auth-guestbook:login:1";
   const stateVersion = 1;
   const body = renderTemplate(assets.loginMarkdown, {
@@ -119,17 +117,16 @@ Submit valid credentials to continue to the guestbook, or open the register page
 <!-- agent:end -->`
   });
 
-  const actionSpec = deepCloneActionSpec(assets.loginActions);
+  const actionSpec = deepCloneActionManifest(assets.loginActions);
   actionSpec.state_id = stateId;
   actionSpec.state_version = stateVersion;
 
   return {
-    content: contentWithFrontmatter(stateId, stateVersion, "./app/actions/login.json", body),
+    markdown: contentWithFrontmatter(stateId, stateVersion, "./app/actions/login.json", body),
     actions: actionSpec,
-    view: {
-      route_path: "/login",
-      regions: {
-        auth_status: `Current status: ${message}
+    route: "/login",
+    regions: {
+      auth_status: `Current status: ${message}
 
 <!-- agent:begin id="login_status_prompt" -->
 ## Context
@@ -138,7 +135,7 @@ This block reports the current authentication status for the login page.
 ## Result
 ${message}
 <!-- agent:end -->`,
-        login: `Sign in with your username and password, or create a new account.
+      login: `Sign in with your username and password, or create a new account.
 
 <!-- agent:begin id="login_block_prompt" -->
 ## Context
@@ -147,12 +144,11 @@ Use this block to sign in with a username and password or navigate to registrati
 ## Result
 Submit valid credentials to continue to the guestbook, or open the register page.
 <!-- agent:end -->`
-      }
     }
   };
 }
 
-function registerEnvelope(message = "Create a new account."): JsonEnvelope {
+function registerSurface(message = "Create a new account."): AuthSurface {
   const stateId = "auth-guestbook:register:2";
   const stateVersion = 1;
   const body = renderTemplate(assets.registerMarkdown, {
@@ -176,17 +172,16 @@ Submit valid registration data to continue to the guestbook, or open the login p
 <!-- agent:end -->`
   });
 
-  const actionSpec = deepCloneActionSpec(assets.registerActions);
+  const actionSpec = deepCloneActionManifest(assets.registerActions);
   actionSpec.state_id = stateId;
   actionSpec.state_version = stateVersion;
 
   return {
-    content: contentWithFrontmatter(stateId, stateVersion, "./app/actions/register.json", body),
+    markdown: contentWithFrontmatter(stateId, stateVersion, "./app/actions/register.json", body),
     actions: actionSpec,
-    view: {
-      route_path: "/register",
-      regions: {
-        register_status: `Current status: ${message}
+    route: "/register",
+    regions: {
+      register_status: `Current status: ${message}
 
 <!-- agent:begin id="register_status_prompt" -->
 ## Context
@@ -195,7 +190,7 @@ This block reports the current registration status for the register page.
 ## Result
 ${message}
 <!-- agent:end -->`,
-        register: `Create an account with a username and password, or return to sign in.
+      register: `Create an account with a username and password, or return to sign in.
 
 <!-- agent:begin id="register_block_prompt" -->
 ## Context
@@ -204,12 +199,11 @@ Use this block to create an account with a username and password or navigate bac
 ## Result
 Submit valid registration data to continue to the guestbook, or open the login page.
 <!-- agent:end -->`
-      }
     }
   };
 }
 
-function guestbookEnvelope(username: string, messages: MessageEntry[]): JsonEnvelope {
+function guestbookSurface(username: string, messages: MessageEntry[]): AuthSurface {
   const stateVersion = messages.length + 3;
   const stateId = `auth-guestbook:guestbook:${stateVersion}`;
   const lines = messages.length > 0 ? messages.map((entry) => `- ${entry.username}: ${entry.text}`).join("\n") : "- No messages yet";
@@ -253,17 +247,16 @@ Signing out returns the surface to the login route.
 <!-- agent:end -->`
   });
 
-  const actionSpec = deepCloneActionSpec(assets.guestbookActions);
+  const actionSpec = deepCloneActionManifest(assets.guestbookActions);
   actionSpec.state_id = stateId;
   actionSpec.state_version = stateVersion;
 
   return {
-    content: contentWithFrontmatter(stateId, stateVersion, "./app/actions/guestbook.json", body),
+    markdown: contentWithFrontmatter(stateId, stateVersion, "./app/actions/guestbook.json", body),
     actions: actionSpec,
-    view: {
-      route_path: "/guestbook",
-      regions: {
-        session_status: `Signed in as ${username}
+    route: "/guestbook",
+    regions: {
+      session_status: `Signed in as ${username}
 
 <!-- agent:begin id="session_status_prompt" -->
 ## Context
@@ -272,7 +265,7 @@ This block reports the authenticated session identity for the current guestbook 
 ## Result
 Signed in as ${username}
 <!-- agent:end -->`,
-        messages: `${lines}
+      messages: `${lines}
 
 <!-- agent:begin id="messages_block_prompt" -->
 ## Context
@@ -281,7 +274,7 @@ This block shows the current authenticated guestbook feed.
 ## Result
 ${lines}
 <!-- agent:end -->`,
-        composer: `Add a message to the guestbook.
+      composer: `Add a message to the guestbook.
 
 <!-- agent:begin id="composer_block_prompt" -->
 ## Context
@@ -290,7 +283,7 @@ Use this block to submit a new guestbook message while signed in.
 ## Result
 A valid submission adds a new message to the top of the guestbook feed.
 <!-- agent:end -->`,
-        session_actions: `Sign out when you are done.
+      session_actions: `Sign out when you are done.
 
 <!-- agent:begin id="session_actions_prompt" -->
 ## Context
@@ -299,7 +292,6 @@ Use this block to end the current authenticated session.
 ## Result
 Signing out returns the surface to the login route.
 <!-- agent:end -->`
-      }
     }
   };
 }
@@ -338,16 +330,16 @@ export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { 
     }
   });
 
-  server.page("/login", async () => loginEnvelope());
+  server.page("/login", async () => loginSurface());
 
-  server.page("/register", async () => registerEnvelope());
+  server.page("/register", async () => registerSurface());
 
   server.page("/guestbook", async ({ session }) => {
     const username = typeof session?.username === "string" ? session.username : "";
     if (!username) {
-      return loginEnvelope("Please sign in first.");
+      return loginSurface("Please sign in first.");
     }
-    return guestbookEnvelope(username, messages);
+    return guestbookSurface(username, messages);
   });
 
   server.post("/auth/login", async ({ inputs }) => {
@@ -357,14 +349,14 @@ export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { 
       return {
         status: 401,
         route: "/login",
-        ...loginEnvelope("Login rejected. Check username and password.")
+        ...loginSurface("Login rejected. Check username and password.")
       };
     }
     const sid = randomUUID();
     return {
       session: signIn({ sid, username }),
       route: "/guestbook",
-      ...guestbookEnvelope(username, messages)
+      ...guestbookSurface(username, messages)
     };
   });
 
@@ -375,14 +367,14 @@ export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { 
       return {
         status: 400,
         route: "/register",
-        ...registerEnvelope("Invalid input. Username and password are required.")
+        ...registerSurface("Invalid input. Username and password are required.")
       };
     }
     if (users.has(username)) {
       return {
         status: 409,
         route: "/register",
-        ...registerEnvelope("Username already exists. Try another username or sign in.")
+        ...registerSurface("Username already exists. Try another username or sign in.")
       };
     }
     users.set(username, password);
@@ -390,7 +382,7 @@ export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { 
     return {
       session: signIn({ sid, username }),
       route: "/guestbook",
-      ...guestbookEnvelope(username, messages)
+      ...guestbookSurface(username, messages)
     };
   });
 
@@ -400,7 +392,7 @@ export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { 
       return {
         status: 401,
         route: "/login",
-        ...loginEnvelope("Sign in required. Open /login and sign in.")
+        ...loginSurface("Sign in required. Open /login and sign in.")
       };
     }
     const message = (inputs.message ?? "").trim();
@@ -408,20 +400,20 @@ export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { 
       return {
         status: 400,
         route: "/guestbook",
-        ...guestbookEnvelope(username, messages)
+        ...guestbookSurface(username, messages)
       };
     }
     messages.unshift({ username, text: message });
     return {
       route: "/guestbook",
-      ...guestbookEnvelope(username, messages)
+      ...guestbookSurface(username, messages)
     };
   });
 
   server.post("/guestbook/logout", async () => ({
     session: signOut(),
     route: "/login",
-    ...loginEnvelope("Signed out.")
+    ...loginSurface("Signed out.")
   }));
 
   return server;

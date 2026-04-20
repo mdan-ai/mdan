@@ -6,7 +6,7 @@ import { renderBrowserShell, shouldServeBrowserShell } from "../../src/server/in
 import type { MdanRequest, MdanResponse } from "../../src/server/types.js";
 
 describe("browser shell", () => {
-  it("renders a thin JSON-first browser shell", () => {
+  it("renders a thin artifact-first browser shell", () => {
     const html = renderBrowserShell({ title: "Starter" });
 
     expect(html).toContain("<title>Starter</title>");
@@ -15,11 +15,11 @@ describe("browser shell", () => {
     expect(html).toContain("host.sync()");
   });
 
-  it("renders an initial surface as readable HTML with embedded bootstrap state", () => {
+  it("renders an initial readable surface as static HTML without JSON bootstrap state", () => {
     const html = renderBrowserShell({
       title: "Starter",
-      initialSurface: {
-        content: "# Starter App\n\nWelcome.",
+      initialReadableSurface: {
+        markdown: "# Starter App\n\nWelcome.",
         actions: {
           app_id: "starter",
           state_id: "starter:home:1",
@@ -27,21 +27,44 @@ describe("browser shell", () => {
           blocks: ["main"],
           actions: []
         },
-        view: {
-          route_path: "/",
-          regions: {
-            main: "- Booted"
-          }
+        route: "/",
+        regions: {
+          main: "- Booted"
         }
       }
     });
 
     expect(html).toContain("<h1>Starter App</h1>");
     expect(html).toContain("<li>Booted</li>");
-    expect(html).toContain('id="mdan-initial-surface"');
-    expect(html).toContain('"route_path":"/"');
-    expect(html).toContain("initialSurface");
-    expect(html).toContain("if (!initialSurface)");
+    expect(html).not.toContain('id="mdan-initial-surface"');
+    expect(html).not.toContain("initialSurface");
+    expect(html).not.toContain("createHeadlessHost");
+  });
+
+  it("lets apps provide their own markdown renderer for initial html projection", () => {
+    const html = renderBrowserShell({
+      title: "Custom Renderer",
+      hydrate: false,
+      markdownRenderer: {
+        render(markdown) {
+          return markdown.replace("| value |", "<table><tbody><tr><td>value</td></tr></tbody></table>");
+        }
+      },
+      initialReadableSurface: {
+        markdown: "# Data\n\n| value |",
+        actions: {
+          app_id: "custom",
+          state_id: "custom:1",
+          state_version: 1,
+          actions: []
+        }
+      }
+    });
+
+    expect(html).toContain("<table><tbody><tr><td>value</td></tr></tbody></table>");
+    expect(html).not.toContain("createHeadlessHost");
+    expect(html).not.toContain("mountMdanUi");
+    expect(html).not.toContain('id="mdan-initial-surface"');
   });
 
   it("uses local hosted module URLs when browserShell local-dist mode is enabled", () => {
@@ -72,13 +95,13 @@ describe("browser shell", () => {
 
   it("only serves the shell for browser document navigation", () => {
     expect(shouldServeBrowserShell("GET", "text/html")).toBe(true);
-    expect(shouldServeBrowserShell("GET", undefined)).toBe(true);
+    expect(shouldServeBrowserShell("GET", undefined)).toBe(false);
     expect(shouldServeBrowserShell("GET", "application/json")).toBe(false);
     expect(shouldServeBrowserShell("GET", "text/markdown")).toBe(false);
     expect(shouldServeBrowserShell("POST", "text/html")).toBe(false);
   });
 
-  it("lets examples serve snapshot HTML while keeping runtime JSON on the same route", async () => {
+  it("lets examples serve snapshot HTML while exposing markdown as the canonical route response", async () => {
     const server = createStarterServer(["Booted"]);
     const host = createHost(server, {
       browserShell: {
@@ -96,25 +119,17 @@ describe("browser shell", () => {
     const htmlText = await html.text();
     expect(htmlText).toContain("<h1>Starter App</h1>");
     expect(htmlText).toContain("Booted");
-    expect(htmlText).toContain('id="mdan-initial-surface"');
-    expect(htmlText).toContain("createHeadlessHost");
+    expect(htmlText).not.toContain('id="mdan-initial-surface"');
+    expect(htmlText).not.toContain("createHeadlessHost");
 
     const json = await host(
       new Request("https://example.test/", {
         headers: { accept: "application/json" }
       })
     );
-    expect(json.status).toBe(200);
-    expect(json.headers.get("content-type")).toBe("application/json");
-    await expect(json.json()).resolves.toMatchObject({
-      content: expect.stringContaining("# Starter App"),
-      view: {
-        route_path: "/",
-        regions: {
-          main: expect.stringContaining("Booted")
-        }
-      }
-    });
+    expect(json.status).toBe(406);
+    expect(json.headers.get("content-type")).toContain("text/markdown");
+    await expect(json.text()).resolves.toContain("## Not Acceptable");
 
     const markdown = await host(
       new Request("https://example.test/", {
@@ -199,19 +214,18 @@ describe("browser shell", () => {
     expect(body).not.toContain("<!doctype html>");
   });
 
-  it("defaults non-browser host requests without Accept to JSON runtime responses", async () => {
+  it("defaults non-browser host requests without Accept to markdown artifact responses", async () => {
     const server = createStarterServer(["Booted"]);
-    const host = createHost(server);
+    const host = createHost(server, {
+      browserShell: {
+        title: "Starter Example"
+      }
+    });
 
     const response = await host(new Request("https://example.test/"));
     expect(response.status).toBe(200);
-    expect(response.headers.get("content-type")).toBe("application/json");
-    await expect(response.json()).resolves.toMatchObject({
-      content: expect.stringContaining("# Starter App"),
-      view: {
-        route_path: "/"
-      }
-    });
+    expect(response.headers.get("content-type")).toContain("text/markdown");
+    await expect(response.text()).resolves.toContain("# Starter App");
   });
 
   it("serves local dist browser modules when local-dist mode is enabled", async () => {
