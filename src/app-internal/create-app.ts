@@ -25,14 +25,18 @@ export function createApp<TState>(options: CreateAppOptions<TState>): InternalAp
     },
 
     createServer() {
-      const server = createMdanServer({
-        actionProof: {
-          disabled: true
-        }
-      });
+      const server = createMdanServer();
 
       for (const page of pagesByPath.values()) {
-        server.page(page.path, async () => renderPage(page));
+        server.page(page.path, async ({ request }) => {
+          const resolved = await resolvePageRequest(page, {
+            method: request.method,
+            path: new URL(request.url).pathname,
+            headers: request.headers
+          });
+
+          return renderPage(resolved.page, resolved.data);
+        });
 
         for (const action of page.actions) {
           if (action.method === "GET") {
@@ -57,7 +61,7 @@ export function createApp<TState>(options: CreateAppOptions<TState>): InternalAp
 
             return {
               route: targetPage.path,
-              page: renderPage(targetPage)
+              page: renderPage(targetPage, result.data)
             };
           });
         }
@@ -67,14 +71,15 @@ export function createApp<TState>(options: CreateAppOptions<TState>): InternalAp
     }
   };
 
-  function renderPage(page: NormalizedPage) {
+  function renderPage(page: NormalizedPage, data?: Record<string, unknown>) {
     renderVersion += 1;
 
     const blockContent = Object.fromEntries(
       page.blocks.map((block) => [
         block.name,
         block.render({
-          state: options.state
+          state: options.state,
+          ...(data ? { data } : {})
         })
       ])
     ) as Record<string, string>;
@@ -91,5 +96,35 @@ export function createApp<TState>(options: CreateAppOptions<TState>): InternalAp
 
   function resolveTargetPage(currentPage: NormalizedPage, pagePath: string): NormalizedPage {
     return pagesByPath.get(pagePath) ?? currentPage;
+  }
+
+  async function resolvePageRequest(
+    page: NormalizedPage,
+    request: {
+      method: "GET" | "POST";
+      path: string;
+      headers: Record<string, string | undefined>;
+    }
+  ): Promise<{ page: NormalizedPage; data?: Record<string, unknown> }> {
+    if (!page.resolve) {
+      return { page };
+    }
+
+    const result = await page.resolve({
+      state: options.state,
+      request
+    });
+
+    if (!result?.pagePath) {
+      return {
+        page,
+        ...(result?.data ? { data: result.data } : {})
+      };
+    }
+
+    return {
+      page: resolveTargetPage(page, result.pagePath),
+      ...(result.data ? { data: result.data } : {})
+    };
   }
 }

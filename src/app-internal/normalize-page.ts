@@ -4,6 +4,7 @@ import type { NormalizedBlock, NormalizedPage } from "./models.js";
 export interface RawPageDefinition {
   markdownPath: string;
   markdownSource: string;
+  resolve?: NormalizedPage["resolve"];
   blocks?: Record<string, NormalizedBlock["render"]>;
   actions?: Record<string, RawActionDefinition>;
 }
@@ -34,7 +35,8 @@ export function normalizePageDefinition(options: NormalizePageDefinitionOptions)
     markdownPath: options.definition.markdownPath,
     markdownSource: options.definition.markdownSource,
     blocks,
-    actions
+    actions,
+    ...(options.definition.resolve ? { resolve: options.definition.resolve } : {})
   };
 }
 
@@ -49,4 +51,3 @@ function pageIdFromPath(path: string): string {
     .filter(Boolean)
     .join("_");
 }
-

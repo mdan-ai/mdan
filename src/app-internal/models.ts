@@ -15,6 +15,7 @@ export interface NormalizedResult {
   pagePath?: string;
   status?: number;
   headers?: Record<string, string>;
+  data?: Record<string, unknown>;
   patchState?: Record<string, unknown>;
   error?: {
     message: string;
@@ -46,6 +47,7 @@ export interface NormalizedAction {
 
 export interface NormalizedBlockContext<TState = unknown> {
   state: TState;
+  data?: Record<string, unknown>;
 }
 
 export interface NormalizedBlock {
@@ -57,6 +59,15 @@ export interface NormalizedPageLoaderContext<TState = unknown> {
   state: TState;
 }
 
+export interface NormalizedPageResolveContext<TState = unknown> {
+  state: TState;
+  request: {
+    method: "GET" | "POST";
+    path: string;
+    headers: Record<string, string | undefined>;
+  };
+}
+
 export interface NormalizedPage {
   id: string;
   path: string;
@@ -64,6 +75,7 @@ export interface NormalizedPage {
   markdownSource: string;
   blocks: NormalizedBlock[];
   actions: NormalizedAction[];
+  resolve?: (context: NormalizedPageResolveContext) => Promise<NormalizedResult | null> | NormalizedResult | null;
   load?: (context: NormalizedPageLoaderContext) => Promise<unknown> | unknown;
 }
 
