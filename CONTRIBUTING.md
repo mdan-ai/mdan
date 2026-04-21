@@ -1,0 +1,147 @@
+# Contributing
+
+This repository contains the reference TypeScript SDK for building MDAN apps.
+
+The current codebase is centered on an artifact-first runtime:
+
+- `text/markdown` is the canonical read path
+- `text/html` is the browser projection for page reads
+- `application/json` remains a legacy compatibility path where explicitly supported
+
+## Repository Layout
+
+- `src/server/`: runtime modeling, request handling, action proofing, assets, sessions, response generation
+- `src/surface/`: headless browser/client runtime for transport, route state, and action submission
+- `src/ui/`: optional default Web Components UI
+- `src/content/`: Markdown and artifact/content helpers
+- `src/protocol/`: protocol contracts, schema normalization, negotiation helpers
+- `test/`: active runtime, API, UI, browser, and contract tests
+- `examples/`: runnable SDK examples
+- `demo/weather-markdown/`: focused artifact-first demo app
+- `docs/`: implementation notes, contracts, and migration history
+- `create-mdan/`: starter project scaffolder
+
+## Prerequisites
+
+- Node `>=20`
+- Bun available on your machine for local scripts and tests
+
+Install dependencies from the repository root:
+
+```bash
+npm install
+```
+
+If you work on generated starter output or `create-mdan`, also install its dependencies:
+
+```bash
+npm --prefix create-mdan install
+```
+
+## Common Commands
+
+Build everything:
+
+```bash
+npm run build
+```
+
+Run the stable baseline test suite:
+
+```bash
+npm test
+```
+
+Run coverage gates:
+
+```bash
+npm run test:coverage
+```
+
+Run the minimal legacy compatibility regression subset:
+
+```bash
+npm run test:json
+```
+
+Run the full active test tree:
+
+```bash
+npm run test:tssdk-migrated
+```
+
+Lint the workspace:
+
+```bash
+npm run lint
+```
+
+Test the project scaffolder:
+
+```bash
+npm run test:create-mdan
+```
+
+## Local Development
+
+The example dev scripts perform an initial local SDK build, keep `dist/` and
+`dist-browser/` up to date, and start the example server against local browser
+bundles.
+
+Useful entry points:
+
+```bash
+npm run dev:starter
+npm run dev:docs-starter
+npm run dev:auth-guestbook
+npm run dev:weather-markdown
+```
+
+## Documentation Expectations
+
+When behavior changes, update the closest contract document in `docs/` in the
+same branch whenever practical.
+
+Most common mappings:
+
+- public package surface or import guidance: `docs/PUBLIC-API.md`
+- runtime behavior, representations, result semantics: `docs/RUNTIME-CONTRACT.md`
+- browser host and headless runtime behavior: `docs/BROWSER-AND-HEADLESS-RUNTIME.md`
+- server adapter behavior: `docs/SERVER-ADAPTERS.md`
+- request validation and status behavior: `docs/ERRORS.md`
+- action proof rules: `docs/ACTION-PROOF-SECURITY.md`
+- inputs and uploaded assets: `docs/INPUTS-AND-ASSETS.md`
+- session lifecycle: `docs/SESSIONS.md`
+- streaming behavior: `docs/STREAMING.md`
+
+If you change the top-level product story, quick start, or doc index, also
+update `README.md`.
+
+## Testing Guidance
+
+Prefer targeted tests near the changed subsystem, then run the smallest command
+set that gives confidence:
+
+- docs-only changes: usually no test run required
+- server/runtime changes: `npm test`
+- public API or package boundary changes: `npm test` plus relevant API tests
+- scaffolder changes: `npm run test:create-mdan`
+- browser/runtime integration changes: baseline suite plus the relevant example tests
+
+If you intentionally change compatibility behavior, update the corresponding
+contract docs and regression tests together.
+
+## Compatibility Notes
+
+- Favor public imports only: `@mdanai/sdk/server`, `@mdanai/sdk/server/node`,
+  `@mdanai/sdk/server/bun`, `@mdanai/sdk/surface`, `@mdanai/sdk/ui`
+- Do not add new application guidance that depends on `src/` or `dist/` deep imports
+- Treat legacy JSON surface support as compatibility coverage, not the preferred new path
+
+## Pull Request Checklist
+
+- The code or docs reflect the current artifact-first runtime model
+- Relevant tests were added or updated when behavior changed
+- The nearest contract doc was updated when public behavior changed
+- `README.md` was updated if entry-path guidance or product positioning changed
+- New examples use public SDK entry points only

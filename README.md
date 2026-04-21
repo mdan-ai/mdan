@@ -335,6 +335,8 @@ await cleanupExpiredAssets({ rootDir: process.cwd() });
 
 Local SDK implementation guides:
 
+- [Contributing](CONTRIBUTING.md)
+- [Architecture](ARCHITECTURE.md)
 - [Surface And Actions Contract](docs/SURFACE-ACTIONS-CONTRACT.md)
 - [Runtime Contract](docs/RUNTIME-CONTRACT.md)
 - [Server Host Adapters](docs/SERVER-ADAPTERS.md)
@@ -348,6 +350,7 @@ Local SDK implementation guides:
 - [Streaming And SSE](docs/STREAMING.md)
 - [Public API And Package Boundaries](docs/PUBLIC-API.md)
 - [Agent Evaluation Contract](docs/AGENT-EVAL.md)
+- [Baseline Parity Check](docs/PARITY-CHECK.md)
 
 Reference and product docs:
 
