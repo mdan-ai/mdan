@@ -20,15 +20,6 @@ The supported public package entries are:
 - `@mdanai/sdk/surface`
 - `@mdanai/sdk/ui`
 
-The root package also re-exports a small convenience surface:
-
-- `createMdanServer`
-- `createArtifactPage`
-- `createArtifactFragment`
-- `createExecutableContent`
-- `createHeadlessHost`
-- `mountMdanUi`
-
 For boundary rules, see [Public API](/reference/public-api).
 
 ## `@mdanai/sdk/server`
@@ -148,6 +139,7 @@ directly only when you need manual custom-element registration or test control.
 
 Do not depend on:
 
+- a root package import such as `import {...} from "@mdanai/sdk"`
 - deep `src/` imports
 - deep `dist/` imports
 - old package names such as `@mdanai/sdk/web` or `@mdanai/sdk/elements`

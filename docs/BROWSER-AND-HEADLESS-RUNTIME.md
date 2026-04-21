@@ -22,21 +22,24 @@ const server = createMdanServer({
 });
 ```
 
-For `GET` requests that negotiate `text/html`, the host renders a browser shell
-from the current artifact:
+For `GET` requests that negotiate `text/html`, the current runtime and host
+path returns a readable HTML projection of the current artifact.
 
-- readable HTML projected from the current Markdown artifact
-- optional embedded bootstrap surface state when hydration is enabled
-- `createHeadlessHost({ initialSurface })`
-- `mountMdanUi({ root, host })`
+Today, that means:
 
-Artifact-native pages may also render as pure server HTML without embedding a
-bootstrap JSON surface. In that mode the browser does not hydrate, and the
-first paint is simply the projected artifact.
+- page reads render server-side HTML from the current artifact or page result
+- the default host path sets `hydrate: false`
+- browsers get a readable document without booting `createHeadlessHost()` or
+  `mountMdanUi()`
+
+The lower-level `renderBrowserShell()` helper can still render a hydrated shell
+that imports `@mdanai/sdk/surface` and `@mdanai/sdk/ui`, but that is not the
+default page-read path currently served by the runtime adapters.
 
 ## Module Modes
 
-By default, the shell imports browser modules from CDN URLs:
+When you render a hydrated browser shell directly, it imports browser modules
+from CDN URLs by default:
 
 - `@mdanai/sdk/surface`
 - `@mdanai/sdk/ui`
@@ -58,8 +61,8 @@ from `dist-browser/`. The example `dev:*` scripts build and watch those files.
 
 ## Headless Host
 
-`createHeadlessHost()` accepts an initial surface, an initial route, an optional
-`fetchImpl`, and `debugMessages`.
+`createHeadlessHost()` accepts an optional initial Markdown artifact, an initial
+route, an optional `fetchImpl`, and `debugMessages`.
 
 The host exposes:
 
@@ -70,8 +73,8 @@ The host exposes:
 - `sync(target?)` for reloading the current route
 - `submit(operation, values)` for action execution
 
-The snapshot contains the current Markdown, blocks, route, loading/error status,
-and whether the last transition was `page`, `region`, or `stream`.
+The snapshot contains the current Markdown, blocks, route, loading/error
+status, and the current transition state.
 
 ## Action Submission
 
@@ -125,5 +128,5 @@ const host = createHeadlessHost({
 ```
 
 Debug records are stored in `window.__MDAN_DEBUG__.messages` and include outgoing
-requests and incoming surfaces. The default elements UI also exposes a small
+requests and incoming surfaces. The default UI also exposes a small
 debug drawer when debug messages are enabled.

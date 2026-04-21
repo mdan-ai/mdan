@@ -81,8 +81,9 @@ Choose custom rendering when:
 - but you need your own React, Vue, or other component system
 - and the default `@mdanai/sdk/ui` package is not the right presentation layer
 
-If you want the fastest path to a working browser app, stay with the default UI
-instead.
+If you want the fastest path to a readable browser app, stay with the server
+browser-shell path instead. If you want a client-side default UI, pair
+`@mdanai/sdk/surface` with `@mdanai/sdk/ui` directly.
 
 ## Related Docs
 

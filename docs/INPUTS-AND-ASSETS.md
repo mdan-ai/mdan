@@ -2,7 +2,7 @@
 
 MDAN action inputs are declared with JSON Schema in each action's
 `input_schema`. The SDK maps those schemas into a shared field model used by the
-server runtime, headless browser runtime, and default elements UI.
+server runtime, headless browser runtime, and default UI.
 
 ## Field Model
 

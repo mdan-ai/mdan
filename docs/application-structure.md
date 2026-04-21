@@ -13,15 +13,27 @@ separate, but do not split them into something heavier than the app itself.
 
 ## Recommended Shape
 
-For the current examples and scaffolded apps, the useful minimum usually looks
-like this:
+There are two common shapes in the current repository:
+
+### Scaffolded App Shape
+
+The generated `create-mdan` starter usually looks like this:
+
+- `app/index.md` for the main page content
+- `app/actions/*.json` for action declarations
+- `app/server.mjs` for runtime state and handlers
+- `index.mjs` for the Node or Bun host entry
+
+### Repository Example Shape
+
+Several in-repo examples use a slightly different workspace-oriented layout:
 
 - `app/*.md` for page content
 - `app/actions/*.json` for action declarations where examples keep them separate
 - `app.ts` or server-side composition code for runtime state and handlers
 - `dev.ts` or runtime host entry for local serving
 
-The exact file names may differ by example, but the responsibilities stay the
+The exact file names differ, but the responsibilities stay the
 same:
 
 - content files define the readable artifact shape

@@ -8,16 +8,18 @@ description: Choose the MDAN integration path that best fits your app, whether y
 Use this page to quickly pick the right MDAN integration path for your
 situation.
 
-## Path A: Server + Default UI
+## Path A: Server + Browser Shell
 
 Use:
 
 - `@mdanai/sdk/server`
 - `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
-- `@mdanai/sdk/ui`
+- `browserShell` host configuration
+- optional `@mdanai/sdk/ui` when you want to mount the default UI package in a
+  custom client path
 
-This is the best path when you want the fastest route to a working browser app
-with the official UI.
+This is the best path when you want the fastest route to a readable browser app
+with server-rendered HTML.
 
 See:
 
@@ -75,7 +77,7 @@ See:
 
 ## Decision Checklist
 
-- need the fastest launch with the default UI: choose Path A
+- need the fastest launch with server-rendered browser output: choose Path A
 - need a custom visual system with the same MDAN behavior: choose Path B
 - need artifact-first responses with minimal browser concerns: choose Path C
 - need deep backend integration: choose Path D

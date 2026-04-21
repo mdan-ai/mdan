@@ -181,7 +181,7 @@ Confirmation policy is projected into operation metadata for UI layers:
 - root `actions.security.default_confirmation_policy`
 - action-level `security.confirmation_policy`
 
-Action-level policy overrides the root default. The default elements UI can use
+Action-level policy overrides the root default. The default UI can use
 this metadata to ask for confirmation before submitting an action.
 
 The runtime enforces confirmation through action proof when proofing is enabled.

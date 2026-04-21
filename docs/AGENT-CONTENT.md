@@ -84,7 +84,7 @@ The SDK validates agent blocks on every returned surface:
 Human-visible projections strip agent blocks:
 
 - browser shell snapshot HTML
-- default elements rendering
+- default UI rendering
 - Markdown rendering helpers that call `stripAgentBlocks`
 
 The primary Markdown artifact still includes the original Markdown content so

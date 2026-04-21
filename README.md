@@ -60,7 +60,7 @@ const host = createHost(server, {
 });
 ```
 
-For a browser document request, the host forwards `Accept: text/html` to the runtime, which renders readable HTML from the current artifact. When hydration is enabled, the shell may embed bootstrap state for the headless runtime. Runtime requests with `Accept: text/markdown` return the canonical page document. `Accept: application/json` remains available only where compatibility handlers or adapters still need it.
+For a browser document request, the host forwards `Accept: text/html` to the runtime, which renders readable HTML from the current artifact. In the current default host path, that HTML is served as a non-hydrated server projection. Runtime requests with `Accept: text/markdown` return the canonical page document. `Accept: application/json` remains available only where compatibility handlers or adapters still need it.
 
 For custom or production frontends, prefer importing only `@mdanai/sdk/surface`. That package is the lightweight shared surface runtime and must stay independent of `@mdanai/sdk/ui`, `lit`, and Markdown rendering. The optional `@mdanai/sdk/ui` package provides the default Web Components UI for quick starts and examples.
 
@@ -73,7 +73,7 @@ browserShell: {
 }
 ```
 
-In that mode the server adapter serves two browser bundle entry files, `/__mdan/surface.js` and `/__mdan/ui.js`, from the local `dist-browser/` folder. The browser shell uses those bundled workspace artifacts instead of CDN modules, so it does not need to traverse the SDK's internal module graph in the browser. If those files are missing, the browser gets a visible error telling you to run `bun run build`.
+In that mode the server adapter serves two browser bundle entry files, `/__mdan/surface.js` and `/__mdan/ui.js`, from the local `dist-browser/` folder. Those bundles are useful when you explicitly render a hydrated browser shell or mount the browser runtime yourself. If those files are missing, the browser gets a visible error telling you to run `bun run build`.
 
 The example `dev:*` scripts now do that for you: they run an initial local SDK build, keep both `dist/` and `dist-browser/` updated during development, and start the Bun example server against those local browser bundles.
 
@@ -140,7 +140,7 @@ Default path for a new app:
 
 - use `@mdanai/sdk/server` to define page routes and action handlers
 - use `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` to host it
-- enable `browserShell` if you want the built-in browser UI
+- enable `browserShell` if you want server-rendered browser HTML from the same artifact
 
 Minimal server setup:
 
@@ -259,8 +259,8 @@ You can also force either runtime with `--runtime node` or `--runtime bun`.
 
 ## Recommended Entry Paths
 
-- `server + ui`
-  Use this when you want the fastest path to a working browser app with the built-in UI. This is the default recommendation for new users and local prototypes.
+- `server + browser shell`
+  Use this when you want the fastest path to a readable browser app with server-rendered HTML from the same artifact. This is the default recommendation for new users and local prototypes.
 - `server + surface`
   Use this when you want MDAN transport/state handling but you will render the UI yourself in React, Vue, or another frontend.
 - `server only`

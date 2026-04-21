@@ -5,7 +5,7 @@ Goal: keep tssdk runtime/web/elements flow unchanged, replace legacy app contrac
 ## Principles
 - Keep browser lifecycle unchanged: `createHeadlessHost -> mount -> subscribe -> submit/visit`.
 - Keep route-first navigation semantics unchanged.
-- Keep default elements UI lifecycle unchanged.
+- Keep default UI lifecycle unchanged.
 - Replace only contract/data source surfaces first.
 
 ## Phase 0: Baseline Freeze

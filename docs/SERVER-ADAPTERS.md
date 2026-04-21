@@ -166,10 +166,13 @@ createHost(server, {
 ```
 
 For HTML page reads, the host asks the runtime for a page response and writes
-the browser shell. Depending on hydration mode, the shell may embed a
-compatibility bootstrap payload or render directly from the current Markdown
-artifact before booting `@mdanai/sdk/surface` and `@mdanai/sdk/ui` in the
-browser.
+the resulting browser-facing HTML. In the current runtime path, page reads are
+served as server-rendered artifact projections without booting
+`@mdanai/sdk/surface` or `@mdanai/sdk/ui` in the browser.
+
+The lower-level `renderBrowserShell()` helper can still be used separately when
+you want a hydrated shell, but high-level host adapters do not inject that
+client runtime for ordinary page reads today.
 
 See `BROWSER-AND-HEADLESS-RUNTIME.md` for the browser client contract.
 

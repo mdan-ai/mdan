@@ -3,8 +3,8 @@
 ## Directories
 
 - `test/`: current active tests.
-  - Full tree currently has `54` test files / `316` cases.
-  - Stable executable baseline: `47` files / `302` cases (via `vitest.baseline.config.ts`).
+  - The full tree includes the current active regression, package, docs-site, and public API coverage.
+  - The stable executable baseline is the curated subset listed in `vitest.baseline.config.ts`.
 
 ## Scripts
 
