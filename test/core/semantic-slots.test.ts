@@ -37,6 +37,39 @@ Done.
     expect(validateSemanticSlots(content)).toEqual([]);
   });
 
+  it("accepts and extracts Views and Handoff when present", () => {
+    const content = `# Demo
+
+## Purpose
+P
+
+## Context
+C
+
+## Rules
+R
+
+## Result
+Done.
+
+## Views
+Browser and agent clients may read the same entry.
+
+## Handoff
+Continue into adjacent planning tools when appropriate.
+`;
+
+    expect(validateSemanticSlots(content)).toEqual([]);
+    expect(extractSemanticSlots(content).map((slot) => slot.name)).toEqual([
+      "Purpose",
+      "Context",
+      "Rules",
+      "Result",
+      "Views",
+      "Handoff"
+    ]);
+  });
+
   it("enforces H2, uniqueness, and non-empty slot body", () => {
     const content = `# Demo
 

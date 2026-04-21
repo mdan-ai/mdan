@@ -63,7 +63,7 @@ describe("weather markdown demo server", () => {
     );
     expect(response.body).not.toContain("## 来源与生成");
     expect(response.body).toContain("```mdan");
-    expect(response.body).toContain('"app_id": "weather-markdown-demo"');
+    expect(response.body).toContain('"app_id": "weather"');
     expect(response.body).toContain('"state_id": "weather:E8A5BFE5AE89:7d"');
   });
 
@@ -126,17 +126,18 @@ describe("weather markdown demo server", () => {
     expect(response.body).not.toContain("🌧");
   });
 
-  test("exposes agent-native query inputs in the action schema", async () => {
+  test("exposes agent-native query inputs in the markdown action schema", async () => {
     const server = createWeatherMarkdownServer(provider);
 
     const response = await server.handle({
       method: "GET",
       url: "http://127.0.0.1/weather",
       headers: {
-        accept: "application/json"
+        accept: "text/markdown"
       }
     });
 
+    expect(response.status).toBe(200);
     expect(response.body).toContain('"range"');
     expect(response.body).toContain('"today"');
     expect(response.body).toContain('"tomorrow"');
@@ -144,6 +145,31 @@ describe("weather markdown demo server", () => {
     expect(response.body).toContain('"brief"');
     expect(response.body).toContain('"units"');
     expect(response.body).toContain('"emoji"');
+  });
+
+  test("returns the weather start page as an app-entry markdown document", async () => {
+    const server = createWeatherMarkdownServer(provider);
+
+    const response = await server.handle({
+      method: "GET",
+      url: "http://127.0.0.1/weather",
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/markdown");
+    expect(response.body).toContain("# MDAN Weather");
+    expect(response.body).toContain("## Purpose");
+    expect(response.body).toContain("## Context");
+    expect(response.body).toContain("## Rules");
+    expect(response.body).toContain("## Result");
+    expect(response.body).toContain("## Views");
+    expect(response.body).toContain("## Handoff");
+    expect(response.body).toContain("::: block{id=\"query\" actions=\"query_weather\" trust=\"trusted\"}");
+    expect(response.body).toContain("```mdan");
+    expect(response.body).toContain('"id": "query_weather"');
   });
 
   test("projects query results to html for human browsers", async () => {
@@ -162,6 +188,28 @@ describe("weather markdown demo server", () => {
     expect(response.body).toContain("<table>");
     expect(response.body).toContain("<td>2026-04-20</td>");
     expect(response.body).not.toContain("HTML responses are only available");
+    expect(response.body).not.toContain("```mdan");
+    expect(response.body).not.toContain("allowed_next_actions");
+  });
+
+  test("projects the weather start page to html for browsers", async () => {
+    const server = createWeatherMarkdownServer(provider);
+
+    const response = await server.handle({
+      method: "GET",
+      url: "http://127.0.0.1/weather",
+      headers: {
+        accept: "text/html"
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/html");
+    expect(response.body).toContain("MDAN Weather");
+    expect(response.body).toContain("Purpose");
+    expect(response.body).toContain("Context");
+    expect(response.body).toContain("Rules");
+    expect(response.body).toContain("Result");
     expect(response.body).not.toContain("```mdan");
     expect(response.body).not.toContain("allowed_next_actions");
   });

@@ -1,4 +1,4 @@
-import { createMdanServer } from "../../src/server/index.js";
+import { createArtifactPage, createMdanServer, type MdanPage } from "../../src/server/index.js";
 
 import { createWeatherArtifact, type WeatherRange } from "./src/artifacts.js";
 import { weatherMarkdownRenderer } from "./src/html-renderer.js";
@@ -54,7 +54,7 @@ const queryInputSchema = {
 
 function queryAction(stateId: string, stateVersion: number) {
   return {
-    app_id: "weather-markdown-demo",
+    app_id: "weather",
     state_id: stateId,
     state_version: stateVersion,
     blocks: ["query"],
@@ -77,7 +77,7 @@ function queryAction(stateId: string, stateVersion: number) {
   };
 }
 
-function startEnvelope() {
+function startPage(): MdanPage {
   const stateId = "weather-markdown:start";
   const stateVersion = 1;
   const block = `输入地点和范围，生成 agent 可以直接交付给用户的 Markdown 天气结果。
@@ -90,29 +90,67 @@ function startEnvelope() {
 
 可选 profile：brief、table、full。`;
 
-  return {
-    content: `# MDAN Weather Markdown
+  return createArtifactPage({
+    frontmatter: {
+      app_id: "weather",
+      state_id: stateId,
+      state_version: stateVersion,
+      response_mode: "page",
+      route: "/weather"
+    },
+    markdown: `# MDAN Weather
 
-把公开天气 API 转成 agent-ready、user-ready 的 Markdown artifact。
+## Purpose
+Provide agent-ready weather reports that can be delivered directly to users.
 
-Markdown 是返回数据源头；JSON 只定义可执行动作。
+## Context
+Use this app when a user asks for current weather or a forecast for a specific
+location and time range.
+
+This page is the canonical MDAN app entry for weather. The same capability may
+be projected into a local \`skill.md\` for compatibility with existing local
+skill workflows.
+
+## Rules
+Always provide an explicit location.
+Use only declared inputs and declared actions.
+Do not invent weather facts.
+If the request cannot be satisfied, return a failure result instead of guessing.
+
+## Result
+Returns a Markdown-first weather result suitable for direct user delivery.
+
+Typical result modes include:
+
+- brief answer
+- table artifact
+- fuller forecast artifact
 
 ::: block{id="query" actions="query_weather" trust="trusted"}
 ${block}
-:::`,
-    actions: queryAction(stateId, stateVersion),
-    view: {
-      route_path: "/weather",
-      regions: {
-        query: block
-      }
+:::
+
+<!-- mdan:block query -->
+
+## Views
+Online use is the primary mode.
+Browser clients may render this page as an interactive weather entry.
+Agent clients may read the same page and invoke its declared action directly.
+
+## Handoff
+After presenting the weather result, the caller may continue with adjacent
+planning tools such as travel, scheduling, or finance tools, but those tasks
+are outside this app's scope.`,
+    executableJson: queryAction(stateId, stateVersion),
+    blockContent: {
+      query: block
     }
-  };
+  });
 }
 
 function resultActions(stateId: string) {
   return {
-    app_id: "weather-markdown-demo",
+    app_id: "weather",
     state_id: stateId,
     state_version: 1,
     blocks: [],
@@ -121,16 +159,21 @@ function resultActions(stateId: string) {
   };
 }
 
-function errorEnvelope(message: string) {
-  return {
-    content: `# 天气查询失败
+function errorPage(message: string): MdanPage {
+  const stateId = "weather:error";
+  return createArtifactPage({
+    frontmatter: {
+      app_id: "weather",
+      state_id: stateId,
+      state_version: 1,
+      response_mode: "page",
+      route: "/weather/query"
+    },
+    markdown: `# 天气查询失败
 
 ${message}`,
-    actions: resultActions("weather-markdown:error"),
-    view: {
-      route_path: "/weather/query"
-    }
-  };
+    executableJson: resultActions(stateId)
+  });
 }
 
 function toRange(value: unknown): WeatherRange {
@@ -162,15 +205,19 @@ async function queryEnvelope(url: string, provider: WeatherProvider) {
       provider
     );
 
-    return {
-      content: artifact.content,
-      actions: resultActions(artifact.stateId),
-      view: {
-        route_path: "/weather/query"
-      }
-    };
+    return createArtifactPage({
+      frontmatter: {
+        app_id: "weather",
+        state_id: artifact.stateId,
+        state_version: 1,
+        response_mode: "page",
+        route: "/weather/query"
+      },
+      markdown: artifact.content,
+      executableJson: resultActions(artifact.stateId)
+    });
   } catch (error) {
-    return errorEnvelope(error instanceof Error ? error.message : String(error));
+    return errorPage(error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -187,7 +234,7 @@ export function createWeatherMarkdownServer(provider: WeatherProvider = createOp
     }
   });
 
-  server.page("/weather", async () => startEnvelope());
+  server.page("/weather", async () => startPage());
 
   server.page("/weather/query", async ({ request }) => queryEnvelope(request.url, provider));
 

@@ -15,6 +15,11 @@ Semantic slots are Markdown H2 sections with canonical names:
 - `## Views`
 - `## Handoff`
 
+`Purpose`, `Context`, `Rules`, and `Result` are the required core slots for page
+validation. `Views` and `Handoff` are accepted optional slots that let an entry
+describe shared rendering expectations and follow-on usage without introducing a
+separate slot family.
+
 By default, semantic slots are just content. Hosts can enable validation:
 
 ```ts

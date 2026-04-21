@@ -7,6 +7,16 @@ agents.
 that idea: weather results that agents can hand to users directly, while humans
 can open the same URL as a normal web page.
 
+The `/weather` route is also the canonical MDAN app entry for the service. It
+uses the shared app-entry structure:
+
+- `Purpose`
+- `Context`
+- `Rules`
+- `Result`
+- `Views`
+- `Handoff`
+
 ## Goal
 
 Flag:
@@ -112,11 +122,11 @@ The response is ready to paste into an agent answer:
 数据和位置服务：[Open-Meteo](https://open-meteo.com/)，由 [MDAN Weather](https://docs.mdan.ai) 编辑/整理于 2026-04-20 09:30 Asia/Shanghai。
 ```
 
-If an agent or runtime needs the structured action contract directly, the SDK can
-still expose the internal JSON surface:
+If an agent or runtime needs the structured action contract directly, it reads
+the `mdan` fenced block embedded in the Markdown app entry:
 
 ```sh
-curl -H 'Accept: application/json' \
+curl -H 'Accept: text/markdown' \
   'http://127.0.0.1:4327/weather'
 ```
 
