@@ -7,7 +7,6 @@ hosts, tests, and agents.
 
 Related contract documents:
 
-- `../spec/legacy-surface-actions-contract.md`: legacy JSON surface bridge and action validation rules
 - `SERVER-ADAPTERS.md`: Node/Bun host adapter behavior
 - `ERRORS.md`: status codes and error surface shape
 - `STREAMING.md`: `stream(...)` and `text/event-stream`
@@ -22,24 +21,32 @@ The runtime has two route families:
 - action routes, registered with `server.get(path, handler)` or
   `server.post(path, handler)`
 
-Page handlers may return an artifact-native page, a legacy JSON surface
-envelope, or `null`. Action handlers may return an artifact-native action
-result, that same legacy envelope, or a stream result from `stream(...)`.
+Page handlers may return an artifact-native page, a readable surface shape, a
+legacy JSON surface envelope, or `null`. Action handlers may return an
+artifact-native action result, a readable surface shape, that same legacy
+envelope, or a stream result from `stream(...)`.
 
 Legacy JSON envelopes are currently used as an internal compatibility bridge
 while the runtime moves toward artifact-native handlers. The SDK projects them
 into the canonical Markdown artifact shape before `text/markdown` responses are
 serialized.
 
-Every legacy JSON surface envelope contains:
+Readable surface results are the lighter-weight default authoring shape:
+
+- `markdown`: page markdown template
+- `actions`: the executable action contract
+- `route`: the current route path
+- `regions`: named region markdown used for block updates
+
+For compatibility only, every legacy JSON surface envelope contains:
 
 - `content`: Markdown for humans and agents
 - `actions`: the executable action contract
 - `view.route_path`: the browser/history route for the returned surface
 - `view.regions`: named region markdown used for block updates
 
-For the full legacy envelope and action schema contract, see
-`../spec/legacy-surface-actions-contract.md`.
+For the full legacy envelope and action schema contract, see the archived
+compatibility notes under `docs/archive/`.
 
 ## Representations
 
@@ -116,7 +123,7 @@ An action result may return a new page or a region update depending on the
 declared action `state_effect`:
 
 - `response_mode: "page"` replaces the current page snapshot and may update
-  browser history using `view.route_path`
+  browser history using the returned route
 - `response_mode: "region"` patches only the declared `updated_regions` when the
   returned route still matches the current route
 - a route change or missing region data falls back to page replacement
@@ -146,7 +153,7 @@ createMdanServer({
 The runtime validates returned results before sending them:
 
 - page handlers and action handlers may return artifact-native results or the
-  legacy JSON compatibility shape
+  readable surface / legacy JSON compatibility shapes
 - action contracts must pass `assertActionsContractEnvelope`
 - agent blocks must be balanced and valid
 - semantic slots are enforced when `semanticSlots` is configured

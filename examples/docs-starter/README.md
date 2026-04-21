@@ -3,8 +3,7 @@
 Source layout:
 
 - `app/index.md`, `app/getting-started.md`
-- `app/actions/docs.json`
-- `app.ts` (loads docs markdown/action sources)
+- `app.ts` (loads docs markdown and defines the refresh action)
 
 Runtime contract:
 

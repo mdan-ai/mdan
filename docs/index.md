@@ -53,8 +53,11 @@ Use it for three kinds of reading:
 ## Spec
 
 - [Spec Overview](/spec)
+- [Artifact Contract](/spec/artifact-contract)
+- [Action Execution](/spec/action-execution)
+- [Action Proof](/spec/action-proof)
+- [Agent Content](/spec/agent-content)
 - [Application Surface Spec (ZH)](/spec/application-surface-zh)
-- [Legacy Surface And Actions Contract](/spec/legacy-surface-actions-contract)
 
 ## Contributing
 

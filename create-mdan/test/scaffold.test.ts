@@ -25,7 +25,7 @@ describe("create-mdan scaffold", () => {
     await Promise.all(tmpRoots.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
   });
 
-  it("generates a node starter against the current sdk public API", async () => {
+  it("generates a node starter against the current app-first sdk public API", async () => {
     const root = await makeTempDir();
     const targetDir = join(root, "agent-app");
 
@@ -44,7 +44,14 @@ describe("create-mdan scaffold", () => {
     expect(packageJson).toContain('"@mdanai/sdk": "^0.7.0"');
     expect(indexSource).toContain('@mdanai/sdk/server/node');
     expect(indexSource).not.toContain("rootRedirect");
-    expect(serverSource).toContain('@mdanai/sdk/server');
+    expect(serverSource).toContain('@mdanai/sdk');
+    expect(serverSource).not.toContain('@mdanai/sdk/server');
+    expect(serverSource).not.toContain("createArtifactPage");
+    expect(serverSource).toContain("const home = app.screen");
+    expect(serverSource).toContain("return home.render(messages)");
+    expect(serverSource).toContain("actions.write(\"submit_message\"");
+    expect(serverSource).toContain("fields.string({ required: true })");
+    expect(serverSource).not.toContain('join(root, "actions", "main.json")');
     expect(`${indexSource}\n${serverSource}`).not.toMatch(/@mdanai\/sdk\/(?:core|web|elements)|createHostedApp/);
   });
 
@@ -81,20 +88,17 @@ describe("create-mdan scaffold", () => {
     const packageJson = JSON.parse(await readGenerated(targetDir, "package.json")) as {
       name: string;
     };
-    const actionSpec = JSON.parse(await readGenerated(targetDir, "app/actions/main.json")) as {
-      app_id: string;
-      state_id: string;
-    };
     const indexSource = await readGenerated(targetDir, "index.mjs");
     const serverSource = await readGenerated(targetDir, "app/server.mjs");
     const pageSource = await readGenerated(targetDir, "app/index.md");
 
     expect(packageJson.name).toBe("my-fancy-app");
-    expect(actionSpec.app_id).toBe("my-fancy-app");
-    expect(actionSpec.state_id).toBe("my-fancy-app:home:1");
     expect(indexSource).toContain('const projectName = "My \\"Fancy\\" App!";');
     expect(serverSource).toContain('const appId = "my-fancy-app";');
     expect(serverSource).toContain('const projectName = "My \\"Fancy\\" App!";');
+    expect(serverSource).toContain("appId,");
+    expect(serverSource).not.toContain("app_id:");
+    expect(serverSource).not.toContain("state_id:");
     expect(pageSource).toContain('# My "Fancy" App!');
   });
 

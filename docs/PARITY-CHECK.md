@@ -2,7 +2,7 @@
 
 ## Confirmed aligned
 
-- Route-first navigation still works (`route_path` -> browser history path).
+- Route-first navigation still works (returned route -> browser history path).
 - GET/POST semantics preserved in runtime/router.
 - Session mutation semantics preserved (`sign-in`, `refresh`, `sign-out`).
 - Page reads still project to HTML for browser-facing hosts.

@@ -16,14 +16,17 @@ guidance:
 
 ## Current Spec Set
 
+- [Artifact Contract](/spec/artifact-contract)
+- [Action Execution](/spec/action-execution)
+- [Action Proof](/spec/action-proof)
+- [Agent Content](/spec/agent-content)
 - [Application Surface Spec (ZH)](/spec/application-surface-zh)
-- [Legacy Surface And Actions Contract](/spec/legacy-surface-actions-contract)
 
 ## Reading Order
 
-1. Read the application surface spec for the broader model.
-2. Read the legacy surface contract if you need compatibility behavior for older
-   JSON bridge consumers.
+1. Read the artifact, action execution, action proof, and agent content specs
+   for the interoperable Markdown-first contract.
+2. Read the application surface spec for the broader model and terminology.
 3. Use the runtime and server documents in `/docs` for current SDK behavior and
    host implementation details.
 

@@ -5,6 +5,12 @@ description: Compatibility contract for the legacy JSON surface bridge and actio
 
 # Legacy Surface And Actions Contract
 
+Archived: this document describes the old JSON surface compatibility bridge and
+is no longer part of the current primary MDAN spec set. The current public
+direction is Markdown artifacts plus HTML projection. Keep this file only as a
+historical reference while compatibility behavior still exists in parts of the
+runtime.
+
 This document defines the SDK-level contract for the legacy JSON surface bridge
 and its action metadata. It is the practical validation contract still enforced
 by the runtime before a compatibility surface is returned to clients that still

@@ -1,15 +1,9 @@
 import type { MdanBlock, MdanFragment, MdanOperation, MdanPage } from "../protocol/types.js";
 
-import { openAssetStream as openStoredAssetStream, readAsset as readStoredAsset, type MdanAssetStoreOptions } from "./assets.js";
+import { dispatchGetRoute } from "./handler-dispatch.js";
+import type { MdanAssetStoreOptions } from "./assets.js";
 import { MdanRouter } from "./router.js";
-import { normalizeActionHandlerResult, normalizePageHandlerResult } from "./result-normalization.js";
 import type { MdanActionResult, MdanRequest, MdanSessionSnapshot } from "./types.js";
-
-export interface AutoPageResolution {
-  page: MdanPage;
-  route?: string;
-  session?: MdanActionResult["session"];
-}
 
 export interface AutoDependencyOptions {
   maxPasses?: number;
@@ -22,10 +16,6 @@ function resolveMaxPasses(options: AutoDependencyOptions = {}): number {
     return DEFAULT_MAX_AUTO_DEPENDENCY_PASSES;
   }
   return Math.max(0, Math.floor(options.maxPasses));
-}
-
-function getPathname(request: MdanRequest): string {
-  return new URL(request.url).pathname;
 }
 
 function isAutoDependency(operation: MdanOperation): boolean {
@@ -45,6 +35,121 @@ function applySessionMutation(
   }
 
   return mutation.session;
+}
+
+function mergePreferredMetadata(
+  preferred: Pick<MdanActionResult, "status" | "route" | "headers" | "session">,
+  fallback?: Pick<MdanActionResult, "status" | "route" | "headers" | "session">
+): Pick<MdanActionResult, "status" | "route" | "headers" | "session"> {
+  return {
+    ...(preferred.status !== undefined
+      ? { status: preferred.status }
+      : fallback?.status !== undefined
+        ? { status: fallback.status }
+        : {}),
+    ...(preferred.route
+      ? { route: preferred.route }
+      : fallback?.route
+        ? { route: fallback.route }
+        : {}),
+    ...(preferred.headers
+      ? { headers: preferred.headers }
+      : fallback?.headers
+        ? { headers: fallback.headers }
+        : {}),
+    ...(preferred.session
+      ? { session: preferred.session }
+      : fallback?.session
+        ? { session: fallback.session }
+        : {})
+  };
+}
+
+function buildActionResult(
+  page: MdanPage,
+  metadata: Pick<MdanActionResult, "status" | "route" | "headers" | "session">
+): MdanActionResult {
+  return {
+    ...metadata,
+    page
+  };
+}
+
+function currentResultMetadata(
+  status: number | undefined,
+  route: string | undefined,
+  headers: Record<string, string> | undefined,
+  session: MdanActionResult["session"] | undefined
+): Pick<MdanActionResult, "status" | "route" | "headers" | "session"> {
+  return {
+    ...(status !== undefined ? { status } : {}),
+    ...(route ? { route } : {}),
+    ...(headers ? { headers } : {}),
+    ...(session ? { session } : {})
+  };
+}
+
+function mergeResolvedMetadata(
+  current: Pick<MdanActionResult, "status" | "route" | "headers" | "session">,
+  resolved?: Pick<MdanActionResult, "status" | "route" | "headers" | "session">
+): Pick<MdanActionResult, "status" | "route" | "headers" | "session"> {
+  return mergePreferredMetadata(resolved ?? {}, current);
+}
+
+interface AutoDependencyResolutionState {
+  session: MdanSessionSnapshot | null;
+  mutation?: MdanActionResult["session"];
+  route?: string;
+  status?: number;
+  headers?: Record<string, string>;
+}
+
+function applyResolvedResultState(
+  state: AutoDependencyResolutionState,
+  result: Pick<MdanActionResult, "status" | "route" | "headers" | "session">
+): AutoDependencyResolutionState {
+  return {
+    session: applySessionMutation(state.session, result.session),
+    ...(result.session ? { mutation: result.session } : state.mutation ? { mutation: state.mutation } : {}),
+    ...(result.route ? { route: result.route } : state.route ? { route: state.route } : {}),
+    ...(result.status !== undefined ? { status: result.status } : state.status !== undefined ? { status: state.status } : {}),
+    ...(result.headers ? { headers: result.headers } : state.headers ? { headers: state.headers } : {})
+  };
+}
+
+function stateResultMetadata(
+  state: AutoDependencyResolutionState
+): Pick<MdanActionResult, "status" | "route" | "headers" | "session"> {
+  return currentResultMetadata(state.status, state.route, state.headers, state.mutation);
+}
+
+function applyResolvedPageResult(
+  current: MdanActionResult,
+  resolved: MdanActionResult,
+  resolvedPage: MdanActionResult
+): MdanActionResult {
+  return {
+    ...current,
+    ...mergeResolvedMetadata(
+      {
+        ...current,
+        ...mergeResolvedMetadata(current, resolved)
+      },
+      resolvedPage
+    ),
+    page: resolvedPage.page
+  };
+}
+
+function applyResolvedFragmentResult(
+  current: MdanActionResult,
+  resolved: MdanActionResult
+): MdanActionResult {
+  return {
+    ...current,
+    ...mergeResolvedMetadata(current, resolved),
+    fragment: resolved.fragment,
+  };
 }
 
 function createImplicitGetRequest(target: string, request: MdanRequest): MdanRequest {
@@ -93,54 +198,17 @@ async function resolveAutoTarget(
   request: MdanRequest,
   session: MdanSessionSnapshot | null,
   router: MdanRouter,
-  assetOptions: MdanAssetStoreOptions
+  assetOptions: MdanAssetStoreOptions,
+  fallbackAppId?: string
 ): Promise<MdanActionResult | null> {
   const implicitRequest = createImplicitGetRequest(target, request);
-  const pathname = getPathname(implicitRequest);
-  const pageHandler = router.resolvePage(pathname);
-
-  if (pageHandler) {
-    const pageResult = await pageHandler.handler({
-      request: implicitRequest,
-      session,
-      params: pageHandler.params
-    });
-    const normalizedPageResult = normalizePageHandlerResult(pageResult);
-    const page = normalizedPageResult.page;
-
-    if (!page) {
-      return null;
-    }
-
-    return {
-      status: 200,
-      route: normalizedPageResult.route ?? pathname,
-      page
-    };
-  }
-
-  const match = router.resolve("GET", pathname);
-  if (!match) {
-    return null;
-  }
-
-  const resultLike = await match.handler({
-    request: implicitRequest,
-    inputs: Object.fromEntries(new URL(implicitRequest.url).searchParams.entries()),
-    inputsRaw: Object.fromEntries(new URL(implicitRequest.url).searchParams.entries()),
+  return dispatchGetRoute(
+    router,
+    implicitRequest,
     session,
-    params: match.params,
-    readAsset(assetId: string) {
-      return readStoredAsset(assetId, assetOptions);
-    },
-    openAssetStream(assetId: string) {
-      return openStoredAssetStream(assetId, assetOptions);
-    }
-  });
-  if ("stream" in resultLike) {
-    return null;
-  }
-  return normalizeActionHandlerResult(resultLike);
+    assetOptions,
+    { appId: fallbackAppId }
+  );
 }
 
 function findAutoDependency(blocks: MdanBlock[]): { blockName: string; operation: MdanOperation } | null {
@@ -163,12 +231,13 @@ export async function resolveAutoDependencies(
   session: MdanSessionSnapshot | null,
   router: MdanRouter,
   assetOptions: MdanAssetStoreOptions,
-  options: AutoDependencyOptions = {}
-): Promise<AutoPageResolution> {
+  options: AutoDependencyOptions = {},
+  fallbackAppId?: string
+): Promise<MdanActionResult> {
   let currentPage = page;
-  let currentSession = session;
-  let currentMutation: MdanActionResult["session"] | undefined;
-  let currentRoute: string | undefined;
+  let state: AutoDependencyResolutionState = {
+    session
+  };
   const maxPasses = resolveMaxPasses(options);
 
   for (let pass = 0; pass < maxPasses; pass += 1) {
@@ -180,18 +249,12 @@ export async function resolveAutoDependencies(
         continue;
       }
 
-      const result = await resolveAutoTarget(operation.target, request, currentSession, router, assetOptions);
+      const result = await resolveAutoTarget(operation.target, request, state.session, router, assetOptions, fallbackAppId);
       if (!result) {
         continue;
       }
 
-      currentSession = applySessionMutation(currentSession, result.session);
-      if (result.session) {
-        currentMutation = result.session;
-      }
-      if (result.route) {
-        currentRoute = result.route;
-      }
+      state = applyResolvedResultState(state, result);
 
       if (result.page) {
         currentPage = result.page;
@@ -206,19 +269,17 @@ export async function resolveAutoDependencies(
     }
 
     if (!resolved) {
-      return {
-        page: currentPage,
-        ...(currentRoute ? { route: currentRoute } : {}),
-        ...(currentMutation ? { session: currentMutation } : {})
-      };
+      return buildActionResult(
+        currentPage,
+        stateResultMetadata(state)
+      );
     }
   }
 
-  return {
-    page: currentPage,
-    ...(currentRoute ? { route: currentRoute } : {}),
-    ...(currentMutation ? { session: currentMutation } : {})
-  };
+  return buildActionResult(
+    currentPage,
+    stateResultMetadata(state)
+  );
 }
 
 export async function resolveAutoActionResult(
@@ -227,14 +288,14 @@ export async function resolveAutoActionResult(
   session: MdanSessionSnapshot | null,
   router: MdanRouter,
   assetOptions: MdanAssetStoreOptions,
-  options: AutoDependencyOptions = {}
+  options: AutoDependencyOptions = {},
+  fallbackAppId?: string
 ): Promise<MdanActionResult> {
   if (result.page) {
-    const resolvedPage = await resolveAutoDependencies(result.page, request, session, router, assetOptions, options);
+    const resolvedPage = await resolveAutoDependencies(result.page, request, session, router, assetOptions, options, fallbackAppId);
     return {
       ...result,
-      ...(resolvedPage.route ? { route: resolvedPage.route } : result.route ? { route: result.route } : {}),
-      ...(resolvedPage.session ? { session: resolvedPage.session } : {}),
+      ...mergeResolvedMetadata(result, resolvedPage),
       page: resolvedPage.page
     };
   }
@@ -253,34 +314,26 @@ export async function resolveAutoActionResult(
       return current;
     }
 
-    const resolved = await resolveAutoTarget(dependency.operation.target, request, currentSession, router, assetOptions);
+    const resolved = await resolveAutoTarget(dependency.operation.target, request, currentSession, router, assetOptions, fallbackAppId);
     if (!resolved) {
       return current;
     }
 
     if (resolved.page) {
-      const resolvedPage = await resolveAutoDependencies(resolved.page, request, currentSession, router, assetOptions, options);
-      return {
-        ...current,
-        ...(resolvedPage.session ? { session: resolvedPage.session } : resolved.session ? { session: resolved.session } : {}),
-        ...(resolvedPage.route
-          ? { route: resolvedPage.route }
-          : resolved.route
-            ? { route: resolved.route }
-            : current.route
-              ? { route: current.route }
-              : {}),
-        page: resolvedPage.page
-      };
+      const resolvedPage = await resolveAutoDependencies(
+        resolved.page,
+        request,
+        currentSession,
+        router,
+        assetOptions,
+        options,
+        fallbackAppId
+      );
+      return applyResolvedPageResult(current, resolved, resolvedPage);
     }
 
     if (resolved.fragment) {
-      current = {
-        ...current,
-        ...(resolved.route ? { route: resolved.route } : current.route ? { route: current.route } : {}),
-        fragment: resolved.fragment,
-        ...(resolved.session ? { session: resolved.session } : {})
-      };
+      current = applyResolvedFragmentResult(current, resolved);
       continue;
     }
 

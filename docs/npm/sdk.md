@@ -19,23 +19,18 @@ npm install @mdanai/sdk
 ## Minimal Bun App
 
 ```ts
-import { createArtifactPage, createMdanServer } from "@mdanai/sdk/server";
+import { createMdanServer } from "@mdanai/sdk/server";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const server = createMdanServer({
+  appId: "hello-mdan",
   browserShell: {
     title: "MDAN App"
   }
 });
 
 server.page("/", async () =>
-  createArtifactPage({
-    frontmatter: {
-      route: "/",
-      app_id: "hello-mdan",
-      state_id: "hello-mdan:home:1",
-      state_version: 1
-    },
+  ({
     markdown: `# Hello MDAN
 
 ## Purpose
@@ -51,17 +46,8 @@ Agents and browsers should use declared actions instead of guessing routes.
 The surface is ready.
 
 ::: block{id="main" actions="refresh_main" trust="untrusted"}
-## Context
-Minimal starter block.
-
-## Result
-- Ready
-:::
-`,
-    executableJson: {
-      app_id: "hello-mdan",
-      state_id: "hello-mdan:home:1",
-      state_version: 1,
+:::`,
+    actions: {
       response_mode: "page",
       blocks: ["main"],
       actions: [
@@ -80,7 +66,8 @@ Minimal starter block.
       ],
       allowed_next_actions: ["refresh_main"]
     },
-    blockContent: {
+    route: "/",
+    regions: {
       main: "## Context\nMinimal starter block.\n\n## Result\n- Ready"
     }
   })
@@ -112,11 +99,22 @@ bun start
 
 ## Runtime Notes
 
+- Returning a readable surface is the lightest default server authoring path.
+- When you set `createMdanServer({ appId })`, the runtime fills in `app_id`,
+  `state_id`, and `state_version` for readable-surface responses when you omit
+  them.
 - Markdown artifact responses are the preferred public read path.
 - Legacy JSON surface responses remain available only as a compatibility bridge.
 - POST actions require action proof by default.
 - Server-side `auto` dependencies are GET-only and do not bypass external POST proof validation.
 - Browser shells can serve local `dist-browser` bundles with `browserShell.moduleMode = "local-dist"`.
+
+## Lower-Level Artifact Helpers
+
+`createArtifactPage(...)`, `createArtifactFragment(...)`, and
+`createExecutableContent(...)` remain available when you want to build
+artifact-native responses directly. Treat them as lower-level helpers rather
+than the default app authoring path.
 
 ## Repository
 

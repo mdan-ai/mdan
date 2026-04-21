@@ -1,8 +1,11 @@
-import type { MdanFragment, MdanPage } from "../protocol/types.js";
-import { serializeArtifactFragment, serializeArtifactPage } from "./artifact.js";
+import type { MdanPage } from "../protocol/types.js";
+import {
+  serializeArtifactFragment,
+  serializeArtifactPage,
+  type ReadableSurface
+} from "./artifact.js";
 import { serializeSseMessage } from "./sse.js";
 import { renderBrowserShell, type BrowserShellOptions } from "./browser-shell.js";
-import type { ProjectableReadableSurface } from "./surface-projection.js";
 import { toMarkdownContentType } from "./content-type.js";
 import type {
   MdanActionResult,
@@ -14,18 +17,14 @@ import type {
 
 function resolveResponseBody(result: MdanActionResult): string {
   if (result.page) {
-    return serializeMarkdownPage(result.page);
+    return serializeArtifactPage(result.page);
   }
 
   if (!result.fragment) {
     throw new Error("Action results must include either a fragment or a page.");
   }
 
-  return serializeMarkdownFragment(result.fragment);
-}
-
-function isStreamResult(result: MdanHandlerResult): result is MdanStreamResult {
-  return "stream" in result;
+  return serializeArtifactFragment(result.fragment);
 }
 
 function toAsyncIterable(stream: AsyncIterable<MdanStreamChunk> | Iterable<MdanStreamChunk>): AsyncIterable<MdanStreamChunk> {
@@ -38,32 +37,24 @@ function toAsyncIterable(stream: AsyncIterable<MdanStreamChunk> | Iterable<MdanS
   })();
 }
 
-function serializeMarkdownPage(page: MdanPage): string {
-  return serializeArtifactPage(page);
-}
-
-function serializeMarkdownFragment(fragment: MdanFragment): string {
-  return serializeArtifactFragment(fragment);
-}
-
 function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<string> {
-  if (!isStreamResult(result)) {
+  if (!("stream" in result)) {
     if (!result.fragment) {
       throw new Error("Non-stream event-stream responses must include a fragment.");
     }
-    return serializeSseMessage(serializeMarkdownFragment(result.fragment));
+    return serializeSseMessage(serializeArtifactFragment(result.fragment));
   }
 
   return (async function* () {
     for await (const chunk of toAsyncIterable(result.stream)) {
-      const markdown = typeof chunk === "string" ? chunk : serializeMarkdownFragment(chunk);
+      const markdown = typeof chunk === "string" ? chunk : serializeArtifactFragment(chunk);
       yield serializeSseMessage(markdown);
     }
   })();
 }
 
 export function createHtmlSurfaceResponse(
-  surface: ProjectableReadableSurface,
+  surface: ReadableSurface,
   options: BrowserShellOptions = {},
   status = 200,
   headers?: Record<string, string>
@@ -117,7 +108,7 @@ export function createPageResponse(
       "content-type": toMarkdownContentType(),
       ...(headers ?? {})
     },
-    body: serializeMarkdownPage(page)
+    body: serializeArtifactPage(page)
   };
 }
 

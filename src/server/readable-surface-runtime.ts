@@ -1,0 +1,30 @@
+import { type ReadableSurface } from "./artifact.js";
+import type { ReadableSurfaceValidationOptions } from "./readable-surface-options.js";
+import { getReadableSurfaceViolation } from "./readable-surface-validation.js";
+import {
+  createActionsContractViolationResult,
+  createAgentBlocksViolationResult,
+  createMarkdownErrorResultResponse,
+  createSemanticSlotsViolationResult
+} from "./runtime-errors.js";
+import type { MdanResponse } from "./types.js";
+
+export function createReadableSurfaceValidationResponse(
+  surface: ReadableSurface,
+  options: ReadableSurfaceValidationOptions
+): MdanResponse | null {
+  const violation = getReadableSurfaceViolation(surface, options);
+  if (!violation) {
+    return null;
+  }
+
+  return createMarkdownErrorResultResponse(
+    violation.kind === "agent"
+      ? createAgentBlocksViolationResult(violation.errors)
+      : violation.kind === "semantic"
+        ? createSemanticSlotsViolationResult(violation.errors)
+        : createActionsContractViolationResult(violation.detail)
+  );
+}
+
+export { createMarkdownErrorResultResponse as createInvalidHandlerResultResponse } from "./runtime-errors.js";

@@ -11,3 +11,9 @@ npm start
 ```
 
 Open `http://127.0.0.1:4321/`.
+
+Try this next:
+
+- edit `app/index.md` and refresh the browser
+- run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/` to inspect the canonical artifact
+- if port `4321` is busy, start with `PORT=4322 npm start`

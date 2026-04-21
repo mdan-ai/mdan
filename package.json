@@ -68,6 +68,10 @@
     "test:create-mdan": "bunx vitest run create-mdan/test"
   },
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./server": {
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"

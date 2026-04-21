@@ -28,27 +28,24 @@ The same model drives:
 Action handlers receive both normalized and raw values:
 
 ```ts
-import { createArtifactPage } from "@mdanai/sdk/server";
-```
+const server = createMdanServer({ appId: "demo" });
 
-```ts
 server.post("/submit", async ({ inputs, inputsRaw }) => {
-  return createArtifactPage({
-    frontmatter: {
-      route: "/submit",
-      app_id: "demo",
-      state_id: "demo:saved",
-      state_version: 1
+  return {
+    markdown: `# Saved
+
+::: block{id="result" trust="untrusted"}
+:::`,
+    actions: {
+      blocks: ["result"],
+      actions: [],
+      allowed_next_actions: []
     },
-    markdown: `# Saved\n\nCount: ${inputs.count}`,
-    executableJson: {
-      app_id: "demo",
-      state_id: "demo:saved",
-      state_version: 1,
-      blocks: [],
-      actions: []
+    route: "/submit",
+    regions: {
+      result: `Count: ${inputs.count}`
     }
-  });
+  };
 });
 ```
 
@@ -119,6 +116,8 @@ const server = createMdanServer({
 Handlers can read assets through context helpers:
 
 ```ts
+const server = createMdanServer({ appId: "upload-demo" });
+
 server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
   const attachment = inputs.attachment;
   if (!attachment || typeof attachment !== "object" || attachment.kind !== "asset") {
@@ -128,24 +127,31 @@ server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
   const bytes = await readAsset(attachment.id);
   const stream = openAssetStream(attachment.id);
 
-  return createArtifactPage({
-    frontmatter: {
-      route: "/upload",
-      app_id: "upload-demo",
-      state_id: "upload-demo:done",
-      state_version: 1
+  return {
+    markdown: `# Uploaded
+
+::: block{id="result" trust="untrusted"}
+:::`,
+    actions: {
+      blocks: ["result"],
+      actions: [],
+      allowed_next_actions: []
     },
-    markdown: `# Uploaded\n\n${attachment.name} (${bytes.byteLength} bytes)`,
-    executableJson: {
-      app_id: "upload-demo",
-      state_id: "upload-demo:done",
-      state_version: 1,
-      blocks: [],
-      actions: []
+    route: "/upload",
+    regions: {
+      result: `${attachment.name} (${bytes.byteLength} bytes)`
     }
-  });
+  };
 });
 ```
+
+If you need direct control over artifact-native payloads, you can still return
+`createArtifactPage(...)` explicitly. Use that lower-level path only when the
+readable-surface return shape is not enough.
+
+When you return a readable surface from a server configured with
+`createMdanServer({ appId })`, the runtime fills in `app_id`, `state_id`, and
+`state_version` before artifact serialization.
 
 Expired assets can be removed with:
 

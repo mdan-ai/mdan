@@ -126,8 +126,8 @@ Return a normal Markdown artifact when:
 
 ## Contract Notes
 
-Stream results are not legacy JSON surface envelopes and do not pass through
-that compatibility contract validation.
+Stream results are not readable-surface or artifact page responses, and they do
+not pass through the legacy compatibility envelope validation path either.
 
 Action proof can protect the request that starts a stream, but stream chunks do
 not carry action proofs and do not expose next actions.

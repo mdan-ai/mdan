@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../src/app-internal/create-app.js";
 
+function extractActionProof(markdown: string, actionId: string): string {
+  const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
+  expect(match?.[1]).toBeTruthy();
+  const executable = JSON.parse(String(match?.[1])) as {
+    actions?: Array<{ id?: string; action_proof?: string }>;
+  };
+  const action = executable.actions?.find((entry) => entry.id === actionId);
+  expect(action?.action_proof).toBeTypeOf("string");
+  return String(action?.action_proof);
+}
+
 describe("internal createApp runtime", () => {
   it("serves a page and handles an action through the app pipeline", async () => {
     const app = createApp({
@@ -73,6 +84,7 @@ ${state.messages.map((message) => `- ${message}`).join("\n")}`;
     expect(String(home.body)).toContain("# Starter App");
     expect(String(home.body)).toContain("Booted");
     expect(String(home.body)).toContain("```mdan");
+    const proof = extractActionProof(String(home.body), "submit_message");
 
     const post = await server.handle({
       method: "POST",
@@ -82,7 +94,9 @@ ${state.messages.map((message) => `- ${message}`).join("\n")}`;
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        action: {},
+        action: {
+          proof
+        },
         input: {
           message: "From app runtime"
         }

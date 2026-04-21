@@ -1,5 +1,4 @@
 import { createMdanServer } from "../server/runtime.js";
-import type { MdanRequestHandler } from "../server/types.js";
 import type { NormalizedPage } from "./models.js";
 import { normalizePageDefinition, type RawPageDefinition } from "./normalize-page.js";
 import { projectArtifactPage } from "./project-artifact-page.js";
@@ -11,7 +10,7 @@ export interface CreateAppOptions<TState> {
 
 export interface InternalApp<TState> {
   page(path: string, definition: RawPageDefinition): InternalApp<TState>;
-  createServer(): MdanRequestHandler;
+  createServer(): ReturnType<typeof createMdanServer>;
 }
 
 export function createApp<TState>(options: CreateAppOptions<TState>): InternalApp<TState> {

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp } from "../../src/app-internal/create-app.js";
+import { actions, createApp } from "../../src/index.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
@@ -10,25 +10,24 @@ const gettingStarted = readFileSync(join(root, "app", "getting-started.md"), "ut
 
 export function createDocsStarterServer() {
   const app = createApp({
-    id: "docs-starter",
-    state: {}
+    appId: "docs-starter"
   });
-
-  app.page("/", {
-    markdownPath: "./app/index.md",
-    markdownSource: template,
-    blocks: {
-      docs() {
-        return gettingStarted;
-      }
-    },
-    actions: {
-      refresh_docs: {
-        method: "GET",
-        path: "/"
-      }
+  const home = app.screen("/", {
+    markdown: template,
+    actions: [
+      actions.read("refresh_docs", {
+        label: "Refresh",
+        target: "/"
+      })
+    ],
+    render() {
+      return {
+        docs: gettingStarted
+      };
     }
   });
 
-  return app.createServer();
+  app.page(home);
+
+  return app;
 }

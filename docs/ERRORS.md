@@ -119,6 +119,31 @@ Applications may also return their own `400` Markdown artifact or legacy JSON
 compatibility surface when business-level validation fails. Prefer returning a
 normal artifact with useful content and allowed recovery actions.
 
+For example, a readable-surface recovery result can look like:
+
+```ts
+return {
+  status: 400,
+  markdown: `# Upload failed
+
+::: block{id="error" trust="untrusted"}
+:::`,
+  actions: {
+    blocks: ["error"],
+    actions: [],
+    allowed_next_actions: []
+  },
+  route: "/upload",
+  regions: {
+    error: "Attachment is required."
+  }
+};
+```
+
+As with other readable-surface results, the runtime fills in `app_id`,
+`state_id`, and `state_version` before final artifact serialization when the
+server is configured with `createMdanServer({ appId })`.
+
 ## Action Proof Errors
 
 With action proof enabled, JSON action requests should use:

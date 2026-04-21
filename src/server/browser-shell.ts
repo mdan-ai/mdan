@@ -4,9 +4,9 @@ import { negotiateRepresentation } from "../protocol/negotiate.js";
 import type { MdanPage } from "../protocol/types.js";
 import {
   renderInitialProjection,
-  type ProjectableReadableSurface,
+  type ReadableSurface,
   type RenderSurfaceSnapshotOptions
-} from "./surface-projection.js";
+} from "./artifact.js";
 
 export interface BrowserShellOptions {
   title?: string;
@@ -14,7 +14,7 @@ export interface BrowserShellOptions {
   moduleMode?: "cdn" | "local-dist";
   surfaceModuleSrc?: string;
   uiModuleSrc?: string;
-  initialReadableSurface?: ProjectableReadableSurface;
+  initialReadableSurface?: ReadableSurface;
   initialPage?: MdanPage;
   markdownRenderer?: RenderSurfaceSnapshotOptions["markdownRenderer"];
   hydrate?: boolean;

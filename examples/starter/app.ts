@@ -2,61 +2,58 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp } from "../../src/app-internal/create-app.js";
-import type { BrowserShellOptions } from "../../src/server/index.js";
+import { actions, createApp, fields, type BrowserShellOptions } from "../../src/index.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
 
 export function createStarterServer(
   initialMessages: string[] = ["Welcome to MDAN"],
-  _browserShell: BrowserShellOptions = { moduleMode: "local-dist" }
+  browserShell: BrowserShellOptions = { moduleMode: "local-dist" }
 ) {
+  const messages = [...initialMessages];
   const app = createApp({
-    id: "starter",
-    state: {
-      messages: [...initialMessages]
-    }
+    appId: "starter",
+    browserShell
   });
-
-  app.page("/", {
-    markdownPath: "./app/index.md",
-    markdownSource: template,
-    blocks: {
-      main({ state }) {
-        const list = state.messages.length > 0 ? state.messages.map((line) => `- ${line}`).join("\n") : "- No messages yet";
-        return `## Context
+  const home = app.screen("/", {
+    markdown: template,
+    actions: [
+      actions.read("refresh_main", {
+        label: "Refresh",
+        target: "/"
+      }),
+      actions.write("submit_message", {
+        label: "Submit",
+        target: "/post",
+        input: {
+          message: fields.string({ required: true })
+        }
+      })
+    ],
+    render(currentMessages: string[]) {
+      const list = currentMessages.length > 0
+        ? currentMessages.map((line) => `- ${line}`).join("\n")
+        : "- No messages yet";
+      return {
+        main: `## Context
 This block shows the current starter message feed and accepts a new message submission.
 
 ## Result
-${list}`;
-      }
-    },
-    actions: {
-      refresh_main: {
-        method: "GET",
-        path: "/"
-      },
-      submit_message: {
-        method: "POST",
-        path: "/post",
-        label: "Submit",
-        input: {
-          message: {
-            kind: "text",
-            required: true
-          }
-        },
-        run({ input, state }) {
-          const message = String(input.message ?? "").trim();
-          if (message) {
-            state.messages.unshift(message);
-          }
-          return { pagePath: "/" };
-        }
-      }
+${list}`
+      };
     }
   });
 
-  return app.createServer();
+  app.page("/", async () => home.render(messages));
+
+  app.action("/post", async ({ inputs }) => {
+    const message = String(inputs.message ?? "").trim();
+    if (message) {
+      messages.unshift(message);
+    }
+    return home.render(messages);
+  });
+
+  return app;
 }

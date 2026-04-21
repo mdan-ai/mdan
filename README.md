@@ -12,6 +12,25 @@ With MDAN, the page is not only presentation. It is also shared working context:
 
 The name MDAN originally came from "Markdown Action Notation", but the current SDK is positioned around a broader Markdown-first application surface model.
 
+## Start Here
+
+If you're new to the SDK, take the shortest path first:
+
+```bash
+npm create mdan@latest agent-app
+cd agent-app
+npm install
+npm start
+```
+
+Then:
+
+- open `http://127.0.0.1:4321/`
+- edit `app/index.md`
+- run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/` to inspect the canonical artifact returned to agents
+
+If you want to explore from inside this repo instead, run `bun run dev:starter` and follow [examples/starter/README.md](/Users/hencoo/projects/mdan/sdk/examples/starter/README.md).
+
 ## Why MDAN
 
 Plain Markdown is good for content, but weak at expressing interaction.
@@ -48,7 +67,10 @@ The current SDK is positioned around an artifact-first protocol:
 - executable MDAN state can ride inside a fenced `mdan` block in the Markdown document
 - a legacy JSON surface bridge still exists internally for compatibility and adapter paths
 
-Today, page handlers may still return the legacy JSON surface envelope and the SDK will project it into a Markdown artifact. That bridge is transitional. The long-term direction is artifact-native handlers and Markdown-hosted action declarations.
+Today, handlers can return a readable surface shape and let the SDK project it
+into the canonical Markdown artifact. A legacy JSON surface bridge still exists
+as a transitional compatibility path, but it is not the recommended default
+authoring model.
 
 For browser-capable examples and simple apps, server adapters can serve page-level snapshot HTML while keeping the canonical page source in Markdown:
 
@@ -149,17 +171,17 @@ import { createMdanServer } from "@mdanai/sdk/server";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const server = createMdanServer({
+  appId: "starter",
   browserShell: {
     title: "MDAN Starter"
   }
 });
 
 server.page("/", async () => ({
-  frontmatter: {},
   markdown: `# Starter App
 
 ## Purpose
-Basic artifact-native MDAN starter flow.
+Basic readable-surface MDAN starter flow.
 
 ## Context
 This page shows the current starter message feed and the next available actions.
@@ -170,14 +192,11 @@ Read the current feed from the returned artifact and submit new messages through
 ## Result
 The returned artifact should show the current messages and expose the next allowed actions for the main block.
 
-<!-- mdan:block main -->
-
-- No messages yet
+::: block{id="main" actions="refresh_main" trust="untrusted"}
+:::
 `,
-  executableContent: JSON.stringify({
-    app_id: "starter",
-    state_id: "starter:home:1",
-    state_version: 1,
+  actions: {
+    response_mode: "page",
     blocks: ["main"],
     actions: [
       {
@@ -194,36 +213,11 @@ The returned artifact should show the current messages and expose the next allow
       }
     ],
     allowed_next_actions: ["refresh_main"]
-  }, null, 2),
-  blockContent: {
-    main: "- No messages yet"
   },
-  blockAnchors: ["main"],
-  visibleBlockNames: ["main"],
-  blocks: [
-    {
-      name: "main",
-      inputs: [],
-      operations: [
-        {
-          method: "GET",
-          name: "refresh_main",
-          target: "/",
-          inputs: [],
-          label: "Refresh",
-          verb: "read",
-          inputSchema: {
-            type: "object",
-            properties: {},
-            additionalProperties: false
-          },
-          security: {
-            confirmationPolicy: "never"
-          }
-        }
-      ]
-    }
-  ]
+  route: "/",
+  regions: {
+    main: "- No messages yet"
+  }
 }));
 
 export default createHost(server, {
@@ -233,9 +227,14 @@ export default createHost(server, {
 });
 ```
 
-This is the preferred direction for new code: return the canonical Markdown
-artifact directly. The legacy JSON surface envelope is still supported as a
-compatibility bridge while older handlers migrate.
+This is the preferred default authoring path for new code: return a readable
+surface shape and let the runtime project it into the canonical Markdown
+artifact. Lower-level artifact helpers still exist when you want direct control
+over the final artifact payload.
+
+When you set `createMdanServer({ appId })`, the runtime fills in `app_id`,
+`state_id`, and `state_version` for readable-surface responses before artifact
+serialization.
 
 Node starter:
 
@@ -303,15 +302,27 @@ Asset uploads now normalize into serializable asset handles instead of filename 
 In a server handler:
 
 ```ts
+const server = createMdanServer({ appId: "demo" });
+
 server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
   const attachment = inputs.attachment;
   const bytes = await readAsset(attachment.id);
   const stream = openAssetStream(attachment.id);
 
   return {
-    content: `# Uploaded\n\n${attachment.name}`,
-    actions: { app_id: "demo", state_id: "demo:upload", state_version: 1, blocks: [], actions: [] },
-    view: { route_path: "/upload", regions: {} }
+    markdown: `# Uploaded
+
+::: block{id="result" trust="untrusted"}
+:::`,
+    actions: {
+      blocks: ["result"],
+      actions: [],
+      allowed_next_actions: []
+    },
+    route: "/upload",
+    regions: {
+      result: attachment.name
+    }
   };
 });
 ```
@@ -355,7 +366,6 @@ Local spec docs:
 
 - [Spec Overview](spec/index.md)
 - [Application Surface Spec (ZH)](spec/application-surface.zh.md)
-- [Legacy Surface And Actions Contract](spec/legacy-surface-actions-contract.md)
 
 Reference and product docs:
 

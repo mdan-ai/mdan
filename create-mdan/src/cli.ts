@@ -83,7 +83,12 @@ export function formatNextSteps(projectDir: string, runtime: StarterRuntime, tar
     `  cd ${targetArg}`,
     "",
     `  ${installCommand}`,
-    `  ${startCommand}`
+    `  ${startCommand}`,
+    "",
+    "Then:",
+    "  Open http://127.0.0.1:4321/",
+    "  Edit app/index.md to change the page content",
+    "  Run curl -H 'Accept: text/markdown' http://127.0.0.1:4321/ to inspect the canonical artifact"
   ].join("\n");
 }
 

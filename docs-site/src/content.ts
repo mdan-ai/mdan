@@ -73,8 +73,11 @@ export const docsNav: DocsNavSection[] = [
     title: "Spec",
     items: [
       { route: "/spec", label: "Spec Overview" },
-      { route: "/spec/application-surface-zh", label: "Application Surface Spec (ZH)" },
-      { route: "/spec/legacy-surface-actions-contract", label: "Legacy Surface Actions Contract" }
+      { route: "/spec/artifact-contract", label: "Artifact Contract" },
+      { route: "/spec/action-execution", label: "Action Execution" },
+      { route: "/spec/action-proof", label: "Action Proof" },
+      { route: "/spec/agent-content", label: "Agent Content" },
+      { route: "/spec/application-surface-zh", label: "Application Surface Spec (ZH)" }
     ]
   },
   {
@@ -119,8 +122,11 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/examples/auth-guestbook", sourcePath: "examples/auth-guestbook/README.md" },
   { route: "/examples/weather-markdown", sourcePath: "demo/weather-markdown/README.md" },
   { route: "/spec", sourcePath: "spec/index.md" },
+  { route: "/spec/artifact-contract", sourcePath: "spec/artifact-contract.md" },
+  { route: "/spec/action-execution", sourcePath: "spec/action-execution.md" },
+  { route: "/spec/action-proof", sourcePath: "spec/action-proof.md" },
+  { route: "/spec/agent-content", sourcePath: "spec/agent-content.md" },
   { route: "/spec/application-surface-zh", sourcePath: "spec/application-surface.zh.md" },
-  { route: "/spec/legacy-surface-actions-contract", sourcePath: "spec/legacy-surface-actions-contract.md" },
   { route: "/contributing", sourcePath: "CONTRIBUTING.md" },
   { route: "/architecture", sourcePath: "ARCHITECTURE.md" }
 ];

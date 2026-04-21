@@ -40,8 +40,8 @@ The shared server runtime and server-side helpers.
 - `createArtifactFragment(options)`
 - `createExecutableContent(value)`
 
-Use these when you want to build artifact-native results directly instead of
-hand-writing embedded executable content strings.
+Use these as lower-level helpers when you want to build artifact-native results
+directly instead of returning a readable surface shape from handlers.
 
 ### Result Helpers
 

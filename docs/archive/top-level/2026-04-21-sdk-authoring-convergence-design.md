@@ -2119,3 +2119,651 @@ The best next slice is:
 - starter rewrite
 
 That slice is small enough to complete, large enough to test the core thesis, and focused enough to reveal whether the current public complexity is really an abstraction problem or just an authoring-surface problem.
+
+## Validation Status
+
+This section records what has already been validated in code by the current internal prototype.
+
+The goal is to distinguish:
+
+- design claims that are still hypothetical
+- design claims that have already been exercised by tests and example rewrites
+
+### Current Validation Level
+
+Status:
+
+- internal prototype exists
+- internal tests exist
+- `starter` is running on the internal app pipeline
+- `docs-starter` is running on the internal app pipeline
+- auth-guestbook-style flow is covered by internal tests
+
+This means the convergence proposal is no longer only a design direction.
+It is now partially validated by executable code.
+
+## What Is Already Validated
+
+### 1. Normalized action model
+
+Validated by:
+
+- `test/app-internal/normalize-action.test.ts`
+
+What is proven:
+
+- action id, page ownership, label defaulting, path defaulting, and verb mapping can converge into one internal action definition
+
+Implication:
+
+- action duplication is not structurally required by the protocol
+- it can be internalized behind one canonical model
+
+### 2. Normalized page model
+
+Validated by:
+
+- `test/app-internal/normalize-page.test.ts`
+
+What is proven:
+
+- blocks and page-owned actions can be attached to a single normalized page object
+
+Implication:
+
+- page behavior can be localized in one internal definition instead of being scattered across markdown, actions JSON, and route registration code
+
+### 3. Action manifest projection
+
+Validated by:
+
+- `test/app-internal/project-action-manifest.test.ts`
+
+What is proven:
+
+- normalized actions can be projected into executable action manifest content without hand-authored action JSON files
+
+Implication:
+
+- `app/actions/*.json` is not a required long-term authoring artifact
+
+### 4. Block operations projection
+
+Validated by:
+
+- `test/app-internal/project-block-operations.test.ts`
+
+What is proven:
+
+- the same normalized actions can be projected into block operations automatically
+
+Implication:
+
+- manual `blocks[].operations` authoring is not fundamentally necessary
+
+### 5. Artifact page projection
+
+Validated by:
+
+- `test/app-internal/project-artifact-page.test.ts`
+
+What is proven:
+
+- normalized page + rendered block content + projected metadata is sufficient to assemble a final artifact page
+
+Implication:
+
+- `createArtifactPage(...)` can sit behind an internal projection layer instead of being part of the main authoring path
+
+### 6. Internal app runtime
+
+Validated by:
+
+- `test/app-internal/create-app-runtime.test.ts`
+
+What is proven:
+
+- a minimal internal `createApp()` can define a page, serve it through the existing server runtime, and execute a POST action with action proof intact
+
+Implication:
+
+- the authoring-layer idea is compatible with the existing runtime contract
+- protocol preservation does not require keeping low-level authoring public
+
+### 7. Content-style page flow
+
+Validated by:
+
+- `test/app-internal/create-app-docs-runtime.test.ts`
+- rewritten `examples/docs-starter/app.ts`
+- `test/server/docs-starter-artifact-example.test.ts`
+
+What is proven:
+
+- the internal app pipeline is not limited to form-style flows
+- content-block pages with GET refresh actions also fit the same model
+
+Implication:
+
+- the new authoring direction is broad enough for both starter and docs examples
+
+### 8. Page result data
+
+Validated by:
+
+- `test/app-internal/create-app-page-result-data.test.ts`
+
+What is proven:
+
+- action results can pass page-scoped data into the next render
+
+Implication:
+
+- login/register style status messaging does not require a full session or flash abstraction just to validate the authoring model
+
+### 9. Page resolution hook
+
+Validated by:
+
+- `test/app-internal/create-app-page-resolution.test.ts`
+
+What is proven:
+
+- a requested page can resolve to another page before render and carry result data with it
+
+Implication:
+
+- the guestbook-to-login guard style flow can be expressed with a narrow page-level hook
+
+### 10. Multi-page auth guestbook-style flow
+
+Validated by:
+
+- `test/app-internal/create-app-auth-guestbook-flow.test.ts`
+
+What is proven:
+
+- the internal `createApp()` prototype can already express:
+  - multi-page navigation
+  - login
+  - registration-style validation patterns
+  - message posting
+  - logout
+  - page result data
+  - page resolution
+  - action proof usage across the full flow
+
+Implication:
+
+- the current internal authoring direction is strong enough to represent most of the `auth-guestbook` authoring model
+
+## What Has Been Rewritten in Real Examples
+
+### `starter`
+
+Current state:
+
+- migrated to the internal app pipeline
+- existing example behavior test still passes
+
+What this proves:
+
+- the internal path can replace hand-authored protocol assembly in a real example, not just synthetic tests
+
+### `docs-starter`
+
+Current state:
+
+- migrated to the internal app pipeline
+- existing example behavior test still passes
+
+What this proves:
+
+- the same internal model works for a second example category without changing the underlying protocol
+
+## What Is Still Not Yet Validated
+
+The following remain design-level or partial concerns:
+
+1. public export shape
+   The internal prototype exists, but the public package surface is not yet finalized.
+
+2. `fields` public authoring API
+   Internal field shapes exist, but the final public helper API is not yet implemented.
+
+3. public naming and package layout
+   Internal structure is proving out first; public naming remains a separate product decision.
+
+4. migration of the full `auth-guestbook` example file
+   The flow is validated in tests, but the example itself is not yet rewritten.
+
+5. interaction with session/auth implementation strategy
+   Authoring shape is validated independently, but public auth ergonomics are intentionally unresolved.
+
+## Updated Interpretation of the Coverage Check
+
+The earlier coverage check identified two likely extensions needed for `auth-guestbook`:
+
+- page result data
+- page resolution hook
+
+These are now no longer hypothetical.
+They are implemented in narrow form inside the internal prototype and validated by tests.
+
+This materially strengthens the proposal:
+
+- the first authoring surface did not collapse when faced with multi-page flows
+- the missing capabilities turned out to be narrow and local, not signs of a broken abstraction
+
+## Practical Conclusion
+
+At this point, the strongest remaining uncertainty is no longer:
+
+- "can this authoring model work?"
+
+The stronger remaining questions are now:
+
+- how should the public API be shaped?
+- how aggressively should low-level exports be de-emphasized?
+- when should the public documentation switch to the new path?
+
+That is a better kind of uncertainty.
+It means the core technical thesis has already crossed from speculation into evidence.
+
+## SDK Core Refactor Breakdown
+
+This section is intentionally implementation-oriented.
+
+It reframes the next phase of work away from "add an app API" and toward:
+
+- fixing the SDK core structure
+- removing duplicate representations
+- cleaning up misplaced responsibilities
+- preparing the core so that any future app API is thin rather than compensatory
+
+The plan is divided into five refactor points.
+They should be tackled in order.
+
+## Refactor Point 1: Unify the Internal Core Model
+
+### Problem
+
+The SDK currently allows the same business meaning to exist in multiple internal shapes:
+
+- page behavior appears partly in page handlers, partly in artifact assembly, and partly in example-local structures
+- action behavior appears partly in action manifests, partly in block operations, and partly in route wiring
+- result behavior is split across page results, action results, readable surfaces, and example-local conventions
+
+This leads to:
+
+- duplicate sources of truth
+- projection logic leaking into examples
+- runtime logic depending on historical representation details
+
+### Current files most affected
+
+- `src/server/runtime.ts`
+- `src/server/result-normalization.ts`
+- `src/server/artifact.ts`
+- `src/server/router.ts`
+- example files that currently act as structure assembly code
+
+### What should be deleted or phased out
+
+- example-local manifest types
+- example-local route assembly conventions that encode internal structure
+- ad hoc internal shape differences that only exist because examples built protocol output manually
+
+### What should be introduced or consolidated
+
+- one canonical internal page model
+- one canonical internal action model
+- one canonical internal result model
+- one app-level registry or equivalent route-addressable model
+
+### What "done" looks like
+
+- runtime, projection, and future authoring layers all depend on the same page/action/result language
+- examples no longer need to invent their own intermediate structures
+
+### Verification
+
+- normalized model tests remain green
+- current examples can be described without introducing extra local shape definitions
+
+## Refactor Point 2: Pull Projection Back Into the Core
+
+### Problem
+
+Manifest generation, block operation generation, frontmatter generation, and artifact page assembly are protocol projection concerns, but historically they were not fully owned by the SDK core.
+
+That caused examples to take on responsibilities they should never have had:
+
+- hand-building executable content
+- hand-building block operations
+- hand-building frontmatter
+- hand-assembling artifact pages
+
+### Current files most affected
+
+- `src/server/artifact.ts`
+- `src/server/contracts.ts`
+- `src/server/surface-projection.ts`
+- example files currently calling `createArtifactPage(...)`
+
+### What should be deleted or phased out
+
+- example-side manifest assembly
+- example-side block operation assembly
+- example-side frontmatter assembly
+- examples treating artifact helpers as the primary authoring API
+
+### What should be introduced or consolidated
+
+- core-owned projectors for:
+  - action manifest
+  - block operations
+  - frontmatter
+  - artifact page assembly
+
+### What "done" looks like
+
+- protocol output is generated from the core model in one place
+- examples provide business definitions, not protocol projection code
+
+### Verification
+
+- projection tests remain green
+- starter/docs-style examples no longer require manual manifest or operation assembly
+
+## Refactor Point 3: Refactor Runtime to Consume the Core Model Directly
+
+### Problem
+
+The current runtime still fundamentally revolves around the old route-registration and handler-result shape.
+
+The recent prototype proved that a higher-level authoring flow works, but the prototype is still a parallel path.
+
+That means the core runtime has not yet fully absorbed:
+
+- page resolution
+- action execution
+- rerender orchestration
+- page result data flow
+- page resolution hooks
+
+### Current files most affected
+
+- `src/server/runtime.ts`
+- `src/server/router.ts`
+- `src/server/result-normalization.ts`
+- `src/server/request-inputs.ts`
+- `src/server/action-proofing.ts`
+
+### What should be deleted or phased out
+
+- example-specific route glue
+- parallel runtime behavior living outside the core server path
+- assumptions that page/action behavior must enter through low-level manual registration only
+
+### What should be introduced or consolidated
+
+- a core route flow that understands page/action definitions directly
+- core-owned rerender behavior after action execution
+- core-owned page resolution before render
+- core-owned propagation of page result data into the next render
+
+### What "done" looks like
+
+- the runtime itself can execute the converged page/action model
+- higher-level authoring does not require a parallel runtime implementation
+
+### Verification
+
+- starter behavior still passes under the core runtime
+- docs-style pages still pass under the same runtime
+- auth-guestbook-style tests still pass with page result data and page resolution
+
+## Refactor Point 4: Clean Up Misplaced Low-Level Authoring Surfaces
+
+### Problem
+
+Some low-level helpers are currently positioned ambiguously:
+
+- they are useful as internal building blocks
+- but they also appear close to the public authoring path
+
+This creates confusion about what the SDK is actually asking developers to do.
+
+### Current files most affected
+
+- `src/index.ts`
+- `src/server/index.ts`
+- README and example entry points
+- starter templates and scaffolding
+
+### What should be deleted or phased out
+
+- low-level helpers appearing in starter-level authoring
+- documentation that presents protocol assembly helpers as the normal path
+- example code that teaches low-level assembly as the first way to build an app
+
+### What should be retained but repositioned
+
+- low-level artifact helpers
+- low-level server runtime entry points
+- protocol-level utilities
+
+These may still exist, but their role should be:
+
+- internal building blocks
+- advanced or protocol-oriented usage
+- not the default app-authoring path
+
+### What "done" looks like
+
+- low-level helpers have a clear advanced/internal role
+- main examples no longer depend on them directly
+- first-contact docs do not teach them as the default path
+
+### Verification
+
+- starter/docs examples stop importing low-level assembly helpers directly
+- README path no longer depends on protocol assembly code
+
+## Refactor Point 5: Only Then Shape the App API
+
+### Problem
+
+If an app API is introduced before the core structure is repaired, it becomes a compensation layer over duplication rather than a real authoring abstraction.
+
+### Current risk
+
+- a beautiful outer API can still depend on a messy parallel runtime
+- internal duplication can stay alive under a thinner façade
+- long-term maintenance cost increases
+
+### What should be avoided
+
+- adding more app-layer capability before the core responsibilities are settled
+- hardening temporary prototype shapes into public commitments too early
+
+### What should happen after Points 1-4
+
+- design a thin public authoring façade
+- expose only the business-shaped surface
+- keep protocol complexity behind the core runtime and projection layers
+
+### What "done" looks like
+
+- a future `createApp` is thin
+- it does not own a separate runtime subsystem
+- it delegates to the cleaned-up SDK core
+
+### Verification
+
+- public app API can be implemented with minimal glue
+- removing the prototype-only scaffolding does not reduce capability
+
+## Suggested Work Order
+
+The implementation order should be:
+
+1. unify internal model
+2. pull projection into core
+3. refactor runtime to consume the core model
+4. clean up misplaced low-level authoring surfaces
+5. shape and expose the app API
+
+This order matters because:
+
+- Points 1-3 change the actual center of gravity of the SDK
+- Point 4 removes misleading structure
+- Point 5 then becomes product shaping, not architectural patching
+
+## Concrete Deletion / Cleanup Targets
+
+The following categories should be treated as cleanup candidates during the refactor:
+
+### Example-local protocol structures
+
+Examples:
+
+- local `ActionManifest` types
+- cloned manifest templates
+- local frontmatter assembly code
+
+Target state:
+
+- deleted from examples
+- replaced by core-owned projection
+
+### Example-local runtime glue
+
+Examples:
+
+- direct `server.page(...)` / `server.post(...)` flows in examples whose real job is just to wire page and action definitions
+
+Target state:
+
+- deleted from examples
+- replaced by core runtime consumption of the converged model
+
+### Public-path imports of low-level helpers
+
+Examples:
+
+- examples or templates treating artifact helpers as the normal way to build an app
+
+Target state:
+
+- deleted from starter-level paths
+- retained only in advanced/internal contexts where still useful
+
+## Concrete Refactor Deliverables
+
+To keep this tractable, each refactor point should produce a visible deliverable.
+
+### Deliverable A
+
+- core page/action/result model becomes the dominant internal language
+
+### Deliverable B
+
+- projection is owned by the core and no longer taught through examples
+
+### Deliverable C
+
+- runtime executes the converged model directly
+
+### Deliverable D
+
+- examples stop carrying protocol assembly and runtime glue
+
+### Deliverable E
+
+- only after A-D, a public app authoring surface is finalized
+
+## Completion Criteria for the Core Cleanup Phase
+
+The SDK core cleanup phase should be considered complete when all of the following are true:
+
+1. current example categories no longer need manual protocol projection
+2. runtime behavior is driven by the converged internal model
+3. projection is a core responsibility, not an example responsibility
+4. low-level helpers are clearly advanced/internal, not default authoring tools
+5. the future public app API can be implemented as a thin façade rather than a parallel subsystem
+
+## Final Note on Scope
+
+This breakdown intentionally deprioritizes writing more app-facing code right now.
+
+The priority is:
+
+- remove bad structure
+- collapse duplicate representations
+- move responsibilities into the correct core layer
+
+Only after that should the SDK formally grow a public app-authoring API.
+
+## SDK Convergence Tracking Table
+
+This table is the working tracker for the SDK convergence effort. It is intended to keep the implementation sequence honest: core cleanup first, old-path cleanup second, public app API last.
+
+| Task | Goal | Current status | Next step |
+| --- | --- | --- | --- |
+| Core result model convergence | Move page/action result interpretation into normalization instead of leaving it scattered across runtime branches | In progress, major progress made | Continue pulling remaining page/action special cases out of `runtime.ts` and into normalization/resolution helpers |
+| Runtime execution skeleton convergence | Share more of the handler execution, readable-surface validation, and response-finalization skeleton between page and action paths | In progress, major progress made | Continue reducing duplicated page html/markdown and action respond/finalize branches |
+| Readable surface validation convergence | Keep one shared readable-surface contract validation path for runtime consumption | First stage completed | Check for remaining side paths that still validate readable surfaces differently |
+| Auto-dependencies result model convergence | Remove page-only parallel result shapes and reuse standard action result semantics | First stage completed | Keep reducing page/action-specific branching inside `auto-dependencies.ts` |
+| Page handler result classification convergence | Ensure runtime stops guessing page result shapes directly | First stage completed | Continue thinning page response assembly after normalization |
+| Action handler result classification convergence | Ensure runtime stops guessing action result shapes directly | First stage completed | Continue thinning action response assembly after normalization |
+| Page session mutation correctness | Ensure page handler session mutations commit on both markdown and html reads | Fixed | Add a broader page/session regression pass later if more page-path refactors land |
+| Readable-surface identity normalization | Move `app_id` / `state_id` / `state_version` defaulting into the server core instead of examples/templates | First stage completed | Keep checking for paths that still bypass readable-surface normalization |
+| Thin wrapper / middle-layer cleanup | Delete server-side wrappers that only forward or rename behavior without adding abstraction value | First stage completed | Audit the remaining low-level helpers for other pass-through layers with no lasting value |
+| Legacy internal shape cleanup | Delete duplicate internal shapes and helpers that only exist to support older paths | In progress, meaningful progress made | Audit the remaining `server` helpers for repeated representations of the same result/response meaning |
+| Example-side old assembly cleanup | Stop examples from carrying protocol assembly responsibilities that belong in the SDK | In progress, meaningful progress made | Continue removing protocol metadata and contract boilerplate from examples that still carry it |
+| Low-level API positioning cleanup | Clarify which APIs are internal helpers, advanced escape hatches, or main-path APIs | In progress, first stage completed in docs/templates | Revisit public docs and package reference once core cleanup settles further |
+| Public app API | Build a thin app-facing façade on top of a cleaner core | Intentionally deferred | Start only after core convergence and old-path cleanup are materially further along |
+
+### Status Summary
+
+Completed first stage:
+
+- readable surface validation convergence
+- auto-dependencies parallel result model convergence
+- page handler result classification convergence
+- action handler result classification convergence
+- page session mutation bug fix
+- initial thin-wrapper deletion
+- readable-surface identity normalization (`appId` plus automatic `app_id/state_id/state_version` fill-in)
+- scaffold/example removal of starter-level action JSON protocol files
+- starter/docs/auth examples moved off manual frontmatter/body projection
+- primary README and guide examples moved off manual protocol identity fields
+
+In progress:
+
+- core result model convergence
+- runtime execution skeleton convergence
+- legacy internal shape cleanup
+- example-side old assembly cleanup
+- low-level API positioning cleanup
+
+Not formally started:
+
+- public app API
+- final docs/scaffold/public narrative migration
+
+### Recommended Order
+
+1. Continue converging the `server` core.
+2. Keep deleting remaining legacy internal shapes and protocol boilerplate from examples/templates.
+3. Finish lowering low-level artifact helpers out of the default public narrative.
+4. Only then start the public app-facing API.
+
+### Rough Progress Estimate
+
+- Core convergence: around 70%
+- Old-structure cleanup: around 55%
+- Public app API: around 0% to 10%
+- Overall SDK convergence effort: around 60%

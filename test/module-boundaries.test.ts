@@ -60,6 +60,63 @@ describe("module boundaries", () => {
     expect(source).toContain("renderInitialProjection");
   });
 
+  it("keeps readable-surface projection behind the artifact gateway", async () => {
+    expect(await pathExists("src/server/surface-projection.ts")).toBe(false);
+
+    const files = [
+      "src/server/browser-shell.ts",
+      "src/server/result-normalization.ts",
+      "src/server/response.ts",
+      "src/server/runtime.ts"
+    ];
+
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["']\.\/surface-projection\.js["']/],
+        file
+      );
+    }
+  });
+
+  it("keeps readable-surface validation independent from runtime types", async () => {
+    const source = await readSource("src/server/readable-surface-validation.ts");
+
+    expectSourceNotToImport(
+      source,
+      [/from\s+["']\.\/runtime\.js["']/],
+      "src/server/readable-surface-validation.ts"
+    );
+  });
+
+  it("keeps runtime orchestration independent from readable-surface violation mapping details", async () => {
+    const source = await readSource("src/server/runtime.ts");
+
+    expectSourceNotToImport(
+      source,
+      [
+        /from\s+["']\.\/readable-surface-validation\.js["']/
+      ],
+      "src/server/runtime.ts"
+    );
+  });
+
+  it("keeps runtime orchestration independent from runtime error result factories", async () => {
+    const source = await readSource("src/server/runtime.ts");
+
+    expect(source, "runtime.ts should not define the runtime error result catalog inline").not.toMatch(
+      /function createActionProofViolationResult\(|function createInvalidActionHandlerResult\(|function createInvalidPageHandlerResult\(/
+    );
+  });
+
+  it("keeps runtime orchestration independent from action request validation details", async () => {
+    const source = await readSource("src/server/runtime.ts");
+
+    expect(source, "runtime.ts should not define action request validation inline").not.toMatch(
+      /function validateActionRequest\(|function isSupportedWriteContentType\(|function hasRequestBody\(|function isBrowserFormAdaptedRequest\(/
+    );
+  });
+
   it("keeps adapter-shared as a compatibility barrel instead of a mixed implementation module", async () => {
     const source = await readSource("src/server/adapter-shared.ts");
 
@@ -154,6 +211,35 @@ describe("module boundaries", () => {
     );
   });
 
+  it("keeps the app authoring layer dependent on narrow server modules instead of broad barrels", async () => {
+    const source = await readSource("src/app/index.ts");
+
+    expectSourceNotToImport(
+      source,
+      [
+        /from\s+["']\.\.\/server\/index\.js["']/,
+        /from\s+["']\.\.\/content(?:\/|["'])/
+      ],
+      "src/app/index.ts"
+    );
+  });
+
+  it("keeps examples and starter templates on the app-first authoring path", async () => {
+    const files = [
+      "examples/starter/app.ts",
+      "examples/docs-starter/app.ts",
+      "examples/auth-guestbook/app.ts",
+      "create-mdan/template/shared/app/server.mjs"
+    ];
+
+    for (const file of files) {
+      const source = await readSource(file);
+      expect(source, `${file} should not import the server authoring barrel`).not.toMatch(
+        /@mdanai\/sdk\/server|from\s+["']\.\.\/\.\.\/src\/server\/index\.js["']/
+      );
+    }
+  });
+
   it("keeps JSON surface conversion in core instead of a separate bridge boundary", async () => {
     const packageJson = JSON.parse(await readSource("package.json")) as { exports?: Record<string, unknown> };
     const indexSource = await readSource("src/index.ts");
@@ -164,11 +250,12 @@ describe("module boundaries", () => {
     expect(indexSource, "top-level exports should not expose bridge").not.toMatch(/\.\/bridge(?:\/|["'])/);
   });
 
-  it("exposes only server, surface, and ui package boundaries to external consumers", async () => {
+  it("exposes the root app API while keeping protocol internals off separate public boundaries", async () => {
     const packageJson = JSON.parse(await readSource("package.json")) as { exports?: Record<string, unknown> };
+    const indexSource = await readSource("src/index.ts");
     const exportsMap = packageJson.exports ?? {};
 
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "."), "root entry should not remain public").toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "."), "root entry should publish the app API").toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./protocol"), "protocol remains an internal source boundary").toBe(false);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./core"), "core remains an internal source boundary").toBe(false);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./server")).toBe(true);
@@ -177,6 +264,8 @@ describe("module boundaries", () => {
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./surface")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./web")).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./ui")).toBe(true);
+    expect(indexSource, "root app API should not re-export createMdanServer directly").not.toMatch(/createMdanServer/);
+    expect(indexSource, "root app API should not proxy the broad server barrel").not.toMatch(/\.\/server\/index\.js/);
   });
 
   it("does not keep a stale browser compatibility source boundary", async () => {
@@ -264,8 +353,6 @@ describe("module boundaries", () => {
 
     expect(source).toContain("async function handlePageRequest(");
     expect(source).toContain("async function handleActionRequest(");
-    expect(source).toContain("function validateRuntimeSurface(");
-    expect(source).toContain("function validateActionRequest(");
     expect(source).toMatch(/await handlePageRequest\(/);
     expect(source).toMatch(/return await handleActionRequest\(/);
   });
@@ -354,7 +441,6 @@ describe("module boundaries", () => {
       "src/server/response.ts",
       "src/server/result-normalization.ts",
       "src/server/runtime.ts",
-      "src/server/surface-projection.ts",
       "src/server/types.ts"
     ];
 

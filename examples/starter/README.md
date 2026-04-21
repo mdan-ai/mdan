@@ -3,8 +3,7 @@
 Source layout:
 
 - `app/index.md`
-- `app/actions/main.json`
-- `app.ts` (loads sources and injects runtime state)
+- `app.ts` (loads markdown sources, defines actions, and injects runtime state)
 
 Runtime contract:
 
@@ -24,8 +23,29 @@ This command performs an initial SDK build, starts TypeScript watch to keep `dis
 
 Open `http://127.0.0.1:4323/`.
 
+If port `4323` is already in use, run `PORT=4324 bun run dev:starter`.
+
 Quick checks:
 
 - `curl -H 'Accept: text/html' http://127.0.0.1:4323/`
 - `curl -H 'Accept: text/markdown' http://127.0.0.1:4323/`
-- `curl -X POST -H 'Accept: text/markdown' -H 'Content-Type: application/json' -d '{"action":{"proof":"<proof>"},"input":{"message":"From starter"}}' http://127.0.0.1:4323/post`
+
+Action proof flow:
+
+1. Fetch the canonical artifact:
+
+```bash
+curl -H 'Accept: text/markdown' http://127.0.0.1:4323/
+```
+
+2. Copy the `action_proof` for `submit_message` from the returned ````mdan` block.
+
+3. Submit a message with that proof:
+
+```bash
+curl -X POST \
+  -H 'Accept: text/markdown' \
+  -H 'Content-Type: application/json' \
+  -d '{"action":{"proof":"<proof-from-submit_message>"},"input":{"message":"From starter"}}' \
+  http://127.0.0.1:4323/post
+```

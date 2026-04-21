@@ -104,7 +104,7 @@ Recommended shape:
 }
 ```
 
-When the returned surface has a new `view.route_path`, the headless host updates
+When the returned result resolves to a new route, the headless host updates
 browser history for page transitions initiated by actions.
 
 ## Region Actions
@@ -130,8 +130,8 @@ Recommended shape:
 
 For region transitions to remain stable:
 
-- keep `view.route_path` equal to the current route
-- include every listed `updated_regions` entry in `view.regions`
+- keep the returned route equal to the current route
+- include every listed `updated_regions` entry in the returned regions
 - keep block ids stable across updates
 
 If the route changes or no expected region is present, the headless host falls

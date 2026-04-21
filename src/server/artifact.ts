@@ -9,9 +9,15 @@ import { basicMarkdownRenderer } from "../content/markdown-renderer.js";
 import { validateSemanticSlots } from "../content/semantic-slots.js";
 import { serializeFragment, serializePage } from "../content/serialize.js";
 import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
+import { adaptReadableSurfaceToMdanPage } from "../surface/adapter.js";
+import {
+  renderSurfaceSnapshot as renderWebSurfaceSnapshot,
+  type RenderSurfaceSnapshotOptions
+} from "../surface/snapshot.js";
 
-export type { ParseMarkdownArtifactSurfaceOptions, ReadableSurface };
-export { basicMarkdownRenderer as artifactMarkdownRenderer };
+export type { ParseMarkdownArtifactSurfaceOptions, ReadableSurface, RenderSurfaceSnapshotOptions };
+
+export const artifactMarkdownRenderer = basicMarkdownRenderer;
 
 export interface CreateArtifactPageOptions {
   markdown: string;
@@ -42,6 +48,36 @@ export function parseReadableArtifactSurface(
   options: ParseMarkdownArtifactSurfaceOptions = {}
 ): ReadableSurface | null {
   return parseReadableSurface(content, options);
+}
+
+export function isProjectableReadableSurface(value: unknown): value is ReadableSurface {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  return typeof (value as ReadableSurface).markdown === "string" && typeof (value as ReadableSurface).actions === "object";
+}
+
+export function projectReadableSurfaceToPage(surface: ReadableSurface): MdanPage {
+  return adaptReadableSurfaceToMdanPage(surface);
+}
+
+export function renderSurfaceSnapshot(
+  surface: ReadableSurface | undefined,
+  options?: RenderSurfaceSnapshotOptions
+): string {
+  return renderWebSurfaceSnapshot(surface, options);
+}
+
+export function renderInitialProjection(
+  initialPage: MdanPage | undefined,
+  initialReadableSurface: ReadableSurface | undefined,
+  options: RenderSurfaceSnapshotOptions = {}
+): string {
+  if (initialPage) {
+    const renderer = options.markdownRenderer ?? artifactMarkdownRenderer;
+    return renderer.render(serializeArtifactPage(initialPage));
+  }
+  return renderSurfaceSnapshot(initialReadableSurface, options);
 }
 
 export function serializeArtifactPage(page: MdanPage): string {

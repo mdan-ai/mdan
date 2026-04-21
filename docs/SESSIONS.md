@@ -12,6 +12,7 @@ Configure sessions with:
 const sessions = new Map<string, { sid: string; username: string }>();
 
 const server = createMdanServer({
+  appId: "auth-demo",
   session: {
     async read(request) {
       const sid = request.cookies.mdan_session;
@@ -59,39 +60,43 @@ server.post("/auth/login", async ({ inputs }) => {
 
   return {
     session: signIn({ sid, username }),
-    route: "/guestbook",
-    content: "# Guestbook",
+    markdown: `# Guestbook
+
+::: block{id="session_status" trust="untrusted"}
+    :::`,
     actions: {
-      app_id: "auth-demo",
-      state_id: "auth-demo:guestbook",
-      state_version: 1,
-      blocks: [],
-      actions: []
+      blocks: ["session_status"],
+      actions: [],
+      allowed_next_actions: []
     },
-    view: {
-      route_path: "/guestbook",
-      regions: {}
+    route: "/guestbook",
+    regions: {
+      session_status: `Signed in as ${username}`
     }
   };
 });
 
 server.post("/auth/logout", async () => ({
   session: signOut(),
-  route: "/login",
-  content: "# Signed out",
+  markdown: `# Signed out
+
+::: block{id="session_status" trust="untrusted"}
+:::`,
   actions: {
-    app_id: "auth-demo",
-    state_id: "auth-demo:login",
-    state_version: 1,
-    blocks: [],
-    actions: []
+    blocks: ["session_status"],
+    actions: [],
+    allowed_next_actions: []
   },
-  view: {
-    route_path: "/login",
-    regions: {}
+  route: "/login",
+  regions: {
+    session_status: "Signed out."
   }
 }));
 ```
+
+For readable-surface results like these, the runtime fills in `app_id`,
+`state_id`, and `state_version` before the final artifact is serialized when
+the server is configured with `createMdanServer({ appId })`.
 
 `refreshSession(session)` is available for handlers that want to re-commit the
 current session snapshot.

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import type { MdanPage } from "../../src/protocol/types.js";
+import { normalizeActionHandlerResult } from "../../src/server/result-normalization.js";
 import { createMdanServer } from "../../src/server/index.js";
-import { resolveAutoDependencies } from "../../src/server/auto-dependencies.js";
+import { resolveAutoActionResult, resolveAutoDependencies } from "../../src/server/auto-dependencies.js";
 import { MdanRouter } from "../../src/server/router.js";
 
 function page(name: string, autoTarget?: string): MdanPage {
@@ -114,5 +115,353 @@ describe("resolveAutoDependencies", () => {
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("# root");
     expect(calls).toEqual([]);
+  });
+
+  it("preserves session mutations from page-based auto dependency results", async () => {
+    const router = new MdanRouter();
+
+    router.page("/step-1", async () => ({
+      page: page("step-1"),
+      route: "/step-1",
+      status: 202,
+      headers: {
+        "x-step": "1"
+      },
+      session: {
+        type: "refresh" as const,
+        session: {
+          user: "alice"
+        }
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const resolved = await resolveAutoDependencies(page("root", "/step-1"), request, null, router, {});
+
+    expect(resolved.route).toBe("/step-1");
+    expect(resolved.status).toBe(202);
+    expect(resolved.headers).toEqual({
+      "x-step": "1"
+    });
+    expect(resolved.session).toEqual({
+      type: "refresh",
+      session: {
+        user: "alice"
+      }
+    });
+    expect(resolved.page.markdown).toContain("# step-1");
+  });
+
+  it("rejects invalid readable-surface GET action results during auto dependency resolution", async () => {
+    const router = new MdanRouter();
+
+    router.get("/step-1", async () => ({
+      markdown: `# Broken
+
+::: block{id="main" actions="missing_action"}
+Broken
+:::`,
+      actions: {
+        app_id: "auto-test",
+        state_id: "auto-test:broken",
+        state_version: 1,
+        actions: [
+          {
+            id: "open",
+            verb: "navigate",
+            target: "/open"
+          }
+        ]
+      },
+      route: "/step-1",
+      regions: {
+        main: "Broken"
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    await expect(resolveAutoDependencies(page("root", "/step-1"), request, null, router, {})).rejects.toThrow(
+      /invalid actions contract/i
+    );
+  });
+
+  it("accepts readable-surface GET auto results without explicit state metadata", async () => {
+    const router = new MdanRouter();
+
+    router.get("/step-1", async () => ({
+      markdown: `# Step 1
+
+::: block{id="main"}
+Done
+:::`,
+      actions: {
+        app_id: "auto-test",
+        actions: []
+      },
+      route: "/step-1",
+      regions: {
+        main: "Done"
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const resolved = await resolveAutoDependencies(page("root", "/step-1"), request, null, router, {});
+
+    expect(resolved.route).toBe("/step-1");
+    expect(resolved.page.executableContent).toContain('"state_id": "auto-test:step-1"');
+    expect(resolved.page.executableContent).toMatch(/"state_version": \d+/);
+  });
+
+  it("exposes invalid readable-surface GET action results through normalized action results today", async () => {
+    const broken = normalizeActionHandlerResult({
+      markdown: `# Broken
+
+::: block{id="main" actions="missing_action"}
+Broken
+:::`,
+      actions: {
+        app_id: "auto-test",
+        state_id: "auto-test:broken",
+        state_version: 1,
+        actions: [
+          {
+            id: "open",
+            verb: "navigate",
+            target: "/open"
+          }
+        ]
+      },
+      route: "/step-1",
+      regions: {
+        main: "Broken"
+      }
+    });
+
+    expect(broken.page?.markdown).toContain("# Broken");
+  });
+
+  it("prefers resolved page metadata over the current action result when auto-resolving page results", async () => {
+    const router = new MdanRouter();
+
+    router.page("/step-1", async () => ({
+      page: page("step-1"),
+      route: "/step-1",
+      status: 202,
+      headers: {
+        "x-step": "1"
+      },
+      session: {
+        type: "refresh" as const,
+        session: {
+          sid: "resolved"
+        }
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const result = await resolveAutoActionResult(
+      {
+        status: 200,
+        route: "/root",
+        headers: {
+          "x-root": "1"
+        },
+        session: {
+          type: "refresh",
+          session: {
+            sid: "current"
+          }
+        },
+        page: page("root", "/step-1")
+      },
+      request,
+      null,
+      router,
+      {}
+    );
+
+    expect(result.status).toBe(202);
+    expect(result.route).toBe("/step-1");
+    expect(result.headers).toEqual({
+      "x-step": "1"
+    });
+    expect(result.session).toEqual({
+      type: "refresh",
+      session: {
+        sid: "resolved"
+      }
+    });
+    expect(result.page?.markdown).toContain("# step-1");
+  });
+
+  it("preserves resolved fragment status metadata during auto action resolution", async () => {
+    const router = new MdanRouter();
+
+    router.get("/step-1", async () => ({
+      status: 202,
+      route: "/step-1",
+      headers: {
+        "x-step": "1"
+      },
+      session: {
+        type: "refresh" as const,
+        session: {
+          sid: "fragment"
+        }
+      },
+      fragment: {
+        markdown: "## Updated",
+        blocks: []
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const result = await resolveAutoActionResult(
+      {
+        status: 200,
+        route: "/root",
+        headers: {
+          "x-root": "1"
+        },
+        session: {
+          type: "refresh",
+          session: {
+            sid: "current"
+          }
+        },
+        fragment: {
+          markdown: "## Root",
+          blocks: [
+            {
+              name: "main",
+              operations: [
+                {
+                  method: "GET",
+                  target: "/step-1",
+                  name: "load-root",
+                  inputs: [],
+                  auto: true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      request,
+      null,
+      router,
+      {}
+    );
+
+    expect(result.status).toBe(202);
+    expect(result.route).toBe("/step-1");
+    expect(result.headers).toEqual({
+      "x-step": "1"
+    });
+    expect(result.session).toEqual({
+      type: "refresh",
+      session: {
+        sid: "fragment"
+      }
+    });
+    expect(result.fragment?.markdown).toBe("## Updated");
+  });
+
+  it("keeps current metadata when resolved fragment omits overrides", async () => {
+    const router = new MdanRouter();
+
+    router.get("/step-1", async () => ({
+      fragment: {
+        markdown: "## Updated Again",
+        blocks: []
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const result = await resolveAutoActionResult(
+      {
+        status: 201,
+        route: "/root",
+        headers: {
+          "x-root": "1"
+        },
+        session: {
+          type: "refresh",
+          session: {
+            sid: "current"
+          }
+        },
+        fragment: {
+          markdown: "## Root",
+          blocks: [
+            {
+              name: "main",
+              operations: [
+                {
+                  method: "GET",
+                  target: "/step-1",
+                  name: "load-root",
+                  inputs: [],
+                  auto: true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      request,
+      null,
+      router,
+      {}
+    );
+
+    expect(result.status).toBe(201);
+    expect(result.route).toBe("/root");
+    expect(result.headers).toEqual({
+      "x-root": "1"
+    });
+    expect(result.session).toEqual({
+      type: "refresh",
+      session: {
+        sid: "current"
+      }
+    });
+    expect(result.fragment?.markdown).toBe("## Updated Again");
   });
 });

@@ -41,8 +41,14 @@ describe("create-mdan cli", () => {
   });
 
   it("formats next steps for selected runtime", () => {
-    expect(formatNextSteps("/tmp/app", "node", "app")).toContain("npm install");
-    expect(formatNextSteps("/tmp/app", "bun", "app")).toContain("bun install");
+    const nodeSteps = formatNextSteps("/tmp/app", "node", "app");
+    const bunSteps = formatNextSteps("/tmp/app", "bun", "app");
+
+    expect(nodeSteps).toContain("npm install");
+    expect(nodeSteps).toContain("Open http://127.0.0.1:4321/");
+    expect(nodeSteps).toContain("Edit app/index.md");
+    expect(bunSteps).toContain("bun install");
+    expect(bunSteps).toContain("curl -H 'Accept: text/markdown' http://127.0.0.1:4321/");
   });
 
   it("uses the target basename as the generated project name", async () => {
