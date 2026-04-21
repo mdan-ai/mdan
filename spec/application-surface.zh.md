@@ -1,3 +1,8 @@
+---
+title: MDAN 应用表面规范
+description: MDAN application surface specification draft in Chinese.
+---
+
 # MDAN 应用表面规范
 
 - 状态：Draft

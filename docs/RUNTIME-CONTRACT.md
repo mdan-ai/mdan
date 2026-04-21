@@ -2,12 +2,12 @@
 
 This document describes the server runtime behavior implemented by
 `createMdanServer()`. The protocol shape itself remains in
-`MDAN-APPLICATION-SURFACE-SPEC.zh.md`; this file is the practical SDK guide for
+`../spec/application-surface.zh.md`; this file is the practical SDK guide for
 hosts, tests, and agents.
 
 Related contract documents:
 
-- `SURFACE-ACTIONS-CONTRACT.md`: legacy JSON surface bridge and action validation rules
+- `../spec/legacy-surface-actions-contract.md`: legacy JSON surface bridge and action validation rules
 - `SERVER-ADAPTERS.md`: Node/Bun host adapter behavior
 - `ERRORS.md`: status codes and error surface shape
 - `STREAMING.md`: `stream(...)` and `text/event-stream`
@@ -39,7 +39,7 @@ Every legacy JSON surface envelope contains:
 - `view.regions`: named region markdown used for block updates
 
 For the full legacy envelope and action schema contract, see
-`SURFACE-ACTIONS-CONTRACT.md`.
+`../spec/legacy-surface-actions-contract.md`.
 
 ## Representations
 

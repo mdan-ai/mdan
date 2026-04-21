@@ -1,3 +1,8 @@
+---
+title: Legacy Surface And Actions Contract
+description: Compatibility contract for the legacy JSON surface bridge and action metadata.
+---
+
 # Legacy Surface And Actions Contract
 
 This document defines the SDK-level contract for the legacy JSON surface bridge
@@ -5,12 +10,12 @@ and its action metadata. It is the practical validation contract still enforced
 by the runtime before a compatibility surface is returned to clients that still
 consume `application/json`.
 
-For the broader product model, see `MDAN-APPLICATION-SURFACE-SPEC.zh.md`. For
-action proof submission and signing, see `ACTION-PROOF-SECURITY.md`.
+For the broader product model, see `application-surface.zh.md`. For action
+proof submission and signing, see `../docs/ACTION-PROOF-SECURITY.md`.
 
 This is not the primary public MDAN response shape. The primary public contract
-is the Markdown artifact described in `RUNTIME-CONTRACT.md` and
-`2026-04-12-agent-consumption-contract.md`.
+is the Markdown artifact described in `../docs/RUNTIME-CONTRACT.md` and
+`../docs/2026-04-12-agent-consumption-contract.md`.
 
 ## Surface Envelope
 
@@ -208,7 +213,7 @@ negotiation: compatibility JSON clients receive a JSON error surface, while
 Markdown/HTML fallbacks receive Markdown where applicable.
 
 Stream results are not legacy JSON surface envelopes and do not pass through
-this contract validation. See `STREAMING.md`.
+this contract validation. See `../docs/STREAMING.md`.
 
 ## Authoring Checklist
 

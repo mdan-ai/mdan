@@ -8,7 +8,15 @@ export default [
   },
   js.configs.recommended,
   {
-    files: ["src/**/*.ts", "test/**/*.ts", "examples/**/*.ts", "create-mdan/src/**/*.ts", "create-mdan/test/**/*.ts", "vitest.baseline.config.ts"],
+    files: [
+      "src/**/*.ts",
+      "test/**/*.ts",
+      "examples/**/*.ts",
+      "create-mdan/src/**/*.ts",
+      "create-mdan/test/**/*.ts",
+      "docs-site/src/**/*.ts",
+      "vitest.baseline.config.ts"
+    ],
     languageOptions: {
       parser: tsParser,
       ecmaVersion: "latest",

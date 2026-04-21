@@ -16,6 +16,9 @@ Applications should depend on these entry paths only:
 Everything else under `src/` is internal implementation detail unless promoted
 into one of those public exports.
 
+This repository also contains `docs-site/`, which is a repository tool for
+rendering docs and specs. It is not part of the published SDK package surface.
+
 ## Architectural Model
 
 The current system is artifact-first.

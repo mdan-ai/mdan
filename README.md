@@ -337,7 +337,6 @@ Local SDK implementation guides:
 
 - [Contributing](CONTRIBUTING.md)
 - [Architecture](ARCHITECTURE.md)
-- [Surface And Actions Contract](docs/SURFACE-ACTIONS-CONTRACT.md)
 - [Runtime Contract](docs/RUNTIME-CONTRACT.md)
 - [Server Host Adapters](docs/SERVER-ADAPTERS.md)
 - [Browser And Headless Runtime](docs/BROWSER-AND-HEADLESS-RUNTIME.md)
@@ -351,6 +350,12 @@ Local SDK implementation guides:
 - [Public API And Package Boundaries](docs/PUBLIC-API.md)
 - [Agent Evaluation Contract](docs/AGENT-EVAL.md)
 - [Baseline Parity Check](docs/PARITY-CHECK.md)
+
+Local spec docs:
+
+- [Spec Overview](spec/index.md)
+- [Application Surface Spec (ZH)](spec/application-surface.zh.md)
+- [Legacy Surface And Actions Contract](spec/legacy-surface-actions-contract.md)
 
 Reference and product docs:
 

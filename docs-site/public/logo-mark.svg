@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="MDAN">
+  <rect width="48" height="48" rx="12" fill="#0d1324" />
+  <rect x="10" y="10" width="6" height="28" rx="2" fill="#1fbaa8" />
+  <path d="M10 10h6l9 14h-6z" fill="#1fbaa8" />
+  <path d="M25 24h6l9-14h-6z" fill="#2f7bf6" />
+  <rect x="34" y="10" width="6" height="28" rx="2" fill="#2f7bf6" />
+  <circle cx="25" cy="24" r="3" fill="#f8fafc" />
+</svg>

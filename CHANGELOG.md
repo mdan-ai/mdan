@@ -16,11 +16,15 @@ The format is intentionally lightweight and based on Keep a Changelog style:
 
 - Added `CONTRIBUTING.md` with repository layout, command reference, and doc update expectations.
 - Added `ARCHITECTURE.md` describing public package surfaces, layer boundaries, and the artifact-first runtime model.
+- Added a dedicated `spec/` tree for standard-layer protocol documents.
+- Added `docs/index.md`, `docs/getting-started.md`, and `docs/examples.md` as docs-site entry pages.
+- Added a dedicated `docs-site/` directory for rendering current repository docs and specs as a developer docs site.
 
 ### Changed
 
-- Updated `README.md` to link maintainers to the contributing guide, architecture guide, parity notes, and archived planning docs.
+- Updated `README.md` to link maintainers to the contributing guide, architecture guide, parity notes, and spec entry points.
 - Updated `docs/PARITY-CHECK.md` to reflect the current artifact-first runtime and current regression evidence.
+- Moved spec-oriented content out of `docs/` and into `spec/`.
 
 ## 0.7.0 - 2026-04-21
 

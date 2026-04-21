@@ -19,6 +19,8 @@ The current codebase is centered on an artifact-first runtime:
 - `examples/`: runnable SDK examples
 - `demo/weather-markdown/`: focused artifact-first demo app
 - `docs/`: implementation notes, contracts, and migration history
+- `spec/`: standard-layer protocol and compatibility specifications
+- `docs-site/`: developer docs site that renders current repository docs and specs
 - `create-mdan/`: starter project scaffolder
 
 ## Prerequisites
@@ -82,6 +84,12 @@ Test the project scaffolder:
 npm run test:create-mdan
 ```
 
+Build the docs site:
+
+```bash
+npm run build:docs-site
+```
+
 ## Local Development
 
 The example dev scripts perform an initial local SDK build, keep `dist/` and
@@ -95,6 +103,7 @@ npm run dev:starter
 npm run dev:docs-starter
 npm run dev:auth-guestbook
 npm run dev:weather-markdown
+npm run dev:docs-site
 ```
 
 ## Documentation Expectations
