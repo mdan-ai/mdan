@@ -335,7 +335,8 @@ function submitMessagePage(messages: string[]) {
 
 Use this page to submit one message.
 
-<!-- mdan:block main -->`,
+::: block{id="main"}
+:::`,
     blockContent: {
       main
     },
@@ -482,7 +483,8 @@ function previewConfirmPage(state: { draft?: string; messages: string[] }) {
 
 Use this page to preview one message, then confirm it.
 
-<!-- mdan:block main -->`,
+::: block{id="main"}
+:::`,
     blockContent: {
       main
     },
@@ -674,7 +676,8 @@ function listDetailPage(completedItems: Set<string>, route: "list" | "detail", i
 
 Use this page to open the Alpha task from the list, then complete it on the detail page.
 
-<!-- mdan:block main -->`,
+::: block{id="main"}
+:::`,
     blockContent: {
       main
     },

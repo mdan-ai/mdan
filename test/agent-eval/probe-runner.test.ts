@@ -25,7 +25,8 @@ function createArtifactSubmitMessageFixture() {
 
 Use this page to submit one message.
 
-<!-- mdan:block main -->`,
+::: block{id="main"}
+:::`,
       blockContent: {
         main
       },

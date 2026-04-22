@@ -44,32 +44,32 @@ describe("submit message agent eval fixture", () => {
 
     expect(page.status).toBe(200);
     expect(String(page.body)).toContain("# Submit Message");
-	    expect(String(page.body)).toContain("Use this page to submit one message.");
-	    expect(String(page.body)).toContain("<!-- mdan:block main -->");
+    expect(String(page.body)).toContain("Use this page to submit one message.");
+    expect(String(page.body)).toContain("::: block{id=\"main\"}");
 
-	    const artifactPage = await fixture.server.handle({
-	      method: "GET",
-	      url: "https://example.test/",
-	      headers: { accept: "text/markdown" },
-	      cookies: {}
-	    });
-	    const proof = extractActionProof(String(artifactPage.body));
+    const artifactPage = await fixture.server.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: { accept: "text/markdown" },
+      cookies: {}
+    });
+    const proof = extractActionProof(String(artifactPage.body));
 
-	    const post = await fixture.server.handle({
+    const post = await fixture.server.handle({
       method: "POST",
       url: "https://example.test/messages",
       headers: {
         accept: "text/markdown",
         "content-type": "application/json"
       },
-	      body: JSON.stringify({
-	        action: {
-	          proof
-	        },
-	        input: {
-	          message: "hello from test"
-	        }
-	      }),
+      body: JSON.stringify({
+        action: {
+          proof
+        },
+        input: {
+          message: "hello from test"
+        }
+      }),
       cookies: {}
     });
 

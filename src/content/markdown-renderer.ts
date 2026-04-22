@@ -47,7 +47,7 @@ function parseRenderableMarkdown(markdown: string): RenderNode[] {
       inCode = !inCode;
       continue;
     }
-    if (inCode || trimmed.startsWith("<!-- mdan:block")) {
+    if (inCode) {
       continue;
     }
     visible.push(line);

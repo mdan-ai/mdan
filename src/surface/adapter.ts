@@ -151,17 +151,14 @@ export function adaptReadableSurfaceToMdanPage(input: ReadableSurface): MdanPage
   const snapshot = adaptReadableSurfaceToHeadlessSnapshot(input);
   const blockNames = snapshot.blocks.map((block) => block.name);
   const blockContent = Object.fromEntries(snapshot.blocks.map((block) => [block.name, block.markdown]));
-  const anchorMarkdown = blockNames.map((name) => `<!-- mdan:block ${name} -->`).join("\n\n");
-  const markdown = [snapshot.markdown.trim(), anchorMarkdown].filter(Boolean).join("\n\n");
   return {
     frontmatter: {
       ...(input.route ? { route: input.route } : {})
     },
-    markdown,
+    markdown: String(input.markdown ?? "").trim(),
     executableContent: JSON.stringify(input.actions, null, 2),
     blockContent,
     blocks: snapshot.blocks.map(toMdanBlock),
-    blockAnchors: [...blockNames],
     visibleBlockNames: [...blockNames]
   };
 }

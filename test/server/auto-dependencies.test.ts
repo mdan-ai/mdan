@@ -26,8 +26,7 @@ function page(name: string, autoTarget?: string): MdanPage {
             ]
           : []
       }
-    ],
-    blockAnchors: ["main"]
+    ]
   };
 }
 

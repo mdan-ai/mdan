@@ -32,22 +32,32 @@ describe("serializePage", () => {
     expect(out).toContain("---\n\n# Page\n");
   });
 
-  it("filters hidden block anchors when visibleBlockNames is set", () => {
+  it("filters hidden block directives when visibleBlockNames is set", () => {
     const out = serializePage({
       frontmatter: {},
-      markdown: ["# Guestbook", "", "<!-- mdan:block login -->", "", "<!-- mdan:block submit_message -->"].join("\n"),
+      markdown: [
+        "# Guestbook",
+        "",
+        "::: block{id=\"login\"}",
+        "Login body",
+        ":::",
+        "",
+        "::: block{id=\"submit_message\"}",
+        "Submit body",
+        ":::"
+      ].join("\n"),
       blocks: [],
       visibleBlockNames: ["submit_message"]
     });
 
-    expect(out).not.toContain("mdan:block login");
-    expect(out).toContain("mdan:block submit_message");
+    expect(out).not.toContain("id=\"login\"");
+    expect(out).toContain("id=\"submit_message\"");
   });
 
-  it("injects visible block content at anchors", () => {
+  it("injects visible block content into matching directives", () => {
     const out = serializePage({
       frontmatter: {},
-      markdown: ["# Guestbook", "", "<!-- mdan:block submit_message -->"].join("\n"),
+      markdown: ["# Guestbook", "", "::: block{id=\"submit_message\"}", ":::"].join("\n"),
       blocks: [],
       blockContent: {
         submit_message: "## Leave a message"
@@ -55,10 +65,10 @@ describe("serializePage", () => {
     });
 
     expect(out).toContain("## Leave a message");
-    expect(out).toContain("<!-- mdan:block submit_message -->");
+    expect(out).toContain("::: block{id=\"submit_message\"}");
   });
 
-  it("appends block content when no anchors exist", () => {
+  it("appends block content when no block directives exist", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: "# Guestbook",
@@ -92,7 +102,17 @@ describe("serializePage", () => {
   it("filters blockContent by visibleBlockNames", () => {
     const out = serializePage({
       frontmatter: {},
-      markdown: ["# Guestbook", "", "<!-- mdan:block a -->", "", "<!-- mdan:block b -->"].join("\n"),
+      markdown: [
+        "# Guestbook",
+        "",
+        "::: block{id=\"a\"}",
+        "A body",
+        ":::",
+        "",
+        "::: block{id=\"b\"}",
+        "B body",
+        ":::"
+      ].join("\n"),
       blocks: [],
       visibleBlockNames: ["b"],
       blockContent: {

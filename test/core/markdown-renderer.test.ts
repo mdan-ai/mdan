@@ -36,7 +36,7 @@ describe("basicMarkdownRenderer", () => {
     expect(html).toBe("<h1>Login</h1>");
   });
 
-  it("ignores fenced code blocks and mdan anchors", () => {
+  it("ignores fenced code blocks", () => {
     const html = basicMarkdownRenderer.render([
       "# Title",
       "",
@@ -44,15 +44,12 @@ describe("basicMarkdownRenderer", () => {
       "console.log('secret');",
       "```",
       "",
-      "<!-- mdan:block login -->",
-      "",
       "Visible paragraph"
     ].join("\n"));
 
     expect(html).toContain("<h1>Title</h1>");
     expect(html).toContain("<p>Visible paragraph</p>");
     expect(html).not.toContain("console.log");
-    expect(html).not.toContain("mdan:block");
   });
 
   it("hides agent-only blocks from rendered html", () => {

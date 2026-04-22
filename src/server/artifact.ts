@@ -26,7 +26,6 @@ export interface CreateArtifactPageOptions {
   executableJson?: unknown;
   blockContent?: Record<string, string>;
   blocks?: MdanBlock[];
-  blockAnchors?: string[];
   visibleBlockNames?: string[];
 }
 
@@ -36,8 +35,6 @@ export interface CreateArtifactFragmentOptions {
   executableJson?: unknown;
   blocks?: MdanBlock[];
 }
-
-const blockAnchorPattern = /<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->/g;
 
 export function createExecutableContent(value: unknown): string {
   return JSON.stringify(value, null, 2);
@@ -118,8 +115,7 @@ export function validateArtifactSemanticSlots(
 
 export function createArtifactPage(options: CreateArtifactPageOptions): MdanPage {
   const blocks = options.blocks ?? [];
-  const blockAnchors = resolveBlockAnchors(options.markdown, options.blockAnchors, options.blockContent, blocks);
-  const visibleBlockNames = options.visibleBlockNames ?? (blockAnchors.length > 0 ? [...blockAnchors] : undefined);
+  const visibleBlockNames = options.visibleBlockNames ?? resolveVisibleBlockNames(options.blockContent, blocks);
 
   return {
     frontmatter: options.frontmatter ?? {},
@@ -129,7 +125,6 @@ export function createArtifactPage(options: CreateArtifactPageOptions): MdanPage
       : {}),
     ...(options.blockContent ? { blockContent: options.blockContent } : {}),
     blocks,
-    blockAnchors,
     ...(visibleBlockNames ? { visibleBlockNames } : {})
   };
 }
@@ -157,28 +152,16 @@ function resolveExecutableContent(
   return undefined;
 }
 
-function resolveBlockAnchors(
-  markdown: string,
-  explicit: string[] | undefined,
+function resolveVisibleBlockNames(
   blockContent: Record<string, string> | undefined,
   blocks: MdanBlock[]
-): string[] {
-  const names = new Set<string>(explicit ?? []);
-
-  let match: RegExpExecArray | null;
-  while ((match = blockAnchorPattern.exec(markdown)) !== null) {
-    if (match[1]) {
-      names.add(match[1]);
-    }
-  }
-
-  for (const name of Object.keys(blockContent ?? {})) {
-    names.add(name);
-  }
-
+): string[] | undefined {
+  const names = new Set<string>();
   for (const block of blocks) {
     names.add(block.name);
   }
-
-  return [...names];
+  for (const name of Object.keys(blockContent ?? {})) {
+    names.add(name);
+  }
+  return names.size > 0 ? [...names] : undefined;
 }

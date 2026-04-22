@@ -75,8 +75,7 @@ Body
       markdown: "# Artifact Page",
       executableContent: JSON.stringify({ app_id: "artifact-demo" }, null, 2),
       frontmatter: {},
-      blocks: [],
-      blockAnchors: []
+      blocks: []
     }));
 
     const markdown = await server.handle({
@@ -314,8 +313,7 @@ Broken
             route: "/after-submit"
           },
           markdown: "# Submitted",
-          blocks: [],
-          blockAnchors: []
+          blocks: []
         },
         route: "/after-submit"
       })
@@ -374,8 +372,7 @@ Broken
       page: {
         frontmatter: {},
         markdown: "# Session Page",
-        blocks: [],
-        blockAnchors: []
+        blocks: []
       },
       session: {
         type: "refresh",
@@ -418,8 +415,7 @@ Broken
       page: {
         frontmatter: {},
         markdown: "# Session Html Page",
-        blocks: [],
-        blockAnchors: []
+        blocks: []
       },
       session: {
         type: "refresh",
@@ -464,8 +460,7 @@ Broken
         page: {
           frontmatter: {},
           markdown: "# Action Session Page",
-          blocks: [],
-          blockAnchors: []
+          blocks: []
         },
         session: {
           type: "refresh",

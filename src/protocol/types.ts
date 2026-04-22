@@ -74,7 +74,6 @@ export interface MdanPage {
   executableContent?: string;
   blockContent?: Record<string, string>;
   blocks: MdanBlock[];
-  blockAnchors: string[];
   visibleBlockNames?: string[];
 }
 

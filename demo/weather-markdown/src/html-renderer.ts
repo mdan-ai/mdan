@@ -26,8 +26,7 @@ function stripExecutableCodeBlocks(markdown: string): string {
 function unwrapContentBlocks(markdown: string): string {
   return markdown
     .replace(/^:::\s*block\{[^}]*\}\s*$/gm, "")
-    .replace(/^:::\s*$/gm, "")
-    .replace(/^<!--\s*mdan:block\s+[a-zA-Z_][\w-]*\s*-->\s*$/gm, "");
+    .replace(/^:::\s*$/gm, "");
 }
 
 export const weatherMarkdownRenderer: MdanMarkdownRenderer = {

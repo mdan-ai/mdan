@@ -73,8 +73,7 @@ describe("result normalization", () => {
       page: {
         frontmatter: {},
         markdown: "# Demo",
-        blocks: [],
-        blockAnchors: []
+        blocks: []
       },
       route: "/page",
       status: 202,

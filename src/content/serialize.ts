@@ -1,6 +1,11 @@
 import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
 
-const blockAnchorPattern = /^<!--\s*mdan:block\s+([a-zA-Z_][\w-]*)\s*-->$/;
+const blockDirectivePattern = /:::\s*block\{([^}]*)\}([\s\S]*?):::/g;
+
+function extractBlockId(attrs: string): string | null {
+  const id = attrs.match(/\bid="([^"]+)"/)?.[1]?.trim() ?? "";
+  return id || null;
+}
 
 function serializeScalar(value: string | number | boolean | null): string {
   if (value === null) {
@@ -44,22 +49,22 @@ function injectBlockContent(markdown: string, blockContent: Record<string, strin
     return markdown;
   }
 
-  const lines: string[] = [];
-  let anchorCount = 0;
-  for (const line of markdown.split("\n")) {
-    const anchorMatch = line.trim().match(blockAnchorPattern);
-    if (anchorMatch) {
-      anchorCount += 1;
-      const content = blockContent[anchorMatch[1] ?? ""]?.trim();
-      if (content) {
-        lines.push(content, "");
-      }
+  let replaced = false;
+  const injected = markdown.replace(blockDirectivePattern, (match, attrs) => {
+    const id = extractBlockId(attrs);
+    if (!id) {
+      return match;
     }
-    lines.push(line);
-  }
+    const content = blockContent[id]?.trim();
+    if (!content) {
+      return match;
+    }
+    replaced = true;
+    return `::: block{${attrs}}\n${content}\n:::`;
+  });
 
-  if (anchorCount > 0) {
-    return lines.join("\n");
+  if (replaced) {
+    return injected;
   }
 
   const appended = [markdown.trim()];
@@ -193,17 +198,16 @@ export function serializePage(page: MdanPage): string {
   const frontmatter = serializeFrontmatter(page.frontmatter);
   const visibleBlockNames = getVisibleBlockNames(page);
   const markdown = injectBlockContent(
-    page.markdown
-      .trim()
-      .split("\n")
-      .filter((line) => {
-        const anchorMatch = line.trim().match(blockAnchorPattern);
-        if (!anchorMatch || !visibleBlockNames) {
-          return true;
-        }
-        return visibleBlockNames.has(anchorMatch[1] ?? "");
-      })
-      .join("\n"),
+    page.markdown.trim().replace(blockDirectivePattern, (match, attrs) => {
+      if (!visibleBlockNames) {
+        return match;
+      }
+      const id = extractBlockId(attrs);
+      if (!id || visibleBlockNames.has(id)) {
+        return match;
+      }
+      return "";
+    }),
     getVisibleBlockContent(page)
   );
   const executableBlock = serializeExecutableBlock(

@@ -55,7 +55,8 @@ Submit only actions declared by the current surface.
 ## Result
 The latest messages appear below.
 
-<!-- mdan:block main -->
+::: block{id="main"}
+:::
 ```
 
 The Markdown body is the readable surface for both people and agents.

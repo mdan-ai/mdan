@@ -202,7 +202,7 @@ function isMdanPage(value: unknown): value is MdanPageResult["page"] {
     return false;
   }
   const page = value as Record<string, unknown>;
-  return typeof page.markdown === "string" && Array.isArray(page.blocks) && Array.isArray(page.blockAnchors);
+  return typeof page.markdown === "string" && Array.isArray(page.blocks);
 }
 
 function isMdanPageResult(value: unknown): value is MdanPageResult {

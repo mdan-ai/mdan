@@ -12,9 +12,9 @@ describe("artifact helpers", () => {
     ).toBe('{\n  "app_id": "demo"\n}');
   });
 
-  it("builds a page and infers block anchors from markdown, blockContent, and blocks", () => {
+  it("builds a page and infers visible block names from block content and blocks", () => {
     const page = createArtifactPage({
-      markdown: "# Demo\n\n<!-- mdan:block main -->",
+      markdown: "# Demo\n\n::: block{id=\"main\"}\n:::",
       executableJson: { app_id: "demo" },
       blockContent: {
         secondary: "## Secondary"
@@ -29,7 +29,6 @@ describe("artifact helpers", () => {
     });
 
     expect(page.executableContent).toContain('"app_id": "demo"');
-    expect(page.blockAnchors).toEqual(["main", "secondary"]);
     expect(page.visibleBlockNames).toEqual(["main", "secondary"]);
   });
 
