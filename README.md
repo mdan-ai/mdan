@@ -1,14 +1,15 @@
 # @mdanai/sdk
 
-`@mdanai/sdk` is the official SDK for building MDAN agent apps and skills apps.
+`@mdanai/sdk` is the official SDK for building MDAN agent apps, skills apps,
+and online skills.
 
 MDAN is a Markdown-first application surface model for shared human and agent
 interaction. A page stays readable as Markdown, carries explicit action
 contracts, and can be projected to browser HTML from the same server flow.
 
-It is designed for teams building agent-facing apps, skills apps, interactive
-internal tools, and other workflows where the same surface should work for both
-humans and AI agents.
+It is designed for teams building agent-facing apps, skills apps, online
+skills, interactive internal tools, and other workflows where the same surface
+should work for both humans and AI agents.
 
 ## Start Here
 
@@ -33,7 +34,7 @@ If you want to explore from this repo first, run:
 bun run dev:starter
 ```
 
-and follow [examples/starter/README.md](/Users/hencoo/projects/mdan/sdk/examples/starter/README.md).
+and follow [examples/starter/README.md](https://github.com/mdan-ai/mdan/blob/main/examples/starter/README.md).
 
 ## What You Build With It
 
@@ -47,6 +48,7 @@ Typical use cases:
 
 - agent apps and internal tools
 - guided forms and skills apps
+- online skills exposed over shared Markdown surfaces
 - interactive docs and runbooks
 - multi-step workflows that return both results and next actions
 
@@ -194,10 +196,11 @@ intentionally want to own the browser UI layer.
 - [Understanding MDAN](https://docs.mdan.ai/understanding-mdan)
 - [Developer Paths](https://docs.mdan.ai/developer-paths)
 - [API Reference](https://docs.mdan.ai/api-reference)
-- [Spec Overview](https://docs.mdan.ai/spec)
+- [Spec Overview](https://github.com/mdan-ai/mdan/blob/main/spec/index.md)
+- [Application Surface Spec](https://github.com/mdan-ai/mdan/blob/main/spec/application-surface.md)
 
 Repo-local docs:
 
-- [Architecture](/Users/hencoo/projects/mdan/sdk/ARCHITECTURE.md)
-- [Contributing](/Users/hencoo/projects/mdan/sdk/CONTRIBUTING.md)
-- [Examples](/Users/hencoo/projects/mdan/sdk/examples)
+- [Architecture](https://github.com/mdan-ai/mdan/blob/main/ARCHITECTURE.md)
+- [Contributing](https://github.com/mdan-ai/mdan/blob/main/CONTRIBUTING.md)
+- [Examples](https://github.com/mdan-ai/mdan/tree/main/examples)

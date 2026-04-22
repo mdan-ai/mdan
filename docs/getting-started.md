@@ -54,7 +54,8 @@ If you want browser-side behavior:
 If you want protocol and standardization context:
 
 - read [Spec Overview](/spec)
-- then [Application Surface Spec (ZH)](/spec/application-surface-zh)
+- then [Application Surface Spec](/spec/application-surface)
+- use [Application Surface Spec (ZH)](/spec/application-surface-zh) as a supplemental translation if needed
 
 ## 4. Common Maintainer Commands
 

@@ -12,6 +12,7 @@ representation rules, and interoperability boundaries.
 
 ## Current Spec Set
 
+- [Application Surface Spec](/spec/application-surface)
 - [Surface Contract](/spec/surface-contract)
 - [Action Execution](/spec/action-execution)
 - [Action Proof](/spec/action-proof)
@@ -22,11 +23,11 @@ representation rules, and interoperability boundaries.
 
 ## Reading Order
 
-1. Read the surface, action execution, action proof, and agent content specs
+1. Read the application surface spec for the broader model and terminology.
+2. Read the surface, action execution, action proof, and agent content specs
    for the interoperable Markdown-first contract.
-2. Read the state and identity spec and the representations spec for stable
+3. Read the state and identity spec and the representations spec for stable
    cross-representation semantics.
-3. Read the application surface spec for the broader model and terminology.
 
 ## Scope
 

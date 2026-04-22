@@ -14,21 +14,13 @@
   },
   "keywords": [
     "mdan",
-    "markdown-action-notation",
     "agent-app",
     "skills-app",
     "agent-starter",
     "agent-app-starter",
-    "skills-app-starter",
     "interactive-markdown",
-    "markdown-app-starter",
-    "agent-readable-markdown",
-    "markdown-actions",
-    "create",
     "scaffold",
-    "starter",
-    "template",
-    "cli"
+    "starter"
   ],
   "type": "module",
   "main": "./dist/scaffold.js",

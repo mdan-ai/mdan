@@ -43,7 +43,6 @@ Use it for three kinds of reading:
 
 - [Public API](/reference/public-api)
 - [API Reference](/api-reference)
-- [Keyword Strategy](/keyword-strategy)
 - [SDK Surface Consolidation Plan](/sdk-surface-consolidation-plan)
 - [Server Adapters](/reference/server-adapters)
 - [UI Action Semantics](/reference/ui-action-semantics)
@@ -56,6 +55,7 @@ Use it for three kinds of reading:
 ## Spec
 
 - [Spec Overview](/spec)
+- [Application Surface Spec](/spec/application-surface)
 - [Surface Contract](/spec/surface-contract)
 - [Action Execution](/spec/action-execution)
 - [Action Proof](/spec/action-proof)

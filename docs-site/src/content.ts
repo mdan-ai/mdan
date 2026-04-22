@@ -51,7 +51,6 @@ export const docsNav: DocsNavSection[] = [
     items: [
       { route: "/reference/public-api", label: "Public API" },
       { route: "/api-reference", label: "API Reference" },
-      { route: "/keyword-strategy", label: "Keyword Strategy" },
       { route: "/reference/server-adapters", label: "Server Adapters" },
       { route: "/reference/ui-action-semantics", label: "UI Action Semantics" },
       { route: "/reference/agent-eval", label: "Agent Evaluation" },
@@ -74,6 +73,7 @@ export const docsNav: DocsNavSection[] = [
     title: "Spec",
     items: [
       { route: "/spec", label: "Spec Overview" },
+      { route: "/spec/application-surface", label: "Application Surface Spec" },
       { route: "/spec/surface-contract", label: "Surface Contract" },
       { route: "/spec/action-execution", label: "Action Execution" },
       { route: "/spec/action-proof", label: "Action Proof" },
@@ -111,7 +111,6 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/guides/action-proof-security", sourcePath: "docs/ACTION-PROOF-SECURITY.md" },
   { route: "/reference/public-api", sourcePath: "docs/PUBLIC-API.md" },
   { route: "/api-reference", sourcePath: "docs/api-reference.md" },
-  { route: "/keyword-strategy", sourcePath: "docs/keyword-strategy.md" },
   { route: "/reference/server-adapters", sourcePath: "docs/SERVER-ADAPTERS.md" },
   { route: "/reference/ui-action-semantics", sourcePath: "docs/UI-ACTION-SEMANTICS.md" },
   { route: "/reference/agent-eval", sourcePath: "docs/AGENT-EVAL.md" },
@@ -124,6 +123,7 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/examples/auth-guestbook", sourcePath: "examples/auth-guestbook/README.md" },
   { route: "/examples/weather-markdown", sourcePath: "demo/weather-markdown/README.md" },
   { route: "/spec", sourcePath: "spec/index.md" },
+  { route: "/spec/application-surface", sourcePath: "spec/application-surface.md" },
   { route: "/spec/surface-contract", sourcePath: "spec/surface-contract.md" },
   { route: "/spec/action-execution", sourcePath: "spec/action-execution.md" },
   { route: "/spec/action-proof", sourcePath: "spec/action-proof.md" },
