@@ -1,12 +1,16 @@
 ---
 title: Application Structure
-description: Recommended project structure, routing model, and responsibility boundaries for real MDAN apps.
+description: Recommended app architecture, project structure, routing model, and responsibility boundaries for real MDAN agent apps and skills apps.
 ---
 
 # Application Structure
 
 This page is about how to lay out code, content, and interaction when you build
 a real MDAN app.
+
+Use it as the reference page for MDAN app architecture: how to split Markdown
+content, action contracts, server logic, and browser delivery without losing
+the shared application surface model.
 
 The short version is: keep content, server logic, and browser behavior
 separate, but do not split them into something heavier than the app itself.

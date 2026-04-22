@@ -1,12 +1,16 @@
 ---
 title: Custom Rendering
-description: Keep the MDAN browser runtime while letting React, Vue, or another UI layer render interactive pages your own way.
+description: Build a custom frontend for an MDAN agent app while keeping the browser runtime, with React, Vue, or another UI layer in charge of rendering.
 ---
 
 # Custom Rendering
 
 If you want to keep the MDAN browser runtime while letting your own framework
 fully own the UI, this is the path to take.
+
+This is the right path when you want a custom frontend for an MDAN agent app,
+including a React agent UI, a Vue agent UI, or another browser layer that keeps
+MDAN behavior but replaces the default rendering path.
 
 If all you need is custom Markdown-to-HTML projection for the default browser
 shell, stay on the root app API and configure `createApp({ rendering: { markdown } })`.

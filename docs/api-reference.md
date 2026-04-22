@@ -1,11 +1,14 @@
 ---
 title: API Reference
-description: Public API reference for the current @mdanai/sdk package and its supported subpath exports.
+description: MDAN SDK API reference for the current `@mdanai/sdk` package, including the supported page, route, action, and runtime entry paths.
 ---
 
 # API Reference
 
-This document covers the public SDK surface you should actually depend on.
+This document covers the public MDAN SDK surface you should actually depend on.
+
+Use it when you need the stable API for building MDAN apps with pages, routes,
+actions, browser delivery, or lower-level runtime integration.
 
 If something does not appear here or in [Public API](/reference/public-api), do
 not rely on it as a stable interface.

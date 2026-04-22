@@ -1,12 +1,16 @@
 ---
 title: Examples
-description: A guide to the runnable examples and demos in the current MDAN SDK workspace.
+description: Runnable MDAN agent app, skills app, and interactive Markdown examples for learning the SDK and choosing the right starting point.
 ---
 
 # Examples
 
 The current repository keeps a small set of examples that exercise the intended
 artifact-first runtime model.
+
+Use these examples when you want to see a small MDAN agent app, a docs-shaped
+app, an authenticated flow, or an interactive Markdown service before building
+your own app.
 
 ## Starter
 

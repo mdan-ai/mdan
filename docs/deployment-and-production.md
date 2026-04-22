@@ -1,12 +1,13 @@
 ---
 title: Deployment And Production
-description: Practical guidance for running an MDAN app in production with Node or Bun, reverse proxies, sessions, assets, and browser delivery.
+description: Deploy an MDAN app to production with Node or Bun, reverse proxies, sessions, assets, streaming, and browser delivery handled correctly.
 ---
 
 # Deployment And Production
 
 This guide focuses on practical production concerns for MDAN apps:
 
+- how to deploy an MDAN app with Node or Bun
 - how to run the app host
 - how to place it behind a reverse proxy
 - how to think about browser shell delivery

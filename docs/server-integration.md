@@ -1,12 +1,16 @@
 ---
 title: Server Integration
-description: Integrate MDAN into an existing backend without rebuilding runtime behavior yourself.
+description: Integrate MDAN into an existing backend or framework host without rebuilding routing, negotiation, action execution, or browser delivery yourself.
 ---
 
 # Server Integration
 
 This page is for the case where you already have a backend and want to plug
 MDAN into it without rebuilding runtime behavior yourself.
+
+Use it when you need to integrate MDAN into an existing backend such as
+Express, Fastify, Koa, Hono, or a custom server stack without rewriting the
+MDAN runtime contract in middleware.
 
 The short version is: keep the transport adaptation thin, then let the runtime
 handle the real work.

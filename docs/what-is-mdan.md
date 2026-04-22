@@ -1,15 +1,18 @@
 ---
 title: What is MDAN?
-description: What MDAN is, how it works, and why it fits interactive applications for both humans and agents.
+description: What MDAN is, how it works, and why it fits agent apps, skills apps, and interactive Markdown apps shared by humans and agents.
 ---
 
 # What is MDAN?
 
-One app surface for humans and agents.
+One interactive app surface for humans and agents.
 
-MDAN is a Markdown-first application model for interactive surfaces that stay
-readable and actionable for both humans and agents from the same underlying
-source.
+MDAN is a Markdown-first application surface model for building agent apps,
+skills apps, and interactive Markdown apps that stay readable and actionable
+for both humans and agents from the same underlying source.
+
+If you are looking for a way to build one app that works as both a browser
+experience and an agent-readable interface, this is the core MDAN idea.
 
 In the current SDK, that means:
 

@@ -1,12 +1,16 @@
 ---
 title: Developer Paths
-description: Choose the MDAN integration path that best fits your app, with `@mdanai/sdk` as the default app path and `@mdanai/sdk/surface` as the frontend escape hatch.
+description: Choose how to build an MDAN agent app, skills app, or custom-frontend app with `@mdanai/sdk` as the default path and `@mdanai/sdk/surface` as the frontend escape hatch.
 ---
 
 # Developer Paths
 
 Use this page to quickly pick the right MDAN integration path for your
 situation.
+
+If you already know you want to build an agent app or skills app with the SDK,
+this page is the shortest way to choose between the default app path, a custom
+frontend path, or a lower-level backend integration path.
 
 ## Path A: App + Browser Shell
 

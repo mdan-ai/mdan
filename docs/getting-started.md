@@ -1,11 +1,15 @@
 ---
 title: Getting Started
-description: Get the current MDAN SDK workspace running, choose the right example, and find the first docs to read.
+description: Quickstart the current MDAN SDK workspace, choose the right example, and find the fastest path to build your first agent app.
 ---
 
 # Getting Started
 
-This page is the fastest way to get oriented in the current SDK workspace.
+This page is the fastest way to get oriented in the current SDK workspace and
+start building your first MDAN agent app.
+
+Use it as the MDAN quickstart for local examples, the first app tutorial, and
+the next docs pages to read after you have the workspace running.
 
 ## 1. Install Dependencies
 
