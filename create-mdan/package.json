@@ -2,7 +2,7 @@
   "name": "create-mdan",
   "version": "0.7.1",
   "private": false,
-  "description": "Scaffold a minimal MDAN agent app with npm create or bunx.",
+  "description": "Scaffold a minimal MDAN agent app or skills app with npm create or bunx.",
   "license": "MIT",
   "homepage": "https://docs.mdan.ai",
   "bugs": {
@@ -16,8 +16,13 @@
     "mdan",
     "markdown-action-notation",
     "agent-app",
+    "skills-app",
     "agent-starter",
+    "agent-app-starter",
+    "skills-app-starter",
     "interactive-markdown",
+    "markdown-app-starter",
+    "agent-readable-markdown",
     "markdown-actions",
     "create",
     "scaffold",
@@ -45,8 +50,8 @@
   "scripts": {
     "build": "bunx tsc -b tsconfig.json --force",
     "postbuild": "chmod +x dist/cli-bin.js",
-    "prepack": "node ../scripts/prepare-npm-package.mjs --package . --readme ../docs/npm/create-mdan.md --license ../LICENSE",
-    "postpack": "node ../scripts/prepare-npm-package.mjs --package . --readme ../docs/npm/create-mdan.md --license ../LICENSE --restore true",
+    "prepack": "node ../scripts/prepare-npm-package.mjs --package . --readme README.md --license ../LICENSE",
+    "postpack": "node ../scripts/prepare-npm-package.mjs --package . --readme README.md --license ../LICENSE --restore true",
     "test": "bunx vitest run test"
   },
   "exports": {

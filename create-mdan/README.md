@@ -1,12 +1,14 @@
 # create-mdan
 
-`create-mdan` scaffolds a minimal MDAN app that uses the current `@mdanai/sdk` public runtime.
+`create-mdan` scaffolds a minimal MDAN agent app or skills app that uses the public
+`@mdanai/sdk` app API.
 
-Generated starters use the artifact-native MDAN flow:
+Generated starters already follow the current default path:
 
-- browsers read `text/html`
-- agents read `text/markdown`
-- actions return updated Markdown artifacts from the same server
+- Markdown is the public read surface
+- browsers use the HTML projection
+- actions submit JSON and return updated Markdown surfaces
+- the app code uses `createApp`, `page`, `route`, `action`, and `page.bind(...)`
 
 ## Usage
 
@@ -19,12 +21,6 @@ npm install
 npm start
 ```
 
-Then:
-
-- open `http://127.0.0.1:4321/`
-- edit `app/index.md` to change the page
-- run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/` to inspect the canonical artifact
-
 Bun starter:
 
 ```bash
@@ -34,20 +30,32 @@ bun install
 bun start
 ```
 
-Then:
-
-- open `http://127.0.0.1:4321/`
-- edit `app/index.md` to change the page
-- run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/` to inspect the canonical artifact
-
-You can choose the runtime explicitly:
+Choose the runtime explicitly:
 
 ```bash
 npm create mdan@latest agent-app -- --runtime bun
 bunx create-mdan agent-app --runtime node
 ```
 
-Generated projects use:
+## What You Get
 
-- `@mdanai/sdk` for app authoring
-- `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` for host integration
+The generated project includes:
+
+- a Markdown-first starter page
+- a simple write action
+- Node or Bun hosting
+- `@mdanai/sdk` pinned to the compatible minor line
+
+The generated project uses public SDK entry points only:
+
+- `@mdanai/sdk`
+- `@mdanai/sdk/server/node`
+- `@mdanai/sdk/server/bun`
+
+## Next Step
+
+After scaffolding:
+
+- open `http://127.0.0.1:4321/`
+- edit `app/index.md`
+- run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/`

@@ -23,6 +23,9 @@ async function backupAndCopy(packageDir, sourcePath, targetName, backupDir) {
   if (existed) {
     await cp(targetPath, backupPath);
   }
+  if (resolve(sourcePath) === resolve(targetPath)) {
+    return;
+  }
   await cp(sourcePath, targetPath);
 }
 
@@ -49,13 +52,13 @@ const restore = args.get("restore") === "true";
 if (restore) {
   await restoreTarget(packageDir, "README.md", backupDir);
   await restoreTarget(packageDir, "LICENSE", backupDir);
-  await rm(backupDir, { recursive: true, force: true });
+  await rm(backupDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 } else {
   const readme = args.get("readme");
   if (!readme) {
     throw new Error("--readme is required");
   }
-  await rm(backupDir, { recursive: true, force: true });
+  await rm(backupDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   await mkdir(backupDir, { recursive: true });
   await backupAndCopy(packageDir, resolve(packageDir, readme), "README.md", backupDir);
   const license = args.get("license");

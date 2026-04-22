@@ -51,6 +51,7 @@ export const docsNav: DocsNavSection[] = [
     items: [
       { route: "/reference/public-api", label: "Public API" },
       { route: "/api-reference", label: "API Reference" },
+      { route: "/keyword-strategy", label: "Keyword Strategy" },
       { route: "/reference/server-adapters", label: "Server Adapters" },
       { route: "/reference/ui-action-semantics", label: "UI Action Semantics" },
       { route: "/reference/agent-eval", label: "Agent Evaluation" },
@@ -110,6 +111,7 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/guides/action-proof-security", sourcePath: "docs/ACTION-PROOF-SECURITY.md" },
   { route: "/reference/public-api", sourcePath: "docs/PUBLIC-API.md" },
   { route: "/api-reference", sourcePath: "docs/api-reference.md" },
+  { route: "/keyword-strategy", sourcePath: "docs/keyword-strategy.md" },
   { route: "/reference/server-adapters", sourcePath: "docs/SERVER-ADAPTERS.md" },
   { route: "/reference/ui-action-semantics", sourcePath: "docs/UI-ACTION-SEMANTICS.md" },
   { route: "/reference/agent-eval", sourcePath: "docs/AGENT-EVAL.md" },

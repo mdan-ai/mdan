@@ -43,6 +43,7 @@ Use it for three kinds of reading:
 
 - [Public API](/reference/public-api)
 - [API Reference](/api-reference)
+- [Keyword Strategy](/keyword-strategy)
 - [SDK Surface Consolidation Plan](/sdk-surface-consolidation-plan)
 - [Server Adapters](/reference/server-adapters)
 - [UI Action Semantics](/reference/ui-action-semantics)
