@@ -49,13 +49,9 @@ know the MDAN vocabulary.
 The main missing query shapes are:
 
 - build an agent app
-- AI agent app framework
 - interactive Markdown app
 - agent-readable app
 - shared app for humans and agents
-- custom frontend for agent apps
-- deploy an agent app
-- integrate agent app into existing backend
 
 ## Keyword Layers
 
@@ -78,15 +74,11 @@ These terms reflect what developers are trying to do:
 - build an agent app
 - build an interactive Markdown app
 - build a shared app for humans and agents
-- custom frontend for an agent app
-- deploy an MDAN app
-- integrate MDAN into an existing backend
 
 ### 3. Category Terms
 
 These terms help with discovery before users know the protocol name:
 
-- AI agent app framework
 - interactive Markdown app framework
 - agent-readable app
 - shared human and agent UI
@@ -109,7 +101,7 @@ primarily own.
 
 - `docs/what-is-mdan.md`
   Primary:
-  `what is MDAN`, `MDAN framework`, `interactive app for humans and agents`
+  `what is MDAN`, `agent app`, `interactive app for humans and agents`
   Secondary:
   `AI-native app protocol`, `agent-readable app`
 
@@ -139,43 +131,29 @@ primarily own.
   Secondary:
   `build an interactive Markdown app`, `Node agent app tutorial`
 
-- `docs/server-integration.md`
-  Primary:
-  `integrate MDAN into an existing backend`, `MDAN backend integration`
-  Secondary:
-  `embed agent app in existing server`, `server-side MDAN integration`
-
-- `docs/deployment-and-production.md`
-  Primary:
-  `deploy an MDAN app`, `MDAN production deployment`
-  Secondary:
-  `Node production agent app`, `Bun production agent app`, `SSE deployment`
-
 ### Frontend And Runtime Pages
-
-- `docs/custom-rendering.md`
-  Primary:
-  `custom frontend for MDAN`, `React agent UI`, `Vue agent UI`
-  Secondary:
-  `custom renderer for agent app`, `frontend escape hatch`
-
-- `docs/application-structure.md`
-  Primary:
-  `MDAN app architecture`, `agent app structure`
-  Secondary:
-  `application surface architecture`, `MDAN project layout`
 
 - `docs/developer-paths.md`
   Primary:
   `how to build with MDAN`, `MDAN integration paths`
   Secondary:
-  `agent app SDK path`, `custom frontend path`
+  `agent app SDK path`, `skills app SDK path`
 
+## Support Pages
+
+The following pages are important docs, but they should mainly serve users who
+are already inside the docs site rather than acting as standalone keyword
+targets:
+
+- `docs/custom-rendering.md`
+- `docs/server-integration.md`
+- `docs/application-structure.md`
+- `docs/deployment-and-production.md`
 - `docs/browser-and-headless-runtime.md`
-  Primary:
-  `browser runtime for MDAN`, `headless MDAN runtime`
-  Secondary:
-  `server-rendered agent UI`, `MDAN browser shell`
+- `docs/inputs-and-assets.md`
+- `docs/sessions.md`
+- `docs/errors.md`
+- `docs/streaming.md`
 
 ## Recommended Metadata Adjustments
 
@@ -186,25 +164,18 @@ intro paragraphs.
 
 - `docs/what-is-mdan.md`
   Add stronger wording around:
-  `framework`, `interactive apps`, and `humans and agents`
+  `agent app`, `interactive apps`, and `humans and agents`
 
 - `docs/build-your-first-app.md`
   Explicitly target:
   `build an agent app` and `TypeScript tutorial`
 
-- `docs/custom-rendering.md`
-  Make `React`, `Vue`, and `custom frontend for agent apps` more visible in the
-  title, description, or opening section
-
-- `docs/deployment-and-production.md`
-  Make `deploy an MDAN app` explicit in the first paragraph
-
 ### Medium Priority
 
 - `docs/getting-started.md`
-- `docs/application-structure.md`
 - `docs/developer-paths.md`
-- `docs/server-integration.md`
+- `docs/examples.md`
+- `docs/api-reference.md`
 
 These pages are already strong structurally, but can carry more search-intent
 language without changing their scope.
@@ -223,7 +194,6 @@ Purpose:
 
 Keyword focus:
 
-- AI agent app framework
 - build an agent app
 - shared app for humans and agents
 
@@ -261,7 +231,8 @@ Do the work in this order:
    docs pages
 2. revise the opening paragraphs of those pages to include clearer
    search-intent language
-3. add one or two new keyword-entry pages only after the current pages are
+3. treat support pages as task-completion pages, not as separate keyword bets
+4. add one or two new keyword-entry pages only after the current pages are
    better aligned
 
 This keeps the docs strategy focused on stronger entry points, rather than

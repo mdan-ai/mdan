@@ -138,9 +138,8 @@ Different docs pages should target different search questions.
 Primary terms:
 
 - `what is MDAN`
-- `agent app framework`
-- `skills app model`
-- `online skills sdk`
+- `agent app`
+- `skills app`
 - `interactive markdown app`
 
 ### `Getting Started`
@@ -149,16 +148,15 @@ Primary terms:
 
 - `MDAN quickstart`
 - `build agent app`
-- `agent app starter`
+- `create agent app`
 
-### `Developer Paths`
+### `Build Your First App`
 
 Primary terms:
 
-- `agent app sdk`
-- `skills app sdk`
-- `online skills sdk`
-- `custom frontend agent app`
+- `build agent app`
+- `first MDAN app`
+- `interactive markdown app`
 
 ### `Examples`
 
@@ -175,6 +173,23 @@ Primary terms:
 - `MDAN SDK API`
 - `agent app sdk api`
 - `page route action api`
+
+## Support Pages
+
+Not every docs page needs an independent keyword job.
+
+The following pages should primarily help users complete tasks after they have
+already entered the docs site through a higher-intent page:
+
+- `Developer Paths`
+- `Custom Rendering`
+- `Server Integration`
+- `Application Structure`
+- `Deployment And Production`
+- runtime, sessions, assets, errors, and streaming guides
+
+These pages should still use clear language, but they should not be optimized
+as if they are the primary discovery surfaces for MDAN.
 
 ## GEO Guidance
 
@@ -195,6 +210,9 @@ These exact ideas should recur in multiple places with low wording drift.
 1. Keep npm package descriptions aligned with the package intent split.
 2. Keep the root README optimized for `@mdanai/sdk`, not for the whole repo.
 3. Keep `create-mdan/README.md` optimized for scaffold intent only.
-4. Update top docs pages so each page has a clearer keyword job.
-5. Avoid reintroducing deprecated terms into package descriptions or top-level
+4. Focus docs keyword work on a small number of high-intent entry pages, not on
+   every docs page equally.
+5. Keep support pages useful and specific, but do not force them into weak
+   keyword targets with little user intent.
+6. Avoid reintroducing deprecated terms into package descriptions or top-level
    docs.
