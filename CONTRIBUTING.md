@@ -113,15 +113,15 @@ same branch whenever practical.
 
 Most common mappings:
 
-- public package surface or import guidance: `docs/PUBLIC-API.md`
-- runtime behavior, representations, result semantics: `docs/RUNTIME-CONTRACT.md`
-- browser host and headless runtime behavior: `docs/BROWSER-AND-HEADLESS-RUNTIME.md`
-- server adapter behavior: `docs/SERVER-ADAPTERS.md`
-- request validation and status behavior: `docs/ERRORS.md`
-- action proof rules: `docs/ACTION-PROOF-SECURITY.md`
-- inputs and uploaded assets: `docs/INPUTS-AND-ASSETS.md`
-- session lifecycle: `docs/SESSIONS.md`
-- streaming behavior: `docs/STREAMING.md`
+- public package surface or import guidance: `docs/public-api.md`
+- runtime behavior, representations, result semantics: `docs/runtime-contract.md`
+- browser host and headless runtime behavior: `docs/browser-and-headless-runtime.md`
+- server adapter behavior: `docs/server-adapters.md`
+- request validation and status behavior: `docs/errors.md`
+- action proof rules: `docs/action-proof-security.md`
+- inputs and uploaded assets: `docs/inputs-and-assets.md`
+- session lifecycle: `docs/sessions.md`
+- streaming behavior: `docs/streaming.md`
 
 If you change the top-level product story, quick start, or doc index, also
 update `README.md`.

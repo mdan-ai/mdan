@@ -17,11 +17,11 @@ by the runtime before a compatibility surface is returned to clients that still
 consume `application/json`.
 
 For the broader product model, see `application-surface.zh.md`. For action
-proof submission and signing, see `../docs/ACTION-PROOF-SECURITY.md`.
+proof submission and signing, see `../docs/action-proof-security.md`.
 
 This is not the primary public MDAN response shape. The primary public contract
-is the Markdown artifact described in `../docs/RUNTIME-CONTRACT.md` and
-`../docs/2026-04-12-agent-consumption-contract.md`.
+is the Markdown artifact described in `../docs/runtime-contract.md` and
+`../docs/agent-surface-contract.md`.
 
 ## Surface Envelope
 
@@ -219,7 +219,7 @@ negotiation: compatibility JSON clients receive a JSON error surface, while
 Markdown/HTML fallbacks receive Markdown where applicable.
 
 Stream results are not legacy JSON surface envelopes and do not pass through
-this contract validation. See `../docs/STREAMING.md`.
+this contract validation. See `../docs/streaming.md`.
 
 ## Authoring Checklist
 

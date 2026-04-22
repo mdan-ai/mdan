@@ -167,7 +167,7 @@ Status: `Rewrite from old`
 Why:
 
 - still highly relevant
-- but current repo already has more precise runtime/reference material in `docs/2026-04-12-agent-consumption-contract.md`
+- but current repo already has more precise runtime/reference material in `docs/agent-surface-contract.md`
 
 Recommendation:
 
@@ -222,7 +222,7 @@ Status: `Do not migrate`
 Why:
 
 - the current repo already has a stronger and more accurate replacement:
-  `docs/RUNTIME-CONTRACT.md`
+  `docs/runtime-contract.md`
 - the old page is tied to `createHostedApp` and older runtime APIs
 
 Recommendation:
@@ -241,7 +241,7 @@ Why:
 Recommendation:
 
 - create a future high-level guide above the current
-  `docs/BROWSER-AND-HEADLESS-RUNTIME.md`
+  `docs/browser-and-headless-runtime.md`
 
 ### `elements.md`
 
@@ -263,7 +263,7 @@ Status: `Do not migrate`
 
 Why:
 
-- the current repo already has a stronger replacement in `docs/PUBLIC-API.md`
+- the current repo already has a stronger replacement in `docs/public-api.md`
 - the old page refers to old subpaths like `core`, `web`, and `elements`
 
 Recommendation:
@@ -290,7 +290,7 @@ Status: `Do not migrate`
 
 Why:
 
-- current repo already has `docs/SESSIONS.md`, which is more current and implementation-accurate
+- current repo already has `docs/sessions.md`, which is more current and implementation-accurate
 
 Recommendation:
 

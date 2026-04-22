@@ -19,6 +19,7 @@ representation rules, and interoperability boundaries.
 - [Agent Content](/spec/agent-content)
 - [State And Identity](/spec/state-and-identity)
 - [Representations](/spec/representations)
+- [Versioning And Conformance](/spec/versioning-and-conformance)
 - [Application Surface Spec (ZH)](/spec/application-surface-zh)
 
 ## Reading Order
@@ -28,6 +29,8 @@ representation rules, and interoperability boundaries.
    for the interoperable Markdown-first contract.
 3. Read the state and identity spec and the representations spec for stable
    cross-representation semantics.
+4. Read the versioning and conformance spec for compatibility and claim
+   boundaries.
 
 ## Scope
 

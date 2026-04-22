@@ -16,6 +16,8 @@ Use it for three kinds of reading:
 ## Start Here
 
 - New to the repository: [Getting Started](/getting-started)
+- Want a hands-on walkthrough first: [Build Your First App](/build-your-first-app)
+- Need the vocabulary first: [Glossary](/glossary)
 - Want the product-level explanation first: [What is MDAN?](/what-is-mdan)
 - Want runnable app flows: [Examples](/examples)
 - Want the package surface first: [Public API](/reference/public-api)
@@ -26,9 +28,12 @@ Use it for three kinds of reading:
 
 - [Understanding MDAN](/understanding-mdan)
 - [MDAN vs MCP](/mdan-vs-mcp)
+- [Build Your First App](/build-your-first-app)
+- [Glossary](/glossary)
 - [Developer Paths](/developer-paths)
 - [Application Structure](/application-structure)
 - [Server Integration](/server-integration)
+- [Deployment And Production](/deployment-and-production)
 - [Runtime Contract](/guides/runtime-contract)
 - [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
 - [Custom Rendering](/custom-rendering)
@@ -43,7 +48,6 @@ Use it for three kinds of reading:
 
 - [Public API](/reference/public-api)
 - [API Reference](/api-reference)
-- [SDK Surface Consolidation Plan](/sdk-surface-consolidation-plan)
 - [Server Adapters](/reference/server-adapters)
 - [UI Action Semantics](/reference/ui-action-semantics)
 - [Agent Evaluation Contract](/reference/agent-eval)
@@ -60,6 +64,9 @@ Use it for three kinds of reading:
 - [Action Execution](/spec/action-execution)
 - [Action Proof](/spec/action-proof)
 - [Agent Content](/spec/agent-content)
+- [State And Identity](/spec/state-and-identity)
+- [Representations](/spec/representations)
+- [Versioning And Conformance](/spec/versioning-and-conformance)
 - [Application Surface Spec (ZH)](/spec/application-surface-zh)
 
 ## Contributing

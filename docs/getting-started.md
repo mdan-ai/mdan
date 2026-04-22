@@ -39,6 +39,8 @@ See [Examples](/examples) for what each one is good for.
 
 If you want to build with the current SDK:
 
+- start with [Build Your First App](/build-your-first-app) if you want the
+  shortest end-to-end walkthrough
 - start with [What is MDAN?](/what-is-mdan) if you want the product model first
 - then read [Developer Paths](/developer-paths) to choose the right entry path
 - start with [Public API](/reference/public-api)
@@ -50,6 +52,8 @@ If you want browser-side behavior:
 
 - read [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
 - then [UI Action Semantics](/reference/ui-action-semantics)
+- use [Deployment And Production](/deployment-and-production) when you move
+  from local examples to a real host
 
 If you want protocol and standardization context:
 
