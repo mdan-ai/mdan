@@ -69,12 +69,14 @@ MDAN is probably not the right fit when:
 
 ## How The Current SDK Fits
 
-The current TypeScript SDK positions MDAN around an artifact-first runtime:
+The current TypeScript SDK now gives you one default authoring path plus
+secondary layers for specialization:
 
-- `@mdanai/sdk/server` models page routes and action routes
-- `@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun` host them
-- `@mdanai/sdk/surface` handles browser/headless continuation
-- `@mdanai/sdk/ui` is the optional default UI layer
+- `@mdanai/sdk` is the default app API for defining pages and actions
+- `@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun` host that app
+- `@mdanai/sdk/surface` is the custom-frontend escape hatch
+- `@mdanai/sdk/server` is the lower-level runtime layer
+- the shipped default UI implementation stays internal to the SDK
 
 That lets the same underlying app serve:
 

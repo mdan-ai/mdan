@@ -4,18 +4,18 @@ The SDK has two browser-facing layers:
 
 - `@mdanai/sdk/surface`: a lightweight headless runtime that owns transport, route
   state, action submission, region patching, and debug messages
-- `@mdanai/sdk/ui`: the optional default Web Components UI
+- an internal shipped default UI implementation used by the browser shell
 
-Custom frontends should depend on `@mdanai/sdk/surface` directly. The default UI is
-for quick starts, examples, and hosts that want a complete browser experience
-without writing rendering code.
+Custom frontends should depend on `@mdanai/sdk/surface` directly. The default UI
+is for quick starts, examples, and hosts that want a complete browser
+experience without writing rendering code. It is not a public extension path.
 
 ## Browser Shell
 
-Server hosts can enable `browserShell` for page document requests:
+App hosts can enable `browserShell` for page document requests:
 
 ```ts
-const server = createMdanServer({
+const app = createApp({
   browserShell: {
     title: "MDAN Starter"
   }
@@ -32,9 +32,9 @@ Today, that means:
 - browsers get a readable document without booting `createHeadlessHost()` or
   `mountMdanUi()`
 
-The lower-level `renderBrowserShell()` helper can still render a hydrated shell
-that imports `@mdanai/sdk/surface` and `@mdanai/sdk/ui`, but that is not the
-default page-read path currently served by the runtime adapters.
+The shipped UI implementation can still be mounted explicitly in lower-level
+browser-shell paths, but that is not the default page-read path currently
+served by the runtime adapters.
 
 ## Module Modes
 
@@ -42,7 +42,10 @@ When you render a hydrated browser shell directly, it imports browser modules
 from CDN URLs by default:
 
 - `@mdanai/sdk/surface`
-- `@mdanai/sdk/ui`
+- `@mdanai/sdk/dist-browser/browser-shell.js`
+
+Treat the browser-shell bundle as implementation-level default rendering, not as
+the primary frontend integration story.
 
 Local SDK development can use built browser artifacts instead:
 
@@ -54,6 +57,7 @@ browserShell: {
 
 In `local-dist` mode, host adapters serve:
 
+- `/__mdan/browser-shell.js`
 - `/__mdan/surface.js`
 - `/__mdan/ui.js`
 
@@ -111,10 +115,10 @@ replacement.
 ## Error State
 
 Non-2xx responses move the host into `error` status. If the response body is a
-Markdown artifact or a legacy JSON surface, the host adapts it so the UI can
+Markdown artifact or a legacy JSON compatibility response, the host adapts it so the UI can
 show the server-provided error content.
 
-Responses that are neither readable Markdown artifacts nor legacy JSON surfaces
+Responses that are neither readable Markdown artifacts nor legacy JSON compatibility responses
 are treated as runtime errors for browser clients.
 
 ## Debug Messages
@@ -128,5 +132,5 @@ const host = createHeadlessHost({
 ```
 
 Debug records are stored in `window.__MDAN_DEBUG__.messages` and include outgoing
-requests and incoming surfaces. The default UI also exposes a small
+requests and incoming surfaces. The shipped default UI also exposes a small
 debug drawer when debug messages are enabled.

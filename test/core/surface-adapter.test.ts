@@ -24,7 +24,7 @@ function adaptJsonEnvelopeToHeadlessSnapshot(input: LegacyFixtureSurface) {
 }
 
 describe("adaptJsonEnvelopeToHeadlessSnapshot", () => {
-  it("maps JSON surface envelope into headless route, blocks, inputs, and operations", () => {
+  it("maps a legacy JSON compatibility shape into headless route, blocks, inputs, and operations", () => {
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `---
 app_id: "auth-guestbook"

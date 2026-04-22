@@ -8,7 +8,10 @@ MDAN is a Markdown-first application protocol and runtime for shared human and a
 
 With MDAN, the page is not only presentation. It is also shared working context: readable by humans, consumable by agents, and structured enough for both sides to continue from the same surface.
 
-`@mdanai/sdk` gives you the parser, server runtime, shared surface runtime, and default UI for building with that model.
+`@mdanai/sdk` gives you the main app-authoring API for building with that
+model. `@mdanai/sdk/surface` is the custom-frontend escape hatch. The
+lower-level server runtime and shipped default UI implementation still exist,
+but they are no longer the primary product story.
 
 The name MDAN originally came from "Markdown Action Notation", but the current SDK is positioned around a broader Markdown-first application surface model.
 
@@ -84,7 +87,11 @@ const host = createHost(server, {
 
 For a browser document request, the host forwards `Accept: text/html` to the runtime, which renders readable HTML from the current artifact. In the current default host path, that HTML is served as a non-hydrated server projection. Runtime requests with `Accept: text/markdown` return the canonical page document. `Accept: application/json` remains available only where compatibility handlers or adapters still need it.
 
-For custom or production frontends, prefer importing only `@mdanai/sdk/surface`. That package is the lightweight shared surface runtime and must stay independent of `@mdanai/sdk/ui`, `lit`, and Markdown rendering. The optional `@mdanai/sdk/ui` package provides the default Web Components UI for quick starts and examples.
+For custom or production frontends, prefer importing only
+`@mdanai/sdk/surface`. That package is the lightweight shared surface runtime
+and must stay independent of the internal default UI layer, `lit`, and Markdown rendering.
+That default UI is only the shipped implementation, not the
+recommended custom frontend path.
 
 For local SDK development, examples can use:
 
@@ -99,7 +106,11 @@ In that mode the server adapter serves two browser bundle entry files, `/__mdan/
 
 The example `dev:*` scripts now do that for you: they run an initial local SDK build, keep both `dist/` and `dist-browser/` updated during development, and start the Bun example server against those local browser bundles.
 
-HTML generation for page requests is driven by `createMdanServer()` from the page contract. Host adapters are responsible for forwarding browser document requests and serving the optional local browser bundles. The public read path is `text/markdown` and `text/html`. `application/json` is now a legacy compatibility transport, not the recommended primary contract.
+HTML generation for page requests is driven by the shared runtime beneath
+`createApp(...)`. Host adapters are responsible for forwarding browser document
+requests and serving the optional local browser bundles. The public read path is
+`text/markdown` and `text/html`. `application/json` is now a legacy
+compatibility transport, not the recommended primary contract.
 
 Prompt structure and agent-only visibility are handled separately in the current runtime:
 
@@ -160,24 +171,25 @@ The returned artifact should show the current messages and expose the next allow
 
 Default path for a new app:
 
-- use `@mdanai/sdk/server` to define page routes and action handlers
+- use `@mdanai/sdk` to define pages and actions with the app API
 - use `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` to host it
 - enable `browserShell` if you want server-rendered browser HTML from the same artifact
 
-Minimal server setup:
+Minimal app setup:
 
 ```ts
-import { createMdanServer } from "@mdanai/sdk/server";
+import { actions, createApp, fields } from "@mdanai/sdk";
 import { createHost } from "@mdanai/sdk/server/bun";
 
-const server = createMdanServer({
+const app = createApp({
   appId: "starter",
   browserShell: {
     title: "MDAN Starter"
   }
 });
 
-server.page("/", async () => ({
+const messages = ["Welcome to MDAN"];
+const home = app.page("/", {
   markdown: `# Starter App
 
 ## Purpose
@@ -195,46 +207,78 @@ The returned artifact should show the current messages and expose the next allow
 ::: block{id="main" actions="refresh_main" trust="untrusted"}
 :::
 `,
-  actions: {
-    response_mode: "page",
-    blocks: ["main"],
-    actions: [
-      {
-        id: "refresh_main",
-        label: "Refresh",
-        verb: "read",
-        transport: { method: "GET" },
-        target: "/",
-        input_schema: {
-          type: "object",
-          properties: {},
-          additionalProperties: false
-        }
+  actions: [
+    actions.read("refresh_main", {
+      label: "Refresh",
+      target: "/"
+    }),
+    actions.write("submit_message", {
+      label: "Submit",
+      target: "/post",
+      input: {
+        message: fields.string({ required: true })
       }
-    ],
-    allowed_next_actions: ["refresh_main"]
-  },
-  route: "/",
-  regions: {
-    main: "- No messages yet"
+    })
+  ],
+  render() {
+    return {
+      main: messages.map((message) => `- ${message}`).join("\n")
+    };
   }
-}));
+});
 
-export default createHost(server, {
+app.route(home.bind(messages));
+
+// `page(...)` creates a reusable page definition.
+// `route(page)` registers pages that can render without extra state.
+// `page.bind(state)` associates the current state with a page definition.
+// In actions, return `page.bind(state).render()` after state changes.
+
+app.action("/post", async ({ inputs }) => {
+  const message = String(inputs.message ?? "").trim();
+  if (message) {
+    messages.unshift(message);
+  }
+  return home.bind(messages).render();
+});
+
+export default createHost(app, {
   browserShell: {
     title: "MDAN Starter"
   }
 });
 ```
 
-This is the preferred default authoring path for new code: return a readable
-surface shape and let the runtime project it into the canonical Markdown
-artifact. Lower-level artifact helpers still exist when you want direct control
-over the final artifact payload.
+This is the preferred default authoring path for new code: use the root app API
+to define pages, actions, and fields, and let the runtime project those results
+into the canonical Markdown artifact. Lower-level server/runtime helpers still
+exist when you need direct control over routes, sessions, assets, streaming, or
+artifact payloads.
 
-When you set `createMdanServer({ appId })`, the runtime fills in `app_id`,
+When you set `createApp({ appId })`, the runtime still fills in `app_id`,
 `state_id`, and `state_version` for readable-surface responses before artifact
 serialization.
+
+If you need a custom HTML projection for app-defined pages, keep that at the app
+layer too:
+
+```ts
+const app = createApp({
+  rendering: {
+    markdown: {
+      render(markdown, context) {
+        if (context?.kind === "block") {
+          return `<section>${markdown}</section>`;
+        }
+        return `<article>${markdown}</article>`;
+      }
+    }
+  }
+});
+```
+
+Reach for `@mdanai/sdk/surface` directly only when you are replacing the
+browser UI with your own React, Vue, or other frontend.
 
 Node starter:
 
@@ -258,19 +302,26 @@ You can also force either runtime with `--runtime node` or `--runtime bun`.
 
 ## Recommended Entry Paths
 
-- `server + browser shell`
+- `app + browser shell`
   Use this when you want the fastest path to a readable browser app with server-rendered HTML from the same artifact. This is the default recommendation for new users and local prototypes.
-- `server + surface`
-  Use this when you want MDAN transport/state handling but you will render the UI yourself in React, Vue, or another frontend.
+- `app + surface`
+  Use this when you want app-first server authoring, but the browser UI will be rendered by your own React, Vue, or other frontend on top of `@mdanai/sdk/surface`.
 - `server only`
-  Use this when you are serving Markdown artifacts to agents, tests, or another client that does not need the bundled browser UI. If needed, the legacy JSON bridge can still be enabled for compatibility during migration.
+  Use this when you are building lower-level runtime integrations, serving Markdown artifacts to agents/tests, or need direct control over sessions, streaming, assets, and other runtime concerns.
+
+For new work, follow this rule:
+
+- start with `@mdanai/sdk`
+- only add `@mdanai/sdk/surface` if you need a custom frontend
+- only reach for `@mdanai/sdk/server` when you intentionally need lower-level runtime control
+- treat the shipped default UI as SDK internals, not a primary app-authoring entry
 
 ## Runtime Adapters
 
-Shared server modeling stays on `@mdanai/sdk/server`:
+Application authoring stays on the root package:
 
 ```ts
-import { createMdanServer } from "@mdanai/sdk/server";
+import { createApp } from "@mdanai/sdk";
 ```
 
 Then choose the host adapter for your runtime:
@@ -281,6 +332,12 @@ import { createHost } from "@mdanai/sdk/server/node";
 
 ```ts
 import { createHost } from "@mdanai/sdk/server/bun";
+```
+
+Lower-level server modeling still exists when you explicitly need it:
+
+```ts
+import { createMdanServer } from "@mdanai/sdk/server";
 ```
 
 ## Field Schema
@@ -378,7 +435,9 @@ Reference and product docs:
 
 ## Browser Debugging
 
-If you want to inspect raw browser-side MDAN traffic while using the default UI or your own custom renderer, enable debug messages on the headless host:
+If you want to inspect raw browser-side MDAN traffic while using your own
+frontend or the shipped default UI implementation, enable debug messages on the
+headless host:
 
 ```ts
 import { createHeadlessHost } from "@mdanai/sdk/surface";
@@ -394,4 +453,4 @@ When enabled:
 - the browser records outgoing and incoming MDAN messages
 - each record keeps the raw request body or the adapted Markdown view of the returned artifact
 - messages are available at `window.__MDAN_DEBUG__.messages`
-- the default `ui` package also shows a small debug drawer in the browser
+- the shipped `ui` package also shows a small debug drawer in the browser

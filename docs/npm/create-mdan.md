@@ -40,6 +40,6 @@ The generated app includes:
 
 The generated project uses public SDK entry points only:
 
-- `@mdanai/sdk/server`
+- `@mdanai/sdk`
 - `@mdanai/sdk/server/node`
 - `@mdanai/sdk/server/bun`

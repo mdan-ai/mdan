@@ -168,7 +168,7 @@ createHost(server, {
 For HTML page reads, the host asks the runtime for a page response and writes
 the resulting browser-facing HTML. In the current runtime path, page reads are
 served as server-rendered artifact projections without booting
-`@mdanai/sdk/surface` or `@mdanai/sdk/ui` in the browser.
+`@mdanai/sdk/surface` or the shipped browser-shell bundles in the browser.
 
 The lower-level `renderBrowserShell()` helper can still be used separately when
 you want a hydrated shell, but high-level host adapters do not inject that

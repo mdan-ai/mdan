@@ -3,7 +3,7 @@
 Source layout:
 
 - `app/index.md`, `app/getting-started.md`
-- `app.ts` (loads docs markdown and defines the refresh action)
+- `app.ts` (uses `createApp`, `page`, and `route` to serve a reusable docs page definition)
 
 Runtime contract:
 

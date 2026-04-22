@@ -1,5 +1,6 @@
 import { type ReadableSurface } from "../server/artifact.js";
-import { createMdanServer, type CreateMdanServerOptions } from "../server/runtime.js";
+import { type ActionProofOptions } from "../server/action-proofing.js";
+import { createMdanServer } from "../server/runtime.js";
 import type {
   MdanActionResult,
   MdanHandler,
@@ -8,6 +9,7 @@ import type {
   MdanPageHandlerContext,
   MdanRequest,
   MdanResponse,
+  MdanSessionProvider,
   MdanStreamResult
 } from "../server/types.js";
 
@@ -31,21 +33,53 @@ export interface AppActionDefinition {
   input?: Record<string, AppFieldDefinition>;
 }
 
-export interface AppScreenConfig<TRenderArgs extends unknown[]> {
+export interface AppPageConfig<TRenderArgs extends unknown[]> {
   markdown: string;
   actions?: AppActionDefinition[];
   render: (...args: TRenderArgs) => Record<string, string>;
 }
 
-export interface AppScreen<TRenderArgs extends unknown[] = []> {
+export interface AppBoundPageDefinition {
+  path: string;
+  render: () => ReadableSurface;
+}
+
+export interface AppPageDefinition<TRenderArgs extends unknown[] = []> {
   path: string;
   render: (...args: TRenderArgs) => ReadableSurface;
+  bind: (...args: TRenderArgs) => AppBoundPageDefinition;
+}
+
+export interface AppMarkdownRenderContext {
+  kind: "page" | "block";
+  route?: string;
+  blockName?: string;
+}
+
+export interface AppMarkdownRenderer {
+  render(markdown: string, context?: AppMarkdownRenderContext): string;
+}
+
+export interface AppBrowserShellOptions {
+  title?: string;
+  moduleMode?: "cdn" | "local-dist";
+}
+
+export interface CreateAppOptions {
+  appId?: string;
+  session?: MdanSessionProvider;
+  actionProof?: ActionProofOptions;
+  browserShell?: AppBrowserShellOptions;
+  rendering?: {
+    markdown?: AppMarkdownRenderer;
+  };
 }
 
 export interface AppInstance {
-  screen<TRenderArgs extends unknown[]>(path: string, config: AppScreenConfig<TRenderArgs>): AppScreen<TRenderArgs>;
-  page(path: string, handler: AppPageHandler): void;
-  page<TRenderArgs extends unknown[]>(screen: AppScreen<TRenderArgs>): void;
+  page<TRenderArgs extends unknown[]>(path: string, config: AppPageConfig<TRenderArgs>): AppPageDefinition<TRenderArgs>;
+  route(page: AppBoundPageDefinition): void;
+  route(page: AppPageDefinition<[]>): void;
+  route(path: string, handler: AppPageHandler): void;
   action(path: string, handler: AppActionHandler): void;
   handle(request: MdanRequest): Promise<MdanResponse>;
 }
@@ -169,35 +203,48 @@ export const actions = {
   }
 };
 
-export function createApp(options: CreateMdanServerOptions = {}): AppInstance {
-  const server = createMdanServer(options);
-  const screen = <TRenderArgs extends unknown[]>(
+export function createApp(options: CreateAppOptions = {}): AppInstance {
+  const { rendering, ...serverOptions } = options;
+  const server = createMdanServer({
+    ...serverOptions,
+    browserShell: {
+      ...serverOptions.browserShell,
+      ...(rendering?.markdown ? { markdownRenderer: rendering.markdown } : {})
+    }
+  });
+  const page: AppInstance["page"] = <TRenderArgs extends unknown[]>(
     path: string,
-    config: AppScreenConfig<TRenderArgs>
-  ): AppScreen<TRenderArgs> => ({
+    config: AppPageConfig<TRenderArgs>
+  ): AppPageDefinition<TRenderArgs> => ({
     path,
     render: (...args: TRenderArgs) => buildReadableSurface(
       path,
       config.markdown,
       config.render(...args),
       config.actions ?? []
-    )
+      ),
+    bind: (...args: TRenderArgs) => ({
+      path,
+      render: () => buildReadableSurface(
+        path,
+        config.markdown,
+        config.render(...args),
+        config.actions ?? []
+      )
+    })
   });
 
-  const page: AppInstance["page"] = (
-    pathOrScreen: string | AppScreen<unknown[]>,
-    handler?: AppPageHandler
-  ) => {
-    if (typeof pathOrScreen === "string") {
-      server.page(pathOrScreen, handler as MdanPageHandler);
+  const route = ((pathOrPage: string | AppBoundPageDefinition | AppPageDefinition<[]>, handler?: AppPageHandler) => {
+    if (typeof pathOrPage === "string") {
+      server.page(pathOrPage, handler as MdanPageHandler);
       return;
     }
-    server.page(pathOrScreen.path, async () => pathOrScreen.render());
-  };
+    server.page(pathOrPage.path, async () => pathOrPage.render());
+  }) as AppInstance["route"];
 
   return {
-    screen,
     page,
+    route,
     action(path: string, handler: AppActionHandler): void {
       server.post(path, handler as MdanHandler);
     },

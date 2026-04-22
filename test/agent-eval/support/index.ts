@@ -1,8 +1,9 @@
 import { createServer, type Server } from "node:http";
 
 import { extractSections, parseFrontmatter } from "../../../src/content/content-actions.js";
+import { createArtifactPage } from "../../../src/server/artifact.js";
 import { createNodeHost } from "../../../src/server/node.js";
-import { createArtifactPage, createMdanServer, type MdanRequest } from "../../../src/server/index.js";
+import { createMdanServer, type MdanRequest } from "../../../src/server/index.js";
 
 export type AgentEvalAssumptionLevel = "A0" | "A1" | "A2" | "A3";
 

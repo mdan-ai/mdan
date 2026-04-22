@@ -12,7 +12,7 @@ export function createDocsStarterServer() {
   const app = createApp({
     appId: "docs-starter"
   });
-  const home = app.screen("/", {
+  const home = app.page("/", {
     markdown: template,
     actions: [
       actions.read("refresh_docs", {
@@ -26,8 +26,7 @@ export function createDocsStarterServer() {
       };
     }
   });
-
-  app.page(home);
+  app.route(home);
 
   return app;
 }

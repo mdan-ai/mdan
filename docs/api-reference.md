@@ -14,17 +14,45 @@ not rely on it as a stable interface.
 
 The supported public package entries are:
 
-- `@mdanai/sdk/server`
+- `@mdanai/sdk`
 - `@mdanai/sdk/server/node`
 - `@mdanai/sdk/server/bun`
 - `@mdanai/sdk/surface`
-- `@mdanai/sdk/ui`
+- `@mdanai/sdk/server`
+
+Treat the first three as the normal app-development path. Treat `surface`,
+and `server` as progressively lower-level or more specialized entries.
 
 For boundary rules, see [Public API](/reference/public-api).
 
+## `@mdanai/sdk`
+
+The default app-authoring entrypoint.
+
+### Main Exports
+
+- `createApp(options?)`
+- `actions`
+- `fields`
+- `AppBrowserShellOptions`
+- `CreateAppOptions`
+- `signIn()`
+- `signOut()`
+
+### App Types
+
+The root package exports the app-level browser-shell and markdown-rendering
+types that shape `createApp(...)`, without exposing the broader internal
+authoring/runtime type graph.
+
+Use this entry when you want the shortest path to shipping an app without
+directly modeling protocol/runtime internals.
+
 ## `@mdanai/sdk/server`
 
-The shared server runtime and server-side helpers.
+The shared lower-level server runtime and server-side helpers.
+
+Reach for this package intentionally, not as the default app-authoring path.
 
 ### Core Runtime
 
@@ -33,15 +61,6 @@ The shared server runtime and server-side helpers.
   - `server.page(path, handler)`
   - `server.get(path, handler)`
   - `server.post(path, handler)`
-
-### Artifact Helpers
-
-- `createArtifactPage(options)`
-- `createArtifactFragment(options)`
-- `createExecutableContent(value)`
-
-Use these as lower-level helpers when you want to build artifact-native results
-directly instead of returning a readable surface shape from handlers.
 
 ### Result Helpers
 
@@ -63,21 +82,25 @@ These create session mutation intents for the configured session provider.
 ### Asset Helpers
 
 - `cleanupExpiredAssets(options)`
-- `createLocalAssetHandle(...)`
-- `getAssetHandle(...)`
-- `readAsset(...)`
-- `openAssetStream(...)`
-
-### Request/Input Helpers
-
-- `validatePostInputs(inputs, policy)`
-- `normalizeMultipartBody(...)`
-- `normalizeUrlEncodedBody(...)`
 
 ### Common Exported Types
 
-The server package also exports the main request, response, handler, session,
-stream, and asset-related types used by applications and tests.
+The server package also exports only the common request, response, session, and
+asset-handle types used by applications and tests.
+
+The browser-shell implementation helpers are intentionally not part of this main
+barrel.
+The host-level body-normalization helpers are also intentionally kept off this
+main barrel.
+Standalone asset-store read/write helpers are also intentionally kept off this
+main barrel.
+Runtime-tuning types such as browser-shell or auto-dependency config details
+are intentionally kept off this main barrel as well.
+Post-input validation helpers and their detailed types are also kept off this
+main barrel.
+Artifact assembly helpers are also intentionally kept off this main barrel.
+Lower-level handler, input, and stream/result typing details are also kept off
+this main barrel.
 
 ## `@mdanai/sdk/server/node`
 
@@ -123,23 +146,16 @@ The returned host provides the main browser-continuation methods:
 The surface package also exports protocol and adapter-layer types used by
 custom frontends.
 
-## `@mdanai/sdk/ui`
+## Default UI Implementation
 
-The optional default Web Components UI layer.
-
-### Main Exports
-
-- `mountMdanUi(options)`
-- `registerMdanUi()`
-
-Use `mountMdanUi()` for the default browser UI path. Use `registerMdanUi()`
-directly only when you need manual custom-element registration or test control.
+The shipped Web Components UI remains an internal SDK implementation detail used
+by the browser shell and browser bundles. Application code should not import it
+as a public package entry.
 
 ## Legacy And Internal Paths To Avoid
 
 Do not depend on:
 
-- a root package import such as `import {...} from "@mdanai/sdk"`
 - deep `src/` imports
 - deep `dist/` imports
 - old package names such as `@mdanai/sdk/web` or `@mdanai/sdk/elements`

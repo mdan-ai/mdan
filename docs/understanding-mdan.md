@@ -72,8 +72,10 @@ A browser loads the HTML projection of the same artifact.
 After the initial document load, the browser runtime can continue from the same
 declared actions and update page or region state as needed.
 
-In the current SDK, that continuation behavior lives in
-`@mdanai/sdk/surface`, with `@mdanai/sdk/ui` available as the default UI layer.
+In the current SDK, application code normally starts at `@mdanai/sdk`.
+If you need to replace the frontend layer, the browser continuation behavior
+lives in `@mdanai/sdk/surface`, while the shipped default UI layer remains an
+internal SDK implementation detail.
 
 ## Why This Model Matters
 

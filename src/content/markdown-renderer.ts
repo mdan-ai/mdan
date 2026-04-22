@@ -1,7 +1,13 @@
 import { stripAgentBlocks } from "./agent-blocks.js";
 
+export interface MdanMarkdownRenderContext {
+  kind: "page" | "block";
+  route?: string;
+  blockName?: string;
+}
+
 export interface MdanMarkdownRenderer {
-  render(markdown: string): string;
+  render(markdown: string, context?: MdanMarkdownRenderContext): string;
 }
 
 type RenderNode =

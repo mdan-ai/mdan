@@ -145,9 +145,9 @@ server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
 });
 ```
 
-If you need direct control over artifact-native payloads, you can still return
-`createArtifactPage(...)` explicitly. Use that lower-level path only when the
-readable-surface return shape is not enough.
+If you need direct control over artifact-native payload assembly today, treat it
+as an internal lower-level SDK path rather than part of the main public server
+API.
 
 When you return a readable surface from a server configured with
 `createMdanServer({ appId })`, the runtime fills in `app_id`, `state_id`, and

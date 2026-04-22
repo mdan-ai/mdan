@@ -8,7 +8,6 @@ import {
 import { validateContentActionConsistency } from "./contracts.js";
 import { normalizeReadableSurface } from "./readable-surface-normalization.js";
 import type {
-  ReadableSurfaceSemanticSlotOptions,
   ReadableSurfaceValidationOptions
 } from "./readable-surface-options.js";
 

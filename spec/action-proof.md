@@ -49,7 +49,7 @@ Conforming implementations:
 
 - MUST allow initial page reads without action proof
 - MUST require action proof for protected action execution unless proofing is
-  explicitly disabled by profile or deployment policy
+  explicitly disabled by deployment policy
 - MUST treat action proof as an execution guard, not as a replacement for
   business authorization
 
@@ -71,7 +71,7 @@ At minimum, proof-bound claims SHOULD cover:
 - expiration time
 - confirmation requirement
 
-Profiles MAY bind proof to more context, such as:
+Implementations MAY bind proof to more context, such as:
 
 - `app_id`
 - `state_id`
@@ -139,7 +139,7 @@ execution if:
 
 Server-internal auto resolution is not an action-proof bypass.
 
-If a profile supports auto dependency resolution:
+If an implementation supports auto dependency resolution:
 
 - auto execution MUST remain limited to server-internal safe reads
 - external action execution MUST still require action proof when proof is
@@ -160,12 +160,12 @@ Conforming implementations MUST continue to apply those controls separately.
 
 ## 10. Disablement
 
-A deployment or SDK profile MAY explicitly disable action proof.
+A deployment MAY explicitly disable action proof.
 
 When proof is disabled:
 
 - the implementation MAY omit `action_proof` from action metadata
 - the implementation MUST NOT claim proof-backed execution guarantees
 
-Disablement is profile-specific and not the normative default for protected
-execution.
+Disablement is implementation-specific and not the normative default for
+protected execution.

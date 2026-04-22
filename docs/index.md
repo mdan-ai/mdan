@@ -10,7 +10,7 @@ This site is the developer documentation home for the MDAN TypeScript SDK.
 Use it for three kinds of reading:
 
 - getting started with the SDK and local examples
-- understanding runtime behavior, browser behavior, and public package boundaries
+- understanding app authoring, browser behavior, and public package boundaries
 - reading the current protocol and compatibility specifications
 
 ## Start Here
@@ -19,6 +19,7 @@ Use it for three kinds of reading:
 - Want the product-level explanation first: [What is MDAN?](/what-is-mdan)
 - Want runnable app flows: [Examples](/examples)
 - Want the package surface first: [Public API](/reference/public-api)
+- Want the integration split first: [Developer Paths](/developer-paths)
 - Want the protocol side first: [Spec Overview](/spec)
 
 ## Guides
@@ -42,6 +43,7 @@ Use it for three kinds of reading:
 
 - [Public API](/reference/public-api)
 - [API Reference](/api-reference)
+- [SDK Surface Consolidation Plan](/sdk-surface-consolidation-plan)
 - [Server Adapters](/reference/server-adapters)
 - [UI Action Semantics](/reference/ui-action-semantics)
 - [Agent Evaluation Contract](/reference/agent-eval)
@@ -53,7 +55,7 @@ Use it for three kinds of reading:
 ## Spec
 
 - [Spec Overview](/spec)
-- [Artifact Contract](/spec/artifact-contract)
+- [Surface Contract](/spec/surface-contract)
 - [Action Execution](/spec/action-execution)
 - [Action Proof](/spec/action-proof)
 - [Agent Content](/spec/agent-content)

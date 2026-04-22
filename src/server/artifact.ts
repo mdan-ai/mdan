@@ -74,8 +74,21 @@ export function renderInitialProjection(
   options: RenderSurfaceSnapshotOptions = {}
 ): string {
   if (initialPage) {
+    const initialArtifact = serializeArtifactPage(initialPage);
+    const projectedSurface = parseReadableArtifactSurface(initialArtifact, {
+      fallbackRoute:
+        typeof initialPage.frontmatter.route === "string"
+          ? initialPage.frontmatter.route
+          : undefined
+    });
+    if (projectedSurface) {
+      return renderSurfaceSnapshot(projectedSurface, options);
+    }
     const renderer = options.markdownRenderer ?? artifactMarkdownRenderer;
-    return renderer.render(serializeArtifactPage(initialPage));
+    return renderer.render(initialArtifact, {
+      kind: "page",
+      route: typeof initialPage.frontmatter.route === "string" ? initialPage.frontmatter.route : undefined
+    });
   }
   return renderSurfaceSnapshot(initialReadableSurface, options);
 }

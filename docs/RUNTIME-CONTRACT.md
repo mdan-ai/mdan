@@ -22,11 +22,11 @@ The runtime has two route families:
   `server.post(path, handler)`
 
 Page handlers may return an artifact-native page, a readable surface shape, a
-legacy JSON surface envelope, or `null`. Action handlers may return an
+legacy JSON compatibility shape, or `null`. Action handlers may return an
 artifact-native action result, a readable surface shape, that same legacy
-envelope, or a stream result from `stream(...)`.
+compatibility shape, or a stream result from `stream(...)`.
 
-Legacy JSON envelopes are currently used as an internal compatibility bridge
+Legacy JSON compatibility shapes are currently used as an internal bridge
 while the runtime moves toward artifact-native handlers. The SDK projects them
 into the canonical Markdown artifact shape before `text/markdown` responses are
 serialized.
@@ -38,7 +38,7 @@ Readable surface results are the lighter-weight default authoring shape:
 - `route`: the current route path
 - `regions`: named region markdown used for block updates
 
-For compatibility only, every legacy JSON surface envelope contains:
+For compatibility only, every legacy JSON compatibility shape contains:
 
 - `content`: Markdown for humans and agents
 - `actions`: the executable action contract

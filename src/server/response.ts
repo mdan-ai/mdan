@@ -11,8 +11,7 @@ import type {
   MdanActionResult,
   MdanHandlerResult,
   MdanResponse,
-  MdanStreamChunk,
-  MdanStreamResult
+  MdanStreamChunk
 } from "./types.js";
 
 function resolveResponseBody(result: MdanActionResult): string {

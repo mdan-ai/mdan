@@ -1,4 +1,5 @@
-import { createArtifactPage, createMdanServer, type MdanPage } from "../../src/server/index.js";
+import { createArtifactPage } from "../../src/server/artifact.js";
+import { createMdanServer, type MdanPage } from "../../src/server/index.js";
 
 import { createWeatherArtifact, type WeatherRange } from "./src/artifacts.js";
 import { weatherMarkdownRenderer } from "./src/html-renderer.js";

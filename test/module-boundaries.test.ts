@@ -237,6 +237,7 @@ describe("module boundaries", () => {
       expect(source, `${file} should not import the server authoring barrel`).not.toMatch(
         /@mdanai\/sdk\/server|from\s+["']\.\.\/\.\.\/src\/server\/index\.js["']/
       );
+      expect(source, `${file} should not keep app.screen on the main authoring path`).not.toMatch(/app\.screen\(/);
     }
   });
 
@@ -253,6 +254,7 @@ describe("module boundaries", () => {
   it("exposes the root app API while keeping protocol internals off separate public boundaries", async () => {
     const packageJson = JSON.parse(await readSource("package.json")) as { exports?: Record<string, unknown> };
     const indexSource = await readSource("src/index.ts");
+    const appSource = await readSource("src/app/index.ts");
     const exportsMap = packageJson.exports ?? {};
 
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "."), "root entry should publish the app API").toBe(true);
@@ -263,9 +265,11 @@ describe("module boundaries", () => {
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./server/bun")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./surface")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./web")).toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./ui")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./ui")).toBe(false);
     expect(indexSource, "root app API should not re-export createMdanServer directly").not.toMatch(/createMdanServer/);
     expect(indexSource, "root app API should not proxy the broad server barrel").not.toMatch(/\.\/server\/index\.js/);
+    expect(indexSource, "root app API should not keep screen terminology").not.toMatch(/AppScreen|screen/);
+    expect(appSource, "app authoring layer should not keep screen terminology").not.toMatch(/AppScreen|screen\(/);
   });
 
   it("does not keep a stale browser compatibility source boundary", async () => {

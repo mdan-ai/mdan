@@ -8,6 +8,10 @@ description: Keep the MDAN browser runtime while letting React, Vue, or another 
 If you want to keep the MDAN browser runtime while letting your own framework
 fully own the UI, this is the path to take.
 
+If all you need is custom Markdown-to-HTML projection for the default browser
+shell, stay on the root app API and configure `createApp({ rendering: { markdown } })`.
+Reach for `@mdanai/sdk/surface` only when you want to own the browser UI itself.
+
 ## Shared Principle
 
 - `@mdanai/sdk/surface` handles request lifecycle, route state, action
@@ -79,11 +83,11 @@ Choose custom rendering when:
 
 - you want MDAN transport and state handling
 - but you need your own React, Vue, or other component system
-- and the default `@mdanai/sdk/ui` package is not the right presentation layer
+- and the shipped default browser-shell UI is not the right presentation layer
 
 If you want the fastest path to a readable browser app, stay with the server
-browser-shell path instead. If you want a client-side default UI, pair
-`@mdanai/sdk/surface` with `@mdanai/sdk/ui` directly.
+browser-shell path instead. If you want full client-side rendering control, pair
+your own frontend with `@mdanai/sdk/surface` directly.
 
 ## Related Docs
 

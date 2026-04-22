@@ -12,6 +12,7 @@ export interface BrowserShellOptions {
   title?: string;
   rootId?: string;
   moduleMode?: "cdn" | "local-dist";
+  browserShellModuleSrc?: string;
   surfaceModuleSrc?: string;
   uiModuleSrc?: string;
   initialReadableSurface?: ReadableSurface;
@@ -20,8 +21,10 @@ export interface BrowserShellOptions {
   hydrate?: boolean;
 }
 
+const DEFAULT_BROWSER_SHELL_MODULE_SRC = "https://esm.sh/@mdanai/sdk/dist-browser/browser-shell.js";
 const DEFAULT_SURFACE_MODULE_SRC = "https://esm.sh/@mdanai/sdk/surface";
-const DEFAULT_UI_MODULE_SRC = "https://esm.sh/@mdanai/sdk/ui";
+const DEFAULT_UI_MODULE_SRC = "https://esm.sh/@mdanai/sdk/dist-browser/ui.js";
+export const LOCAL_BROWSER_SHELL_MODULE_PATH = "/__mdan/browser-shell.js";
 export const LOCAL_BROWSER_SURFACE_MODULE_PATH = "/__mdan/surface.js";
 export const LOCAL_BROWSER_UI_MODULE_PATH = "/__mdan/ui.js";
 
@@ -36,19 +39,24 @@ function escapeHtml(value: string): string {
 export function renderBrowserShell(options: BrowserShellOptions = {}): string {
   const title = escapeHtml(options.title ?? "MDAN App");
   const rootId = options.rootId ?? "mdan-app";
+  const initialReadableSurface = options.initialReadableSurface;
+  const initialPage = options.initialPage;
+  const shouldHydrate = options.hydrate !== false && !initialPage && !initialReadableSurface;
+  const browserShellModuleSrc =
+    options.browserShellModuleSrc ??
+    (options.moduleMode === "local-dist" ? LOCAL_BROWSER_SHELL_MODULE_PATH : DEFAULT_BROWSER_SHELL_MODULE_SRC);
   const surfaceModuleSrc =
     options.surfaceModuleSrc ??
     (options.moduleMode === "local-dist" ? LOCAL_BROWSER_SURFACE_MODULE_PATH : DEFAULT_SURFACE_MODULE_SRC);
   const uiModuleSrc =
     options.uiModuleSrc ??
     (options.moduleMode === "local-dist" ? LOCAL_BROWSER_UI_MODULE_PATH : DEFAULT_UI_MODULE_SRC);
-  const initialReadableSurface = options.initialReadableSurface;
-  const initialPage = options.initialPage;
-  const shouldHydrate = options.hydrate !== false && !initialPage && !initialReadableSurface;
+  const usesLegacySplitModules = Boolean(options.surfaceModuleSrc || options.uiModuleSrc);
   const clientRuntimeScript =
     !shouldHydrate
       ? ""
-      : `    <script type="module">
+      : usesLegacySplitModules
+        ? `    <script type="module">
       import { createHeadlessHost } from ${JSON.stringify(surfaceModuleSrc)};
       import { mountMdanUi } from ${JSON.stringify(uiModuleSrc)};
 
@@ -59,6 +67,14 @@ export function renderBrowserShell(options: BrowserShellOptions = {}): string {
       const runtime = mountMdanUi({ root, host });
       runtime.mount();
       await host.sync();
+    </script>`
+        : `    <script type="module">
+      import { bootstrapBrowserShell } from ${JSON.stringify(browserShellModuleSrc)};
+
+      await bootstrapBrowserShell({
+        root: document.getElementById(${JSON.stringify(rootId)}),
+        initialRoute: window.location.pathname + window.location.search
+      });
     </script>`;
 
   return `<!doctype html>
@@ -84,6 +100,9 @@ export function shouldServeBrowserShell(method: string, acceptHeader: string | n
 export function resolveLocalBrowserModule(pathname: string, options: BrowserShellOptions | undefined): string | null {
   if (!options || options.moduleMode !== "local-dist") {
     return null;
+  }
+  if (pathname === LOCAL_BROWSER_SHELL_MODULE_PATH) {
+    return fileURLToPath(new URL("../../dist-browser/browser-shell.js", import.meta.url));
   }
   if (pathname === LOCAL_BROWSER_SURFACE_MODULE_PATH) {
     return fileURLToPath(new URL("../../dist-browser/surface.js", import.meta.url));

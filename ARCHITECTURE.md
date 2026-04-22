@@ -5,16 +5,27 @@ surfaces over a larger internal implementation tree.
 
 ## Public Package Surfaces
 
-Applications should depend on these entry paths only:
+The intended public product surfaces are:
 
+- `@mdanai/sdk`
+- `@mdanai/sdk/surface`
 - `@mdanai/sdk/server`
 - `@mdanai/sdk/server/node`
 - `@mdanai/sdk/server/bun`
-- `@mdanai/sdk/surface`
 - `@mdanai/sdk/ui`
 
-Everything else under `src/` is internal implementation detail unless promoted
-into one of those public exports.
+For new work, the default path is:
+
+1. author apps with `@mdanai/sdk`
+2. host them with `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
+3. only reach for `@mdanai/sdk/surface` when you need a custom frontend
+
+`@mdanai/sdk/server` is the lower-level runtime layer, and `@mdanai/sdk/ui` is
+the optional default UI implementation rather than a primary product entry.
+They are both secondary to the root app API rather than peer primary surfaces.
+
+Everything else under `src/` is internal implementation detail unless
+explicitly promoted.
 
 This repository also contains `docs-site/`, which is a repository tool for
 rendering docs and specs. It is not part of the published SDK package surface.
@@ -32,9 +43,13 @@ At a high level, the flow is:
 
 1. A host adapter accepts an HTTP request.
 2. The server runtime normalizes the request, validates input and proof, and resolves the matching route.
-3. The handler returns an artifact-native result or a legacy readable surface.
+3. The app/runtime layer returns an artifact-native result or a legacy readable surface.
 4. The runtime validates contracts, resolves auto dependencies, and negotiates the response representation.
 5. The response is returned as Markdown, HTML, SSE, or a limited compatibility JSON shape.
+
+For most applications, the app author only sees step 1 through `createApp(...)`
+plus a runtime host adapter. The lower server runtime remains below that app
+surface.
 
 ## Layer Map
 
@@ -53,7 +68,8 @@ Key responsibilities:
 - response normalization and representation negotiation
 - browser shell HTML generation used by host adapters
 
-This layer is the center of the runtime contract.
+This layer is the center of the lower-level runtime contract, not the preferred
+entrypoint for normal app authoring.
 
 ### `src/protocol/`
 
@@ -100,7 +116,8 @@ Key responsibilities:
 - debug message capture
 
 This is the right layer for custom frontends that want MDAN transport/state
-handling without the default UI.
+handling without the default UI. This is the one browser-side escape hatch that
+should remain public.
 
 ### `src/ui/`
 
@@ -112,8 +129,9 @@ Key responsibilities:
 - default rendering of page content, fields, and actions
 - mounting the UI onto a headless host
 
-This layer depends on browser custom elements and Lit, so it should remain
-optional and separate from server or protocol-only code.
+This layer depends on browser custom elements and Lit. It should remain
+optional, separate from server or protocol-only code, and secondary to the
+`root + surface` story.
 
 ## Host Boundary
 
@@ -165,7 +183,10 @@ Tests are organized by concern rather than by one giant integration suite:
 
 ## Design Rules
 
-- Keep `server`, `surface`, and `ui` boundaries explicit
+- Keep `root`, `surface`, `server`, and `ui` boundaries explicit
+- Treat `root` as the primary product surface
+- Treat `surface` as the custom frontend boundary
+- Treat `server` and `ui` as secondary implementation/integration layers
 - Prefer artifact-native behavior over expanding legacy JSON usage
 - Promote helpers into public exports deliberately; do not rely on deep imports
 - Keep browser runtime concerns out of protocol-only modules

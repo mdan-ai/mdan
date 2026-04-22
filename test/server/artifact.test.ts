@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { parseMarkdownArtifactSurface } from "../../src/content/artifact-surface.js";
-import { createArtifactFragment, createArtifactPage, createExecutableContent } from "../../src/server/index.js";
+import { createArtifactFragment, createArtifactPage, createExecutableContent } from "../../src/server/artifact.js";
 
 describe("artifact helpers", () => {
   it("serializes executable JSON with stable indentation", () => {

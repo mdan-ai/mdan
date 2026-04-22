@@ -3,7 +3,7 @@
 MDAN errors are part of the runtime contract. Clients should handle non-2xx
 responses as recoverable protocol states whenever the response body remains
 directly readable, whether that body is a Markdown artifact or a legacy JSON
-compatibility surface.
+compatibility response.
 
 ## Response Representations
 
@@ -26,7 +26,7 @@ Accept: application/json
 ```
 
 In compatibility paths, runtime-generated errors may still be returned as legacy
-JSON surface envelopes:
+JSON compatibility responses:
 
 ```json
 {
@@ -116,7 +116,7 @@ These include:
 - custom `validatePostRequest` rejection
 
 Applications may also return their own `400` Markdown artifact or legacy JSON
-compatibility surface when business-level validation fails. Prefer returning a
+compatibility response when business-level validation fails. Prefer returning a
 normal artifact with useful content and allowed recovery actions.
 
 For example, a readable-surface recovery result can look like:
@@ -173,7 +173,7 @@ See `ACTION-PROOF-SECURITY.md` for proof semantics and boundaries.
 Malformed request bodies return `400` with an `Invalid Request Body` response.
 
 For artifact-first clients, read the body directly. For legacy JSON clients,
-parse the body as a JSON surface first. In both cases,
+parse the body as the legacy compatibility JSON shape first. In both cases,
 `allowed_next_actions` is empty unless an application handler produced a richer
 recovery surface.
 
@@ -207,9 +207,9 @@ adapter/browser-shell concern.
 The headless host treats non-2xx responses as `error` status.
 
 If the response body is a Markdown artifact, the host can still adapt and show
-the server-provided error content. If the response is a legacy JSON surface,
-the host can still bridge it. If the body is unreadable as either artifact or
-legacy JSON, the host reports a runtime error such as
+the server-provided error content. If the response is a legacy JSON
+compatibility response, the host can still bridge it. If the body is unreadable
+as either artifact or legacy JSON, the host reports a runtime error such as
 `Runtime returned an unreadable response.`
 
 Custom frontends should follow the same pattern:

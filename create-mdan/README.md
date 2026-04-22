@@ -49,6 +49,5 @@ bunx create-mdan agent-app --runtime node
 
 Generated projects use:
 
-- `@mdanai/sdk/server`
-- `@mdanai/sdk/server/node`
-- `@mdanai/sdk/server/bun`
+- `@mdanai/sdk` for app authoring
+- `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` for host integration

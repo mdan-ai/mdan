@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { actions, createApp, fields, signIn, signOut, type BrowserShellOptions } from "../../src/index.js";
+import { actions, createApp, fields, signIn, signOut, type AppBrowserShellOptions } from "../../src/index.js";
 
 type SessionState = {
   sid: string;
@@ -38,7 +38,7 @@ function loadExampleAssets(): ExampleAssets {
 
 const assets = loadExampleAssets();
 
-export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { moduleMode: "local-dist" }) {
+export function createAuthGuestbookServer(browserShell: AppBrowserShellOptions = { moduleMode: "local-dist" }) {
   const users = new Map<string, string>();
   const sessions = new Map<string, SessionState>();
   const messages: MessageEntry[] = [];
@@ -72,7 +72,7 @@ export function createAuthGuestbookServer(browserShell: BrowserShellOptions = { 
       }
     }
   });
-  const loginPage = app.screen("/login", {
+  const loginPage = app.page("/login", {
     markdown: assets.loginMarkdown,
     actions: [
       actions.navigate("open_register", {
@@ -111,7 +111,7 @@ Submit valid credentials to continue to the guestbook, or open the register page
       };
     }
   });
-  const registerPage = app.screen("/register", {
+  const registerPage = app.page("/register", {
     markdown: assets.registerMarkdown,
     actions: [
       actions.navigate("open_login", {
@@ -150,7 +150,7 @@ Submit valid registration data to continue to the guestbook, or open the login p
       };
     }
   });
-  const guestbookPage = app.screen("/guestbook", {
+  const guestbookPage = app.page("/guestbook", {
     markdown: assets.guestbookMarkdown,
     actions: [
       actions.read("refresh_messages", {
@@ -214,16 +214,16 @@ Signing out returns the surface to the login route.
     }
   });
 
-  app.page(loginPage);
+  app.route(loginPage);
 
-  app.page(registerPage);
+  app.route(registerPage);
 
-  app.page("/guestbook", async ({ session }) => {
+  app.route("/guestbook", async ({ session }) => {
     const username = typeof session?.username === "string" ? session.username : "";
     if (!username) {
-      return loginPage.render("Please sign in first.");
+      return loginPage.bind("Please sign in first.").render();
     }
-    return guestbookPage.render(username, messages);
+    return guestbookPage.bind(username, messages).render();
   });
 
   app.action("/auth/login", async ({ inputs }) => {
@@ -232,13 +232,13 @@ Signing out returns the surface to the login route.
     if (!username || !password || users.get(username) !== password) {
       return {
         status: 401,
-        ...loginPage.render("Login rejected. Check username and password.")
+        ...loginPage.bind("Login rejected. Check username and password.").render()
       };
     }
     const sid = randomUUID();
     return {
       session: signIn({ sid, username }),
-      ...guestbookPage.render(username, messages)
+      ...guestbookPage.bind(username, messages).render()
     };
   });
 
@@ -248,20 +248,20 @@ Signing out returns the surface to the login route.
     if (!username || !password) {
       return {
         status: 400,
-        ...registerPage.render("Invalid input. Username and password are required.")
+        ...registerPage.bind("Invalid input. Username and password are required.").render()
       };
     }
     if (users.has(username)) {
       return {
         status: 409,
-        ...registerPage.render("Username already exists. Try another username or sign in.")
+        ...registerPage.bind("Username already exists. Try another username or sign in.").render()
       };
     }
     users.set(username, password);
     const sid = randomUUID();
     return {
       session: signIn({ sid, username }),
-      ...guestbookPage.render(username, messages)
+      ...guestbookPage.bind(username, messages).render()
     };
   });
 
@@ -270,23 +270,23 @@ Signing out returns the surface to the login route.
     if (!username) {
       return {
         status: 401,
-        ...loginPage.render("Sign in required. Open /login and sign in.")
+        ...loginPage.bind("Sign in required. Open /login and sign in.").render()
       };
     }
     const message = (inputs.message ?? "").trim();
     if (!message) {
       return {
         status: 400,
-        ...guestbookPage.render(username, messages)
+        ...guestbookPage.bind(username, messages).render()
       };
     }
     messages.unshift({ username, text: message });
-    return guestbookPage.render(username, messages);
+    return guestbookPage.bind(username, messages).render();
   });
 
   app.action("/guestbook/logout", async () => ({
     session: signOut(),
-    ...loginPage.render("Signed out.")
+    ...loginPage.bind("Signed out.").render()
   }));
 
   return app;

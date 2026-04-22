@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { createArtifactPage, createMdanServer } from "../../src/server/index.js";
+import { createArtifactPage } from "../../src/server/artifact.js";
+import { createMdanServer } from "../../src/server/index.js";
 import { createSubmitMessageFixture, defineAgentEvalCase, runSubmitMessageFixtureProbe, serveAgentEvalFixture } from "./support/index.js";
 
 function createArtifactSubmitMessageFixture() {

@@ -95,7 +95,7 @@ alternate representation for ordinary surfaces.
 ## Browser And Headless Boundary
 
 The current headless host is Markdown-first for page and artifact reads. It can
-still interoperate with legacy JSON responses where needed, but the preferred
+still interoperate with legacy JSON compatibility responses where needed, but the preferred
 path is Markdown artifacts for page reads and normal action results.
 
 The default UI therefore does not yet provide a full streaming UI

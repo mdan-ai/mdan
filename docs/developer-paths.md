@@ -1,6 +1,6 @@
 ---
 title: Developer Paths
-description: Choose the MDAN integration path that best fits your app, whether you want the default UI, a custom UI, or server-only artifact delivery.
+description: Choose the MDAN integration path that best fits your app, with `@mdanai/sdk` as the default app path and `@mdanai/sdk/surface` as the frontend escape hatch.
 ---
 
 # Developer Paths
@@ -8,15 +8,13 @@ description: Choose the MDAN integration path that best fits your app, whether y
 Use this page to quickly pick the right MDAN integration path for your
 situation.
 
-## Path A: Server + Browser Shell
+## Path A: App + Browser Shell
 
 Use:
 
-- `@mdanai/sdk/server`
+- `@mdanai/sdk`
 - `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
 - `browserShell` host configuration
-- optional `@mdanai/sdk/ui` when you want to mount the default UI package in a
-  custom client path
 
 This is the best path when you want the fastest route to a readable browser app
 with server-rendered HTML.
@@ -27,11 +25,11 @@ See:
 - [Application Structure](/application-structure)
 - [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
 
-## Path B: Server + Surface + Your Own UI
+## Path B: App + Surface + Your Own UI
 
 Use:
 
-- `@mdanai/sdk/server`
+- `@mdanai/sdk`
 - `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
 - `@mdanai/sdk/surface`
 - your own React, Vue, or other rendering layer
@@ -44,31 +42,33 @@ See:
 - [Custom Rendering](/custom-rendering)
 - [Examples](/examples)
 
-## Path C: Server Only
+## Path C: App + Agent/Artifact Delivery
 
 Use:
 
-- `@mdanai/sdk/server`
+- `@mdanai/sdk`
 - `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
 
 This is the best path when you want to serve Markdown artifacts to agents,
-tests, or another client without shipping the bundled browser UI.
+tests, or another client without owning a custom browser frontend.
 
 See:
 
 - [Runtime Contract](/guides/runtime-contract)
 - [Server Adapters](/reference/server-adapters)
 
-## Path D: Existing Backend Integration
+## Path D: Advanced Runtime Integration
 
 Use:
 
+- `@mdanai/sdk/server`
 - `createMdanServer()`
 - your framework's HTTP layer
 - a thin adapter around the host/runtime boundary
 
 This is the best path when you already have an Express, Fastify, Koa, Hono, or
-custom backend and need controlled integration.
+custom backend and need controlled low-level integration beyond the root app
+API.
 
 See:
 
@@ -82,8 +82,18 @@ See:
 - need artifact-first responses with minimal browser concerns: choose Path C
 - need deep backend integration: choose Path D
 
+## Practical Rule
+
+For new work, default to:
+
+- `@mdanai/sdk` for app authoring
+- `@mdanai/sdk/surface` only when you need a custom frontend
+
+Treat `@mdanai/sdk/server` as a lower-level integration layer rather than the
+main starting point.
+
 ## Anti-Pattern To Avoid
 
 Do not duplicate MDAN routing, action semantics, or request-shape logic inside
 frontend framework code or backend middleware layers. Keep that behavior in the
-server and surface layers, then let your UI render from current state.
+app/runtime and surface layers, then let your UI render from current state.

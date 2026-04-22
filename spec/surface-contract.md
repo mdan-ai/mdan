@@ -1,37 +1,39 @@
 ---
-title: MDAN Artifact Contract
-description: Normative contract for Markdown artifacts as the primary public MDAN surface representation.
+title: MDAN Surface Contract
+description: Normative contract for Markdown surface representations and action surfaces in MDAN.
 ---
 
-# MDAN Artifact Contract
+# MDAN Surface Contract
 
 - Status: Draft
 - Version: vNext
 
 ## 1. Scope
 
-This document defines the normative contract for Markdown artifacts as the
-primary public MDAN surface representation.
+This document defines the normative contract for Markdown surface
+representations as the primary public read representation of an MDAN action
+surface.
 
 It defines:
 
 - the required separation between readable Markdown and executable state
-- the artifact-level identity fields
+- the surface-level identity fields
 - the embedded `mdan` fenced block contract
 - the relationship between page-level and region-level surfaces
-- the representation role of Markdown artifacts relative to HTML projection
+- the representation role of Markdown surface representations relative to HTML
+  projection
 
 It does not define:
 
 - any SDK-specific API
 - any specific host adapter behavior
 - any specific browser UI implementation
-- legacy JSON bridge details except where needed for compatibility context
+- any non-surface compatibility transport details
 
 ## 2. Representation Role
 
-A Markdown artifact is the primary public read representation for an MDAN
-surface.
+A Markdown surface representation is the primary public read representation for
+an MDAN action surface.
 
 A conforming implementation:
 
@@ -44,9 +46,9 @@ A conforming implementation:
 HTML is a projection of the same surface for browser consumption. It is not the
 normative source of MDAN state.
 
-## 3. Artifact Shape
+## 3. Markdown Surface Shape
 
-A Markdown artifact consists of:
+A Markdown surface representation consists of:
 
 - optional frontmatter
 - a readable Markdown body
@@ -80,7 +82,7 @@ state_version: 1
 
 ## 4. Frontmatter
 
-Frontmatter carries artifact-level identity and routing metadata.
+Frontmatter carries surface-level identity and routing metadata.
 
 When present, these fields have stable semantics:
 
@@ -92,7 +94,7 @@ When present, these fields have stable semantics:
 Conforming implementations:
 
 - SHOULD include `route`, `app_id`, `state_id`, and `state_version` in
-  frontmatter for interactive page artifacts
+  frontmatter for interactive page surfaces
 - MUST treat `state_id` and `state_version` as state identity metadata when
   present
 - MUST NOT interpret frontmatter alone as the full executable contract
@@ -102,7 +104,7 @@ fields, they MUST describe the same surface state.
 
 ## 5. Readable Markdown Body
 
-The readable Markdown body is the normative readable surface for humans and
+The readable Markdown body is the normative readable content for humans and
 agents.
 
 The body:
@@ -119,7 +121,7 @@ Executable actions and state identity belong to the embedded `mdan` block.
 ## 6. Embedded `mdan` Block
 
 The embedded `mdan` fenced block carries the executable state declaration for
-the artifact.
+the action surface.
 
 The block payload MUST be valid JSON.
 
@@ -127,7 +129,7 @@ The root object MAY include additional fields, but the stable executable fields
 are:
 
 ```ts
-type ArtifactExecutableState = {
+type SurfaceExecutableState = {
   app_id?: string;
   state_id?: string;
   state_version?: number;
@@ -145,9 +147,9 @@ Conforming implementations:
 - MUST keep the block semantically aligned with the readable body
 - MUST NOT require consumers to infer actions from HTML projection alone
 
-## 7. Artifact Identity
+## 7. Surface Identity
 
-An interactive artifact surface is identified by:
+An interactive action surface is identified by:
 
 - `app_id`
 - `state_id`
@@ -161,49 +163,48 @@ The contract requires:
 
 Implementations:
 
-- MUST NOT silently merge two artifacts with conflicting identity fields
+- MUST NOT silently merge two surfaces with conflicting identity fields
 - SHOULD treat a changed `state_id` or `state_version` as a state transition
 - MAY treat missing identity fields as a reduced-capability or non-interactive
   surface
 
 ## 8. Page And Region Surfaces
 
-A Markdown artifact may describe:
+A Markdown surface representation may describe:
 
 - a full page surface
 - a region-oriented update surface
 
-Page-oriented artifacts replace the current surface.
+Page-oriented results replace the current surface.
 
-Region-oriented artifacts:
+Region-oriented results:
 
 - MUST still describe executable truth through the `mdan` block
 - MAY update only a subset of named regions
 - MUST fall back to page semantics if region identity cannot be applied safely
 
-The artifact contract itself does not require a specific patch algorithm, but
-it requires region updates and page replacements to remain distinguishable in
-the executable metadata.
+The surface contract itself does not require a specific patch algorithm, but it
+requires region updates and page replacements to remain distinguishable in the
+executable metadata.
 
 ## 9. Consumer Requirements
 
-A conforming artifact consumer:
+A conforming surface consumer:
 
 - MUST parse the Markdown body as the readable surface
 - MUST parse the embedded `mdan` block as executable metadata when present
 - MUST treat `allowed_next_actions` as the current executable allow-list when
   present
-- MUST NOT invent executable actions that are absent from the artifact
+- MUST NOT invent executable actions that are absent from the surface
 - MUST preserve route and identity context across subsequent action execution
 
 ## 10. Compatibility
 
-Legacy JSON surface envelopes MAY still exist as compatibility transports.
+Other transport or projection forms MAY coexist with Markdown surface
+representations.
 
-When a legacy JSON envelope is projected into a Markdown artifact:
+When another representation is projected into a Markdown surface representation:
 
 - the readable content MUST remain equivalent
 - the executable action/state contract MUST remain equivalent
-- the resulting artifact becomes the primary public read representation
-
-Legacy compatibility transport is not the primary artifact contract.
+- the resulting representation becomes the primary public read representation

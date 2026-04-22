@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createStarterServer } from "../../examples/starter/app.js";
 import { createHost } from "../../src/server/bun.js";
-import { renderBrowserShell, shouldServeBrowserShell } from "../../src/server/index.js";
+import { renderBrowserShell, shouldServeBrowserShell } from "../../src/server/browser-shell.js";
 import type { MdanRequest, MdanResponse } from "../../src/server/types.js";
 
 describe("browser shell", () => {
@@ -10,9 +10,10 @@ describe("browser shell", () => {
     const html = renderBrowserShell({ title: "Starter" });
 
     expect(html).toContain("<title>Starter</title>");
-    expect(html).toContain("createHeadlessHost");
-    expect(html).toContain("mountMdanUi");
-    expect(html).toContain("host.sync()");
+    expect(html).toContain("bootstrapBrowserShell");
+    expect(html).toContain("browser-shell.js");
+    expect(html).not.toContain("@mdanai/sdk/ui");
+    expect(html).not.toContain("@mdanai/sdk/surface");
   });
 
   it("renders an initial readable surface as static HTML without JSON bootstrap state", () => {
@@ -73,10 +74,8 @@ describe("browser shell", () => {
       moduleMode: "local-dist"
     });
 
-    expect(html).toContain('"/__mdan/surface.js"');
-    expect(html).toContain('"/__mdan/ui.js"');
-    expect(html).not.toContain("https://esm.sh/@mdanai/sdk/surface");
-    expect(html).not.toContain("https://esm.sh/@mdanai/sdk/ui");
+    expect(html).toContain('"/__mdan/browser-shell.js"');
+    expect(html).not.toContain("https://esm.sh/@mdanai/sdk/dist-browser/browser-shell.js");
   });
 
   it("keeps explicit module URLs even when local-dist mode is enabled", () => {
@@ -89,8 +88,7 @@ describe("browser shell", () => {
 
     expect(html).toContain('"/custom/surface.js"');
     expect(html).toContain('"/custom/ui.js"');
-    expect(html).not.toContain('"/__mdan/surface.js"');
-    expect(html).not.toContain('"/__mdan/ui.js"');
+    expect(html).not.toContain('"/__mdan/browser-shell.js"');
   });
 
   it("only serves the shell for browser document navigation", () => {
@@ -236,6 +234,15 @@ describe("browser shell", () => {
         moduleMode: "local-dist"
       }
     });
+
+    const browserShellModule = await host(new Request("https://example.test/__mdan/browser-shell.js"));
+    expect(browserShellModule.status).toBe(200);
+    expect(browserShellModule.headers.get("content-type")).toBe("text/javascript");
+    const browserShellText = await browserShellModule.text();
+    expect(browserShellText).toContain("bootstrapBrowserShell");
+    expect(browserShellText).toContain("mountMdanUi");
+    expect(browserShellText).not.toContain('from "./');
+    expect(browserShellText).not.toContain('from "../');
 
     const surfaceModule = await host(new Request("https://example.test/__mdan/surface.js"));
     expect(surfaceModule.status).toBe(200);

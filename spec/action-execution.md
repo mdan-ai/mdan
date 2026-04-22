@@ -176,7 +176,7 @@ A successful action execution MAY produce:
 Ordinary action execution:
 
 - SHOULD return the next readable surface
-- SHOULD preserve executable truth in the resulting artifact
+- SHOULD preserve executable truth in the resulting surface representation
 - MUST keep route and state semantics aligned with the returned surface
 
 ## 10. Failure Semantics

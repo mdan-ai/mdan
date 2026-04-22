@@ -1,6 +1,6 @@
 ---
 title: MDAN Agent Content
-description: Normative contract for shared readable content, semantic slots, agent-only blocks, and trust boundaries in MDAN artifacts.
+description: Normative contract for shared readable content, semantic slots, agent-only blocks, and trust boundaries in MDAN surfaces.
 ---
 
 # MDAN Agent Content
@@ -111,9 +111,9 @@ Human-visible projections:
 
 Agent-capable Markdown representations:
 
-- MAY preserve agent-only blocks in the primary Markdown artifact
+- MAY preserve agent-only blocks in the primary Markdown surface
 
-This preserves the shared artifact while preventing hidden instructions from
+This preserves the shared surface while preventing hidden instructions from
 appearing in browser-facing human projections.
 
 ## 7. Untrusted Content

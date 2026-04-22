@@ -104,7 +104,12 @@ export interface RenderSurfaceSnapshotOptions {
 }
 
 function renderBlock(block: MdanHeadlessBlock, markdownRenderer: MdanMarkdownRenderer): string {
-  const markdown = block.markdown ? markdownRenderer.render(stripReadableBlockMarkdown(block.markdown)) : "";
+  const markdown = block.markdown
+    ? markdownRenderer.render(stripReadableBlockMarkdown(block.markdown), {
+        kind: "block",
+        blockName: block.name
+      })
+    : "";
   const operations = block.operations.map((operation) => renderOperation(block, operation)).join("");
   return `<section data-mdan-block="${escapeHtml(block.name)}">${markdown}${operations}</section>`;
 }
@@ -119,7 +124,10 @@ export function renderSurfaceSnapshot(
 
   const markdownRenderer = options.markdownRenderer ?? basicMarkdownRenderer;
   const snapshot = adaptReadableSurfaceToHeadlessSnapshot(surface);
-  const pageHtml = markdownRenderer.render(stripReadablePageMarkdown(surface.markdown));
+  const pageHtml = markdownRenderer.render(stripReadablePageMarkdown(surface.markdown), {
+    kind: "page",
+    route: surface.route
+  });
   const blocks = snapshot.blocks.map((block) => renderBlock(block, markdownRenderer)).join("\n");
   return [pageHtml, blocks].filter(Boolean).join("\n");
 }

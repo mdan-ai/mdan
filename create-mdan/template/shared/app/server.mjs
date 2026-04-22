@@ -18,7 +18,7 @@ export function createAppServer(initialMessages = ["Welcome to MDAN"]) {
       moduleMode: "local-dist"
     }
   });
-  const home = app.screen("/", {
+  const home = app.page("/", {
     markdown: template,
     actions: [
       actions.read("refresh_main", {
@@ -47,14 +47,14 @@ ${list}`
     }
   });
 
-  app.page("/", async () => home.render(messages));
+  app.route(home.bind(messages));
 
   app.action("/post", async ({ inputs }) => {
     const message = String(inputs.message ?? "").trim();
     if (message) {
       messages.unshift(message);
     }
-    return home.render(messages);
+    return home.bind(messages).render();
   });
 
   return app;

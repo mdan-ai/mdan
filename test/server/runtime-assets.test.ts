@@ -7,10 +7,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import { normalizeMultipartBody } from "../../src/server/adapter-shared.js";
 import {
   createMdanServer,
-  openAssetStream,
-  readAsset,
   type MdanAssetHandle
 } from "../../src/server/index.js";
+import { openAssetStream, readAsset } from "../../src/server/assets.js";
 
 const tempDirs: string[] = [];
 

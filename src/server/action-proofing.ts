@@ -7,7 +7,6 @@ import {
 } from "./action-proof.js";
 import { normalizeInputValuesBySchema } from "../protocol/input/input-schema.js";
 import type { MdanConfirmationPolicy, MdanOperation } from "../protocol/types.js";
-import type { JsonAction } from "../protocol/surface.js";
 
 import type { ParsedRequestAction } from "./request-inputs.js";
 import type { MdanActionResult, MdanRequest } from "./types.js";

@@ -42,6 +42,7 @@ If you want to build with the current SDK:
 - start with [What is MDAN?](/what-is-mdan) if you want the product model first
 - then read [Developer Paths](/developer-paths) to choose the right entry path
 - start with [Public API](/reference/public-api)
+- keep `@mdanai/sdk` as the default app entry and `@mdanai/sdk/surface` as the custom frontend escape hatch
 - then read [Runtime Contract](/guides/runtime-contract)
 - then read [Server Adapters](/reference/server-adapters)
 

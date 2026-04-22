@@ -6,6 +6,10 @@ const isWatch = process.argv.includes("--watch");
 
 const outputs = [
   {
+    entry: "src/browser-shell/client.ts",
+    outfile: "dist-browser/browser-shell.js"
+  },
+  {
     entry: "src/surface/index.ts",
     outfile: "dist-browser/surface.js"
   },

@@ -47,8 +47,12 @@ interface WindowWithMdanDebug extends Window {
   };
 }
 
-function renderMarkdown(markdown: string, markdownRenderer: MdanMarkdownRenderer) {
-  return unsafeHTML(markdownRenderer.render(markdown));
+function renderMarkdown(
+  markdown: string,
+  markdownRenderer: MdanMarkdownRenderer,
+  context: Parameters<MdanMarkdownRenderer["render"]>[1]
+) {
+  return unsafeHTML(markdownRenderer.render(markdown, context));
 }
 
 function isDocumentNode(root: ParentNode): root is Document {
@@ -314,13 +318,15 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
           ${snapshot.status === "error" && snapshot.error
             ? html`<mdan-error>${snapshot.error}</mdan-error>`
             : nothing}
-          ${snapshot.markdown ? renderMarkdown(snapshot.markdown, markdownRenderer) : ""}
+          ${snapshot.markdown ? renderMarkdown(snapshot.markdown, markdownRenderer, { kind: "page" }) : ""}
           ${snapshot.blocks.map((block) => {
             const inputsByName = createInputsByName(block.inputs);
 
             return html`
               <mdan-block data-mdan-block=${block.name}>
-                ${block.markdown ? renderMarkdown(block.markdown, markdownRenderer) : ""}
+                ${block.markdown
+                  ? renderMarkdown(block.markdown, markdownRenderer, { kind: "block", blockName: block.name })
+                  : ""}
                 ${block.operations.map((operation) => renderOperationForm(block.name, operation, inputsByName))}
               </mdan-block>
             `;

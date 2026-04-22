@@ -3,7 +3,7 @@
 This example organizes assets into explicit source files while following the Markdown surface runtime contract:
 
 - `app/login.md`, `app/register.md`, `app/guestbook.md`
-- `app.ts` loads those markdown files, defines the action contracts, and injects runtime state/session values.
+- `app.ts` uses `createApp`, reusable `page(...)` definitions, `route(...)`, `action(...)`, and `page.bind(...)` to inject runtime state/session values.
 
 Runtime contract:
 

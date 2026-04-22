@@ -87,10 +87,6 @@
     "./surface": {
       "types": "./dist/surface/index.d.ts",
       "default": "./dist/surface/index.js"
-    },
-    "./ui": {
-      "types": "./dist/ui/index.d.ts",
-      "default": "./dist/ui/index.js"
     }
   },
   "dependencies": {

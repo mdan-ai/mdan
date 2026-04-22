@@ -3,7 +3,7 @@
 Source layout:
 
 - `app/index.md`
-- `app.ts` (loads markdown sources, defines actions, and injects runtime state)
+- `app.ts` (uses `createApp`, `page`, `route`, `action`, and `page.bind(...)` to connect markdown, actions, and runtime state)
 
 Runtime contract:
 

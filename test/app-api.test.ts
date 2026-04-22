@@ -13,9 +13,10 @@ function extractExecutable(markdown: string) {
 }
 
 describe("app API", () => {
-  it("builds starter-style pages without exposing protocol manifest authoring", async () => {
+  it("builds starter-style pages with page configs", async () => {
     const app = createApp({ appId: "starter" });
-    const home = app.screen("/", {
+    const messages = ["Booted"];
+    const home = app.page("/", {
       markdown: "# Starter\n\n::: block{id=\"main\" actions=\"refresh_main,submit_message\" trust=\"untrusted\"}\n:::",
       actions: [
         actions.read("refresh_main", {
@@ -30,14 +31,14 @@ describe("app API", () => {
           }
         })
       ],
-      render(messages: string[]) {
+      render() {
         return {
           main: messages.map((message) => `- ${message}`).join("\n")
         };
       }
     });
 
-    app.page("/", async () => home.render(["Booted"]));
+    app.route(home);
 
     const response = await app.handle({
       method: "GET",
@@ -83,10 +84,10 @@ describe("app API", () => {
     );
   });
 
-  it("reuses screen renderers across page and action handlers", async () => {
+  it("can reuse a defined page across page and action handlers", async () => {
     const app = createApp({ appId: "starter" });
     const messages = ["Booted"];
-    const home = app.screen("/", {
+    const home = app.page("/", {
       markdown: "# Starter\n\n::: block{id=\"main\" actions=\"submit_message\" trust=\"untrusted\"}\n:::",
       actions: [
         actions.write("submit_message", {
@@ -104,13 +105,13 @@ describe("app API", () => {
       }
     });
 
-    app.page("/", async () => home.render(messages));
+    app.route(home.bind(messages));
     app.action("/post", async ({ inputs }) => {
       const message = String(inputs.message ?? "").trim();
       if (message) {
         messages.unshift(message);
       }
-      return home.render(messages);
+      return home.bind(messages).render();
     });
 
     const page = await app.handle({
@@ -145,5 +146,52 @@ describe("app API", () => {
 
     expect(post.status).toBe(200);
     expect(String(post.body)).toContain("Hello");
+  });
+
+  it("lets app API configure markdown rendering for browser shell html", async () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: {
+        disabled: true
+      },
+      browserShell: {
+        title: "Starter"
+      },
+      rendering: {
+        markdown: {
+          render(markdown, context) {
+            if (context?.kind === "page") {
+              return `<article data-kind="page" data-route="${context.route ?? ""}">${markdown}</article>`;
+            }
+            return `<aside data-kind="block" data-block="${context?.blockName ?? ""}">${markdown}</aside>`;
+          }
+        }
+      }
+    });
+
+    const home = app.page("/", {
+      markdown: "# Starter\n\n::: block{id=\"main\"}\n:::",
+      render() {
+        return {
+          main: "- Booted"
+        };
+      }
+    });
+    app.route(home);
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/html"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toBe("text/html");
+    const body = String(response.body);
+    expect(body).toContain('<article data-kind="page" data-route="/"># Starter</article>');
+    expect(body).toContain('<aside data-kind="block" data-block="main">- Booted</aside>');
   });
 });

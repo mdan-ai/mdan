@@ -6,7 +6,6 @@ import { parseRequestInputs } from "./request-inputs.js";
 import {
   createActionConfirmationViolationResult,
   createActionInputSchemaViolationResult,
-  createActionProofViolationResult,
   createActionRequestFormatViolationResult,
   createErrorResponse,
   createNonMarkdownActionOnlyResult

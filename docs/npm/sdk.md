@@ -10,28 +10,33 @@ npm install @mdanai/sdk
 
 ## Entry Points
 
-- `@mdanai/sdk/server`: define MDAN pages, actions, sessions, assets, and action proof behavior
+Recommended path:
+
+- `@mdanai/sdk`: define apps with the root app API
 - `@mdanai/sdk/server/node`: host a server with Node HTTP
 - `@mdanai/sdk/server/bun`: host a server with Bun
-- `@mdanai/sdk/surface`: use the lightweight browser/headless surface runtime
-- `@mdanai/sdk/ui`: mount the default Web Components UI
+
+Advanced path:
+
+- `@mdanai/sdk/surface`: build a custom frontend on top of the lightweight browser/headless surface runtime
+- `@mdanai/sdk/server`: use lower-level runtime helpers for sessions, assets, streaming, and artifact-native responses
+- internal browser-shell bundles: shipped default UI implementation used by the browser shell
 
 ## Minimal Bun App
 
 ```ts
-import { createMdanServer } from "@mdanai/sdk/server";
+import { actions, createApp } from "@mdanai/sdk";
 import { createHost } from "@mdanai/sdk/server/bun";
 
-const server = createMdanServer({
+const app = createApp({
   appId: "hello-mdan",
   browserShell: {
     title: "MDAN App"
   }
 });
 
-server.page("/", async () =>
-  ({
-    markdown: `# Hello MDAN
+const home = app.page("/", {
+  markdown: `# Hello MDAN
 
 ## Purpose
 Show a minimal MDAN surface with readable Markdown content and explicit actions.
@@ -47,35 +52,29 @@ The surface is ready.
 
 ::: block{id="main" actions="refresh_main" trust="untrusted"}
 :::`,
-    actions: {
-      response_mode: "page",
-      blocks: ["main"],
-      actions: [
-        {
-          id: "refresh_main",
-          label: "Refresh",
-          verb: "read",
-          transport: { method: "GET" },
-          target: "/",
-          input_schema: {
-            type: "object",
-            properties: {},
-            additionalProperties: false
-          }
-        }
-      ],
-      allowed_next_actions: ["refresh_main"]
-    },
-    route: "/",
-    regions: {
+  actions: [
+    actions.read("refresh_main", {
+      label: "Refresh",
+      target: "/"
+    })
+  ],
+  render() {
+    return {
       main: "## Context\nMinimal starter block.\n\n## Result\n- Ready"
-    }
-  })
-);
+    };
+  }
+});
+
+app.route(home);
+
+// Use `route(path, handler)` when the page needs request-time state:
+// app.route("/", async () => home.render(messages));
+// Or bind state first: `app.route(home.bind(messages))`
+// After a write action updates state, return `home.bind(messages).render()`.
 
 Bun.serve({
   port: 4321,
-  fetch: createHost(server)
+  fetch: createHost(app)
 });
 ```
 
@@ -99,8 +98,9 @@ bun start
 
 ## Runtime Notes
 
-- Returning a readable surface is the lightest default server authoring path.
-- When you set `createMdanServer({ appId })`, the runtime fills in `app_id`,
+- Root `createApp()` is the default authoring path for application code.
+- Returning a readable surface is the lightest default server authoring path under that app API.
+- When you set `createApp({ appId })`, the runtime fills in `app_id`,
   `state_id`, and `state_version` for readable-surface responses when you omit
   them.
 - Markdown artifact responses are the preferred public read path.
@@ -111,10 +111,11 @@ bun start
 
 ## Lower-Level Artifact Helpers
 
-`createArtifactPage(...)`, `createArtifactFragment(...)`, and
-`createExecutableContent(...)` remain available when you want to build
-artifact-native responses directly. Treat them as lower-level helpers rather
-than the default app authoring path.
+Reach for `@mdanai/sdk/server` only when you need lower-level runtime control
+over sessions, assets, streaming, or artifact-native responses.
+
+Artifact-native page assembly remains an internal lower-level SDK concern rather
+than part of the recommended public app authoring path.
 
 ## Repository
 

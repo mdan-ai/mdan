@@ -8,23 +8,46 @@ Use these paths instead of importing internal files from `dist/` or `src/`.
 The package exposes these public paths:
 
 ```text
+@mdanai/sdk
 @mdanai/sdk/server
 @mdanai/sdk/server/node
 @mdanai/sdk/server/bun
 @mdanai/sdk/surface
-@mdanai/sdk/ui
 ```
 
 Anything outside these paths is not a stable public API.
 
 ## Public Boundary
 
-External consumers should only build against `@mdanai/sdk/server`,
-`@mdanai/sdk/surface`, and `@mdanai/sdk/ui` plus the runtime-specific
-`@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun` host adapters.
+External consumers should build against `@mdanai/sdk` for app authoring,
+`@mdanai/sdk/surface` for custom browser-side work, plus the runtime-specific
+`@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun` host adapters. Reach for
+`@mdanai/sdk/server` only when you intentionally need the lower-level runtime
+API.
 
 Protocol, surface, content, and other lower-level modules are internal
 implementation boundaries and are not part of the supported package surface.
+
+## Root App API
+
+Use `@mdanai/sdk` as the default application authoring surface:
+
+```ts
+import { actions, createApp, fields } from "@mdanai/sdk";
+```
+
+The root package includes:
+
+- `createApp()`
+- `actions.read()`, `actions.write()`, `actions.navigate()`
+- `fields.string()`, `fields.number()`, `fields.boolean()`
+- `AppBrowserShellOptions`
+- `CreateAppOptions`
+- app-level markdown rendering types
+- `signIn()` and `signOut()` session helpers
+
+This is the preferred entry for defining app pages and actions without exposing
+protocol or runtime internals in your application code.
 
 ## Server
 
@@ -47,12 +70,28 @@ Server includes:
 - handler types and request/response types
 - result helpers
 - session mutation helpers
-- asset store helpers
-- browser shell helpers used by host adapters
-- body normalization helpers used by adapters and tests
+- `cleanupExpiredAssets(...)`
 
 The server package is runtime logic. It does not by itself bind to Node or Bun
 HTTP servers.
+
+The main barrel intentionally keeps only the most common request/response and
+session-provider types. Lower-level handler, input, and result typing details
+stay behind `src/server/types.ts` as internal implementation structure unless
+they are promoted later.
+
+Browser-shell implementation helpers remain internal server-layer details rather
+than part of the main `@mdanai/sdk/server` barrel.
+Body-normalization helpers also stay behind the host-adapter layer instead of
+shipping as part of the main server barrel.
+Standalone asset-store read/write helpers also stay off the main server barrel.
+Standalone asset-store config/result typing also stays off the main server
+barrel.
+Artifact assembly helpers also stay off the main server barrel.
+Browser-shell and auto-dependency tuning types are likewise kept off the main
+server barrel.
+Post-input validation helpers and their detailed type graph stay internal to the
+runtime layer as well.
 
 ## Server Host Adapters
 
@@ -87,20 +126,16 @@ The surface runtime owns:
 - region patching
 - browser history integration
 
-## UI
+## Default UI
 
-Use `@mdanai/sdk/ui` for the default Web Components UI:
+The default Web Components UI implementation remains inside the SDK for browser
+shell rendering and browser bundle assembly, but it is no longer a supported
+public package entry.
 
-```ts
-import { mountMdanUi, registerMdanUi } from "@mdanai/sdk/ui";
-```
+New integrations should prefer either:
 
-UI is the optional default UI layer. It is not required for the MDAN
-protocol, server runtime, or custom frontends.
-
-Because ui depends on browser custom elements and Lit, do not import it
-from protocol-only code, server-only code, or headless tests unless the default
-UI is the subject of the test.
+- `@mdanai/sdk` with the browser shell
+- `@mdanai/sdk` plus `@mdanai/sdk/surface` for custom UI ownership
 
 ## Browser Re-Export Files
 
@@ -117,13 +152,13 @@ application code.
 `browserShell.moduleMode: "local-dist"`:
 
 ```text
+/__mdan/browser-shell.js
 /__mdan/surface.js
 /__mdan/ui.js
 ```
 
 These artifacts are served to browsers by the host adapter. They are not
-general Node import paths and are not a replacement for `@mdanai/sdk/surface` or
-`@mdanai/sdk/ui`.
+general Node import paths and are not a replacement for `@mdanai/sdk/surface`.
 
 ## Internal Modules
 
@@ -147,8 +182,8 @@ export paths before relying on it.
 
 The SDK keeps these boundaries stable:
 
+- `@mdanai/sdk` is the app-authoring surface for most developers.
 - `@mdanai/sdk/surface` is independent from ui, Lit, and Markdown rendering UI.
-- `@mdanai/sdk/ui` is optional default UI, not protocol infrastructure.
 - `@mdanai/sdk/server` is runtime modeling, not a Node/Bun host adapter.
 - `@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun` are host integration
   layers.
