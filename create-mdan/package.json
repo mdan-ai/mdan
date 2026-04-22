@@ -1,6 +1,6 @@
 {
   "name": "create-mdan",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": false,
   "description": "Scaffold a minimal MDAN agent app with npm create or bunx.",
   "license": "MIT",
