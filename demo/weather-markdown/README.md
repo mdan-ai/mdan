@@ -1,14 +1,15 @@
 # MDAN Weather
 
-This demo turns public weather API data into user-ready Markdown artifacts for
-agents.
+This demo turns public weather API data into an online skills app that returns
+user-ready Markdown weather surfaces for agents and browsers from the same app
+entry.
 
-`wttr.in` made weather terminal-native. This demo explores the MDAN version of
-that idea: weather results that agents can hand to users directly, while humans
-can open the same URL as a normal web page.
+`wttr.in` made weather terminal-native. This demo explores the MDAN online
+skills app version of that idea: weather results that agents can hand to users
+directly, while humans can open the same URL as a normal web page.
 
-The `/weather` route is also the canonical MDAN app entry for the service. It
-uses the shared app-entry structure:
+The `/weather` route is the canonical MDAN app entry for the service. It uses
+the shared app-entry structure:
 
 - `Purpose`
 - `Context`
@@ -19,20 +20,20 @@ uses the shared app-entry structure:
 
 ## Goal
 
-Flag:
+Strategic goal:
 
-> MDAN Weather should be more suitable than `wttr.in` as a default weather
-> interface for agents.
+> MDAN Weather should be more suitable than `wttr.in` as a default online
+> weather skill for agents.
 
 The demo is not trying to beat `wttr.in` for terminal users. It is trying to
-produce Markdown artifacts that work naturally in chat, docs, web pages, and
+produce Markdown surfaces that work naturally in chat, docs, web pages, and
 agent responses.
 
 ## Core Rule
 
-Markdown is the data payload.
+Markdown is the primary read surface.
 
-Action JSON is embedded in the Markdown payload inside a `mdan` fenced block.
+Action JSON is embedded in the Markdown surface inside a `mdan` fenced block.
 Weather facts are not duplicated into outer JSON response fields.
 
 ## Run
@@ -66,7 +67,7 @@ Useful profiles:
 
 - `brief`: one short user-ready paragraph
 - `table`: Markdown table with provenance
-- `full`: reserved for richer artifacts; currently renders the table artifact
+- `full`: reserved for richer result surfaces; currently renders the table view
 
 Optional rendering parameters:
 
@@ -82,7 +83,7 @@ curl -H 'Accept: text/markdown' \
   'http://127.0.0.1:4327/weather/query?location=西安&range=7d&profile=table'
 ```
 
-The response is a Markdown artifact:
+The response is a Markdown surface:
 
 ```md
 # 西安 7 日天气预报
@@ -95,7 +96,7 @@ The response is a Markdown artifact:
 
 ```mdan
 {
-  "app_id": "weather-markdown-demo",
+  "app_id": "weather",
   "state_id": "weather:E8A5BFE5AE89:7d",
   "state_version": 1,
   "blocks": [],
@@ -146,6 +147,19 @@ This service aligns with `wttr.in` on capabilities, not syntax.
 | Emoji/glyphs | `emoji=true|false` |
 | Data provenance | Markdown provenance footer |
 
+## App API Shape
+
+This demo now uses the public app API rather than the lower-level server
+runtime:
+
+- `createApp(...)` for the app shell
+- `app.page(...)` for the shared `/weather` entry page
+- `app.route(...)` for `/weather` and `/weather/query`
+- `actions.read(...)` for the weather query contract
+
+The result is positioned as an online skills app, not just a protocol/runtime
+demo.
+
 ## Non-Goals
 
 - no server-side LLM
@@ -155,7 +169,7 @@ This service aligns with `wttr.in` on capabilities, not syntax.
 - no wttr-compatible terminal grammar as the primary interface
 
 The caller agent maps user language to the action input. This service returns
-deliverable Markdown only.
+deliverable Markdown surfaces only.
 
 ## Data Source
 

@@ -167,7 +167,8 @@ describe("weather markdown demo server", () => {
     expect(response.body).toContain("## Result");
     expect(response.body).toContain("## Views");
     expect(response.body).toContain("## Handoff");
-    expect(response.body).toContain("::: block{id=\"query\" actions=\"query_weather\" trust=\"trusted\"}");
+    expect(response.body).toContain("输入地点和范围，生成 agent 可以直接交付给用户的 Markdown 天气结果。");
+    expect(response.body).toContain("<!-- mdan:block query -->");
     expect(response.body).toContain("```mdan");
     expect(response.body).toContain('"id": "query_weather"');
   });
