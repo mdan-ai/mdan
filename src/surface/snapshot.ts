@@ -23,11 +23,21 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function defaultValueForInput(input: FieldSchema): string {
+function defaultValueForInput(input: FieldSchema, method: "get" | "post"): string {
+  const kind = resolveFieldKind(input);
+
+  // GET query forms should prefer omission over prefilled values so the URL
+  // reflects only what the human actually chose.
+  if (method === "get" && !input.required) {
+    if (kind === "boolean") {
+      return input.defaultValue === true ? "true" : "";
+    }
+    return "";
+  }
+
   if (input.defaultValue !== undefined && input.defaultValue !== null) {
     return String(input.defaultValue);
   }
-  const kind = resolveFieldKind(input);
   if (kind === "boolean") {
     return "false";
   }
@@ -43,39 +53,50 @@ function defaultValueForInput(input: FieldSchema): string {
   return "";
 }
 
-function renderInput(input: FieldSchema): string {
+function renderInput(input: FieldSchema, method: "get" | "post"): string {
   const label = escapeHtml(humanizeInputLabel(input.name, { titleCase: true }));
   const name = escapeHtml(input.name);
   const required = input.required ? " required" : "";
+  const omitEmpty = method === "get" && !input.required ? ' data-mdan-omit-empty="true"' : "";
   const description =
     typeof input.description === "string" && input.description.trim().length > 0
       ? `<small>${escapeHtml(input.description)}</small>`
       : "";
   const kind = resolveFieldKind(input);
   const format = resolveFieldFormat(input);
-  const value = escapeHtml(defaultValueForInput(input));
+  const value = escapeHtml(defaultValueForInput(input, method));
 
   if (kind === "enum") {
+    const placeholder =
+      method === "get" && !input.required
+        ? `<option value="" selected>default</option>`
+        : "";
     const options = (input.options ?? [])
-      .map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`)
+      .map((option) => {
+        const escaped = escapeHtml(option);
+        const selected = value === escaped ? " selected" : "";
+        return `<option value="${escaped}"${selected}>${escaped}</option>`;
+      })
       .join("");
-    return `<label><span>${label}</span><select name="${name}"${required}>${options}</select>${description}</label>`;
+    return `<label><span>${label}</span><select name="${name}"${required}${omitEmpty}>${placeholder}${options}</select>${description}</label>`;
   }
 
   if (kind === "boolean") {
-    return `<label><span>${label}</span><input type="hidden" name="${name}" value="false"><input type="checkbox" name="${name}" value="true">${description}</label>`;
+    const hiddenFalse = method === "post" ? `<input type="hidden" name="${name}" value="false">` : "";
+    const checked = value === "true" ? " checked" : "";
+    return `<label><span>${label}</span>${hiddenFalse}<input type="checkbox" name="${name}" value="true"${checked}${omitEmpty}>${description}</label>`;
   }
 
   if (kind === "asset") {
-    return `<label><span>${label}</span><input type="file" name="${name}"${required}>${description}</label>`;
+    return `<label><span>${label}</span><input type="file" name="${name}"${required}${omitEmpty}>${description}</label>`;
   }
 
   if (kind === "object" || kind === "array" || format === "textarea") {
-    return `<label><span>${label}</span><textarea name="${name}"${required}>${value}</textarea>${description}</label>`;
+    return `<label><span>${label}</span><textarea name="${name}"${required}${omitEmpty}>${value}</textarea>${description}</label>`;
   }
 
   const type = format === "password" ? "password" : kind === "number" || kind === "integer" ? "number" : "text";
-  return `<label><span>${label}</span><input type="${type}" name="${name}" value="${value}"${required}>${description}</label>`;
+  return `<label><span>${label}</span><input type="${type}" name="${name}" value="${value}"${required}${omitEmpty}>${description}</label>`;
 }
 
 function renderOperation(block: MdanHeadlessBlock, operation: MdanOperation): string {
@@ -90,13 +111,17 @@ function renderOperation(block: MdanHeadlessBlock, operation: MdanOperation): st
       ? `<input type="hidden" name="action.proof" value="${escapeHtml(operation.actionProof)}">`
       : "";
   const inputSchema =
-    operation.inputSchema && operation.inputs.length > 0
+    method === "post" && operation.inputSchema && operation.inputs.length > 0
       ? `<input type="hidden" name="mdan.input_schema" value="${escapeHtml(JSON.stringify(operation.inputSchema))}">`
       : "";
-  const fields = renderableInputs.map((input) => renderInput(input)).join("");
+  const fields = renderableInputs.map((input) => renderInput(input, method)).join("");
   const label = escapeHtml(operation.label ?? operation.name ?? operation.target);
+  const trimEmptyOnSubmit =
+    method === "get"
+      ? ' onsubmit="for (const el of this.querySelectorAll(\'[data-mdan-omit-empty=&quot;true&quot;]\')) { if (el instanceof HTMLInputElement && el.type === \'checkbox\') { if (!el.checked) el.disabled = true; continue; } if (\'value\' in el && !el.value) el.disabled = true; }"'
+      : "";
 
-  return `<form action="${escapeHtml(operation.target)}" method="${method}" enctype="${enctype}">${actionProof}${inputSchema}${fields}<button type="submit">${label}</button></form>`;
+  return `<form action="${escapeHtml(operation.target)}" method="${method}" enctype="${enctype}"${trimEmptyOnSubmit}>${actionProof}${inputSchema}${fields}<button type="submit">${label}</button></form>`;
 }
 
 export interface RenderSurfaceSnapshotOptions {

@@ -201,31 +201,17 @@ function createStaticBrowserShellOptions(context: RuntimeContext): BrowserShellO
 
 function createStaticHtmlPageReadResponse(
   context: RuntimeContext,
-  normalizedPageResult: NormalizedPageResult
+  page: NonNullable<NormalizedPageResult["page"]>,
+  status = 200,
+  headers?: Record<string, string>
 ): MdanResponse | null {
   const browserShellOptions = createStaticBrowserShellOptions(context);
-  const status = normalizedPageResult.status ?? 200;
-  const headers = normalizedPageResult.headers;
-
-  if (normalizedPageResult.surface && !context.actionProof) {
-    return createHtmlSurfaceResponse(
-      normalizedPageResult.surface,
-      browserShellOptions,
-      status,
-      headers
-    );
-  }
-
-  if (normalizedPageResult.page) {
-    return createHtmlPageResponse(
-      normalizedPageResult.page,
-      browserShellOptions,
-      status,
-      headers
-    );
-  }
-
-  return null;
+  return createHtmlPageResponse(
+    page,
+    browserShellOptions,
+    status,
+    headers
+  );
 }
 
 async function handlePageRequest(
@@ -267,20 +253,6 @@ async function handlePageRequest(
     return normalizedPageValidation;
   }
 
-  if (normalizedPageResult.page && representation === "html") {
-    const htmlResponse = createStaticHtmlPageReadResponse(context, normalizedPageResult);
-    if (htmlResponse) {
-      return await finalizeCommittedResponse(
-        context,
-        session,
-        request,
-        htmlResponse,
-        normalizedPageResult.session
-      );
-    }
-    return createMarkdownErrorResultResponse(createInternalServerErrorResult());
-  }
-
   const page = normalizedPageResult.page;
   if (!page) {
     return null;
@@ -298,6 +270,26 @@ async function handlePageRequest(
   if (!resolvedPage.page) {
     return createMarkdownErrorResultResponse(createInternalServerErrorResult());
   }
+
+  if (representation === "html") {
+    const htmlResponse = createStaticHtmlPageReadResponse(
+      context,
+      resolvedPage.page,
+      resolvedPage.status ?? normalizedPageResult.status ?? 200,
+      resolvedPage.headers ?? normalizedPageResult.headers
+    );
+    if (htmlResponse) {
+      return await finalizeCommittedResponse(
+        context,
+        session,
+        request,
+        htmlResponse,
+        resolvedPage.session ?? normalizedPageResult.session
+      );
+    }
+    return createMarkdownErrorResultResponse(createInternalServerErrorResult());
+  }
+
   const response = createPageResponse(
     context.actionProof
       ? (withActionProofs({ page: resolvedPage.page }, context.actionProof).page ?? resolvedPage.page)

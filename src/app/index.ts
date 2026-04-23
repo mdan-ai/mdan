@@ -1,3 +1,4 @@
+import type { MdanPage } from "../protocol/types.js";
 import { type ReadableSurface } from "../server/artifact.js";
 import { type ActionProofOptions } from "../server/action-proofing.js";
 import { createMdanServer } from "../server/runtime.js";
@@ -5,6 +6,7 @@ import type {
   MdanActionResult,
   MdanHandler,
   MdanHandlerContext,
+  MdanPageResult,
   MdanPageHandler,
   MdanPageHandlerContext,
   MdanRequest,
@@ -27,6 +29,7 @@ export interface AppActionDefinition {
   label: string;
   verb: AppActionVerb;
   target: string;
+  auto?: boolean;
   transport?: {
     method?: AppTransportMethod;
   };
@@ -86,7 +89,7 @@ export interface AppInstance {
 
 export type AppPageHandler = (
   context: MdanPageHandlerContext
-) => Promise<ReadableSurface | null> | ReadableSurface | null;
+) => Promise<ReadableSurface | MdanPage | MdanPageResult | null> | ReadableSurface | MdanPage | MdanPageResult | null;
 
 export type AppActionHandler = (
   context: MdanHandlerContext
@@ -120,13 +123,15 @@ function compileInputSchema(input: Record<string, AppFieldDefinition> | undefine
 }
 
 function compileAction(action: AppActionDefinition) {
+  const method = resolveTransportMethod(action.verb, action.transport?.method);
   return {
     id: action.id,
     label: action.label,
     verb: action.verb,
     target: action.target,
+    ...(method === "GET" && action.auto === true ? { auto: true } : {}),
     transport: {
-      method: resolveTransportMethod(action.verb, action.transport?.method)
+      method
     },
     input_schema: compileInputSchema(action.input)
   };

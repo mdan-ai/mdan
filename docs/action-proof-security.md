@@ -1,12 +1,15 @@
 # Action Proof Security
 
-Action proof is the default execution guard for MDAN actions. It is not a
-page-access token, a replacement for authentication, or a business
-authorization check. It is a short-lived server-signed capability that proves an
-action request follows an action the server issued in a previous surface
-response.
+For normative protocol rules, see [Action Proof](/spec/action-proof).
 
-## Security Boundary
+This page describes how the current TypeScript SDK implements action-proof
+protected execution. Action proof is the default execution guard for MDAN
+actions. It is not a page-access token, a replacement for authentication, or a
+business authorization check. It is a short-lived server-signed capability that
+proves an action request follows an action the server issued in a previous
+surface response.
+
+## Current SDK Security Boundary
 
 MDAN separates page reads from action execution:
 
@@ -23,7 +26,7 @@ execution follow the server-declared next actions.
 server-internal read path for `GET` dependencies only; external `POST` action
 execution still requires a server-issued proof by default.
 
-## Default Policy
+## Current SDK Default Policy
 
 Action proof is enabled by default.
 
@@ -40,7 +43,7 @@ createMdanServer({
 Disabling action proof means the runtime will not issue `action_proof` metadata
 and will not require `action.proof` on action requests.
 
-## Issued Claims
+## Current SDK Issued Claims
 
 The current action proof signs these action contract fields:
 
@@ -56,7 +59,7 @@ These claims prevent clients and agents from changing the action target, method,
 accepted field set, input schema, or confirmation requirement after the server
 issues the action.
 
-## Request Format
+## Current SDK Request Format
 
 JSON action requests use the action wrapper:
 
@@ -90,7 +93,7 @@ High-risk actions may also require:
 }
 ```
 
-## What Action Proof Does Not Replace
+## What The Current SDK Does Not Replace
 
 Action proof does not replace:
 
@@ -105,7 +108,7 @@ Action proof does not replace:
 Handlers must still verify that the current session can perform the requested
 operation on the requested resource.
 
-## Future Hardening
+## Future Hardening Ideas
 
 The next useful strengthening is to bind proofs to more of the MDAN surface
 context:

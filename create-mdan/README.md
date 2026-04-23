@@ -48,9 +48,8 @@ The generated project includes:
 
 The generated project uses public SDK entry points only:
 
-- `@mdanai/sdk`
-- `@mdanai/sdk/server/node`
-- `@mdanai/sdk/server/bun`
+- `@mdanai/sdk` for app authoring
+- `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` for host integration
 
 ## Next Step
 

@@ -1,12 +1,20 @@
 # Agent Markdown Artifact Contract
 
-Status: updated to reflect the current Markdown-first runtime baseline.
+Status: implementation guide for the current TypeScript SDK.
 
-This document defines the primary runtime contract an agent should consume over HTTP.
-The canonical response body is now a Markdown artifact. Action metadata travels inside
-an embedded ````mdan` fenced JSON block, while `text/html` remains a human-facing
-projection. `application/json` still exists for selected legacy handlers, but it is no
-longer the preferred contract for agent reads.
+For normative protocol rules, see:
+
+- [Surface Contract](/spec/surface-contract)
+- [Action Execution](/spec/action-execution)
+- [State And Identity](/spec/state-and-identity)
+- [Representations](/spec/representations)
+
+This page describes how the current SDK realizes the Markdown-first agent
+consumption path over HTTP. The canonical response body is a Markdown artifact.
+Action metadata travels inside an embedded ````mdan` fenced JSON block, while
+`text/html` remains a human-facing projection. `application/json` still exists
+for selected legacy handlers, but it is no longer the preferred contract for
+agent reads.
 
 ## Model
 
@@ -36,7 +44,7 @@ Within the Markdown body:
 - semantic slots (`## Purpose`, `## Context`, `## Rules`, `## Result`, etc.) define prompt structure
 - `<!-- agent:begin ... --> ... <!-- agent:end -->` defines agent-only content that should not appear in human-visible UI
 
-## Preferred Representation
+## Current SDK Representation
 
 Agents should request:
 
@@ -48,7 +56,7 @@ The response body is a Markdown artifact. Browser clients may request `text/html
 human rendering. `application/json` should be treated as a compatibility path for
 legacy consumers, not the default protocol.
 
-## Required Artifact Shape
+## Current SDK Artifact Shape
 
 Every interactive page or action response should be consumable as:
 
@@ -102,7 +110,7 @@ Agents should treat `state_id` and `state_version` as the current stable state i
 If `route` is present in frontmatter, it is the semantic current route after the
 response.
 
-## Action Shape
+## Current SDK Action Shape
 
 Each action should provide enough metadata for an agent to build the next request:
 
@@ -153,7 +161,7 @@ For `POST`, the current baseline request body is:
 }
 ```
 
-## Agent Consumption Flow
+## Recommended Consumption Flow
 
 1. Request the current route with `Accept: text/markdown`.
 2. Read the Markdown body as the current user-facing / agent-readable surface.
@@ -165,7 +173,7 @@ For `POST`, the current baseline request body is:
 8. Preserve cookies between requests for session-backed apps.
 9. Read the next artifact's frontmatter and `mdan` block to understand the resulting state.
 
-## Errors
+## Current SDK Error Expectations
 
 Runtime errors should still remain directly readable to an agent when the agent requests
 Markdown:
@@ -180,7 +188,7 @@ Markdown:
 For Markdown-first flows, the agent should still parse the response body directly even if
 no executable `mdan` block is present. The readable body remains the recovery surface.
 
-## Current Baseline Notes
+## Current SDK Baseline Notes
 
 The current regression suite now proves:
 

@@ -12,12 +12,6 @@ export type WeatherProfile = "brief" | "table" | "full";
 export type WeatherUnits = "metric" | "us";
 export type WindUnit = "kmh" | "ms" | "mph";
 
-export interface SevenDayForecastMarkdownInput {
-  location: string;
-  rows: DailyForecastRow[];
-  source: string;
-}
-
 export interface ForecastMarkdownInput {
   location: string;
   title: string;
@@ -35,6 +29,20 @@ export interface ForecastMarkdownInput {
   emoji: boolean;
 }
 
+export interface HomeForecastMarkdownInput {
+  location: string;
+  rows: DailyForecastRow[];
+  source: string;
+  sourceUrl?: string;
+  service: string;
+  serviceUrl?: string;
+  generatedAt: string;
+  locale: string;
+  units: WeatherUnits;
+  windUnit: WindUnit;
+  emoji: boolean;
+}
+
 export interface CurrentWeatherMarkdownInput {
   location: string;
   condition: string;
@@ -49,16 +57,15 @@ export interface CurrentWeatherMarkdownInput {
   service?: string;
   serviceUrl?: string;
   generatedAt?: string;
+  locale?: string;
+  profile?: WeatherProfile;
   units?: WeatherUnits;
   windUnit?: WindUnit;
   emoji?: boolean;
 }
 
-export interface DailyForecastMarkdownInput {
-  location: string;
-  date: string;
-  row: DailyForecastRow;
-  source: string;
+function isZhLocale(locale: string): boolean {
+  return locale.startsWith("zh");
 }
 
 function formatDecimal(value: number): string {
@@ -112,11 +119,48 @@ function markdownLink(label: string, url: string | undefined): string {
 }
 
 function provenanceLine(input: { source: string; sourceUrl?: string; service: string; serviceUrl?: string; generatedAt: string }): string {
-  return `数据和位置服务：${markdownLink(input.source, input.sourceUrl)}，由 ${markdownLink(input.service, input.serviceUrl)} 编辑/整理于 ${input.generatedAt}。`;
+  const zh = isZhLocale((input as { locale?: string }).locale ?? "zh-CN");
+  return zh ? `来源：${markdownLink(input.source, input.sourceUrl)}` : `Source: ${markdownLink(input.source, input.sourceUrl)}`;
 }
 
 function provenance(input: ForecastMarkdownInput): string[] {
   return [provenanceLine(input)];
+}
+
+function homeProvenance(input: HomeForecastMarkdownInput): string[] {
+  return [provenanceLine(input)];
+}
+
+function maxTemp(rows: DailyForecastRow[]): number {
+  return Math.max(...rows.map((row) => row.tempMaxC));
+}
+
+function minTemp(rows: DailyForecastRow[]): number {
+  return Math.min(...rows.map((row) => row.tempMinC));
+}
+
+function maxPrecipitation(rows: DailyForecastRow[]): number {
+  return Math.max(...rows.map((row) => row.precipitationProbabilityMax));
+}
+
+function maxWind(rows: DailyForecastRow[]): number {
+  return Math.max(...rows.map((row) => row.windSpeedMaxKmh));
+}
+
+function todaySummary(input: ForecastMarkdownInput): string {
+  const row = input.rows[0]!;
+  const zh = isZhLocale(input.locale);
+  return zh
+    ? `${input.location}今天：${displayCondition(row, input.emoji)}，${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}，最高降水概率 ${row.precipitationProbabilityMax}%，最大风速 ${formatWind(row.windSpeedMaxKmh, input.windUnit)}。`
+    : `Today in ${input.location}: ${displayCondition(row, input.emoji)}, ${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}, max precipitation ${row.precipitationProbabilityMax}%, max wind ${formatWind(row.windSpeedMaxKmh, input.windUnit)}.`;
+}
+
+function homeTodaySummary(input: HomeForecastMarkdownInput): string {
+  const row = input.rows[0]!;
+  const zh = isZhLocale(input.locale);
+  return zh
+    ? `${input.location}今天：${displayCondition(row, input.emoji)}，${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}，最高降水概率 ${row.precipitationProbabilityMax}%，最大风速 ${formatWind(row.windSpeedMaxKmh, input.windUnit)}。`
+    : `Today in ${input.location}: ${displayCondition(row, input.emoji)}, ${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}, max precipitation ${row.precipitationProbabilityMax}%, max wind ${formatWind(row.windSpeedMaxKmh, input.windUnit)}.`;
 }
 
 function dayLabel(title: string): string {
@@ -125,24 +169,100 @@ function dayLabel(title: string): string {
   return "";
 }
 
+function detailHeading(locale: string): string {
+  return isZhLocale(locale) ? "详细信息" : "Details";
+}
+
+function summaryHeading(locale: string): string {
+  return isZhLocale(locale) ? "摘要" : "Summary";
+}
+
+function tableHeader(locale: string): [string, string] {
+  if (isZhLocale(locale)) {
+    return ["| 日期 | 天气 | 最低温 | 最高温 | 最高降水概率 | 最大风速 |", "|---|---|---:|---:|---:|---:|"];
+  }
+  return ["| Date | Condition | Low | High | Max precip. | Max wind |", "|---|---|---:|---:|---:|---:|"];
+}
+
 export function compileForecastMarkdown(input: ForecastMarkdownInput): string {
   if (input.profile === "brief" && input.rows.length === 1) {
     const row = input.rows[0]!;
     const label = dayLabel(input.title);
+    const zh = isZhLocale(input.locale);
+    return zh
+      ? `${input.location}${label ? label : ` ${row.date}`}：${displayCondition(row, input.emoji)}，${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}，最高降水概率 ${row.precipitationProbabilityMax}%，最大风速 ${formatWind(row.windSpeedMaxKmh, input.windUnit)}。`
+      : `${input.title}: ${displayCondition(row, input.emoji)}, ${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}, max precipitation ${row.precipitationProbabilityMax}%, max wind ${formatWind(row.windSpeedMaxKmh, input.windUnit)}.`;
+  }
+
+  if (input.profile === "full" && input.rows.length === 1) {
+    const row = input.rows[0]!;
+    const label = dayLabel(input.title);
+    const zh = isZhLocale(input.locale);
     return [
       `# ${input.title}`,
       "",
-      `${input.location}${label ? label : ` ${row.date}`}：${displayCondition(row, input.emoji)}，${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}，最高降水概率 ${row.precipitationProbabilityMax}%，最大风速 ${formatWind(row.windSpeedMaxKmh, input.windUnit)}。`,
+      zh
+        ? `${input.location}${label ? label : ` ${row.date}`}：${displayCondition(row, input.emoji)}，${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}。`
+        : `${input.title}: ${displayCondition(row, input.emoji)}, ${formatTemperatureRange(row.tempMinC, row.tempMaxC, input.units)}.`,
+      "",
+      `- ${detailHeading(input.locale)}`,
+      zh
+        ? `  - 最低温：${formatTemperature(row.tempMinC, input.units)}`
+        : `  - Low: ${formatTemperature(row.tempMinC, input.units)}`,
+      zh
+        ? `  - 最高温：${formatTemperature(row.tempMaxC, input.units)}`
+        : `  - High: ${formatTemperature(row.tempMaxC, input.units)}`,
+      zh
+        ? `  - 最高降水概率：${row.precipitationProbabilityMax}%`
+        : `  - Max precipitation: ${row.precipitationProbabilityMax}%`,
+      zh
+        ? `  - 最大风速：${formatWind(row.windSpeedMaxKmh, input.windUnit)}`
+        : `  - Max wind: ${formatWind(row.windSpeedMaxKmh, input.windUnit)}`,
       "",
       ...provenance(input)
     ].join("\n");
   }
 
+  if (input.profile === "full") {
+    const first = input.rows[0]!;
+    const last = input.rows[input.rows.length - 1]!;
+    const zh = isZhLocale(input.locale);
+    const overallSummary = zh
+      ? `${input.location}接下来 ${input.rows.length} 天覆盖 ${first.date} 到 ${last.date}，最低 ${formatTemperature(minTemp(input.rows), input.units)}，最高 ${formatTemperature(maxTemp(input.rows), input.units)}。`
+      : `${input.location} over the next ${input.rows.length} days (${first.date} to ${last.date}), low ${formatTemperature(minTemp(input.rows), input.units)}, high ${formatTemperature(maxTemp(input.rows), input.units)}.`;
+    const [header, divider] = tableHeader(input.locale);
+    const lines = [
+      `# ${input.title}`,
+      "",
+      todaySummary(input),
+      "",
+      `- ${summaryHeading(input.locale)}`,
+      `  - ${overallSummary}`,
+      zh
+        ? `  - 最高降水概率：${maxPrecipitation(input.rows)}%`
+        : `  - Max precipitation: ${maxPrecipitation(input.rows)}%`,
+      zh
+        ? `  - 最大风速：${formatWind(maxWind(input.rows), input.windUnit)}`
+        : `  - Max wind: ${formatWind(maxWind(input.rows), input.windUnit)}`,
+      "",
+      header,
+      divider,
+      ...input.rows.map(
+        (row) =>
+          `| ${row.date} | ${displayCondition(row, input.emoji)} | ${formatTemperature(row.tempMinC, input.units)} | ${formatTemperature(row.tempMaxC, input.units)} | ${row.precipitationProbabilityMax}% | ${formatWind(row.windSpeedMaxKmh, input.windUnit)} |`
+      ),
+      "",
+      ...provenance(input)
+    ];
+    return lines.join("\n");
+  }
+
+  const [header, divider] = tableHeader(input.locale);
   const lines = [
     `# ${input.title}`,
     "",
-    "| 日期 | 天气 | 最低温 | 最高温 | 最高降水概率 | 最大风速 |",
-    "|---|---|---:|---:|---:|---:|",
+    header,
+    divider,
     ...input.rows.map(
       (row) =>
         `| ${row.date} | ${displayCondition(row, input.emoji)} | ${formatTemperature(row.tempMinC, input.units)} | ${formatTemperature(row.tempMaxC, input.units)} | ${row.precipitationProbabilityMax}% | ${formatWind(row.windSpeedMaxKmh, input.windUnit)} |`
@@ -153,9 +273,27 @@ export function compileForecastMarkdown(input: ForecastMarkdownInput): string {
   return lines.join("\n");
 }
 
+export function compileHomeForecastMarkdown(input: HomeForecastMarkdownInput): string {
+  const [header, divider] = tableHeader(input.locale);
+  return [
+    homeTodaySummary(input),
+    "",
+    header,
+    divider,
+    ...input.rows.map(
+      (row) =>
+        `| ${row.date} | ${displayCondition(row, input.emoji)} | ${formatTemperature(row.tempMinC, input.units)} | ${formatTemperature(row.tempMaxC, input.units)} | ${row.precipitationProbabilityMax}% | ${formatWind(row.windSpeedMaxKmh, input.windUnit)} |`
+    ),
+    "",
+    ...homeProvenance(input)
+  ].join("\n");
+}
+
 export function compileCurrentWeatherMarkdown(input: CurrentWeatherMarkdownInput): string {
   const units = input.units ?? "metric";
   const windUnit = input.windUnit ?? "kmh";
+  const locale = (input as { locale?: string }).locale ?? "zh-CN";
+  const zh = isZhLocale(locale);
   const row = {
     date: "",
     condition: input.condition,
@@ -173,44 +311,29 @@ export function compileCurrentWeatherMarkdown(input: CurrentWeatherMarkdownInput
             sourceUrl: input.sourceUrl,
             service: input.service,
             serviceUrl: input.serviceUrl,
-            generatedAt: input.generatedAt
+            generatedAt: input.generatedAt,
+            locale
           })
         ]
-      : [`数据源：${input.source}`];
-  return [
-    `# ${input.location}当前天气`,
-    "",
-    `${input.location}当前${displayCondition(row, input.emoji ?? false)}，${formatTemperature(input.temperatureC, units)}，体感 ${formatTemperature(input.apparentTemperatureC, units)}。湿度 ${input.humidityPercent}%，风速 ${formatWind(input.windSpeedKmh, windUnit)}。`,
-    "",
-    ...footer
-  ].join("\n");
-}
+      : [zh ? `数据源：${input.source}` : `Source: ${input.source}`];
 
-export function compileDailyForecastMarkdown(input: DailyForecastMarkdownInput): string {
-  const row = input.row;
-  return [
-    `# ${input.location} ${input.date} 天气`,
-    "",
-    "| 天气 | 最低温 | 最高温 | 最高降水概率 | 最大风速 |",
-    "|---|---:|---:|---:|---:|",
-    `| ${row.condition} | ${formatDecimal(row.tempMinC)}°C | ${formatDecimal(row.tempMaxC)}°C | ${row.precipitationProbabilityMax}% | ${formatDecimal(row.windSpeedMaxKmh)} km/h |`,
-    "",
-    `数据源：${input.source}`
-  ].join("\n");
-}
+  if (input.profile === "full") {
+    return [
+      `# ${zh ? `${input.location}当前天气` : `Current weather in ${input.location}`}`,
+      "",
+      zh
+        ? `${input.location}当前${displayCondition(row, input.emoji ?? false)}，${formatTemperature(input.temperatureC, units)}，体感 ${formatTemperature(input.apparentTemperatureC, units)}。`
+        : `Current weather in ${input.location}: ${displayCondition(row, input.emoji ?? false)}, ${formatTemperature(input.temperatureC, units)}, feels like ${formatTemperature(input.apparentTemperatureC, units)}.`,
+      "",
+      `- ${detailHeading(locale)}`,
+      zh ? `  - 湿度：${input.humidityPercent}%` : `  - Humidity: ${input.humidityPercent}%`,
+      zh ? `  - 风速：${formatWind(input.windSpeedKmh, windUnit)}` : `  - Wind: ${formatWind(input.windSpeedKmh, windUnit)}`,
+      "",
+      ...footer
+    ].join("\n");
+  }
 
-export function compileSevenDayForecastMarkdown(input: SevenDayForecastMarkdownInput): string {
-  const lines = [
-    `# ${input.location} 7 日天气预报`,
-    "",
-    "| 日期 | 天气 | 最低温 | 最高温 | 最高降水概率 | 最大风速 |",
-    "|---|---|---:|---:|---:|---:|",
-    ...input.rows.map(
-      (row) =>
-        `| ${row.date} | ${row.condition} | ${formatDecimal(row.tempMinC)}°C | ${formatDecimal(row.tempMaxC)}°C | ${row.precipitationProbabilityMax}% | ${formatDecimal(row.windSpeedMaxKmh)} km/h |`
-    ),
-    "",
-    `数据源：${input.source}`
-  ];
-  return lines.join("\n");
+  return zh
+    ? `${input.location}当前${displayCondition(row, input.emoji ?? false)}，${formatTemperature(input.temperatureC, units)}，体感 ${formatTemperature(input.apparentTemperatureC, units)}。湿度 ${input.humidityPercent}%，风速 ${formatWind(input.windSpeedKmh, windUnit)}。`
+    : `Current weather in ${input.location}: ${displayCondition(row, input.emoji ?? false)}, ${formatTemperature(input.temperatureC, units)}, feels like ${formatTemperature(input.apparentTemperatureC, units)}. Humidity ${input.humidityPercent}%, wind ${formatWind(input.windSpeedKmh, windUnit)}.`;
 }

@@ -7,11 +7,11 @@ hosts, tests, and agents.
 
 Related contract documents:
 
-- `SERVER-ADAPTERS.md`: Node/Bun host adapter behavior
-- `ERRORS.md`: status codes and error surface shape
-- `STREAMING.md`: `stream(...)` and `text/event-stream`
-- `UI-ACTION-SEMANTICS.md`: browser/default UI action behavior
-- `PUBLIC-API.md`: package export boundaries
+- `server-adapters.md`: Node/Bun host adapter behavior
+- `errors.md`: status codes and error surface shape
+- `streaming.md`: `stream(...)` and `text/event-stream`
+- `ui-action-semantics.md`: browser/default UI action behavior
+- `public-api.md`: package export boundaries
 
 ## Runtime Shape
 
@@ -69,7 +69,7 @@ results can now be returned as Markdown artifacts. A `POST` action with
 `Accept: text/html` returns `406 Not Acceptable`; `Accept: text/markdown` is
 the preferred non-stream action response.
 
-See `STREAMING.md` for the stricter stream-action boundary and `ERRORS.md` for
+See `streaming.md` for the stricter stream-action boundary and `errors.md` for
 status-code behavior.
 
 ## Action Request Format
@@ -96,7 +96,7 @@ Form-style compatibility fields are also parsed:
 }
 ```
 
-See `ACTION-PROOF-SECURITY.md` for the security boundary and disable escape
+See `action-proof-security.md` for the security boundary and disable escape
 hatch.
 
 ## Handler Context
@@ -163,5 +163,5 @@ The runtime validates returned results before sending them:
 Use `actionProof: { disabled: true }` only for tests, demos, or trusted local
 experiments that intentionally bypass action execution proofing.
 
-Validation failures are returned as runtime error surfaces. See `ERRORS.md` for
+Validation failures are returned as runtime error surfaces. See `errors.md` for
 the exact status-code model.

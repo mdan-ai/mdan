@@ -1,10 +1,12 @@
 # Agent Content
 
-MDAN pages are read by humans and agents. The SDK provides two content features
-to keep that shared surface structured without leaking agent-only instructions
+For normative protocol rules, see [Agent Content](/spec/agent-content).
+
+This page describes how the current TypeScript SDK implements shared readable
+content, semantic slots, and agent-only blocks without leaking hidden guidance
 into human-visible HTML.
 
-## Semantic Slots
+## Current SDK Semantic Slots
 
 Semantic slots are Markdown H2 sections with canonical names:
 
@@ -47,7 +49,7 @@ createMdanServer({
 Slot validation requires H2 headings, rejects duplicates, and rejects empty
 slots.
 
-## Untrusted Blocks
+## Current SDK Untrusted Blocks
 
 Content inside Markdown blocks marked `trust="untrusted"` is masked before
 semantic-slot and agent-block validation. This lets apps display user-provided
@@ -60,7 +62,7 @@ User-provided Markdown goes here.
 :::
 ```
 
-## Agent Blocks
+## Current SDK Agent Blocks
 
 Agent blocks are HTML comments that carry agent-only instructions:
 
@@ -92,7 +94,7 @@ agent-capable clients can read the instructions directly. Legacy JSON
 compatibility surfaces continue to carry that same content when compatibility
 transport is needed.
 
-## Recommended Pattern
+## Recommended Authoring Pattern
 
 Use semantic slots for page-level structure that both humans and agents can see.
 Use agent blocks for hidden guidance that should not render in the browser UI.

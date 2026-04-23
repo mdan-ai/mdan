@@ -44,7 +44,8 @@ function envelope(name: string, autoTarget?: string) {
               id: `load-${name}`,
               target: autoTarget,
               transport: { method: "GET" },
-              verb: "read"
+              verb: "read",
+              auto: true
             }
           ]
         : []
@@ -114,6 +115,28 @@ describe("resolveAutoDependencies", () => {
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("# root");
     expect(calls).toEqual([]);
+  });
+
+  it("applies page auto dependencies before rendering html page reads", async () => {
+    const server = createMdanServer({
+      actionProof: { disabled: true }
+    });
+
+    server.page("/root", async () => page("root", "/step-1"));
+    server.page("/step-1", async () => page("step-1"));
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/root",
+      headers: {
+        accept: "text/html"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("step-1");
+    expect(String(response.body)).not.toContain(">root<");
   });
 
   it("preserves session mutations from page-based auto dependency results", async () => {

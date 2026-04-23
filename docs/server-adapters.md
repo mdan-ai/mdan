@@ -174,7 +174,7 @@ The lower-level `renderBrowserShell()` helper can still be used separately when
 you want a hydrated shell, but high-level host adapters do not inject that
 client runtime for ordinary page reads today.
 
-See `BROWSER-AND-HEADLESS-RUNTIME.md` for the browser client contract.
+See `browser-and-headless-runtime.md` for the browser client contract.
 
 ## Local Browser Bundles
 
@@ -263,4 +263,4 @@ Runtime responses may have an async iterable body, especially for
 Node writes each chunk with `response.write()` and ends the response after the
 iterable finishes. Bun converts the async iterable into a `ReadableStream`.
 
-See `STREAMING.md` for stream result authoring and SSE wire format.
+See `streaming.md` for stream result authoring and SSE wire format.

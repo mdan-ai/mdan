@@ -1,33 +1,10 @@
-export interface ResolvedLocation {
-  name: string;
-  latitude: number;
-  longitude: number;
-  timezone: string;
-}
-
-export interface WeatherProvider {
-  resolveLocation(location: string): Promise<ResolvedLocation>;
-  getCurrentWeather(location: ResolvedLocation): Promise<CurrentWeatherData>;
-  getDailyForecast(location: ResolvedLocation, options: { date: string }): Promise<DailyForecastData>;
-  getSevenDayForecast(location: ResolvedLocation): Promise<DailyForecastData>;
-}
-
-export interface CurrentWeatherData {
-  conditionCode: number;
-  temperatureC: number;
-  apparentTemperatureC: number;
-  humidityPercent: number;
-  windSpeedKmh: number;
-}
-
-export interface DailyForecastData {
-  dates: string[];
-  conditionCodes: number[];
-  tempMaxC: number[];
-  tempMinC: number[];
-  precipitationProbabilityMax: number[];
-  windSpeedMaxKmh: number[];
-}
+import type {
+  CoordinateLookup,
+  CurrentWeatherData,
+  DailyForecastData,
+  ResolvedLocation,
+  WeatherProvider
+} from "./weather-provider.js";
 
 const SOURCE = "Open-Meteo";
 
@@ -161,17 +138,32 @@ export function weatherConditionName(code: number, locale = "zh-CN"): string {
 
 export function createOpenMeteoProvider(): WeatherProvider {
   return {
-    async resolveLocation(location: string): Promise<ResolvedLocation> {
+    source: {
+      name: SOURCE,
+      url: "https://open-meteo.com/",
+      geocodingName: "Open-Meteo Geocoding"
+    },
+    capabilities: {
+      maxForecastDays: 7
+    },
+    async resolveLocation(location: string, options?: { locale?: string }): Promise<ResolvedLocation> {
       const normalized = location.trim().toLowerCase();
       const known = knownLocations[normalized];
       if (known) {
-        return known;
+        if ((options?.locale ?? "zh-CN").startsWith("zh")) {
+          return known;
+        }
+
+        return {
+          ...known,
+          name: "Xi'an"
+        };
       }
 
       const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
       url.searchParams.set("name", location);
       url.searchParams.set("count", "1");
-      url.searchParams.set("language", "zh");
+      url.searchParams.set("language", (options?.locale ?? "zh-CN").startsWith("zh") ? "zh" : "en");
       url.searchParams.set("format", "json");
       const payload = await fetchJson(url);
       const results = payload.results;
@@ -184,6 +176,15 @@ export function createOpenMeteoProvider(): WeatherProvider {
         latitude: asNumber(first.latitude, "latitude"),
         longitude: asNumber(first.longitude, "longitude"),
         timezone: typeof first.timezone === "string" ? first.timezone : "auto"
+      };
+    },
+    async resolveCoordinates(coordinates: CoordinateLookup, options?: { locale?: string }): Promise<ResolvedLocation> {
+      const locale = options?.locale ?? "zh-CN";
+      return {
+        name: coordinates.label ?? (locale.startsWith("zh") ? "这里" : "Here"),
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+        timezone: coordinates.timezone?.trim() || "auto"
       };
     },
     async getCurrentWeather(location: ResolvedLocation): Promise<CurrentWeatherData> {
@@ -222,7 +223,7 @@ export function createOpenMeteoProvider(): WeatherProvider {
       url.searchParams.set("end_date", options.date);
       return dailyFromPayload(await fetchJson(url));
     },
-    async getSevenDayForecast(location: ResolvedLocation): Promise<DailyForecastData> {
+    async getForecast(location: ResolvedLocation, options?: { days?: number }): Promise<DailyForecastData> {
       const url = new URL("https://api.open-meteo.com/v1/forecast");
       url.searchParams.set("latitude", String(location.latitude));
       url.searchParams.set("longitude", String(location.longitude));
@@ -231,7 +232,7 @@ export function createOpenMeteoProvider(): WeatherProvider {
         "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max"
       );
       url.searchParams.set("timezone", location.timezone);
-      url.searchParams.set("forecast_days", "7");
+      url.searchParams.set("forecast_days", String(options?.days ?? 7));
       return dailyFromPayload(await fetchJson(url));
     }
   };

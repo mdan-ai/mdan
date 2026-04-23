@@ -108,7 +108,7 @@ import { createHost } from "@mdanai/sdk/server/bun";
 ```
 
 Host adapters own HTTP runtime details such as body reading, cookies, static
-files, browser shell serving, and form bridging. See `SERVER-ADAPTERS.md`.
+files, browser shell serving, and form bridging. See `server-adapters.md`.
 
 ## Surface
 

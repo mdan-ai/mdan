@@ -42,6 +42,42 @@ function createSurface(message: string, route: string) {
   };
 }
 
+function createGetSurface(message: string, route: string) {
+  return {
+    markdown: `# Weather\n\n::: block{id="main" actions="query"}\nQuery weather\n:::`,
+    actions: {
+      app_id: "weather",
+      state_id: `weather:${route}:1`,
+      state_version: 1,
+      blocks: ["main"],
+      actions: [
+        {
+          id: "query",
+          label: "Query Weather",
+          verb: "read",
+          transport: { method: "GET" },
+          target: "/",
+          input_schema: {
+            type: "object",
+            required: ["location"],
+            properties: {
+              location: { type: "string" },
+              range: { type: "string", enum: ["current", "3d"] },
+              emoji: { type: "boolean", default: true }
+            },
+            additionalProperties: false
+          }
+        }
+      ],
+      allowed_next_actions: ["query"]
+    },
+    route,
+    regions: {
+      main: message
+    }
+  };
+}
+
 describe("browser form bridge", () => {
   it("renders no-js forms in the browser shell snapshot", async () => {
     const html = renderBrowserShell({
@@ -53,6 +89,20 @@ describe("browser form bridge", () => {
     expect(html).toContain('name="count"');
     expect(html).toContain('type="number"');
     expect(html).toContain('name="mdan.input_schema"');
+  });
+
+  it("does not leak embedded input schema metadata into GET query forms", async () => {
+    const html = renderBrowserShell({
+      title: "Weather",
+      initialReadableSurface: createGetSurface("Query weather", "/")
+    });
+
+    expect(html).toContain('<form action="/" method="get"');
+    expect(html).toContain('onsubmit="for (const el of this.querySelectorAll(');
+    expect(html).not.toContain('name="mdan.input_schema"');
+    expect(html).toContain('<option value="" selected>default</option>');
+    expect(html).toContain('type="checkbox" name="emoji" value="true" checked');
+    expect(html).not.toContain('type="hidden" name="emoji" value="false"');
   });
 
   it("bridges html form POST success to a 303 redirect on the returned route", async () => {
