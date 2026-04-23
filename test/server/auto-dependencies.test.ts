@@ -196,7 +196,7 @@ Broken
         actions: [
           {
             id: "open",
-            verb: "navigate",
+            verb: "route",
             target: "/open"
           }
         ]
@@ -266,7 +266,7 @@ Broken
         actions: [
           {
             id: "open",
-            verb: "navigate",
+            verb: "route",
             target: "/open"
           }
         ]

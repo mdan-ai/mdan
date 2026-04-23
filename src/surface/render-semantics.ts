@@ -36,14 +36,14 @@ export function resolveActionBehavior(operation: MdanOperation): UiActionBehavio
   if (responseMode === "region") {
     return "region";
   }
-  if (responseMode === "page" && (verb === "navigate" || operation.method === "GET")) {
+  if (responseMode === "page" && (verb === "route" || operation.method === "GET")) {
     return "page";
   }
   if (responseMode === "page") {
     return "submit";
   }
 
-  if (verb === "navigate" || operation.method === "GET") {
+  if (verb === "route" || operation.method === "GET") {
     return "page";
   }
   return "submit";

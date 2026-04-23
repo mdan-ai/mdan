@@ -184,7 +184,7 @@ describe("elements model helpers", () => {
 
   it("routes GET without payload to visit action", () => {
     const action = resolveDispatchAction(
-      { method: "GET", target: "/resources/new", name: "open_create_form", inputs: [], verb: "navigate" } as any,
+      { method: "GET", target: "/resources/new", name: "open_create_form", inputs: [], verb: "route" } as any,
       {}
     );
     expect(action).toEqual({ kind: "visit", target: "/resources/new" });
@@ -192,12 +192,12 @@ describe("elements model helpers", () => {
 
   it("routes GET with payload to submit action", () => {
     const action = resolveDispatchAction(
-      { method: "GET", target: "/search", name: "search", inputs: ["q"], verb: "navigate" } as any,
+      { method: "GET", target: "/search", name: "search", inputs: ["q"], verb: "route" } as any,
       { q: "mdan" }
     );
     expect(action).toEqual({
       kind: "submit",
-      operation: { method: "GET", target: "/search", name: "search", inputs: ["q"], verb: "navigate" },
+      operation: { method: "GET", target: "/search", name: "search", inputs: ["q"], verb: "route" },
       payload: { q: "mdan" }
     });
   });
@@ -274,7 +274,7 @@ describe("elements model helpers", () => {
 
     await dispatchOperation(
       host,
-      { method: "GET", target: "/resources/new", name: "open_create_form", inputs: [], verb: "navigate" } as any,
+      { method: "GET", target: "/resources/new", name: "open_create_form", inputs: [], verb: "route" } as any,
       {}
     );
 

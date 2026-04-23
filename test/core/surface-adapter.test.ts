@@ -49,7 +49,7 @@ Sign in with your username and password.
           {
             id: "open_register",
             label: "Create Account",
-            verb: "navigate",
+            verb: "route",
             target: "/auth/register",
             input_schema: {
               type: "object",
@@ -142,7 +142,7 @@ Sign in with your username and password.
         name: "open_register",
         inputs: [],
         label: "Create Account",
-        verb: "navigate",
+        verb: "route",
         security: { confirmationPolicy: "never" },
         inputSchema: {
           type: "object",
@@ -225,7 +225,7 @@ Body
     expect(snapshot.blocks[0]?.operations[0]?.stateEffect).toBeUndefined();
   });
 
-  it("derives GET from navigate verb and preserves route path", () => {
+  it("derives GET from route verb and preserves route path", () => {
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
@@ -236,7 +236,7 @@ Body
         actions: [
           {
             id: "go",
-            verb: "navigate",
+            verb: "route",
             target: "/next"
           }
         ]

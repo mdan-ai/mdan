@@ -44,7 +44,7 @@ import { actions, createApp, fields } from "@mdanai/sdk";
 The root package includes:
 
 - `createApp()`
-- `actions.read()`, `actions.write()`, `actions.navigate()`
+- `actions.route()`, `actions.read()`, `actions.write()`
 - `fields.string()`, `fields.number()`, `fields.boolean()`
 - `fields.enum()`, `fields.date()`, `fields.datetime()`
 - `fields.array()`, `fields.object()`
@@ -58,6 +58,7 @@ Action registration supports both method styles:
 
 - `app.action(path, handler)` (default `POST`)
 - `app.action(path, { method: "GET" }, handler)`
+- `app.read(path, handler)` and `app.write(path, handler)` semantic helpers
 - `app.bindActions(page, handlers)` to register handlers by declared action id and transport
 
 This is the preferred entry for defining app pages and actions without exposing

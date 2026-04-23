@@ -88,6 +88,46 @@ describe("app API", () => {
     );
   });
 
+  it("normalizes route-like actions to verb=route", async () => {
+    const app = createApp({ appId: "starter" });
+    const home = app.page("/", {
+      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"open_docs,open_help\"}\n:::",
+      actions: [
+        actions.route("open_docs", {
+          label: "Open Docs",
+          target: "/docs"
+        }),
+        actions.route("open_help", {
+          label: "Open Help",
+          target: "/help"
+        })
+      ],
+      render() {
+        return {
+          main: "- ready"
+        };
+      }
+    });
+
+    app.route(home);
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    const executable = extractExecutable(String(response.body));
+    const openDocs = executable.actions?.find((action) => action.id === "open_docs");
+    const openHelp = executable.actions?.find((action) => action.id === "open_help");
+    expect(openDocs).toEqual(expect.objectContaining({ verb: "route", transport: { method: "GET" } }));
+    expect(openHelp).toEqual(expect.objectContaining({ verb: "route", transport: { method: "GET" } }));
+  });
+
   it("handles requests without explicit cookies payload", async () => {
     const app = createApp({ appId: "starter" });
     const home = app.page("/", {
@@ -204,6 +244,97 @@ describe("app API", () => {
 
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("name=Beijing");
+  });
+
+  it("supports explicit app.read and app.write helpers", async () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const page = app.page("/profile", {
+      markdown: "# Profile\n\n::: block{id=\"main\"}\n:::",
+      render(content: string) {
+        return {
+          main: content
+        };
+      }
+    });
+
+    app.read("/profile/data", ({ inputs }) => {
+      const name = String(inputs.name ?? "unknown");
+      return page.bind(`read:${name}`).render();
+    });
+    app.write("/profile/save", ({ inputs }) => {
+      const name = String(inputs.name ?? "unknown");
+      return page.bind(`write:${name}`).render();
+    });
+
+    const readResponse = await app.handle({
+      method: "GET",
+      url: "https://example.test/profile/data?name=Ada",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(readResponse.status).toBe(200);
+    expect(String(readResponse.body)).toContain("read:Ada");
+
+    const writeResponse = await app.handle({
+      method: "POST",
+      url: "https://example.test/profile/save",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        action: { id: "manual", proof: "manual" },
+        input: {
+          name: "Ada"
+        }
+      }),
+      cookies: {}
+    });
+
+    expect(writeResponse.status).toBe(200);
+    expect(String(writeResponse.body)).toContain("write:Ada");
+  });
+
+  it("rejects GET read handlers on paths already owned by app.route", () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const home = app.page("/", {
+      markdown: "# Home\n\n::: block{id=\"main\"}\n:::",
+      render() {
+        return { main: "- ready" };
+      }
+    });
+    app.route(home);
+
+    expect(() => app.read("/", () => home.render())).toThrow(
+      '[mdan-sdk] app.read cannot register "/" because app.route already owns this GET page route. Use app.route for page reads and keep app.read on a dedicated data endpoint.'
+    );
+  });
+
+  it("rejects app.route registration on paths already owned by GET handlers", () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const home = app.page("/", {
+      markdown: "# Home\n\n::: block{id=\"main\"}\n:::",
+      render() {
+        return { main: "- ready" };
+      }
+    });
+    app.read("/", () => home.render());
+
+    expect(() => app.route(home)).toThrow(
+      '[mdan-sdk] app.route cannot register "/" because app.read/app.action(GET) already owns this GET endpoint. Use a dedicated app.read path for data reads.'
+    );
   });
 
   it("warns when declared action transport and app.action registration method do not match", async () => {

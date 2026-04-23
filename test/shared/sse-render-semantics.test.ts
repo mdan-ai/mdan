@@ -174,10 +174,10 @@ describe("render semantics", () => {
 
   it("resolves dispatch mode for page navigation actions", () => {
     expect(
-      resolveDispatchMode({ method: "GET", target: "/next", inputs: [], verb: "navigate" } as any, {})
+      resolveDispatchMode({ method: "GET", target: "/next", inputs: [], verb: "route" } as any, {})
     ).toBe("visit");
     expect(
-      resolveDispatchMode({ method: "GET", target: "/next", inputs: [], verb: "navigate" } as any, { q: "x" })
+      resolveDispatchMode({ method: "GET", target: "/next", inputs: [], verb: "route" } as any, { q: "x" })
     ).toBe("submit");
     expect(
       resolveDispatchMode(
@@ -185,7 +185,7 @@ describe("render semantics", () => {
           method: "GET",
           target: "/search",
           inputs: ["q"],
-          verb: "navigate",
+          verb: "route",
           stateEffect: { responseMode: "page" }
         } as any,
         { q: "mdan" }

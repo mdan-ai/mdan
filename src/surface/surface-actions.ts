@@ -32,7 +32,7 @@ function toMethod(action: JsonAction): "GET" | "POST" {
     return "POST";
   }
   const verb = typeof action.verb === "string" ? action.verb.toLowerCase() : "";
-  if (verb === "navigate" || verb === "read") {
+  if (verb === "route" || verb === "read") {
     return "GET";
   }
   return "POST";

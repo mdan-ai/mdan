@@ -123,7 +123,7 @@ Each action should provide enough metadata for an agent to build the next reques
 type AgentAction = {
   id: string;
   label?: string;
-  verb?: "navigate" | "read" | "write";
+  verb?: "route" | "read" | "write";
   target: string;
   transport?: {
     method?: "GET" | "POST";
@@ -150,7 +150,7 @@ Agents should:
 - pick actions by `id`
 - verify the chosen id is present in `allowed_next_actions`
 - submit to `target` using `transport.method` when present
-- derive defaults when missing: `navigate/read -> GET`, `write -> POST`
+- derive defaults when missing: `route/read -> GET`, `write -> POST`
 - obey `input_schema.required`
 
 For `POST`, the current baseline request body is:

@@ -20,7 +20,7 @@ Body
         actions: [
           {
             id: "open",
-            verb: "navigate",
+            verb: "route",
             target: "/open",
             transport: { method: "GET" },
             input_schema: { type: "object", properties: {}, required: [] }
@@ -106,7 +106,7 @@ Body
         actions: [
           {
             id: "open",
-            verb: "navigate",
+            verb: "route",
             target: "/first"
           },
           {
@@ -141,7 +141,7 @@ Second
         actions: [
           {
             id: "open",
-            verb: "navigate",
+            verb: "route",
             target: "/open"
           }
         ]
@@ -167,7 +167,7 @@ Body
         actions: [
           {
             id: "open",
-            verb: "navigate",
+            verb: "route",
             target: "/open"
           }
         ]

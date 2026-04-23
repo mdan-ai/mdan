@@ -689,7 +689,7 @@ Use this page to open the Alpha task from the list, then complete it on the deta
                 method: "GET" as const,
                 name: "open_alpha",
                 label: "Open Alpha task",
-                verb: "navigate",
+                verb: "route",
                 target: "/items/alpha",
                 inputs: [],
                 stateEffect: {
@@ -862,7 +862,7 @@ function discoverAction(surface: AgentMarkdownSurface, index = 0): DiscoveredAct
       ? action.transport.method.toUpperCase() === "GET"
         ? "GET"
         : "POST"
-      : typeof action.verb === "string" && ["navigate", "read"].includes(action.verb)
+      : typeof action.verb === "string" && ["route", "read"].includes(action.verb)
         ? "GET"
         : "POST";
   const inputs =

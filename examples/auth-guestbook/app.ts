@@ -75,7 +75,7 @@ export function createAuthGuestbookServer(browserShell: AppBrowserShellOptions =
   const loginPage = app.page("/login", {
     markdown: assets.loginMarkdown,
     actions: [
-      actions.navigate("open_register", {
+      actions.route("open_register", {
         label: "Create Account",
         target: "/register"
       }),
@@ -114,7 +114,7 @@ Submit valid credentials to continue to the guestbook, or open the register page
   const registerPage = app.page("/register", {
     markdown: assets.registerMarkdown,
     actions: [
-      actions.navigate("open_login", {
+      actions.route("open_login", {
         label: "Back to Sign In",
         target: "/login"
       }),

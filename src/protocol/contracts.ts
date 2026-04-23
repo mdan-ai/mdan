@@ -5,7 +5,7 @@ export interface ContractViolation {
   message: string;
 }
 
-const allowedVerbSet = new Set(["navigate", "read", "write"]);
+const allowedVerbSet = new Set(["route", "read", "write"]);
 const allowedMethodSet = new Set(["GET", "POST"]);
 const allowedResponseModeSet = new Set(["page", "region"]);
 const allowedConfirmationPolicySet = new Set(["never", "always", "high-and-above"]);

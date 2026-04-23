@@ -36,14 +36,14 @@ The SDK resolves behavior in this order:
 
 1. `verb: "read"` becomes `read`.
 2. `state_effect.response_mode: "region"` becomes `region`.
-3. `state_effect.response_mode: "page"` with `verb: "navigate"` or `GET`
+3. `state_effect.response_mode: "page"` with `verb: "route"` or `GET`
    becomes `page`.
 4. `state_effect.response_mode: "page"` with another method/verb becomes
    `submit`.
-5. `verb: "navigate"` or `GET` becomes `page`.
+5. `verb: "route"` or `GET` becomes `page`.
 6. Everything else becomes `submit`.
 
-Use `navigate` for route changes, `read` for refresh/read-only operations, and
+Use `route` for route changes, `read` for refresh/read-only operations, and
 `write` for actions that mutate application state.
 
 ## Variant
@@ -80,7 +80,7 @@ This means a simple navigation action can use browser-style route visiting:
 ```json
 {
   "id": "open_settings",
-  "verb": "navigate",
+  "verb": "route",
   "target": "/settings",
   "transport": { "method": "GET" },
   "state_effect": { "response_mode": "page" }
@@ -102,7 +102,7 @@ Recommended shape:
 {
   "id": "open_detail",
   "label": "Open detail",
-  "verb": "navigate",
+  "verb": "route",
   "target": "/items/alpha",
   "transport": { "method": "GET" },
   "state_effect": { "response_mode": "page" }

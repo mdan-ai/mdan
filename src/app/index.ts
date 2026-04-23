@@ -15,7 +15,7 @@ import type {
   MdanStreamResult
 } from "../server/types.js";
 
-type AppActionVerb = "read" | "write" | "navigate";
+type AppActionVerb = "route" | "read" | "write";
 type AppTransportMethod = "GET" | "POST";
 type AppInputSchemaProperty = Record<string, unknown>;
 const appActionDefinitionsSymbol = Symbol("mdan.app.action-definitions");
@@ -159,6 +159,8 @@ export interface AppInstance {
     handler: AppActionHandler<TInputs>
   ): void;
   action<TInputs extends MdanInputMap = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
+  read<TInputs extends MdanInputMap = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
+  write<TInputs extends MdanInputMap = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
   handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
@@ -342,6 +344,16 @@ export const fields = {
 };
 
 export const actions = {
+  route<const TId extends string, TInput extends AppFieldMap | undefined = undefined>(
+    id: TId,
+    options: Omit<AppActionDefinition<TInput, TId>, "id" | "verb">
+  ): AppActionDefinition<TInput, TId> {
+    return {
+      id,
+      verb: "route",
+      ...options
+    };
+  },
   read<const TId extends string, TInput extends AppFieldMap | undefined = undefined>(
     id: TId,
     options: Omit<AppActionDefinition<TInput, TId>, "id" | "verb">
@@ -362,16 +374,6 @@ export const actions = {
       ...options
     };
   },
-  navigate<const TId extends string, TInput extends AppFieldMap | undefined = undefined>(
-    id: TId,
-    options: Omit<AppActionDefinition<TInput, TId>, "id" | "verb">
-  ): AppActionDefinition<TInput, TId> {
-    return {
-      id,
-      verb: "navigate",
-      ...options
-    };
-  }
 };
 
 export function createApp(options: CreateAppOptions = {}): AppInstance {
@@ -401,6 +403,19 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     const methods = registeredActionMethodsByPath.get(path) ?? new Set<AppTransportMethod>();
     methods.add(method);
     registeredActionMethodsByPath.set(path, methods);
+  }
+
+  function assertNoGetRouteConflict(path: string, source: "route" | "read"): void {
+    if (source === "read" && registeredPageRoutes.has(path)) {
+      throw new Error(
+        `[mdan-sdk] app.read cannot register "${path}" because app.route already owns this GET page route. Use app.route for page reads and keep app.read on a dedicated data endpoint.`
+      );
+    }
+    if (source === "route" && (registeredActionMethodsByPath.get(path)?.has("GET") ?? false)) {
+      throw new Error(
+        `[mdan-sdk] app.route cannot register "${path}" because app.read/app.action(GET) already owns this GET endpoint. Use a dedicated app.read path for data reads.`
+      );
+    }
   }
 
   function validateActionTransportConsistency(): void {
@@ -458,10 +473,12 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
 
   const route = ((pathOrPage: string | AppBoundPageDefinition | AppPageDefinition<[]>, handler?: AppPageHandler) => {
     if (typeof pathOrPage === "string") {
+      assertNoGetRouteConflict(pathOrPage, "route");
       registeredPageRoutes.add(pathOrPage);
       server.page(pathOrPage, handler as MdanPageHandler);
       return;
     }
+    assertNoGetRouteConflict(pathOrPage.path, "route");
     registerDeclaredActionDefinitions(pathOrPage[appActionDefinitionsSymbol]);
     registeredPageRoutes.add(pathOrPage.path);
     server.page(pathOrPage.path, async () => pathOrPage.render());
@@ -478,12 +495,23 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     if (!handler) {
       throw new Error("app.action requires a handler");
     }
+    if (method === "GET") {
+      assertNoGetRouteConflict(path, "read");
+    }
     registerActionHandlerMethod(path, method);
     if (method === "GET") {
       server.get(path, handler as MdanHandler);
       return;
     }
     server.post(path, handler as MdanHandler);
+  };
+
+  const read: AppInstance["read"] = (path, handler) => {
+    action(path, { method: "GET" }, handler);
+  };
+
+  const write: AppInstance["write"] = (path, handler) => {
+    action(path, { method: "POST" }, handler);
   };
 
   const bindActions: AppInstance["bindActions"] = (
@@ -545,6 +573,8 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     route,
     bindActions,
     action,
+    read,
+    write,
     async handle(request: MdanRequest): Promise<MdanResponse> {
       if (!validatedActionTransport) {
         validatedActionTransport = true;

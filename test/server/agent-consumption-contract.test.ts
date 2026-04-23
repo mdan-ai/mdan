@@ -43,7 +43,7 @@ Sign in with your username and password.
         {
           id: "open_register",
           label: "Create Account",
-          verb: "navigate",
+          verb: "route",
           target: "/register",
           transport: {
             method: "GET"
