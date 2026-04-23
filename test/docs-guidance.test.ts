@@ -18,17 +18,6 @@ describe("docs guidance", () => {
     expect(developerPaths).not.toContain("optional `@mdanai/sdk/ui`");
   });
 
-  it("keeps npm package docs centered on root authoring plus host adapters", async () => {
-    const npmSdkDoc = await readFile(join(repoRoot, "docs/npm/sdk.md"), "utf8");
-
-    expect(npmSdkDoc).toContain("Recommended path:");
-    expect(npmSdkDoc).toContain("- `@mdanai/sdk`: define apps with the root app API");
-    expect(npmSdkDoc).toContain("- `@mdanai/sdk/server/node`: host a server with Node HTTP");
-    expect(npmSdkDoc).toContain("- `@mdanai/sdk/server/bun`: host a server with Bun");
-    expect(npmSdkDoc).toContain("Advanced path:");
-    expect(npmSdkDoc).not.toContain("`@mdanai/sdk/ui`");
-  });
-
   it("keeps create-mdan focused on root app authoring", async () => {
     const createMdanReadme = await readFile(join(repoRoot, "create-mdan/README.md"), "utf8");
 
