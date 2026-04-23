@@ -124,8 +124,8 @@ Useful repo entry points:
 - `npm run dev:starter`
 - `npm run dev:docs-starter`
 - `npm run dev:auth-guestbook`
-- `npm run dev:weather-markdown`
 - `npm run dev:docs-site`
+- weather app moved to standalone project: `/Users/hencoo/projects/mdan/mdan-weather-app`
 
 For maintainer commands and contribution guidance, see
 [Contributing](/contributing).

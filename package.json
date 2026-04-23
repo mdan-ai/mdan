@@ -47,7 +47,6 @@
     "dev:docs-site": "node docs-site/dev.mjs",
     "dev:docs-starter": "node scripts/run-example-dev.mjs examples/docs-starter/dev.ts",
     "dev:starter": "node scripts/run-example-dev.mjs examples/starter/dev.ts",
-    "dev:weather-markdown": "node scripts/run-example-dev.mjs demo/weather-markdown/dev.ts",
     "lint": "eslint src test examples create-mdan/src create-mdan/test docs-site/src vitest.baseline.config.ts --max-warnings=0",
     "lint:names": "npm run lint",
     "prepack": "node scripts/prepare-npm-package.mjs --package . --readme README.md",

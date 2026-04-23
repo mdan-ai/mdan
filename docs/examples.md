@@ -44,8 +44,8 @@ Use it when you want the canonical auth flow in this repository:
 
 Route: [Weather Markdown Demo](/examples/weather-markdown)
 
-Use it when you want a Markdown-first service example that returns readable
-responses for both browsers and agents.
+This example has moved to a standalone project:
+`/Users/hencoo/projects/mdan/mdan-weather-app`.
 
 ## Which One To Read First
 
