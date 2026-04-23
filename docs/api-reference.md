@@ -37,6 +37,7 @@ The default app-authoring entrypoint.
 - `createApp(options?)`
 - `actions`
 - `fields`
+- `getHeader()`, `getCookie()`, `getQueryParam()`
 - `AppBrowserShellOptions`
 - `CreateAppOptions`
 - `signIn()`

@@ -168,6 +168,7 @@ export default createHost(app, {
 - `app.action(path, { method: "GET" }, handler)`: register a GET action handler
 - `app.read(path, handler)`: semantic helper for GET read handlers
 - `app.write(path, handler)`: semantic helper for POST write handlers
+- `getHeader(request, name)`, `getCookie(request, name)`, `getQueryParam(request, name)`: request read helpers on root API
 - `page.bind(state)`: associate current state with a page definition
 - `page.render(state)`: render directly when you want the explicit form
 

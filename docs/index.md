@@ -34,6 +34,7 @@ Use it for three kinds of reading:
 - [Glossary](/glossary)
 - [Developer Paths](/developer-paths)
 - [Application Structure](/application-structure)
+- [Markdown Semantic Slot Authoring](/semantic-slot-authoring)
 - [Server Integration](/server-integration)
 - [Deployment And Production](/deployment-and-production)
 - [Runtime Contract](/guides/runtime-contract)

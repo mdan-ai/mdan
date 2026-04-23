@@ -52,6 +52,7 @@ The root package includes:
 - `AppBrowserShellOptions`
 - `CreateAppOptions`
 - app-level markdown rendering types
+- request helpers: `getHeader()`, `getCookie()`, `getQueryParam()`
 - `signIn()` and `signOut()` session helpers
 
 Action registration supports both method styles:
@@ -89,7 +90,6 @@ import {
 Server includes:
 
 - `createMdanServer()`
-- request helper primitives: `getHeader()`, `getCookie()`, `getQueryParam()`, `getLocaleFromRequest()`, `getClientIp()`
 - handler types and request/response types
 - result helpers
 - session mutation helpers

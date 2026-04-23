@@ -6,6 +6,7 @@ description: See how the current TypeScript SDK implements shared readable conte
 # Agent Content
 
 For normative protocol rules, see [Agent Content](/spec/agent-content).
+For writing guidance, see [Markdown Semantic Slot Authoring](/semantic-slot-authoring).
 
 This page describes how the current TypeScript SDK implements shared readable
 content, semantic slots, and agent-only blocks without leaking hidden guidance
@@ -100,6 +101,8 @@ transport is needed.
 
 Use semantic slots for page-level structure that both humans and agents can see.
 Use agent blocks for hidden guidance that should not render in the browser UI.
+When writing mixed page/block/agent content, keep slot isolation explicit (see
+[Markdown Semantic Slot Authoring](/semantic-slot-authoring)).
 
 For example:
 
