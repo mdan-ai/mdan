@@ -31,9 +31,9 @@ route: "${routePath}"
 
 # Sign In
 
-::: block{id="login" actions="login,open_register" trust="trusted"}
 Sign in with your username and password.
-:::`,
+
+::: block{id="login" actions="login,open_register" trust="trusted"}`,
     actions: {
       app_id: "auth-guestbook",
       state_id: "auth-guestbook:login:1",

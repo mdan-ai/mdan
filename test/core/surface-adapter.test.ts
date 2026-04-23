@@ -36,9 +36,9 @@ state_version: 1
 
 ## Login
 
-::: block{id="login" actions="login,open_register" trust="trusted"}
 Sign in with your username and password.
-:::
+
+::: block{id="login" actions="login,open_register" trust="trusted"}
 `,
       actions: {
         app_id: "auth-guestbook",
@@ -157,9 +157,9 @@ Sign in with your username and password.
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="submit"}
 Body
-:::`,
+
+::: block{id="main" actions="submit"}`,
       actions: {
         blocks: ["main"],
         actions: [
@@ -194,9 +194,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="submit"}
 Body
-:::`,
+
+::: block{id="main" actions="submit"}`,
       actions: {
         actions: [
           {
@@ -229,9 +229,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="go"}
 Body
-:::`,
+
+::: block{id="main" actions="go"}`,
       actions: {
         actions: [
           {
@@ -257,9 +257,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="refresh,submit"}
 Body
-:::`,
+
+::: block{id="main" actions="refresh,submit"}`,
       actions: {
         blocks: ["main"],
         actions: [
@@ -316,9 +316,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="allowed,blocked"}
 Body
-:::`,
+
+::: block{id="main" actions="allowed,blocked"}`,
       actions: {
         actions: [
           { id: "allowed", verb: "write", target: "/ok" },
@@ -357,9 +357,9 @@ Visible page copy.
 Agent-only page rule.
 <!-- agent:end -->
 
-::: block{id="main" actions="submit"}
 Body
-:::`,
+
+::: block{id="main" actions="submit"}`,
       actions: {
         actions: [{ id: "submit", verb: "write", target: "/submit" }]
       },
@@ -386,9 +386,9 @@ Agent-only region result.
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="allowed,blocked"}
 Body
-:::`,
+
+::: block{id="main" actions="allowed,blocked"}`,
       actions: {
         actions: [
           { id: "allowed", verb: "write", target: "/ok" },
@@ -411,9 +411,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="danger"}
 Body
-:::`,
+
+::: block{id="main" actions="danger"}`,
       actions: {
         security: {
           default_confirmation_policy: "high-and-above"
@@ -453,9 +453,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="danger,quiet"}
 Body
-:::`,
+
+::: block{id="main" actions="danger,quiet"}`,
       actions: {
         security: {
           default_confirmation_policy: "always"
@@ -511,9 +511,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="refresh"}
 Body
-:::`,
+
+::: block{id="main" actions="refresh"}`,
       actions: {
         actions: [
           {
@@ -547,9 +547,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="submit"}
 Body
-:::`,
+
+::: block{id="main" actions="submit"}`,
       actions: {
         actions: [
           {
@@ -607,9 +607,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="submit"}
 Body
-:::`,
+
+::: block{id="main" actions="submit"}`,
       actions: {
         actions: [
           {
@@ -655,9 +655,9 @@ Body
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
-::: block{id="main" actions="save,search"}
 Body
-:::`,
+
+::: block{id="main" actions="save,search"}`,
       actions: {
         actions: [
           {

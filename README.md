@@ -110,8 +110,7 @@ Read the feed from the returned surface and submit messages through the declared
 ## Result
 The surface should expose the current messages and next allowed actions.
 
-::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}
-:::`,
+::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}`,
   actions: [
     actions.read("refresh_main", {
       label: "Refresh",
@@ -191,7 +190,7 @@ intentionally want to own the browser UI layer.
 
 ## Docs
 
-- [Getting Started](https://docs.mdan.ai/getting-started)
+- [Quickstart](https://docs.mdan.ai/getting-started)
 - [What is MDAN?](https://docs.mdan.ai/what-is-mdan)
 - [Understanding MDAN](https://docs.mdan.ai/understanding-mdan)
 - [Developer Paths](https://docs.mdan.ai/developer-paths)

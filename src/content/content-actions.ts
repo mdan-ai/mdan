@@ -62,9 +62,10 @@ export function parseFrontmatter(content: string): UnknownRecord {
 
 export function extractSections(content: string): ContentSection[] {
   const sections: ContentSection[] = [];
-  const sectionRe = /:::\s*block\{([^}]*)\}([\s\S]*?):::/g;
+  const blockStartRe = /^\s*:::\s*block\{([^}]*)\}\s*$/gm;
   let match: RegExpExecArray | null;
-  while ((match = sectionRe.exec(String(content))) !== null) {
+
+  while ((match = blockStartRe.exec(String(content))) !== null) {
     const attrs = parseAttrs(match[1] ?? "");
     const id = (attrs.id ?? "").trim();
     if (!id) {
@@ -80,9 +81,10 @@ export function extractSections(content: string): ContentSection[] {
       id,
       actions,
       trust,
-      body: (match[2] ?? "").trim()
+      body: ""
     });
   }
+
   return sections;
 }
 

@@ -5,13 +5,7 @@ export interface AgentBlockEntry {
 }
 
 function stripUntrustedSectionBodies(content: string): string {
-  return String(content).replace(/:::\s*block\{([^}]*)\}([\s\S]*?):::/g, (match, attrs) => {
-    const trustRaw = attrs.match(/trust="([^"]+)"/)?.[1] ?? null;
-    if (trustRaw !== "untrusted") {
-      return match;
-    }
-    return `::: block{${attrs}}\n[untrusted-content]\n:::`;
-  });
+  return String(content);
 }
 
 function parseAgentAttrs(raw: string): Record<string, string> {

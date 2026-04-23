@@ -73,4 +73,4 @@ Choose MCP first when your core problem is:
 
 - [What is MDAN?](/what-is-mdan)
 - [Understanding MDAN](/understanding-mdan)
-- [Getting Started](/getting-started)
+- [Quickstart](/getting-started)

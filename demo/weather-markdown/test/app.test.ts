@@ -131,6 +131,47 @@ describe("weather markdown demo server", () => {
     expect(response.body).not.toContain("```mdan");
   });
 
+  test("returns a single-line event judgement by default", async () => {
+    const server = createWeatherMarkdownServer(provider);
+
+    const response = await server.handle({
+      method: "GET",
+      url: "http://127.0.0.1/event?location=%E8%A5%BF%E5%AE%89&event=rain",
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.trim()).toMatch(
+      /^YES\. 西安 \d{4}-\d{2}-\d{2} rain; condition=Rain; temp_min_c=10\.7,temp_max_c=16\.9,precip_prob=93%,wind_kmh=17\.3$/
+    );
+  });
+
+  test("returns pure boolean text when output=bool is requested", async () => {
+    const server = createWeatherMarkdownServer(provider);
+
+    const trueResponse = await server.handle({
+      method: "GET",
+      url: "http://127.0.0.1/event?location=%E8%A5%BF%E5%AE%89&event=rain&output=bool",
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+    expect(trueResponse.status).toBe(200);
+    expect(trueResponse.body.trim()).toBe("true");
+
+    const falseResponse = await server.handle({
+      method: "GET",
+      url: "http://127.0.0.1/event?location=%E8%A5%BF%E5%AE%89&event=temp_above&threshold=20&output=bool",
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+    expect(falseResponse.status).toBe(200);
+    expect(falseResponse.body.trim()).toBe("false");
+  });
+
   test("returns english page copy with english location names when locale=en", async () => {
     const server = createWeatherMarkdownServer(provider);
 

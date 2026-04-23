@@ -14,12 +14,13 @@ type FixtureSurface = {
 
 function surface(routePath: string, message: string, regions: Record<string, string> = { main: message }): FixtureSurface {
   return {
-    content: `# ${message}\n\n::: block{id="main" actions="submit_message,patch_messages" trust="trusted"}\n${message}\n:::`,
+    content: `# ${message}\n\n::: block{id="main" actions="submit_message,patch_messages" trust="trusted"}`,
     actions: {
       app_id: "demo",
       state_id: `demo:${routePath}:${message}`,
       state_version: 1,
       blocks: Object.keys(regions),
+      regions,
       actions: [
         {
           id: "submit_message",
@@ -69,7 +70,7 @@ function artifactBody(body: FixtureSurface): string {
   const content = body.content.trim();
   const regionBlocks = Object.entries(body.view?.regions ?? {})
     .filter(([name]) => !new RegExp(`:::\\s*block\\{[^}]*\\bid="${name}"`).test(content))
-    .map(([name, markdown]) => `::: block{id="${name}"}\n${markdown}\n:::`)
+    .map(([name]) => `::: block{id="${name}"}`)
     .join("\n\n");
   const markdown = [content, regionBlocks].filter(Boolean).join("\n\n");
   return `---
@@ -101,8 +102,6 @@ route: "${routePath}"
 # ${message}
 
 ::: block{id="main" actions="submit_message,patch_messages" trust="trusted"}
-${message}
-:::
 
 \`\`\`mdan
 {
@@ -110,6 +109,9 @@ ${message}
   "state_id": "demo:${routePath}:${message}",
   "state_version": 1,
   "blocks": ["main"],
+  "regions": {
+    "main": "${message}"
+  },
   "actions": [
     {
       "id": "submit_message",
@@ -257,12 +259,15 @@ describe("Markdown-first headless host", () => {
 
   it("includes action proof metadata when submitting GET actions over markdown reads", async () => {
     const initialSurface: FixtureSurface = {
-      content: `# Start\n\n::: block{id="main" actions="filter_messages"}\nStart\n:::`,
+      content: `# Start\n\n::: block{id="main" actions="filter_messages"}`,
       actions: {
         app_id: "demo",
         state_id: "demo:get-proof",
         state_version: 1,
         blocks: ["main"],
+        regions: {
+          main: "Start"
+        },
         actions: [
           {
             id: "filter_messages",
@@ -438,9 +443,9 @@ describe("Markdown-first headless host", () => {
     const host = createHeadlessHost({
       initialMarkdown: `# Markdown Start
 
-::: block{id="main" actions="submit_message"}
 Markdown block.
-:::
+
+::: block{id="main" actions="submit_message"}
 
 \`\`\`mdan
 example only

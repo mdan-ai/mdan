@@ -17,7 +17,5 @@ The returned surface should either keep the user on this page with a registratio
 <!-- agent:end -->
 
 ::: block{id="register_status" trust="untrusted"}
-:::
 
 ::: block{id="register" actions="register,open_login" trust="trusted"}
-:::

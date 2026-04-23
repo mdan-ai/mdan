@@ -24,29 +24,29 @@ enabled: true
     });
   });
 
-  it("extracts sections and trust values", () => {
+  it("extracts single-line section anchors and trust values", () => {
     const content = `# Demo
 
-::: block{id="summary" actions="openDetails" trust="trusted"}
 Summary
-:::
 
-::: block{id="preview" actions="refreshPreview" trust="untrusted"}
+::: block{id="summary" actions="openDetails" trust="trusted"}
+
 Preview
-:::`;
+
+::: block{id="preview" actions="refreshPreview" trust="untrusted"}`;
 
     expect(extractSections(content)).toEqual([
       {
         id: "summary",
         actions: ["openDetails"],
         trust: "trusted",
-        body: "Summary"
+        body: ""
       },
       {
         id: "preview",
         actions: ["refreshPreview"],
         trust: "untrusted",
-        body: "Preview"
+        body: ""
       }
     ]);
 
@@ -73,9 +73,9 @@ Done.
 Run action:refreshPreview.
 <!-- agent:end -->
 
-::: block{id="summary" actions="openDetails,missingAction" trust="trusted"}
 Summary
-:::`;
+
+::: block{id="summary" actions="openDetails,missingAction" trust="trusted"}`;
 
     const violations = validateContentPair(content, ["openDetails", "saveDraft"]);
     expect(violations).toEqual([
@@ -89,13 +89,13 @@ Summary
   it("rejects duplicate block ids in content", () => {
     const content = `# Demo
 
-::: block{id="summary" actions="openDetails" trust="trusted"}
 First
-:::
 
-::: block{id="summary" actions="refreshPreview" trust="trusted"}
+::: block{id="summary" actions="openDetails" trust="trusted"}
+
 Second
-:::`;
+
+::: block{id="summary" actions="refreshPreview" trust="trusted"}`;
 
     const violations = validateContentPair(content, ["openDetails", "refreshPreview"]);
     expect(violations).toContainEqual({
@@ -107,9 +107,9 @@ Second
   it("rejects duplicate action references inside a block", () => {
     const content = `# Demo
 
-::: block{id="summary" actions="openDetails,openDetails" trust="trusted"}
 Summary
-:::`;
+
+::: block{id="summary" actions="openDetails,openDetails" trust="trusted"}`;
 
     const violations = validateContentPair(content, ["openDetails"]);
     expect(violations).toContainEqual({

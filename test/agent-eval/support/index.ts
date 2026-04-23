@@ -335,8 +335,7 @@ function submitMessagePage(messages: string[]) {
 
 Use this page to submit one message.
 
-::: block{id="main"}
-:::`,
+::: block{id="main"}`,
     blockContent: {
       main
     },
@@ -483,8 +482,7 @@ function previewConfirmPage(state: { draft?: string; messages: string[] }) {
 
 Use this page to preview one message, then confirm it.
 
-::: block{id="main"}
-:::`,
+::: block{id="main"}`,
     blockContent: {
       main
     },

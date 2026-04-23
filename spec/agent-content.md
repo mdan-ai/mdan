@@ -124,8 +124,6 @@ The interoperable block declaration form is:
 
 ```md
 ::: block{id="comments" trust="untrusted"}
-User-provided Markdown goes here.
-:::
 ```
 
 When a region is marked `trust="untrusted"`:

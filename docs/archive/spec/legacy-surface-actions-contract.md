@@ -135,9 +135,9 @@ by the core contract. Unknown values should be treated as display hints only.
 Markdown content may bind actions to named blocks:
 
 ```md
-::: block{id="composer" actions="submit_message,logout"}
 Write a message.
-:::
+
+::: block{id="composer" actions="submit_message,logout"}
 ```
 
 The SDK validates the relationship between content blocks and action ids:

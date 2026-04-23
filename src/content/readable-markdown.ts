@@ -1,4 +1,4 @@
-import { extractSections, parseFrontmatter } from "./content-actions.js";
+import { parseFrontmatter } from "./content-actions.js";
 import type { MdanActionManifest } from "../protocol/surface.js";
 
 const READABLE_MARKDOWN_FALLBACK_ACTIONS: MdanActionManifest = {
@@ -96,11 +96,6 @@ export function parseMarkdownSurface(
   const executable = extractExecutableMdanBlock(content);
   try {
     const frontmatter = parseFrontmatter(content);
-    const sectionRegions = Object.fromEntries(
-      extractSections(content)
-        .filter((section) => section.body.length > 0)
-        .map((section) => [section.id, section.body])
-    );
     const route = typeof frontmatter.route === "string" && frontmatter.route.length > 0
       ? frontmatter.route
       : options.fallbackRoute;
@@ -111,19 +106,28 @@ export function parseMarkdownSurface(
       return {
         markdown: content.trim(),
         actions: READABLE_MARKDOWN_FALLBACK_ACTIONS,
-        ...(route ? { route } : {}),
-        ...(Object.keys(sectionRegions).length > 0 ? { regions: sectionRegions } : {})
+        ...(route ? { route } : {})
       };
     }
     const actions = JSON.parse(executable.payload) as unknown;
     if (!actions || typeof actions !== "object" || Array.isArray(actions)) {
       return null;
     }
+    const manifest = actions as MdanActionManifest & { regions?: unknown };
+    const manifestRegions =
+      manifest.regions && typeof manifest.regions === "object"
+        ? Object.fromEntries(
+            Object.entries(manifest.regions).filter(
+              ([key, value]) => typeof key === "string" && typeof value === "string"
+            )
+          )
+        : {};
+    const mergedRegions = manifestRegions;
     return {
       markdown: executable.markdown,
-      actions: actions as MdanActionManifest,
+      actions: manifest,
       ...(route ? { route } : {}),
-      ...(Object.keys(sectionRegions).length > 0 ? { regions: sectionRegions } : {})
+      ...(Object.keys(mergedRegions).length > 0 ? { regions: mergedRegions } : {})
     };
   } catch {
     return null;

@@ -145,8 +145,6 @@ Interoperable form:
 
 ```md
 ::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}
-...
-:::
 ```
 
 Requirements:
@@ -155,7 +153,6 @@ Requirements:
 - block ids MUST be unique within the same content document
 - `actions`, when present, MUST be a comma-separated list of action ids
 - `trust`, when present, MUST be one of `trusted`, `untrusted`, or `unknown`
-- a block body MUST NOT be empty
 
 Each referenced action id in a block MUST exist in the actions contract of the
 same state.

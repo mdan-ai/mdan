@@ -25,7 +25,7 @@ with server-rendered HTML.
 
 See:
 
-- [Getting Started](/getting-started)
+- [Quickstart](/getting-started)
 - [Application Structure](/application-structure)
 - [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
 

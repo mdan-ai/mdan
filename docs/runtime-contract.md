@@ -7,7 +7,7 @@ description: Practical guide to the current MDAN server runtime, including page 
 
 This document describes the server runtime behavior implemented by
 `createMdanServer()`. The protocol shape itself remains in
-`../spec/application-surface.zh.md`; this file is the practical SDK guide for
+`../spec/application-surface.md`; this file is the practical SDK guide for
 hosts, tests, and agents.
 
 Related contract documents:

@@ -17,13 +17,9 @@ The returned surface should show the current session state, the latest guestbook
 <!-- agent:end -->
 
 ::: block{id="session_status" trust="untrusted"}
-:::
 
 ::: block{id="messages" actions="refresh_messages" trust="untrusted"}
-:::
 
 ::: block{id="composer" actions="submit_message" trust="trusted"}
-:::
 
 ::: block{id="session_actions" actions="logout" trust="trusted"}
-:::

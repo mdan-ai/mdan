@@ -34,9 +34,9 @@ describe("legacy compatibility contract mode", () => {
     server.page("/entry", async () => ({
       markdown: `# Demo
 
-::: block{id="main" actions="missing_action"}
 Body
-:::`,
+
+::: block{id="main" actions="missing_action"}`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:page",
@@ -266,9 +266,9 @@ Body
     server.get("/broken", async () => ({
       markdown: `# Broken
 
-::: block{id="main" actions="missing_action"}
 Broken
-:::`,
+
+::: block{id="main" actions="missing_action"}`,
       actions: {
         app_id: "broken-demo",
         state_id: "broken-demo:1",

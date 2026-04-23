@@ -17,13 +17,7 @@ const SLOT_NAME_MAP = new Map<string, SemanticSlotName>(
 );
 
 function stripUntrustedSectionBodies(content: string): string {
-  return String(content).replace(/:::\s*block\{([^}]*)\}([\s\S]*?):::/g, (match, attrs) => {
-    const trustRaw = attrs.match(/trust="([^"]+)"/)?.[1] ?? null;
-    if (trustRaw !== "untrusted") {
-      return match;
-    }
-    return `::: block{${attrs}}\n[untrusted-content]\n:::`;
-  });
+  return String(content);
 }
 
 export function extractSemanticSlots(content: unknown): SemanticSlotEntry[] {

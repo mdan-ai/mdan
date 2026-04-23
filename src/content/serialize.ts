@@ -1,6 +1,6 @@
 import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
 
-const blockDirectivePattern = /:::\s*block\{([^}]*)\}([\s\S]*?):::/g;
+const blockDirectivePattern = /:::\s*block\{([^}]*)\}\s*(?:\n|$)/g;
 
 function extractBlockId(attrs: string): string | null {
   const id = attrs.match(/\bid="([^"]+)"/)?.[1]?.trim() ?? "";
@@ -38,43 +38,11 @@ function getVisibleBlockContent(page: MdanPage): Record<string, string> | undefi
     return undefined;
   }
   const visibleBlockNames = getVisibleBlockNames(page);
-  if (!visibleBlockNames) {
-    return page.blockContent;
-  }
-  return Object.fromEntries(Object.entries(page.blockContent).filter(([name]) => visibleBlockNames.has(name)));
-}
-
-function injectBlockContent(markdown: string, blockContent: Record<string, string> | undefined): string {
-  if (!blockContent || Object.keys(blockContent).length === 0) {
-    return markdown;
-  }
-
-  let replaced = false;
-  const injected = markdown.replace(blockDirectivePattern, (match, attrs) => {
-    const id = extractBlockId(attrs);
-    if (!id) {
-      return match;
-    }
-    const content = blockContent[id]?.trim();
-    if (!content) {
-      return match;
-    }
-    replaced = true;
-    return `::: block{${attrs}}\n${content}\n:::`;
-  });
-
-  if (replaced) {
-    return injected;
-  }
-
-  const appended = [markdown.trim()];
-  for (const value of Object.values(blockContent)) {
-    const trimmed = value.trim();
-    if (trimmed) {
-      appended.push(trimmed);
-    }
-  }
-  return appended.filter(Boolean).join("\n\n");
+  const entries = Object.entries(page.blockContent)
+    .filter(([name]) => !visibleBlockNames || visibleBlockNames.has(name))
+    .map(([name, value]) => [name, value.trim()] as const)
+    .filter(([, value]) => value.length > 0);
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 
 function serializeExecutableJsonFromBlocks(blocks: MdanBlock[]): string | null {
@@ -134,6 +102,7 @@ function toJsonAction(block: MdanBlock, operation: MdanBlock["operations"][numbe
 
 function toExecutablePayloadFromPage(page: MdanPage): Record<string, unknown> {
   const frontmatter = page.frontmatter;
+  const visibleBlockContent = getVisibleBlockContent(page);
   const actions = page.blocks.flatMap((block) => block.operations.map((operation) => toJsonAction(block, operation)));
   const actionIds = actions
     .map((action) => (typeof action.id === "string" ? action.id : null))
@@ -145,6 +114,7 @@ function toExecutablePayloadFromPage(page: MdanPage): Record<string, unknown> {
     ...(typeof frontmatter.state_version === "number" ? { state_version: frontmatter.state_version } : {}),
     ...(typeof frontmatter.response_mode === "string" ? { response_mode: frontmatter.response_mode } : {}),
     blocks: page.blocks.map((block) => block.name),
+    ...(visibleBlockContent && Object.keys(visibleBlockContent).length > 0 ? { regions: visibleBlockContent } : {}),
     actions,
     allowed_next_actions: actionIds
   };
@@ -197,23 +167,31 @@ function serializeExecutableBlock(payload: string | undefined): string {
 export function serializePage(page: MdanPage): string {
   const frontmatter = serializeFrontmatter(page.frontmatter);
   const visibleBlockNames = getVisibleBlockNames(page);
-  const markdown = injectBlockContent(
-    page.markdown.trim().replace(blockDirectivePattern, (match, attrs) => {
+  const visibleBlockContent = getVisibleBlockContent(page);
+  const dynamicPayload =
+    page.blocks.length > 0
+      ? toExecutablePayloadFromPage(page)
+      : visibleBlockContent && Object.keys(visibleBlockContent).length > 0
+        ? { regions: visibleBlockContent }
+        : null;
+  const markdown = page.markdown
+    .trim()
+    .replace(blockDirectivePattern, (match, attrs) => {
       if (!visibleBlockNames) {
-        return match;
+        return `::: block{${attrs}}\n`;
       }
       const id = extractBlockId(attrs);
       if (!id || visibleBlockNames.has(id)) {
-        return match;
+        return `::: block{${attrs}}\n`;
       }
       return "";
-    }),
-    getVisibleBlockContent(page)
-  );
+    })
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   const executableBlock = serializeExecutableBlock(
     mergeExecutableContent(
       page.executableContent,
-      page.blocks.length > 0 ? toExecutablePayloadFromPage(page) : null
+      dynamicPayload
     ) ?? serializeExecutableJsonFromBlocks(page.blocks) ?? undefined
   );
   const body = executableBlock ? `${markdown}\n\n${executableBlock}` : markdown;

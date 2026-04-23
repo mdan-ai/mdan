@@ -134,8 +134,6 @@ block 区域的规范形式为：
 
 ```md
 ::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}
-...
-:::
 ```
 
 block 区域满足以下要求：
@@ -144,7 +142,6 @@ block 区域满足以下要求：
 - 同一内容文档内 block `id` 必须唯一
 - `actions` 可以省略；若存在，必须是由逗号分隔的动作标识列表
 - `trust` 可以省略；若存在，其值必须是 `trusted`、`untrusted` 或 `unknown` 之一
-- block 正文不得为空
 
 block 区域中的每个动作引用都必须满足：
 

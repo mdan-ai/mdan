@@ -138,7 +138,7 @@ function renderLayout(options: {
         <p class="docs-footer-copy">${escapeHtml(options.siteTitle)}</p>
         <nav class="docs-footer-links" aria-label="Footer links">
           <a class="docs-footer-link" href="/">Home</a>
-          <a class="docs-footer-link" href="/getting-started">Getting Started</a>
+          <a class="docs-footer-link" href="/getting-started">Quickstart</a>
           <a class="docs-footer-link" href="/spec">Spec</a>
           <a class="docs-footer-link" href="https://github.com/mdan-ai/mdan" rel="noreferrer" target="_blank">GitHub</a>
         </nav>

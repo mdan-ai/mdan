@@ -88,7 +88,7 @@ That lets the same underlying app serve:
 
 ## Where To Start Next
 
-- [Getting Started](/getting-started)
+- [Quickstart](/getting-started)
 - [Understanding MDAN](/understanding-mdan)
 - [MDAN vs MCP](/mdan-vs-mcp)
 - [Runtime Contract](/guides/runtime-contract)

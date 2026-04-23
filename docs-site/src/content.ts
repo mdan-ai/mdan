@@ -22,13 +22,13 @@ export const docsNav: DocsNavSection[] = [
     title: "Overview",
     items: [
       { route: "/", label: "Home" },
-      { route: "/getting-started", label: "Getting Started" },
-      { route: "/build-your-first-app", label: "Build Your First App" },
-      { route: "/glossary", label: "Glossary" },
       { route: "/what-is-mdan", label: "What is MDAN?" },
-      { route: "/mdan-vs-mcp", label: "MDAN vs MCP" },
       { route: "/understanding-mdan", label: "Understanding MDAN" },
-      { route: "/examples", label: "Examples" }
+      { route: "/getting-started", label: "Quickstart" },
+      { route: "/build-your-first-app", label: "Build Your First App" },
+      { route: "/examples", label: "Examples" },
+      { route: "/mdan-vs-mcp", label: "MDAN vs MCP" },
+      { route: "/glossary", label: "Glossary" }
     ]
   },
   {
@@ -83,8 +83,7 @@ export const docsNav: DocsNavSection[] = [
       { route: "/spec/agent-content", label: "Agent Content" },
       { route: "/spec/state-and-identity", label: "State And Identity" },
       { route: "/spec/representations", label: "Representations" },
-      { route: "/spec/versioning-and-conformance", label: "Versioning And Conformance" },
-      { route: "/spec/application-surface-zh", label: "Application Surface Spec (ZH)" }
+      { route: "/spec/versioning-and-conformance", label: "Versioning And Conformance" }
     ]
   },
   {
@@ -140,7 +139,6 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/spec/state-and-identity", sourcePath: "spec/state-and-identity.md" },
   { route: "/spec/representations", sourcePath: "spec/representations.md" },
   { route: "/spec/versioning-and-conformance", sourcePath: "spec/versioning-and-conformance.md" },
-  { route: "/spec/application-surface-zh", sourcePath: "spec/application-surface.zh.md" },
   { route: "/contributing", sourcePath: "CONTRIBUTING.md" },
   { route: "/architecture", sourcePath: "ARCHITECTURE.md" }
 ];

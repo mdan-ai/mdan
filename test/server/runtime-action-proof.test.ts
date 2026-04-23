@@ -10,9 +10,9 @@ function createEnvelope() {
   return {
     markdown: `# Demo
 
-::: block{id="editor" actions="createResource"}
 Create resource.
-:::`,
+
+::: block{id="editor" actions="createResource"}`,
     actions: {
       app_id: "runtime-action-proof",
       state_id: "runtime-action-proof:demo",
@@ -279,9 +279,9 @@ describe("runtime action proof", () => {
     server.page("/entry", async () => ({
       markdown: `# Demo
 
-::: block{id="editor" actions="createResource"}
 Create resource.
-:::`,
+
+::: block{id="editor" actions="createResource"}`,
       actions: {
         app_id: "runtime-action-proof",
         state_id: "runtime-action-proof:constraints",
@@ -341,9 +341,9 @@ Create resource.
     server.page("/entry", async () => ({
       markdown: `# Demo
 
-::: block{id="editor" actions="createResource"}
 Create resource.
-:::`,
+
+::: block{id="editor" actions="createResource"}`,
       actions: {
         app_id: "runtime-action-proof",
         state_id: "runtime-action-proof:typed",

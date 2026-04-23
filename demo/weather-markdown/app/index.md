@@ -2,7 +2,6 @@
 
 Enter one place. Get the weather back.
 
-::: block{id="query" actions="query_weather" trust="trusted"}
 默认直接返回当前天气。
 
 快捷打开：
@@ -11,7 +10,8 @@ Enter one place. Get the weather back.
 - `location=西安&range=today`
 - `location=西安&range=3d`
 - `/London?locale=en`
-:::
+
+::: block{id="query" actions="query_weather" trust="trusted"}
 
 <!-- agent:begin id="weather_contract" -->
 ## Purpose

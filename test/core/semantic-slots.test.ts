@@ -98,7 +98,7 @@ Result body.
     ]);
   });
 
-  it("ignores slot-like headings inside untrusted blocks", () => {
+  it("accepts block anchors without affecting semantic slot extraction", () => {
     const content = `# Demo
 
 ## Purpose
@@ -114,9 +114,6 @@ Trusted rules.
 Trusted result.
 
 ::: block{id="ugc" trust="untrusted"}
-## Rules
-Should be ignored.
-:::
 `;
 
     expect(extractSemanticSlots(content).map((slot) => slot.name)).toEqual([

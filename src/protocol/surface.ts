@@ -3,6 +3,7 @@ export type MdanActionManifest = {
   state_id?: string;
   state_version?: number;
   blocks?: string[];
+  regions?: Record<string, string>;
   actions?: JsonAction[];
   allowed_next_actions?: string[];
   security?: {

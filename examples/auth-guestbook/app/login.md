@@ -17,7 +17,5 @@ The returned surface should either keep the user on this page with an auth statu
 <!-- agent:end -->
 
 ::: block{id="auth_status" trust="untrusted"}
-:::
 
 ::: block{id="login" actions="login,open_register" trust="trusted"}
-:::

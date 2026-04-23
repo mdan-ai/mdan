@@ -301,9 +301,9 @@ route: "/submit"
 
 # Demo
 
-::: block{id="main" actions="submit"}
 Count must be an integer
-:::
+
+::: block{id="main" actions="submit"}
 
 \`\`\`mdan
 {

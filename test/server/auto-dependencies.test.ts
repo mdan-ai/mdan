@@ -186,9 +186,9 @@ describe("resolveAutoDependencies", () => {
     router.get("/step-1", async () => ({
       markdown: `# Broken
 
-::: block{id="main" actions="missing_action"}
 Broken
-:::`,
+
+::: block{id="main" actions="missing_action"}`,
       actions: {
         app_id: "auto-test",
         state_id: "auto-test:broken",
@@ -225,9 +225,9 @@ Broken
     router.get("/step-1", async () => ({
       markdown: `# Step 1
 
-::: block{id="main"}
 Done
-:::`,
+
+::: block{id="main"}`,
       actions: {
         app_id: "auto-test",
         actions: []
@@ -256,9 +256,9 @@ Done
     const broken = normalizeActionHandlerResult({
       markdown: `# Broken
 
-::: block{id="main" actions="missing_action"}
 Broken
-:::`,
+
+::: block{id="main" actions="missing_action"}`,
       actions: {
         app_id: "auto-test",
         state_id: "auto-test:broken",

@@ -6,6 +6,7 @@ import { actions, createApp } from "../../src/index.js";
 
 import { createHomeWeatherResult, createWeatherArtifact, type WeatherRange } from "./src/artifacts.js";
 import { weatherMarkdownRenderer } from "./src/html-renderer.js";
+import { weatherConditionName } from "./src/open-meteo.js";
 import { createWeatherProvider } from "./src/providers.js";
 import type { WeatherProvider } from "./src/weather-provider.js";
 
@@ -64,6 +65,32 @@ const queryInput = {
       description: "查询范围。省略时默认 current。daily 需要额外提供 date=YYYY-MM-DD"
     }
   },
+  event: {
+    schema: {
+      type: "string",
+      enum: [
+        "rain",
+        "snow",
+        "clear",
+        "cloudy",
+        "fog",
+        "thunderstorm",
+        "temp_above",
+        "temp_below",
+        "wind_above",
+        "wind_below",
+        "precip_above",
+        "precip_below"
+      ],
+      description: "事件布尔查询。命中时返回纯文本 true/false。"
+    }
+  },
+  threshold: {
+    schema: {
+      type: "number",
+      description: "阈值，仅用于 *_above / *_below。温度单位为 °C，风速单位为 km/h，降水单位为 %。"
+    }
+  },
   profile: {
     schema: {
       type: "string",
@@ -100,6 +127,20 @@ const queryInput = {
     }
   }
 } as const;
+
+type WeatherEventType =
+  | "rain"
+  | "snow"
+  | "clear"
+  | "cloudy"
+  | "fog"
+  | "thunderstorm"
+  | "temp_above"
+  | "temp_below"
+  | "wind_above"
+  | "wind_below"
+  | "precip_above"
+  | "precip_below";
 
 function createQueryInput(provider: WeatherProvider) {
   const rangeValues =
@@ -138,6 +179,131 @@ function toRange(value: unknown): WeatherRange {
     value === "7d"
     ? value
     : "current";
+}
+
+function toEventType(value: string | null): WeatherEventType | null {
+  return value === "rain" ||
+    value === "snow" ||
+    value === "clear" ||
+    value === "cloudy" ||
+    value === "fog" ||
+    value === "thunderstorm" ||
+    value === "temp_above" ||
+    value === "temp_below" ||
+    value === "wind_above" ||
+    value === "wind_below" ||
+    value === "precip_above" ||
+    value === "precip_below"
+    ? value
+    : null;
+}
+
+function todayIso(timezone: string): string {
+  const timeZone = timezone === "auto" ? "UTC" : timezone;
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+
+function addDaysIso(date: string, days: number): string {
+  const value = new Date(`${date}T00:00:00.000Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+function normalizeCondition(condition: string): string {
+  return condition.trim().toLowerCase();
+}
+
+function parseThreshold(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function evaluateEventBoolean(
+  event: WeatherEventType,
+  condition: string,
+  tempMinC: number,
+  tempMaxC: number,
+  precipitationProbabilityMax: number,
+  windSpeedMaxKmh: number,
+  threshold: number | null
+): boolean {
+  const normalized = normalizeCondition(condition);
+  const has = (pattern: RegExp) => pattern.test(normalized);
+  const safe = (value: number) => Number.isFinite(value) ? value : NaN;
+  const min = safe(tempMinC);
+  const max = safe(tempMaxC);
+  const precip = safe(precipitationProbabilityMax);
+  const wind = safe(windSpeedMaxKmh);
+
+  if (event === "rain") {
+    return has(/\brain\b|\bdrizzle\b|\bshower\b/);
+  }
+  if (event === "snow") {
+    return has(/\bsnow\b|\bsleet\b|\bblizzard\b|ice pellets/);
+  }
+  if (event === "clear") {
+    return has(/\bclear\b|\bsunny\b/);
+  }
+  if (event === "cloudy") {
+    return has(/\bcloud\b|\bovercast\b/);
+  }
+  if (event === "fog") {
+    return has(/\bfog\b|\bmist\b|\bhaze\b/);
+  }
+  if (event === "thunderstorm") {
+    return has(/\bthunder\b|\bstorm\b/);
+  }
+  if (event === "temp_above") {
+    return threshold !== null && Number.isFinite(max) && max > threshold;
+  }
+  if (event === "temp_below") {
+    return threshold !== null && Number.isFinite(min) && min < threshold;
+  }
+  if (event === "wind_above") {
+    return threshold !== null && Number.isFinite(wind) && wind > threshold;
+  }
+  if (event === "wind_below") {
+    return threshold !== null && Number.isFinite(wind) && wind < threshold;
+  }
+  if (event === "precip_above") {
+    return threshold !== null && Number.isFinite(precip) && precip > threshold;
+  }
+  return threshold !== null && Number.isFinite(precip) && precip < threshold;
+}
+
+function eventResultLine(
+  locale: string,
+  isTrue: boolean,
+  event: WeatherEventType,
+  location: string,
+  date: string,
+  condition: string,
+  tempMinC: number,
+  tempMaxC: number,
+  precipitationProbabilityMax: number,
+  windSpeedMaxKmh: number,
+  threshold: number | null
+): string {
+  const verdict = isTrue ? "YES" : "NO";
+  const conditionText = condition || "unknown";
+  const metrics = `temp_min_c=${tempMinC.toFixed(1)},temp_max_c=${tempMaxC.toFixed(1)},precip_prob=${Math.round(precipitationProbabilityMax)}%,wind_kmh=${windSpeedMaxKmh.toFixed(1)}`;
+  const thresholdText = threshold !== null ? `,threshold=${threshold}` : "";
+  if (locale.startsWith("zh")) {
+    return `${verdict}. ${location} ${date} ${event}; condition=${conditionText}; ${metrics}${thresholdText}`;
+  }
+  return `${verdict}. ${location} ${date} ${event}; condition=${conditionText}; ${metrics}${thresholdText}`;
+}
+
+function hasEventQuery(url: string): boolean {
+  return toEventType(new URL(url).searchParams.get("event")) !== null;
 }
 
 function resolveProfile(value: string | null, range: WeatherRange): "brief" | "table" | "full" {
@@ -518,6 +684,73 @@ async function querySurface(
   }
 }
 
+async function queryEventSurface(
+  url: string,
+  provider: WeatherProvider,
+  locationOverride?: string,
+  localeOverride?: string,
+  coordinateOverride?: RootCoordinateTarget
+) {
+  const params = new URL(url).searchParams;
+  const outputMode = params.get("output")?.trim().toLowerCase() ?? "";
+  const boolMode = outputMode === "bool";
+  const event = toEventType(params.get("event"));
+  if (!event) {
+    return createWeatherBriefPage(boolMode ? "false" : "NO. invalid event");
+  }
+
+  const locationName = locationOverride?.trim() || params.get("location")?.trim();
+  const locale = localeOverride ?? params.get("locale") ?? undefined;
+  const coordinates = coordinateOverride ?? parseGeoCoordinates(url);
+  const threshold = parseThreshold(params.get("threshold"));
+  const range = toRange(params.get("range"));
+
+  try {
+    const location = coordinates
+      ? await provider.resolveCoordinates(coordinates, { locale })
+      : locationName
+        ? await provider.resolveLocation(locationName, { locale })
+        : null;
+    if (!location) {
+      return createWeatherBriefPage(boolMode ? "false" : "NO. location is required");
+    }
+
+    const baseDate = params.get("date") ?? todayIso(location.timezone);
+    const targetDate = range === "tomorrow" ? addDaysIso(baseDate, 1) : baseDate;
+    const daily = await provider.getDailyForecast(location, { date: targetDate, locale: "en" });
+    const condition = daily.conditionNames?.[0] ?? weatherConditionName(daily.conditionCodes?.[0] ?? -1, "en");
+    const isTrue = evaluateEventBoolean(
+      event,
+      condition,
+      daily.tempMinC[0] ?? NaN,
+      daily.tempMaxC[0] ?? NaN,
+      daily.precipitationProbabilityMax[0] ?? NaN,
+      daily.windSpeedMaxKmh[0] ?? NaN,
+      threshold
+    );
+    if (boolMode) {
+      return createWeatherBriefPage(isTrue ? "true" : "false");
+    }
+    return createWeatherBriefPage(
+      eventResultLine(
+        locale ?? "zh-CN",
+        isTrue,
+        event,
+        location.name,
+        targetDate,
+        condition,
+        daily.tempMinC[0] ?? NaN,
+        daily.tempMaxC[0] ?? NaN,
+        daily.precipitationProbabilityMax[0] ?? NaN,
+        daily.windSpeedMaxKmh[0] ?? NaN,
+        threshold
+      )
+    );
+  } catch {
+    return createWeatherBriefPage(boolMode ? "false" : "NO. event query failed");
+  }
+}
+
 async function queryHomeSurface(
   url: string,
   provider: WeatherProvider,
@@ -627,7 +860,9 @@ export function createWeatherMarkdownServer(
 - /London?locale=en
 - location=西安&range=today
 - location=西安&range=3d
-- location=London&range=daily&date=2026-04-25`
+- location=London&range=daily&date=2026-04-25
+- /event?location=西安&event=rain
+- /event?location=西安&event=rain&output=bool`
       };
     }
   });
@@ -635,6 +870,21 @@ export function createWeatherMarkdownServer(
   app.route("/", async ({ request }) => {
     const locale = detectRequestLocale(request, request.url);
     const rootTarget = await resolveRootTarget(request, options);
+    const eventMode = hasEventQuery(request.url);
+    if (eventMode) {
+      if (rootTarget.kind === "coordinates") {
+        return queryEventSurface(request.url, provider, undefined, locale, {
+          latitude: rootTarget.latitude,
+          longitude: rootTarget.longitude,
+          ...(rootTarget.timezone ? { timezone: rootTarget.timezone } : {}),
+          ...(rootTarget.label ? { label: rootTarget.label } : {})
+        });
+      }
+      if (rootTarget.kind === "location") {
+        return queryEventSurface(request.url, provider, rootTarget.location, locale);
+      }
+      return queryEventSurface(request.url, provider, undefined, locale);
+    }
     if (rootTarget.kind !== "location") {
       if (prefersHtml(request)) {
         if (rootTarget.kind === "coordinates") {
@@ -653,6 +903,11 @@ export function createWeatherMarkdownServer(
       return queryHomeSurface(request.url, provider, "/", rootTarget.location, locale);
     }
     return querySurface(request.url, provider, "/", rootTarget.location, locale);
+  });
+
+  app.route("/event", async ({ request }) => {
+    const locale = detectRequestLocale(request, request.url);
+    return queryEventSurface(request.url, provider, undefined, locale);
   });
 
   app.route("/:location", async ({ request, params }) =>

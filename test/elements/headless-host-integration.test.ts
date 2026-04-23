@@ -77,9 +77,9 @@ describe("ui with Markdown-first headless host", () => {
     const host = createHeadlessHost({
       initialMarkdown: artifactBody(surface(`# Inbox
 
-::: block{id="main" actions="send"}
 Say something useful.
-:::
+
+::: block{id="main" actions="send"}
 `))
     });
     const runtime = mountMdanUi({ root: document, host });
@@ -99,9 +99,9 @@ Say something useful.
         artifactBody(
           surface(`# Sent
 
-::: block{id="main" actions="send"}
 Message accepted.
-:::
+
+::: block{id="main" actions="send"}
 `, { main: "Message accepted." })
         ),
         { headers: { "Content-Type": "text/markdown" } }
@@ -110,9 +110,9 @@ Message accepted.
     const host = createHeadlessHost({
       initialMarkdown: artifactBody(surface(`# Compose
 
-::: block{id="main" actions="send"}
 Say something useful.
-:::
+
+::: block{id="main" actions="send"}
 `)),
       fetchImpl: fetchImpl as unknown as typeof fetch
     });
@@ -141,9 +141,9 @@ Say something useful.
     const host = createHeadlessHost({
       initialMarkdown: artifactBody(surface(`# Inbox
 
-::: block{id="main" actions="send"}
 Say something useful.
-:::
+
+::: block{id="main" actions="send"}
 `))
     });
     const runtime = mountMdanUi({ root, host });
@@ -166,9 +166,9 @@ Say something useful.
     const host = createHeadlessHost({
       initialMarkdown: artifactBody(surface(`# Inbox
 
-::: block{id="main" actions="send"}
 Say something useful.
-:::
+
+::: block{id="main" actions="send"}
 `))
     });
     const runtime = mountMdanUi({ root, host });

@@ -20,7 +20,6 @@ representation rules, and interoperability boundaries.
 - [State And Identity](/spec/state-and-identity)
 - [Representations](/spec/representations)
 - [Versioning And Conformance](/spec/versioning-and-conformance)
-- [Application Surface Spec (ZH)](/spec/application-surface-zh)
 
 ## Reading Order
 

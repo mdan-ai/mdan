@@ -7,9 +7,9 @@ describe("actions contract validation", () => {
     const envelope = {
       content: `# Demo
 
-::: block{id="main" actions="open,submit"}
 Body
-:::`,
+
+::: block{id="main" actions="open,submit"}`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:valid",
@@ -50,9 +50,9 @@ Body
     const envelope = {
       content: `# Demo
 
-::: block{id="main" actions="missingAction"}
 Body
-:::`,
+
+::: block{id="main" actions="missingAction"}`,
       actions: {
         security: {
           default_confirmation_policy: "sometimes"
@@ -96,9 +96,9 @@ Body
     const envelope = {
       content: `# Demo
 
-::: block{id="main" actions="open"}
 Body
-:::`,
+
+::: block{id="main" actions="open"}`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:duplicate-blocks",
@@ -127,13 +127,13 @@ Body
     const envelope = {
       content: `# Demo
 
-::: block{id="main" actions="open"}
 First
-:::
 
 ::: block{id="main" actions="open"}
+
 Second
-:::`,
+
+::: block{id="main" actions="open"}`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:duplicate-action-refs",
@@ -157,9 +157,9 @@ Second
     const envelope = {
       content: `# Demo
 
-::: block{id="main" actions="open,open"}
 Body
-:::`,
+
+::: block{id="main" actions="open,open"}`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:duplicate-action-refs",

@@ -63,8 +63,6 @@ structure.
 
 ```md
 ::: block{id="comments" trust="untrusted"}
-User-provided Markdown goes here.
-:::
 ```
 
 ## Current SDK Agent Blocks
@@ -121,8 +119,9 @@ Only submit actions declared in the current surface.
 ## Result
 A successful post appears at the top of the message list.
 
-::: block{id="composer" actions="submit_message"}
 Add a message.
+
+::: block{id="composer" actions="submit_message"}
 
 <!-- agent:begin id="composer_prompt" -->
 ## Context
@@ -131,5 +130,4 @@ Use this block to submit a new message while signed in.
 ## Result
 A valid submission adds a new message to the top of the feed.
 <!-- agent:end -->
-:::
 ```

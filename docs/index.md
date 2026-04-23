@@ -15,11 +15,13 @@ Use it for three kinds of reading:
 
 ## Start Here
 
-- New to the repository: [Getting Started](/getting-started)
-- Want a hands-on walkthrough first: [Build Your First App](/build-your-first-app)
-- Need the vocabulary first: [Glossary](/glossary)
 - Want the product-level explanation first: [What is MDAN?](/what-is-mdan)
+- Want the mental model: [Understanding MDAN](/understanding-mdan)
+- Ready to run an app: [Quickstart](/getting-started)
+- Want a hands-on walkthrough: [Build Your First App](/build-your-first-app)
 - Want runnable app flows: [Examples](/examples)
+- Comparing with tool protocols: [MDAN vs MCP](/mdan-vs-mcp)
+- Need the vocabulary: [Glossary](/glossary)
 - Want the package surface first: [Public API](/reference/public-api)
 - Want the integration split first: [Developer Paths](/developer-paths)
 - Want the protocol side first: [Spec Overview](/spec)
@@ -67,7 +69,6 @@ Use it for three kinds of reading:
 - [State And Identity](/spec/state-and-identity)
 - [Representations](/spec/representations)
 - [Versioning And Conformance](/spec/versioning-and-conformance)
-- [Application Surface Spec (ZH)](/spec/application-surface-zh)
 
 ## Contributing
 

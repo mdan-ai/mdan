@@ -1,77 +1,131 @@
 ---
-title: Getting Started
-description: Quickstart the current MDAN SDK workspace, choose the right example, and find the fastest path to build your first agent app.
+title: Quickstart
+description: Start a new MDAN app with create-mdan, run it locally, inspect both the browser HTML view and the canonical Markdown response, and know what to read next.
 ---
 
-# Getting Started
+# Quickstart
 
-This page is the fastest way to get oriented in the current SDK workspace and
-start building your first MDAN agent app.
+This page is for first-time MDAN users.
 
-Use it as the MDAN quickstart for local examples, the first app tutorial, and
-the next docs pages to read after you have the workspace running.
+If your goal is "I want to see a real MDAN app running as quickly as possible,"
+start here. The fastest path is to scaffold a starter app, run it locally, open
+it in a browser, and inspect the same app as a Markdown response.
 
-## 1. Install Dependencies
+## Fastest Path: Scaffold A New App
 
-From the repository root:
+Node starter:
+
+```bash
+npm create mdan@latest agent-app
+cd agent-app
+npm install
+npm start
+```
+
+Bun starter:
+
+```bash
+bunx create-mdan agent-app
+cd agent-app
+bun install
+bun start
+```
+
+Then open:
+
+```text
+http://127.0.0.1:4321/
+```
+
+What you get:
+
+- one runnable MDAN app
+- one Markdown page at `app/index.md`
+- one server file at `app/server.mjs`
+- one local host entry for Node or Bun
+
+## Confirm The Two Read Paths
+
+MDAN apps are designed to serve:
+
+- browser HTML for humans
+- Markdown responses for agents and HTTP clients
+
+After the starter is running, check both:
+
+Browser view:
+
+```bash
+curl -H 'Accept: text/html' http://127.0.0.1:4321/
+```
+
+Canonical Markdown response:
+
+```bash
+curl -H 'Accept: text/markdown' http://127.0.0.1:4321/
+```
+
+That second request is the fastest way to see the core MDAN model in practice:
+one readable Markdown surface plus explicit next actions.
+
+## Make One Small Change
+
+Edit:
+
+```text
+app/index.md
+```
+
+Then refresh the browser and run the Markdown `curl` again.
+
+That gives you the real first-use loop:
+
+1. change the page content
+2. reload the browser
+3. inspect the Markdown response
+
+## Understand The Generated Shape
+
+The generated starter keeps the moving pieces small:
+
+- `app/index.md`
+  readable page content
+- `app/server.mjs`
+  app definition, routes, actions, and render logic
+- `index.mjs`
+  local host entry for Node or Bun
+
+You do not need to clone this SDK repo or learn the low-level runtime first to
+try MDAN.
+
+## What To Read Next
+
+Pick the next page based on what you need:
+
+- want the product model first: [What is MDAN?](/what-is-mdan)
+- want to hand-build the same kind of app: [Build Your First App](/build-your-first-app)
+- want to choose the right integration style: [Developer Paths](/developer-paths)
+- want runnable reference apps: [Examples](/examples)
+- want the supported package surface: [Public API](/reference/public-api)
+- want the protocol side: [Spec Overview](/spec)
+
+## If You Are Working In This Repository
+
+If you are contributing to the SDK itself, not starting a new app, use the
+repo-local workflow instead:
 
 ```bash
 npm install
+npm run dev:starter
 ```
 
-If you are working on the project scaffolder too:
-
-```bash
-npm --prefix create-mdan install
-```
-
-## 2. Pick A Local Example
-
-The repository already includes runnable examples and demos:
+Useful repo entry points:
 
 - `npm run dev:starter`
 - `npm run dev:docs-starter`
 - `npm run dev:auth-guestbook`
 - `npm run dev:weather-markdown`
+- `npm run dev:docs-site`
 
-Each command performs an initial local SDK build, watches `dist/` and
-`dist-browser/`, and starts the selected app.
-
-See [Examples](/examples) for what each one is good for.
-
-## 3. Choose Your Reading Path
-
-If you want to build with the current SDK:
-
-- start with [Build Your First App](/build-your-first-app) if you want the
-  shortest end-to-end walkthrough
-- start with [What is MDAN?](/what-is-mdan) if you want the product model first
-- then read [Developer Paths](/developer-paths) to choose the right entry path
-- start with [Public API](/reference/public-api)
-- keep `@mdanai/sdk` as the default app entry and `@mdanai/sdk/surface` as the custom frontend escape hatch
-- then read [Runtime Contract](/guides/runtime-contract)
-- then read [Server Adapters](/reference/server-adapters)
-
-If you want browser-side behavior:
-
-- read [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
-- then [UI Action Semantics](/reference/ui-action-semantics)
-- use [Deployment And Production](/deployment-and-production) when you move
-  from local examples to a real host
-
-If you want protocol and standardization context:
-
-- read [Spec Overview](/spec)
-- then [Application Surface Spec](/spec/application-surface)
-- use [Application Surface Spec (ZH)](/spec/application-surface-zh) as a supplemental translation if needed
-
-## 4. Common Maintainer Commands
-
-```bash
-npm test
-npm run test:coverage
-npm run test:json
-npm run lint
-```
-
-For contributor-focused repository guidance, see [Contributing](/contributing).
+For maintainer commands and contribution guidance, see
+[Contributing](/contributing).

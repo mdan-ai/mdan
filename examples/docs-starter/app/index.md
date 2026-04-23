@@ -13,4 +13,3 @@ Read the docs region from the current surface and use the declared docs action w
 The returned surface should include the current docs region content and the next allowed docs actions.
 
 ::: block{id="docs" actions="refresh_docs" trust="untrusted"}
-:::

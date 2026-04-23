@@ -39,12 +39,8 @@ describe("serializePage", () => {
         "# Guestbook",
         "",
         "::: block{id=\"login\"}",
-        "Login body",
-        ":::",
         "",
-        "::: block{id=\"submit_message\"}",
-        "Submit body",
-        ":::"
+        "::: block{id=\"submit_message\"}"
       ].join("\n"),
       blocks: [],
       visibleBlockNames: ["submit_message"]
@@ -54,10 +50,10 @@ describe("serializePage", () => {
     expect(out).toContain("id=\"submit_message\"");
   });
 
-  it("injects visible block content into matching directives", () => {
+  it("writes block content into executable regions", () => {
     const out = serializePage({
       frontmatter: {},
-      markdown: ["# Guestbook", "", "::: block{id=\"submit_message\"}", ":::"].join("\n"),
+      markdown: ["# Guestbook", "", "::: block{id=\"submit_message\"}"].join("\n"),
       blocks: [],
       blockContent: {
         submit_message: "## Leave a message"
@@ -66,9 +62,11 @@ describe("serializePage", () => {
 
     expect(out).toContain("## Leave a message");
     expect(out).toContain("::: block{id=\"submit_message\"}");
+    expect(out).toContain('"regions": {');
+    expect(out).toContain('"submit_message": "## Leave a message"');
   });
 
-  it("appends block content when no block directives exist", () => {
+  it("serializes block content as regions when no block directives exist", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: "# Guestbook",
@@ -80,11 +78,11 @@ describe("serializePage", () => {
     });
 
     expect(out).toContain("# Guestbook");
-    expect(out).toContain("## First");
-    expect(out).toContain("## Second");
+    expect(out).toContain('"one": "## First"');
+    expect(out).toContain('"two": "## Second"');
   });
 
-  it("ignores empty block content values", () => {
+  it("omits empty region values from executable content", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: "# Guestbook",
@@ -96,7 +94,8 @@ describe("serializePage", () => {
     });
 
     expect(out).not.toContain("\n\n\n");
-    expect(out).toContain("## Visible");
+    expect(out).not.toContain('"a"');
+    expect(out).toContain('"b": "## Visible"');
   });
 
   it("filters blockContent by visibleBlockNames", () => {
@@ -106,12 +105,8 @@ describe("serializePage", () => {
         "# Guestbook",
         "",
         "::: block{id=\"a\"}",
-        "A body",
-        ":::",
         "",
-        "::: block{id=\"b\"}",
-        "B body",
-        ":::"
+        "::: block{id=\"b\"}"
       ].join("\n"),
       blocks: [],
       visibleBlockNames: ["b"],
@@ -122,7 +117,7 @@ describe("serializePage", () => {
     });
 
     expect(out).not.toContain("Hidden content");
-    expect(out).toContain("Visible content");
+    expect(out).toContain('"b": "## Visible content"');
   });
 
   it("embeds executable JSON in a mdan fenced block", () => {
