@@ -60,8 +60,11 @@ export type InferAppInputs<TFields extends AppFieldMap> =
   { [K in RequiredFieldKeys<TFields>]: FieldValue<TFields[K]> } &
   { [K in OptionalFieldKeys<TFields>]?: FieldValue<TFields[K]> };
 
-export interface AppActionDefinition {
-  id: string;
+export interface AppActionDefinition<
+  TInput extends AppFieldMap | undefined = AppFieldMap | undefined,
+  TId extends string = string
+> {
+  id: TId;
   label: string;
   verb: AppActionVerb;
   target: string;
@@ -69,33 +72,49 @@ export interface AppActionDefinition {
   transport?: {
     method?: AppTransportMethod;
   };
-  input?: Record<string, AppFieldDefinition>;
+  input?: TInput;
 }
 
-export interface AppPageConfig<TRenderArgs extends unknown[]> {
+type ActionInputForHandler<TAction extends AppActionDefinition> =
+  TAction extends AppActionDefinition<infer TInput, string>
+    ? TInput extends AppFieldMap
+      ? InferAppInputs<TInput>
+      : MdanInputMap
+    : MdanInputMap;
+
+type ActionId<TAction extends AppActionDefinition> =
+  TAction extends AppActionDefinition<AppFieldMap | undefined, infer TId>
+    ? TId
+    : string;
+
+export type BindActionHandlers<TActions extends readonly AppActionDefinition[]> = {
+  [TAction in TActions[number] as ActionId<TAction>]?: AppActionHandler<ActionInputForHandler<TAction>>;
+};
+
+export interface AppPageConfig<
+  TRenderArgs extends unknown[],
+  TActions extends readonly AppActionDefinition[] = readonly AppActionDefinition[]
+> {
   markdown: string;
-  actions?: AppActionDefinition[];
+  actions?: TActions;
   render: (...args: TRenderArgs) => Record<string, string>;
 }
 
-export interface AppBoundPageDefinition {
+export interface AppBoundPageDefinition<TActions extends readonly AppActionDefinition[] = readonly AppActionDefinition[]> {
   path: string;
   render: () => ReadableSurface;
+  [appActionDefinitionsSymbol]?: TActions;
 }
 
-export interface AppPageDefinition<TRenderArgs extends unknown[] = []> {
+export interface AppPageDefinition<
+  TRenderArgs extends unknown[] = [],
+  TActions extends readonly AppActionDefinition[] = readonly AppActionDefinition[]
+> {
   path: string;
   render: (...args: TRenderArgs) => ReadableSurface;
-  bind: (...args: TRenderArgs) => AppBoundPageDefinition;
+  bind: (...args: TRenderArgs) => AppBoundPageDefinition<TActions>;
+  [appActionDefinitionsSymbol]?: TActions;
 }
-
-type AppPageWithActionDefinitions<TRenderArgs extends unknown[] = []> = AppPageDefinition<TRenderArgs> & {
-  [appActionDefinitionsSymbol]?: AppActionDefinition[];
-};
-
-type AppBoundPageWithActionDefinitions = AppBoundPageDefinition & {
-  [appActionDefinitionsSymbol]?: AppActionDefinition[];
-};
 
 export interface AppMarkdownRenderContext {
   kind: "page" | "block";
@@ -123,13 +142,16 @@ export interface CreateAppOptions {
 }
 
 export interface AppInstance {
-  page<TRenderArgs extends unknown[]>(path: string, config: AppPageConfig<TRenderArgs>): AppPageDefinition<TRenderArgs>;
-  route(page: AppBoundPageDefinition): void;
-  route(page: AppPageDefinition<[]>): void;
+  page<
+    TRenderArgs extends unknown[],
+    TActions extends readonly AppActionDefinition[] = readonly AppActionDefinition[]
+  >(path: string, config: AppPageConfig<TRenderArgs, TActions>): AppPageDefinition<TRenderArgs, TActions>;
+  route<TActions extends readonly AppActionDefinition[]>(page: AppBoundPageDefinition<TActions>): void;
+  route<TActions extends readonly AppActionDefinition[]>(page: AppPageDefinition<[], TActions>): void;
   route(path: string, handler: AppPageHandler): void;
-  bindActions(
-    page: AppPageDefinition<unknown[]> | AppBoundPageDefinition,
-    handlers: Record<string, AppActionHandler>
+  bindActions<TActions extends readonly AppActionDefinition[]>(
+    page: AppPageDefinition<unknown[], TActions> | AppBoundPageDefinition<TActions>,
+    handlers: BindActionHandlers<TActions>
   ): void;
   action<TInputs extends MdanInputMap = MdanInputMap>(
     path: string,
@@ -159,7 +181,7 @@ function resolveTransportMethod(verb: AppActionVerb, method: AppTransportMethod 
   return verb === "write" ? "POST" : "GET";
 }
 
-function compileInputSchema(input: Record<string, AppFieldDefinition> | undefined) {
+function compileInputSchema(input: AppFieldMap | undefined) {
   const properties = Object.fromEntries(
     Object.entries(input ?? {}).map(([name, definition]) => [name, cloneJson(definition.schema)])
   );
@@ -210,7 +232,7 @@ function buildReadableSurface(
   path: string,
   markdown: string,
   regions: Record<string, string>,
-  actionDefinitions: AppActionDefinition[]
+  actionDefinitions: readonly AppActionDefinition[]
 ): ReadableSurface {
   const compiledActions = actionDefinitions.map((action) => compileAction(action));
   return {
@@ -320,21 +342,30 @@ export const fields = {
 };
 
 export const actions = {
-  read(id: string, options: Omit<AppActionDefinition, "id" | "verb">): AppActionDefinition {
+  read<const TId extends string, TInput extends AppFieldMap | undefined = undefined>(
+    id: TId,
+    options: Omit<AppActionDefinition<TInput, TId>, "id" | "verb">
+  ): AppActionDefinition<TInput, TId> {
     return {
       id,
       verb: "read",
       ...options
     };
   },
-  write(id: string, options: Omit<AppActionDefinition, "id" | "verb">): AppActionDefinition {
+  write<const TId extends string, TInput extends AppFieldMap | undefined = undefined>(
+    id: TId,
+    options: Omit<AppActionDefinition<TInput, TId>, "id" | "verb">
+  ): AppActionDefinition<TInput, TId> {
     return {
       id,
       verb: "write",
       ...options
     };
   },
-  navigate(id: string, options: Omit<AppActionDefinition, "id" | "verb">): AppActionDefinition {
+  navigate<const TId extends string, TInput extends AppFieldMap | undefined = undefined>(
+    id: TId,
+    options: Omit<AppActionDefinition<TInput, TId>, "id" | "verb">
+  ): AppActionDefinition<TInput, TId> {
     return {
       id,
       verb: "navigate",
@@ -357,7 +388,7 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
   const registeredPageRoutes = new Set<string>();
   let validatedActionTransport = false;
 
-  function registerDeclaredActionDefinitions(definitions: AppActionDefinition[] | undefined): void {
+  function registerDeclaredActionDefinitions(definitions: readonly AppActionDefinition[] | undefined): void {
     for (const definition of definitions ?? []) {
       const method = resolveTransportMethod(definition.verb, definition.transport?.method);
       const methods = declaredActionMethodsByPath.get(definition.target) ?? new Set<AppTransportMethod>();
@@ -395,11 +426,14 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     }
   }
 
-  const page: AppInstance["page"] = <TRenderArgs extends unknown[]>(
+  const page: AppInstance["page"] = <
+    TRenderArgs extends unknown[],
+    TActions extends readonly AppActionDefinition[] = readonly AppActionDefinition[]
+  >(
     path: string,
-    config: AppPageConfig<TRenderArgs>
-  ): AppPageDefinition<TRenderArgs> => {
-    const actionDefinitions = config.actions ?? [];
+    config: AppPageConfig<TRenderArgs, TActions>
+  ): AppPageDefinition<TRenderArgs, TActions> => {
+    const actionDefinitions = (config.actions ?? []) as TActions;
     return {
       path,
       render: (...args: TRenderArgs) => buildReadableSurface(
@@ -428,9 +462,7 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
       server.page(pathOrPage, handler as MdanPageHandler);
       return;
     }
-    registerDeclaredActionDefinitions(
-      (pathOrPage as AppPageWithActionDefinitions | AppBoundPageWithActionDefinitions)[appActionDefinitionsSymbol]
-    );
+    registerDeclaredActionDefinitions(pathOrPage[appActionDefinitionsSymbol]);
     registeredPageRoutes.add(pathOrPage.path);
     server.page(pathOrPage.path, async () => pathOrPage.render());
   }) as AppInstance["route"];
@@ -455,12 +487,31 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
   };
 
   const bindActions: AppInstance["bindActions"] = (
-    page: AppPageDefinition<unknown[]> | AppBoundPageDefinition,
-    handlers: Record<string, AppActionHandler>
+    page: AppPageDefinition<unknown[], readonly AppActionDefinition[]> | AppBoundPageDefinition<readonly AppActionDefinition[]>,
+    handlers: BindActionHandlers<readonly AppActionDefinition[]>
   ): void => {
-    const definitions =
-      (page as AppPageWithActionDefinitions | AppBoundPageWithActionDefinitions)[appActionDefinitionsSymbol] ?? [];
+    const definitions = page[appActionDefinitionsSymbol] ?? [];
     const definitionById = new Map(definitions.map((definition) => [definition.id, definition]));
+    const bindableBuckets = new Map<string, string[]>();
+
+    for (const definition of definitions) {
+      const method = resolveTransportMethod(definition.verb, definition.transport?.method);
+      if (method === "GET" && registeredPageRoutes.has(definition.target)) {
+        continue;
+      }
+      const key = `${method}:${definition.target}`;
+      const ids = bindableBuckets.get(key) ?? [];
+      ids.push(definition.id);
+      bindableBuckets.set(key, ids);
+    }
+
+    for (const [key, ids] of bindableBuckets.entries()) {
+      if (ids.length > 1) {
+        throw new Error(
+          `[mdan-sdk] app.bindActions cannot disambiguate actions ${ids.map((id) => `"${id}"`).join(", ")} for route "${key}". Use app.action(...) explicitly for this route.`
+        );
+      }
+    }
 
     for (const [id, handler] of Object.entries(handlers)) {
       const definition = definitionById.get(id);
@@ -469,10 +520,20 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
         continue;
       }
       const method = resolveTransportMethod(definition.verb, definition.transport?.method);
+      if (method === "GET" && registeredPageRoutes.has(definition.target)) {
+        console.warn(
+          `[mdan-sdk] app.bindActions ignored handler for "${id}" because GET target "${definition.target}" is already served by app.route(...).`
+        );
+        continue;
+      }
       action(definition.target, { method }, handler);
     }
 
     for (const definition of definitions) {
+      const method = resolveTransportMethod(definition.verb, definition.transport?.method);
+      if (method === "GET" && registeredPageRoutes.has(definition.target)) {
+        continue;
+      }
       if (!(definition.id in handlers)) {
         console.warn(`[mdan-sdk] app.bindActions missing handler for declared action "${definition.id}".`);
       }

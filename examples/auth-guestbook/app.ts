@@ -227,7 +227,6 @@ Signing out returns the surface to the login route.
   });
 
   app.bindActions(loginPage, {
-    open_register: async () => registerPage.bind("Create a new account.").render(),
     login: async ({ inputs }) => {
       const username = String(inputs.username ?? "").trim();
       const password = String(inputs.password ?? "");
@@ -246,7 +245,6 @@ Signing out returns the surface to the login route.
   });
 
   app.bindActions(registerPage, {
-    open_login: async () => loginPage.bind("Not signed in.").render(),
     register: async ({ inputs }) => {
       const username = String(inputs.username ?? "").trim();
       const password = String(inputs.password ?? "");
@@ -272,16 +270,6 @@ Signing out returns the surface to the login route.
   });
 
   app.bindActions(guestbookPage, {
-    refresh_messages: async ({ session }) => {
-      const username = typeof session?.username === "string" ? session.username : "";
-      if (!username) {
-        return {
-          status: 401,
-          ...loginPage.bind("Sign in required. Open /login and sign in.").render()
-        };
-      }
-      return guestbookPage.bind(username, messages).render();
-    },
     submit_message: async ({ inputs, session }) => {
       const username = typeof session?.username === "string" ? session.username : "";
       if (!username) {

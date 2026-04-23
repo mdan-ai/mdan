@@ -494,9 +494,9 @@ describe("app API", () => {
     app.route(page.bind("ready"));
     app.bindActions(page, {
       lookup: ({ inputs }) => {
-        const name = String(inputs.name ?? "");
-        values.push(name);
-        return page.bind(`name=${name}`).render();
+        const upper = inputs.name.toUpperCase();
+        values.push(upper);
+        return page.bind(`name=${upper}`).render();
       }
     });
 
@@ -509,8 +509,8 @@ describe("app API", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(values).toEqual(["Beijing"]);
-    expect(String(response.body)).toContain("name=Beijing");
+    expect(values).toEqual(["BEIJING"]);
+    expect(String(response.body)).toContain("name=BEIJING");
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
@@ -535,11 +535,41 @@ describe("app API", () => {
       }
     });
 
-    app.bindActions(page, {
-      unknown: async () => page.bind("x").render()
-    });
+    app.bindActions(
+      page,
+      {
+        unknown: async () => page.bind("x").render()
+      } as unknown as Record<string, never>
+    );
 
     expect(warnSpy).toHaveBeenCalledWith('[mdan-sdk] app.bindActions received unknown action id "unknown".');
     expect(warnSpy).toHaveBeenCalledWith('[mdan-sdk] app.bindActions missing handler for declared action "lookup".');
+  });
+
+  it("throws when bindActions cannot disambiguate same route+method actions", () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const page = app.page("/bind", {
+      markdown: "# Bind\n\n::: block{id=\"main\" actions=\"a,b\"}\n:::",
+      actions: [
+        actions.write("a", {
+          label: "A",
+          target: "/same"
+        }),
+        actions.write("b", {
+          label: "B",
+          target: "/same"
+        })
+      ],
+      render(content: string) {
+        return { main: content };
+      }
+    });
+
+    expect(() => app.bindActions(page, {})).toThrow(
+      '[mdan-sdk] app.bindActions cannot disambiguate actions "a", "b" for route "POST:/same". Use app.action(...) explicitly for this route.'
+    );
   });
 });

@@ -13,8 +13,29 @@ export function getHeader(request: Pick<MdanRequest, "headers">, name: string): 
   return request.headers[normalized];
 }
 
-export function getCookie(request: Pick<MdanRequest, "cookies">, name: string): string | undefined {
-  return request.cookies?.[name];
+function parseCookieHeader(header: string | undefined, name: string): string | undefined {
+  if (!header) {
+    return undefined;
+  }
+  for (const part of header.split(";")) {
+    const [rawKey, ...rest] = part.trim().split("=");
+    if (!rawKey || rawKey !== name) {
+      continue;
+    }
+    return rest.join("=");
+  }
+  return undefined;
+}
+
+export function getCookie(
+  request: Pick<MdanRequest, "cookies" | "headers">,
+  name: string
+): string | undefined {
+  const fromMap = request.cookies?.[name];
+  if (fromMap) {
+    return fromMap;
+  }
+  return parseCookieHeader(getHeader(request, "cookie"), name);
 }
 
 export function getQueryParam(request: Pick<MdanRequest, "url">, name: string): string | null {

@@ -34,6 +34,17 @@ describe("server request helpers", () => {
     expect(getCookie(request, "session")).toBe("abc");
   });
 
+  it("falls back to cookie header when cookie map is missing", () => {
+    const request = createRequest({
+      headers: {
+        cookie: "session=from-header; theme=dark"
+      },
+      cookies: undefined
+    });
+    expect(getCookie(request, "session")).toBe("from-header");
+    expect(getCookie(request, "theme")).toBe("dark");
+  });
+
   it("reads query values from request url", () => {
     const request = createRequest();
     expect(getQueryParam(request, "foo")).toBe("bar");
