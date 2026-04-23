@@ -72,10 +72,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("ui with artifact-first headless host", () => {
-  it("renders Markdown and action fields from an artifact-first headless host", async () => {
+describe("ui with Markdown-first headless host", () => {
+  it("renders Markdown and action fields from a Markdown-first headless host", async () => {
     const host = createHeadlessHost({
-      initialArtifact: artifactBody(surface(`# Inbox
+      initialMarkdown: artifactBody(surface(`# Inbox
 
 ::: block{id="main" actions="send"}
 Say something useful.
@@ -93,7 +93,7 @@ Say something useful.
     expect(document.querySelector("button")?.textContent).toContain("Send");
   });
 
-  it("submits rendered action forms through the artifact-first headless host", async () => {
+  it("submits rendered action forms through a Markdown-first headless host", async () => {
     const fetchImpl = vi.fn(async () =>
       new Response(
         artifactBody(
@@ -108,7 +108,7 @@ Message accepted.
       )
     );
     const host = createHeadlessHost({
-      initialArtifact: artifactBody(surface(`# Compose
+      initialMarkdown: artifactBody(surface(`# Compose
 
 ::: block{id="main" actions="send"}
 Say something useful.
@@ -139,7 +139,7 @@ Say something useful.
     document.body.append(root);
 
     const host = createHeadlessHost({
-      initialArtifact: artifactBody(surface(`# Inbox
+      initialMarkdown: artifactBody(surface(`# Inbox
 
 ::: block{id="main" actions="send"}
 Say something useful.
@@ -164,7 +164,7 @@ Say something useful.
     document.body.append(root);
 
     const host = createHeadlessHost({
-      initialArtifact: artifactBody(surface(`# Inbox
+      initialMarkdown: artifactBody(surface(`# Inbox
 
 ::: block{id="main" actions="send"}
 Say something useful.

@@ -8,8 +8,8 @@ This example organizes assets into explicit source files while following the Mar
 Runtime contract:
 
 - `GET page` supports `text/html` and `text/markdown`
-- `GET page` no longer exposes `application/json`; page discovery happens through the Markdown artifact
-- `POST action/block` accepts `application/json` request bodies and returns Markdown artifacts with `Accept: text/markdown`
+- `GET page` no longer exposes `application/json`; page discovery happens through the Markdown response
+- `POST action/block` accepts `application/json` request bodies and returns Markdown responses with `Accept: text/markdown`
 - HTML page responses are rendered on the server from the same underlying runtime state
 
 ## Run with Bun

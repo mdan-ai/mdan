@@ -1,23 +1,23 @@
 import { describe, expect, it } from "vitest";
 
-import type { ReadableSurface } from "../../src/content/artifact-surface.js";
+import type { ReadableSurface } from "../../src/content/readable-markdown.js";
 import { adaptReadableSurfaceToHeadlessSnapshot } from "../../src/surface/adapter.js";
 import { parseFrontmatter } from "../../src/content/content-actions.js";
 import { validateActionsContractEnvelope } from "../../src/protocol/contracts.js";
 import { createMdanServer, type MdanResponse } from "../../src/server/index.js";
 
 type AgentSurface = ReadableSurface;
-type ArtifactActions = {
+type MarkdownActions = {
   allowed_next_actions?: string[];
   actions?: Array<Record<string, unknown>>;
   state_id?: string;
   state_version?: number;
 };
 
-type ArtifactSurface = {
+type MarkdownSurface = {
   content: string;
   route?: string;
-  actions: ArtifactActions;
+  actions: MarkdownActions;
 };
 
 function createEnvelope(routePath = "/login", allowedNextActions: string[] = ["login", "open_register"]): AgentSurface {
@@ -82,7 +82,7 @@ Sign in with your username and password.
   };
 }
 
-function expectAgentArtifact(response: MdanResponse): ArtifactSurface {
+function expectAgentMarkdown(response: MdanResponse): MarkdownSurface {
   expect(response.status).toBeGreaterThanOrEqual(200);
   expect(response.status).toBeLessThan(500);
   expect(response.headers["content-type"]).toContain("text/markdown");
@@ -93,11 +93,11 @@ function expectAgentArtifact(response: MdanResponse): ArtifactSurface {
   return {
     content,
     ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
-    actions: match?.[1] ? (JSON.parse(String(match[1])) as ArtifactActions) : { actions: [], allowed_next_actions: [] }
+    actions: match?.[1] ? (JSON.parse(String(match[1])) as MarkdownActions) : { actions: [], allowed_next_actions: [] }
   };
 }
 
-function expectAction(surface: ArtifactSurface, id: string) {
+function expectAction(surface: MarkdownSurface, id: string) {
   const action = surface.actions.actions?.find((candidate) => candidate.id === id);
   expect(action).toBeTruthy();
   return action!;
@@ -113,7 +113,7 @@ async function readActionProof(server: ReturnType<typeof createMdanServer>, acti
     cookies: {}
   });
 
-  const surface = expectAgentArtifact(response);
+  const surface = expectAgentMarkdown(response);
   const action = expectAction(surface, actionId);
   expect(action.action_proof).toBeTypeOf("string");
   return String(action.action_proof);
@@ -185,7 +185,7 @@ describe("agent consumption contract", () => {
     expect(snapshot.route).toBe("/guestbook");
   });
 
-  it("serves page artifacts directly when agents request markdown", async () => {
+  it("serves page Markdown responses directly when agents request markdown", async () => {
     const server = createMdanServer();
     server.page("/login", async () => createEnvelope("/login"));
 
@@ -198,7 +198,7 @@ describe("agent consumption contract", () => {
       cookies: {}
     });
 
-    const surface = expectAgentArtifact(response);
+    const surface = expectAgentMarkdown(response);
     const loginAction = expectAction(surface, "login");
     expect(surface.route).toBe("/login");
     expect(surface.actions.allowed_next_actions).toContain("login");
@@ -207,7 +207,7 @@ describe("agent consumption contract", () => {
     expect(loginAction.input_schema?.required).toEqual(["username", "password"]);
   });
 
-  it("serves action result artifacts directly when agents request markdown", async () => {
+  it("serves action result Markdown responses directly when agents request markdown", async () => {
     const server = createMdanServer();
     server.page("/login", async () => createEnvelope("/login"));
     server.post("/auth/login", async () => createEnvelope("/guestbook"));
@@ -232,7 +232,7 @@ describe("agent consumption contract", () => {
       cookies: {}
     });
 
-    const surface = expectAgentArtifact(response);
+    const surface = expectAgentMarkdown(response);
     expect(surface.route).toBe("/guestbook");
     expect(surface.actions.state_id).toBe("auth-guestbook:login:1");
   });
@@ -265,7 +265,7 @@ describe("agent consumption contract", () => {
       cookies: {}
     });
 
-    const surface = expectAgentArtifact(response);
+    const surface = expectAgentMarkdown(response);
     expect(expectAction(surface, "login").target).toBe("/custom/action-target");
     expect(surface.route).toBe("/after-action");
   });

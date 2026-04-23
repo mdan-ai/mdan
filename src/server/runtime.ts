@@ -3,7 +3,7 @@ import { negotiateRepresentation } from "../protocol/negotiate.js";
 import {
   isProjectableReadableSurface,
   type ReadableSurface
-} from "./artifact.js";
+} from "./markdown-surface.js";
 import { withActionProofs, resolveActionProofOptions, type ActionProofOptions, type ResolvedActionProofOptions } from "./action-proofing.js";
 import { validateActionRequest } from "./action-request-validation.js";
 import { resolveAutoActionResult, resolveAutoDependencies, type AutoDependencyOptions } from "./auto-dependencies.js";

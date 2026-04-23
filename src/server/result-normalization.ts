@@ -2,7 +2,7 @@ import {
   isProjectableReadableSurface,
   projectReadableSurfaceToPage,
   type ReadableSurface
-} from "./artifact.js";
+} from "./markdown-surface.js";
 import { normalizeReadableSurface } from "./readable-surface-normalization.js";
 
 import type {

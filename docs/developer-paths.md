@@ -46,14 +46,14 @@ See:
 - [Custom Rendering](/custom-rendering)
 - [Examples](/examples)
 
-## Path C: App + Agent/Artifact Delivery
+## Path C: App + Agent Markdown Delivery
 
 Use:
 
 - `@mdanai/sdk`
 - `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
 
-This is the best path when you want to serve Markdown artifacts to agents,
+This is the best path when you want to serve Markdown responses to agents,
 tests, or another client without owning a custom browser frontend.
 
 See:
@@ -83,7 +83,7 @@ See:
 
 - need the fastest launch with server-rendered browser output: choose Path A
 - need a custom visual system with the same MDAN behavior: choose Path B
-- need artifact-first responses with minimal browser concerns: choose Path C
+- need Markdown-first responses with minimal browser concerns: choose Path C
 - need deep backend integration: choose Path D
 
 ## Practical Rule

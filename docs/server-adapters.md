@@ -145,7 +145,7 @@ The high-level host detects no-JavaScript browser form action submissions:
 For those requests, the host changes the runtime request to
 `Accept: text/markdown` and adds `x-mdan-browser-form: true`.
 
-Successful Markdown artifact responses become `303` redirects to the resolved
+Successful Markdown responses become `303` redirects to the resolved
 route when one is available. Non-2xx responses become HTML browser shell
 responses with the returned readable error content embedded.
 
@@ -167,7 +167,7 @@ createHost(server, {
 
 For HTML page reads, the host asks the runtime for a page response and writes
 the resulting browser-facing HTML. In the current runtime path, page reads are
-served as server-rendered artifact projections without booting
+served as server-rendered Markdown projections without booting
 `@mdanai/sdk/surface` or the shipped browser-shell bundles in the browser.
 
 The lower-level `renderBrowserShell()` helper can still be used separately when
@@ -193,7 +193,7 @@ the host serves:
 
 from `dist-browser/`.
 
-These files are browser artifacts served by the host. They are not general Node
+These files are browser bundles served by the host. They are not general Node
 import paths.
 
 ## Static Files

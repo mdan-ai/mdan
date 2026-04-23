@@ -61,7 +61,7 @@ export function createInvalidActionHandlerResult(): MdanActionResult {
   return createErrorResult(
     500,
     "Invalid Action Handler Result",
-    "Action handlers must return a readable surface, an artifact-native action result, or a stream result."
+    "Action handlers must return a readable surface, a Markdown-native action result, or a stream result."
   );
 }
 
@@ -69,7 +69,7 @@ export function createInvalidPageHandlerResult(): MdanActionResult {
   return createErrorResult(
     500,
     "Invalid Page Handler Result",
-    "Page handlers must return a readable surface or an artifact-native page result."
+    "Page handlers must return a readable surface or a Markdown-native page result."
   );
 }
 

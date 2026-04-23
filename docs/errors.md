@@ -2,7 +2,7 @@
 
 MDAN errors are part of the runtime contract. Clients should handle non-2xx
 responses as recoverable protocol states whenever the response body remains
-directly readable, whether that body is a Markdown artifact or a legacy JSON
+directly readable, whether that body is a Markdown response or a legacy JSON
 compatibility response.
 
 ## Response Representations
@@ -91,8 +91,8 @@ Contract violations are host/application bugs, not user input errors.
 
 The runtime returns `500` for:
 
-- page handlers that do not return artifact-native pages or legacy compatibility envelopes
-- action handlers that do not return artifact-native action results, legacy compatibility envelopes, or stream results
+- page handlers that do not return Markdown-native pages or legacy compatibility envelopes
+- action handlers that do not return Markdown-native action results, legacy compatibility envelopes, or stream results
 - invalid actions contracts
 - invalid semantic slots when semantic-slot validation is enabled
 - invalid agent blocks
@@ -115,9 +115,9 @@ These include:
 - missing explicit confirmation for an action that requires it
 - custom `validatePostRequest` rejection
 
-Applications may also return their own `400` Markdown artifact or legacy JSON
+Applications may also return their own `400` Markdown response or legacy JSON
 compatibility response when business-level validation fails. Prefer returning a
-normal artifact with useful content and allowed recovery actions.
+normal Markdown response with useful content and allowed recovery actions.
 
 For example, a readable-surface recovery result can look like:
 
@@ -141,7 +141,7 @@ return {
 ```
 
 As with other readable-surface results, the runtime fills in `app_id`,
-`state_id`, and `state_version` before final artifact serialization when the
+`state_id`, and `state_version` before final Markdown serialization when the
 server is configured with `createMdanServer({ appId })`.
 
 ## Action Proof Errors
@@ -172,7 +172,7 @@ See `action-proof-security.md` for proof semantics and boundaries.
 
 Malformed request bodies return `400` with an `Invalid Request Body` response.
 
-For artifact-first clients, read the body directly. For legacy JSON clients,
+For Markdown-first clients, read the body directly. For legacy JSON clients,
 parse the body as the legacy compatibility JSON shape first. In both cases,
 `allowed_next_actions` is empty unless an application handler produced a richer
 recovery surface.
@@ -206,16 +206,16 @@ adapter/browser-shell concern.
 
 The headless host treats non-2xx responses as `error` status.
 
-If the response body is a Markdown artifact, the host can still adapt and show
+If the response body is a Markdown response, the host can still adapt and show
 the server-provided error content. If the response is a legacy JSON
 compatibility response, the host can still bridge it. If the body is unreadable
-as either artifact or legacy JSON, the host reports a runtime error such as
+as either Markdown or legacy JSON, the host reports a runtime error such as
 `Runtime returned an unreadable response.`
 
 Custom frontends should follow the same pattern:
 
 1. check HTTP status
-2. try to parse a Markdown artifact first
+2. try to parse a Markdown response first
 3. fall back to legacy JSON only when needed
 4. render the returned content if present
 5. avoid inventing next actions when `allowed_next_actions` is empty

@@ -1,4 +1,4 @@
-import { parseReadableArtifactSurface, type ReadableSurface } from "./artifact.js";
+import { parseReadableMarkdownResponse, type ReadableSurface } from "./markdown-surface.js";
 import { renderBrowserShell, type BrowserShellOptions } from "./browser-shell.js";
 import type { MdanResponse } from "./types.js";
 
@@ -31,7 +31,7 @@ function parseBrowserFormSurface(response: MdanResponse): ReadableSurface | null
   if (typeof response.body !== "string") {
     return null;
   }
-  return parseReadableArtifactSurface(response.body, {
+  return parseReadableMarkdownResponse(response.body, {
     allowBareMarkdown: true
   });
 }

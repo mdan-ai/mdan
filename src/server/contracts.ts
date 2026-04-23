@@ -1,4 +1,4 @@
-import { validateArtifactContentPair, type ReadableSurface } from "./artifact.js";
+import { validateMarkdownContentPair, type ReadableSurface } from "./markdown-surface.js";
 
 export interface ServerContractViolation {
   path: string;
@@ -10,5 +10,5 @@ export function validateContentActionConsistency(surface: ReadableSurface): Serv
   const actionIds = actions
     .map((action) => (typeof action?.id === "string" ? action.id : null))
     .filter((actionId): actionId is string => Boolean(actionId));
-  return validateArtifactContentPair(surface.markdown, actionIds);
+  return validateMarkdownContentPair(surface.markdown, actionIds);
 }

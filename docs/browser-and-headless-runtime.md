@@ -23,11 +23,11 @@ const app = createApp({
 ```
 
 For `GET` requests that negotiate `text/html`, the current runtime and host
-path returns a readable HTML projection of the current artifact.
+path returns a readable HTML projection of the current surface.
 
 Today, that means:
 
-- page reads render server-side HTML from the current artifact or page result
+- page reads render server-side HTML from the current surface or page result
 - the default host path sets `hydrate: false`
 - browsers get a readable document without booting `createHeadlessHost()` or
   `mountMdanUi()`
@@ -47,7 +47,7 @@ from CDN URLs by default:
 Treat the browser-shell bundle as implementation-level default rendering, not as
 the primary frontend integration story.
 
-Local SDK development can use built browser artifacts instead:
+Local SDK development can use built browser bundles instead:
 
 ```ts
 browserShell: {
@@ -65,7 +65,7 @@ from `dist-browser/`. The example `dev:*` scripts build and watch those files.
 
 ## Headless Host
 
-`createHeadlessHost()` accepts an optional initial Markdown artifact, an initial
+`createHeadlessHost()` accepts an optional initial Markdown response, an initial
 route, an optional `fetchImpl`, and `debugMessages`.
 
 The host exposes:
@@ -96,7 +96,7 @@ POST actions are submitted with JSON request bodies by default:
 ```
 
 The headless host now requests `Accept: text/markdown` for both page reads and
-ordinary action results, so the returned body is the same artifact contract that
+ordinary action results, so the returned body is the same Markdown contract that
 an agent or curl client would read directly.
 
 If any submitted value is a `File`, the host sends multipart form data and
@@ -115,10 +115,10 @@ replacement.
 ## Error State
 
 Non-2xx responses move the host into `error` status. If the response body is a
-Markdown artifact or a legacy JSON compatibility response, the host adapts it so the UI can
+Markdown response or a legacy JSON compatibility response, the host adapts it so the UI can
 show the server-provided error content.
 
-Responses that are neither readable Markdown artifacts nor legacy JSON compatibility responses
+Responses that are neither readable Markdown responses nor legacy JSON compatibility responses
 are treated as runtime errors for browser clients.
 
 ## Debug Messages

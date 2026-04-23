@@ -1,4 +1,4 @@
-# Agent Markdown Artifact Contract
+# Agent Markdown Surface Contract
 
 Status: implementation guide for the current TypeScript SDK.
 
@@ -10,7 +10,7 @@ For normative protocol rules, see:
 - [Representations](/spec/representations)
 
 This page describes how the current SDK realizes the Markdown-first agent
-consumption path over HTTP. The canonical response body is a Markdown artifact.
+consumption path over HTTP. The canonical response body is a Markdown surface.
 Action metadata travels inside an embedded ````mdan` fenced JSON block, while
 `text/html` remains a human-facing projection. `application/json` still exists
 for selected legacy handlers, but it is no longer the preferred contract for
@@ -23,7 +23,7 @@ source authoring:
   content.md + actions.json
 
 runtime interaction:
-  Markdown artifact
+  Markdown surface
     + Markdown body
     + ```mdan executable block
 
@@ -52,11 +52,11 @@ Agents should request:
 Accept: text/markdown
 ```
 
-The response body is a Markdown artifact. Browser clients may request `text/html` for
+The response body is a Markdown surface. Browser clients may request `text/html` for
 human rendering. `application/json` should be treated as a compatibility path for
 legacy consumers, not the default protocol.
 
-## Current SDK Artifact Shape
+## Current SDK Markdown Shape
 
 Every interactive page or action response should be consumable as:
 
@@ -96,7 +96,7 @@ The frontmatter may carry stable identity metadata such as:
 The embedded `mdan` block must carry the executable contract:
 
 ```ts
-type ArtifactActions = {
+type SurfaceActions = {
   app_id?: string;
   state_id?: string;
   state_version?: number;
@@ -171,7 +171,7 @@ For `POST`, the current baseline request body is:
 6. Build inputs from the selected action's `input_schema`.
 7. Submit to the action `target` using its declared method.
 8. Preserve cookies between requests for session-backed apps.
-9. Read the next artifact's frontmatter and `mdan` block to understand the resulting state.
+9. Read the next Markdown response's frontmatter and `mdan` block to understand the resulting state.
 
 ## Current SDK Error Expectations
 

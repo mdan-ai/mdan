@@ -1,10 +1,10 @@
 import { assertActionsContractEnvelope } from "../protocol/contracts.js";
 
 import {
-  validateArtifactAgentBlocks,
-  validateArtifactSemanticSlots,
+  validateMarkdownAgentBlocks,
+  validateMarkdownSemanticSlots,
   type ReadableSurface
-} from "./artifact.js";
+} from "./markdown-surface.js";
 import { validateContentActionConsistency } from "./contracts.js";
 import { normalizeReadableSurface } from "./readable-surface-normalization.js";
 import type {
@@ -57,13 +57,13 @@ function getReadableSurfacePromptViolation(
   surface: ReadableSurface,
   options: ReadableSurfaceValidationOptions
 ): Extract<ReadableSurfaceViolation, { kind: "agent" | "semantic" }> | null {
-  const agentBlockErrors = validateArtifactAgentBlocks(surface.markdown);
+  const agentBlockErrors = validateMarkdownAgentBlocks(surface.markdown);
   if (agentBlockErrors.length > 0) {
     return { kind: "agent", errors: agentBlockErrors.map((message) => `page: ${message}`) };
   }
 
   for (const [blockName, markdown] of Object.entries(surface.regions ?? {})) {
-    const blockErrors = validateArtifactAgentBlocks(markdown);
+    const blockErrors = validateMarkdownAgentBlocks(markdown);
     if (blockErrors.length > 0) {
       return {
         kind: "agent",
@@ -75,7 +75,7 @@ function getReadableSurfacePromptViolation(
   const semanticSlotOptions = resolveSemanticSlotOptions(options.semanticSlots);
 
   if (semanticSlotOptions.requireOnPage) {
-    const semanticSlotErrors = validateArtifactSemanticSlots(surface.markdown);
+    const semanticSlotErrors = validateMarkdownSemanticSlots(surface.markdown);
     if (semanticSlotErrors.length > 0) {
       return { kind: "semantic", errors: semanticSlotErrors };
     }
@@ -84,7 +84,7 @@ function getReadableSurfacePromptViolation(
   if (semanticSlotOptions.requireOnBlock) {
     const errors: string[] = [];
     for (const [blockName, markdown] of Object.entries(surface.regions ?? {})) {
-      const blockErrors = validateArtifactSemanticSlots(markdown, {
+      const blockErrors = validateMarkdownSemanticSlots(markdown, {
         requiredNames: ["Context", "Result"]
       });
       for (const message of blockErrors) {

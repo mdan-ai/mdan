@@ -80,7 +80,7 @@ describe("submit message agent eval fixture", () => {
     expect(fixture.getMessages()).toEqual(["hello from test"]);
   });
 
-  it("serves the fixture page as an artifact-native read instead of page JSON", async () => {
+  it("serves the fixture page as an Markdown-native read instead of page JSON", async () => {
     const fixture = createSubmitMessageFixture();
 
     const jsonPage = await fixture.server.handle({

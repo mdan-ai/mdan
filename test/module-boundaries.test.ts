@@ -60,7 +60,7 @@ describe("module boundaries", () => {
     expect(source).toContain("renderInitialProjection");
   });
 
-  it("keeps readable-surface projection behind the artifact gateway", async () => {
+  it("keeps readable-surface projection behind the markdown gateway", async () => {
     expect(await pathExists("src/server/surface-projection.ts")).toBe(false);
 
     const files = [
@@ -420,7 +420,7 @@ describe("module boundaries", () => {
     }
   });
 
-  it("keeps runtime-facing server modules from depending directly on artifact-surface helpers", async () => {
+  it("keeps runtime-facing server modules from depending directly on readable-markdown helpers", async () => {
     const files = [
       "src/server/runtime.ts",
       "src/server/result-normalization.ts",
@@ -431,13 +431,13 @@ describe("module boundaries", () => {
     for (const file of files) {
       expectSourceNotToImport(
         await readSource(file),
-        [/from\s+["']\.\.\/content\/artifact-surface\.js["']/],
+        [/from\s+["']\.\.\/content\/readable-markdown\.js["']/],
         file
       );
     }
   });
 
-  it("keeps server content dependencies behind the artifact gateway", async () => {
+  it("keeps server content dependencies behind the markdown gateway", async () => {
     const files = [
       "src/server/browser-form-bridge.ts",
       "src/server/browser-shell.ts",

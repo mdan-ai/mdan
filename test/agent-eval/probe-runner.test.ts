@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { createArtifactPage } from "../../src/server/artifact.js";
+import { createMarkdownPage } from "../../src/server/markdown-surface.js";
 import { createMdanServer } from "../../src/server/index.js";
 import { createSubmitMessageFixture, defineAgentEvalCase, runSubmitMessageFixtureProbe, serveAgentEvalFixture } from "./support/index.js";
 
-function createArtifactSubmitMessageFixture() {
+function createMarkdownSubmitMessageFixture() {
   const messages: string[] = [];
   const server = createMdanServer();
 
-  function pageArtifact() {
+  function pageMarkdown() {
     const latest = messages[0];
     const main = latest
       ? `## Message submitted\n\nLatest message: ${latest}`
       : "Use this page to submit one message.";
 
-    return createArtifactPage({
+    return createMarkdownPage({
       frontmatter: {
         route: "/",
         app_id: "agent-eval-submit-message",
@@ -67,7 +67,7 @@ Use this page to submit one message.
     });
   }
 
-  server.page("/", async () => pageArtifact());
+  server.page("/", async () => pageMarkdown());
   server.post("/messages", async ({ inputs }) => {
     const message = String(inputs.message ?? "").trim();
     if (message) {
@@ -75,7 +75,7 @@ Use this page to submit one message.
     }
     return {
       route: "/",
-      page: pageArtifact()
+      page: pageMarkdown()
     };
   });
 
@@ -133,7 +133,7 @@ describe("agent eval probe runner", () => {
       runId: "probe-run-1",
       caseId: "submit-message",
       fixtureId: "single-step/submit-message",
-      agentId: "artifact-probe",
+      agentId: "markdown-probe",
       assumptionLevel: "A0",
       startedAt: "2026-04-12T08:00:00.000Z"
     });
@@ -165,17 +165,17 @@ describe("agent eval probe runner", () => {
     }
   });
 
-  it("can run the submit-message probe against an artifact-native fixture", async () => {
-    const fixture = createArtifactSubmitMessageFixture();
+  it("can run the submit-message probe against an Markdown-native fixture", async () => {
+    const fixture = createMarkdownSubmitMessageFixture();
 
     const result = await runSubmitMessageFixtureProbe({
       fixture,
-      runId: "probe-run-artifact",
-      message: "hello from artifact probe",
+      runId: "probe-run-markdown",
+      message: "hello from markdown probe",
       startedAt: "2026-04-12T08:06:00.000Z"
     });
 
     expect(result.outcome.status).toBe("PASS");
-    expect(fixture.getMessages()).toEqual(["hello from artifact probe"]);
+    expect(fixture.getMessages()).toEqual(["hello from markdown probe"]);
   });
 });

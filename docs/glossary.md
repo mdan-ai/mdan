@@ -24,10 +24,11 @@ actions, and identity.
 
 See [Surface Contract](/spec/surface-contract).
 
-## Artifact
+## Markdown Response
 
-In the current Markdown-first profile, the primary readable surface returned to
-clients. It is typically a Markdown document plus an embedded `mdan` block.
+In the current Markdown-first profile, the primary readable representation
+returned to clients. It is typically a Markdown document plus an embedded
+`mdan` block.
 
 ## Representation
 

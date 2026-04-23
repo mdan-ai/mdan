@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createMdanServer, ok } from "../../src/server/index.js";
 
 describe("legacy compatibility contract mode", () => {
-  it("returns 406 for artifact-native POST actions asked for application/json", async () => {
+  it("returns 406 for Markdown-native POST actions asked for application/json", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.post("/submit", async () =>
       ok({
@@ -69,18 +69,18 @@ Body
     expect(String(response.body)).toContain("missing_action");
   });
 
-  it("accepts artifact-native page handlers for markdown and html reads", async () => {
+  it("accepts Markdown-native page handlers for markdown and html reads", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
-    server.page("/artifact", async () => ({
-      markdown: "# Artifact Page",
-      executableContent: JSON.stringify({ app_id: "artifact-demo" }, null, 2),
+    server.page("/markdown", async () => ({
+      markdown: "# Markdown Page",
+      executableContent: JSON.stringify({ app_id: "markdown-demo" }, null, 2),
       frontmatter: {},
       blocks: []
     }));
 
     const markdown = await server.handle({
       method: "GET",
-      url: "https://example.test/artifact",
+      url: "https://example.test/markdown",
       headers: {
         accept: "text/markdown"
       },
@@ -88,12 +88,12 @@ Body
     });
 
     expect(markdown.status).toBe(200);
-    expect(String(markdown.body)).toContain("# Artifact Page");
+    expect(String(markdown.body)).toContain("# Markdown Page");
     expect(String(markdown.body)).toContain("```mdan");
 
     const html = await server.handle({
       method: "GET",
-      url: "https://example.test/artifact",
+      url: "https://example.test/markdown",
       headers: {
         accept: "text/html"
       },
@@ -101,12 +101,12 @@ Body
     });
 
     expect(html.status).toBe(200);
-    expect(String(html.body)).toContain("<h1>Artifact Page</h1>");
+    expect(String(html.body)).toContain("<h1>Markdown Page</h1>");
     expect(String(html.body)).not.toContain('id="mdan-initial-surface"');
 
     const json = await server.handle({
       method: "GET",
-      url: "https://example.test/artifact",
+      url: "https://example.test/markdown",
       headers: {
         accept: "application/json"
       },
@@ -234,7 +234,7 @@ Body
     expect(String(markdown.body)).toContain('"state_id": "fallback-demo:fallback-app"');
   });
 
-  it("accepts artifact-native GET action results on markdown reads", async () => {
+  it("accepts Markdown-native GET action results on markdown reads", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.get("/refresh", async () =>
       ok({
@@ -301,14 +301,14 @@ Broken
     expect(String(response.body)).toContain("missing_action");
   });
 
-  it("accepts artifact-native POST action results on markdown reads", async () => {
+  it("accepts Markdown-native POST action results on markdown reads", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.post("/submit-markdown", async () =>
       ok({
         page: {
           frontmatter: {
-            app_id: "post-artifact",
-            state_id: "post-artifact:1",
+            app_id: "post-markdown",
+            state_id: "post-markdown:1",
             state_version: 1,
             route: "/after-submit"
           },

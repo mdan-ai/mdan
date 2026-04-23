@@ -6,7 +6,7 @@ import { renderBrowserShell, shouldServeBrowserShell } from "../../src/server/br
 import type { MdanRequest, MdanResponse } from "../../src/server/types.js";
 
 describe("browser shell", () => {
-  it("renders a thin artifact-first browser shell", () => {
+  it("renders a thin Markdown-first browser shell", () => {
     const html = renderBrowserShell({ title: "Starter" });
 
     expect(html).toContain("<title>Starter</title>");
@@ -212,7 +212,7 @@ describe("browser shell", () => {
     expect(body).not.toContain("<!doctype html>");
   });
 
-  it("defaults non-browser host requests without Accept to markdown artifact responses", async () => {
+  it("defaults non-browser host requests without Accept to markdown markdown responses", async () => {
     const server = createStarterServer(["Booted"]);
     const host = createHost(server, {
       browserShell: {

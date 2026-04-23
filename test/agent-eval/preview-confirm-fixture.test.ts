@@ -82,7 +82,7 @@ describe("preview-confirm agent eval fixture", () => {
     expect(fixture.getDraft()).toBeUndefined();
   });
 
-  it("serves the preview-confirm page as an artifact-native read instead of page JSON", async () => {
+  it("serves the preview-confirm page as an Markdown-native read instead of page JSON", async () => {
     const fixture = createPreviewConfirmFixture();
 
     const jsonPage = await fixture.server.handle({
@@ -108,7 +108,7 @@ describe("preview-confirm agent eval fixture", () => {
           runId: "draft-only",
           caseId: fixture.case.id,
           fixtureId: fixture.id,
-          agentId: "artifact-probe",
+          agentId: "markdown-probe",
           assumptionLevel: "A0",
           startedAt: "2026-04-12T09:00:00.000Z"
         })

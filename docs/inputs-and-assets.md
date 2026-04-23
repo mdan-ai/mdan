@@ -145,13 +145,13 @@ server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
 });
 ```
 
-If you need direct control over artifact-native payload assembly today, treat it
+If you need direct control over Markdown-native payload assembly today, treat it
 as an internal lower-level SDK path rather than part of the main public server
 API.
 
 When you return a readable surface from a server configured with
 `createMdanServer({ appId })`, the runtime fills in `app_id`, `state_id`, and
-`state_version` before artifact serialization.
+`state_version` before Markdown serialization.
 
 Expired assets can be removed with:
 

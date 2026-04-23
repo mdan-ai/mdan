@@ -16,8 +16,8 @@ experience and an agent-readable interface, this is the core MDAN idea.
 
 In the current SDK, that means:
 
-- Markdown is the canonical artifact
-- HTML is the browser projection of that artifact
+- Markdown is the canonical readable surface
+- HTML is the browser projection of that same surface
 - actions remain explicit and executable
 - the server can keep returning the next readable interaction context
 

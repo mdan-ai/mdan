@@ -1,8 +1,8 @@
 import {
   parseReadableSurface,
-  type ParseMarkdownArtifactSurfaceOptions,
+  type ParseMarkdownSurfaceOptions,
   type ReadableSurface
-} from "../content/artifact-surface.js";
+} from "../content/readable-markdown.js";
 import { validateAgentBlocks } from "../content/agent-blocks.js";
 import { validateContentPair } from "../content/content-actions.js";
 import { basicMarkdownRenderer } from "../content/markdown-renderer.js";
@@ -15,11 +15,11 @@ import {
   type RenderSurfaceSnapshotOptions
 } from "../surface/snapshot.js";
 
-export type { ParseMarkdownArtifactSurfaceOptions, ReadableSurface, RenderSurfaceSnapshotOptions };
+export type { ParseMarkdownSurfaceOptions, ReadableSurface, RenderSurfaceSnapshotOptions };
 
-export const artifactMarkdownRenderer = basicMarkdownRenderer;
+export const markdownResponseRenderer = basicMarkdownRenderer;
 
-export interface CreateArtifactPageOptions {
+export interface CreateMarkdownPageOptions {
   markdown: string;
   frontmatter?: MdanFrontmatter;
   executableContent?: string;
@@ -29,7 +29,7 @@ export interface CreateArtifactPageOptions {
   visibleBlockNames?: string[];
 }
 
-export interface CreateArtifactFragmentOptions {
+export interface CreateMarkdownFragmentOptions {
   markdown: string;
   executableContent?: string;
   executableJson?: unknown;
@@ -40,9 +40,9 @@ export function createExecutableContent(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-export function parseReadableArtifactSurface(
+export function parseReadableMarkdownResponse(
   content: string,
-  options: ParseMarkdownArtifactSurfaceOptions = {}
+  options: ParseMarkdownSurfaceOptions = {}
 ): ReadableSurface | null {
   return parseReadableSurface(content, options);
 }
@@ -71,8 +71,8 @@ export function renderInitialProjection(
   options: RenderSurfaceSnapshotOptions = {}
 ): string {
   if (initialPage) {
-    const initialArtifact = serializeArtifactPage(initialPage);
-    const projectedSurface = parseReadableArtifactSurface(initialArtifact, {
+    const initialMarkdown = serializeMarkdownPage(initialPage);
+    const projectedSurface = parseReadableMarkdownResponse(initialMarkdown, {
       fallbackRoute:
         typeof initialPage.frontmatter.route === "string"
           ? initialPage.frontmatter.route
@@ -81,8 +81,8 @@ export function renderInitialProjection(
     if (projectedSurface) {
       return renderSurfaceSnapshot(projectedSurface, options);
     }
-    const renderer = options.markdownRenderer ?? artifactMarkdownRenderer;
-    return renderer.render(initialArtifact, {
+    const renderer = options.markdownRenderer ?? markdownResponseRenderer;
+    return renderer.render(initialMarkdown, {
       kind: "page",
       route: typeof initialPage.frontmatter.route === "string" ? initialPage.frontmatter.route : undefined
     });
@@ -90,30 +90,30 @@ export function renderInitialProjection(
   return renderSurfaceSnapshot(initialReadableSurface, options);
 }
 
-export function serializeArtifactPage(page: MdanPage): string {
+export function serializeMarkdownPage(page: MdanPage): string {
   return serializePage(page);
 }
 
-export function serializeArtifactFragment(fragment: MdanFragment): string {
+export function serializeMarkdownFragment(fragment: MdanFragment): string {
   return serializeFragment(fragment);
 }
 
-export function validateArtifactContentPair(markdown: string, actionIds: string[]) {
+export function validateMarkdownContentPair(markdown: string, actionIds: string[]) {
   return validateContentPair(markdown, actionIds);
 }
 
-export function validateArtifactAgentBlocks(markdown: string) {
+export function validateMarkdownAgentBlocks(markdown: string) {
   return validateAgentBlocks(markdown);
 }
 
-export function validateArtifactSemanticSlots(
+export function validateMarkdownSemanticSlots(
   markdown: string,
   options?: Parameters<typeof validateSemanticSlots>[1]
 ) {
   return validateSemanticSlots(markdown, options);
 }
 
-export function createArtifactPage(options: CreateArtifactPageOptions): MdanPage {
+export function createMarkdownPage(options: CreateMarkdownPageOptions): MdanPage {
   const blocks = options.blocks ?? [];
   const visibleBlockNames = options.visibleBlockNames ?? resolveVisibleBlockNames(options.blockContent, blocks);
 
@@ -129,7 +129,7 @@ export function createArtifactPage(options: CreateArtifactPageOptions): MdanPage
   };
 }
 
-export function createArtifactFragment(options: CreateArtifactFragmentOptions): MdanFragment {
+export function createMarkdownFragment(options: CreateMarkdownFragmentOptions): MdanFragment {
   return {
     markdown: options.markdown,
     ...(resolveExecutableContent(options.executableContent, options.executableJson)

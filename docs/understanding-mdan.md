@@ -1,6 +1,6 @@
 ---
 title: Understanding MDAN
-description: Understand the core MDAN model, including artifacts, actions, blocks, and how agents and browsers use the same app.
+description: Understand the core MDAN model, including Markdown surfaces, actions, blocks, and how agents and browsers use the same app.
 ---
 
 # Understanding MDAN
@@ -9,17 +9,17 @@ This page focuses on the core MDAN model, not on host integration details.
 
 ## Key Ideas
 
-### 1. Markdown Artifact
+### 1. Markdown Surface
 
-In the current SDK, the canonical read surface is a Markdown artifact.
+In the current SDK, the canonical read surface is a Markdown response.
 
-That artifact can carry:
+That Markdown surface can carry:
 
 - the readable Markdown body
 - block anchors or region structure
 - executable MDAN state inside a fenced `mdan` block
 
-The artifact is not only content. It is also the next interaction context.
+The Markdown response is not only content. It is also the next interaction context.
 
 ### 2. Actions Stay Explicit
 
@@ -38,7 +38,7 @@ That is useful for both browser runtimes and agent consumers.
 
 An interaction may return:
 
-- a new page-level artifact
+- a new page-level surface
 - or a region-level update when only part of the current route changes
 
 This lets the system stay readable while still supporting partial updates.
@@ -56,10 +56,10 @@ The representation changes, but the app model does not.
 
 An agent usually:
 
-1. reads the Markdown artifact
+1. reads the Markdown response
 2. discovers the available next actions
 3. executes one declared action
-4. reads the returned artifact
+4. reads the returned Markdown response
 5. continues from the updated context
 
 That means the server is not only returning a result. It is continuously
@@ -67,7 +67,7 @@ returning the next readable and executable working surface.
 
 ## How Browsers Use It
 
-A browser loads the HTML projection of the same artifact.
+A browser loads the HTML projection of the same surface.
 
 After the initial document load, the browser runtime can continue from the same
 declared actions and update page or region state as needed.

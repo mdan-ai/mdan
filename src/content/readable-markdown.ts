@@ -15,7 +15,7 @@ type MdanFence = {
   end: number;
 };
 
-export interface ParseMarkdownArtifactSurfaceOptions {
+export interface ParseMarkdownSurfaceOptions {
   fallbackRoute?: string;
   allowBareMarkdown?: boolean;
 }
@@ -89,9 +89,9 @@ export function extractExecutableMdanBlock(source: string): { markdown: string; 
   return null;
 }
 
-export function parseMarkdownArtifactSurface(
+export function parseMarkdownSurface(
   content: string,
-  options: ParseMarkdownArtifactSurfaceOptions = {}
+  options: ParseMarkdownSurfaceOptions = {}
 ): ReadableSurface | null {
   const executable = extractExecutableMdanBlock(content);
   try {
@@ -101,7 +101,7 @@ export function parseMarkdownArtifactSurface(
         .filter((section) => section.body.length > 0)
         .map((section) => [section.id, section.body])
     );
-    const artifactRoute = typeof frontmatter.route === "string" && frontmatter.route.length > 0
+    const route = typeof frontmatter.route === "string" && frontmatter.route.length > 0
       ? frontmatter.route
       : options.fallbackRoute;
     if (!executable) {
@@ -111,7 +111,7 @@ export function parseMarkdownArtifactSurface(
       return {
         markdown: content.trim(),
         actions: READABLE_MARKDOWN_FALLBACK_ACTIONS,
-        ...(artifactRoute ? { route: artifactRoute } : {}),
+        ...(route ? { route } : {}),
         ...(Object.keys(sectionRegions).length > 0 ? { regions: sectionRegions } : {})
       };
     }
@@ -122,7 +122,7 @@ export function parseMarkdownArtifactSurface(
     return {
       markdown: executable.markdown,
       actions: actions as MdanActionManifest,
-      ...(artifactRoute ? { route: artifactRoute } : {}),
+      ...(route ? { route } : {}),
       ...(Object.keys(sectionRegions).length > 0 ? { regions: sectionRegions } : {})
     };
   } catch {
@@ -132,7 +132,7 @@ export function parseMarkdownArtifactSurface(
 
 export function parseReadableSurface(
   content: string,
-  options: ParseMarkdownArtifactSurfaceOptions = {}
+  options: ParseMarkdownSurfaceOptions = {}
 ): ReadableSurface | null {
-  return parseMarkdownArtifactSurface(content, options);
+  return parseMarkdownSurface(content, options);
 }

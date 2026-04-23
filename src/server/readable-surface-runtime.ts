@@ -1,4 +1,4 @@
-import { type ReadableSurface } from "./artifact.js";
+import { type ReadableSurface } from "./markdown-surface.js";
 import type { ReadableSurfaceValidationOptions } from "./readable-surface-options.js";
 import { getReadableSurfaceViolation } from "./readable-surface-validation.js";
 import {

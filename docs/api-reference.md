@@ -101,7 +101,7 @@ Runtime-tuning types such as browser-shell or auto-dependency config details
 are intentionally kept off this main barrel as well.
 Post-input validation helpers and their detailed types are also kept off this
 main barrel.
-Artifact assembly helpers are also intentionally kept off this main barrel.
+Low-level Markdown assembly helpers are also intentionally kept off this main barrel.
 Lower-level handler, input, and stream/result typing details are also kept off
 this main barrel.
 

@@ -8,7 +8,7 @@ import {
 } from "../../src/server/result-normalization.js";
 
 describe("result normalization", () => {
-  it("normalizes readable surfaces into artifact-native action results", () => {
+  it("normalizes readable surfaces into Markdown-native action results", () => {
     const result = normalizeActionHandlerResult({
       markdown: "# Demo\n\n::: block{id=\"main\"}\nBody\n:::",
       actions: {

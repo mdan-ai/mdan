@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { parseMarkdownArtifactSurface } from "../../src/content/artifact-surface.js";
-import { createArtifactFragment, createArtifactPage, createExecutableContent } from "../../src/server/artifact.js";
+import { parseMarkdownSurface } from "../../src/content/readable-markdown.js";
+import { createMarkdownFragment, createMarkdownPage, createExecutableContent } from "../../src/server/markdown-surface.js";
 
-describe("artifact helpers", () => {
+describe("markdown surface helpers", () => {
   it("serializes executable JSON with stable indentation", () => {
     expect(
       createExecutableContent({
@@ -13,7 +13,7 @@ describe("artifact helpers", () => {
   });
 
   it("builds a page and infers visible block names from block content and blocks", () => {
-    const page = createArtifactPage({
+    const page = createMarkdownPage({
       markdown: "# Demo\n\n::: block{id=\"main\"}\n:::",
       executableJson: { app_id: "demo" },
       blockContent: {
@@ -33,7 +33,7 @@ describe("artifact helpers", () => {
   });
 
   it("builds a fragment with executable JSON", () => {
-    const fragment = createArtifactFragment({
+    const fragment = createMarkdownFragment({
       markdown: "## Saved",
       executableJson: { actions: [{ id: "refresh" }] }
     });
@@ -44,7 +44,7 @@ describe("artifact helpers", () => {
   });
 
   it("parses the last executable mdan block while preserving earlier example fences", () => {
-    const artifact = `# Docs
+    const markdown = `# Docs
 
 \`\`\`mdan
 not valid json
@@ -60,7 +60,7 @@ not valid json
 \`\`\`
 `;
 
-    const surface = parseMarkdownArtifactSurface(artifact);
+    const surface = parseMarkdownSurface(markdown);
 
     expect(surface).toMatchObject({
       actions: {
@@ -73,7 +73,7 @@ not valid json
   });
 
   it("can treat plain markdown as a readable fallback surface", () => {
-    const surface = parseMarkdownArtifactSurface("## Not Acceptable", {
+    const surface = parseMarkdownSurface("## Not Acceptable", {
       allowBareMarkdown: true
     });
 

@@ -46,7 +46,7 @@ describe("create-mdan scaffold", () => {
     expect(indexSource).not.toContain("rootRedirect");
     expect(serverSource).toContain('@mdanai/sdk');
     expect(serverSource).not.toContain('@mdanai/sdk/server');
-    expect(serverSource).not.toContain("createArtifactPage");
+    expect(serverSource).not.toContain("createMarkdownPage");
     expect(serverSource).toContain("const home = app.page");
     expect(serverSource).toContain("app.route(home.bind(messages));");
     expect(serverSource).not.toContain('app.route("/", {');

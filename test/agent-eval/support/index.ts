@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 
 import { extractSections, parseFrontmatter } from "../../../src/content/content-actions.js";
-import { createArtifactPage } from "../../../src/server/artifact.js";
+import { createMarkdownPage } from "../../../src/server/markdown-surface.js";
 import { createNodeHost } from "../../../src/server/node.js";
 import { createMdanServer, type MdanRequest } from "../../../src/server/index.js";
 
@@ -323,7 +323,7 @@ function submitMessagePage(messages: string[]) {
     ? `## Message submitted\n\nLatest message: ${latest}`
     : "No message has been submitted yet.";
 
-  return createArtifactPage({
+  return createMarkdownPage({
     frontmatter: {
       title: "Submit Message",
       route: "/",
@@ -471,7 +471,7 @@ function previewConfirmPage(state: { draft?: string; messages: string[] }) {
     : state.draft
       ? `## Preview message\n\nDraft message: ${state.draft}\n\nConfirm this message to finish the task.`
       : "No draft has been previewed yet.";
-  return createArtifactPage({
+  return createMarkdownPage({
     frontmatter: {
       title: "Preview Confirm Message",
       route: "/",
@@ -664,7 +664,7 @@ function listDetailPage(completedItems: Set<string>, route: "list" | "detail", i
           "",
           isCompleted ? "Alpha task completed." : "Alpha task is ready to complete."
         ].join("\n");
-  return createArtifactPage({
+  return createMarkdownPage({
     frontmatter: {
       title: "List Detail Complete",
       route: route === "list" ? "/" : `/items/${itemId}`,
@@ -820,7 +820,7 @@ type DiscoveredAction = {
   content: string;
 };
 
-type AgentArtifactAction = {
+type AgentMarkdownAction = {
   id?: unknown;
   label?: unknown;
   verb?: unknown;
@@ -834,17 +834,17 @@ type AgentArtifactAction = {
   action_proof?: unknown;
 };
 
-type AgentArtifactSurface = {
+type AgentMarkdownSurface = {
   content: string;
   route?: string;
   regions?: Record<string, string>;
   actions: {
     allowed_next_actions?: string[];
-    actions?: AgentArtifactAction[];
+    actions?: AgentMarkdownAction[];
   };
 };
 
-function discoverAction(surface: AgentArtifactSurface, index = 0): DiscoveredAction {
+function discoverAction(surface: AgentMarkdownSurface, index = 0): DiscoveredAction {
   const allowed = new Set(
     Array.isArray(surface.actions.allowed_next_actions)
       ? surface.actions.allowed_next_actions.filter((value): value is string => typeof value === "string")
@@ -894,7 +894,7 @@ function actionRequestBody(action: DiscoveredAction, input: Record<string, unkno
   };
 }
 
-function parseMarkdownArtifactSurface(body: string): AgentArtifactSurface | null {
+function parseMarkdownSurface(body: string): AgentMarkdownSurface | null {
   const executableMatch = body.match(/```mdan\n([\s\S]*?)\n```/);
   if (!executableMatch?.[1]) {
     return null;
@@ -905,7 +905,7 @@ function parseMarkdownArtifactSurface(body: string): AgentArtifactSurface | null
     if (!actions || typeof actions !== "object" || Array.isArray(actions)) {
       return null;
     }
-    const actionEnvelope = actions as AgentArtifactSurface["actions"];
+    const actionEnvelope = actions as AgentMarkdownSurface["actions"];
     const frontmatter = parseFrontmatter(body);
     const sections = extractSections(body);
     const regions = Object.fromEntries(sections.map((section) => [section.id, section.body]));
@@ -920,11 +920,11 @@ function parseMarkdownArtifactSurface(body: string): AgentArtifactSurface | null
   }
 }
 
-function parseAgentReadableEnvelope(body: string): AgentArtifactSurface | null {
-  return parseMarkdownArtifactSurface(body);
+function parseAgentReadableEnvelope(body: string): AgentMarkdownSurface | null {
+  return parseMarkdownSurface(body);
 }
 
-function summarizeSurface(surface: AgentArtifactSurface | null, fallbackBody: string): string {
+function summarizeSurface(surface: AgentMarkdownSurface | null, fallbackBody: string): string {
   if (!surface) {
     return fallbackBody;
   }
@@ -936,13 +936,13 @@ function summarizeSurface(surface: AgentArtifactSurface | null, fallbackBody: st
   return [surface.content, regionSummary].filter(Boolean).join("\n");
 }
 
-async function readAgentSurface(fixture: AgentEvalFixture, baseUrl: string, useHttp: boolean): Promise<AgentArtifactSurface> {
+async function readAgentSurface(fixture: AgentEvalFixture, baseUrl: string, useHttp: boolean): Promise<AgentMarkdownSurface> {
   if (useHttp) {
     return fetch(baseUrl, { headers: { accept: "text/markdown" } }).then(async (response) => {
       const body = await response.text();
       const surface = parseAgentReadableEnvelope(body);
       if (!surface) {
-        throw new Error("agent-eval probe could not parse the initial artifact response");
+        throw new Error("agent-eval probe could not parse the initial markdown response");
       }
       return surface;
     });
@@ -960,7 +960,7 @@ async function readAgentSurface(fixture: AgentEvalFixture, baseUrl: string, useH
   );
   const surface = parseAgentReadableEnvelope(body);
   if (!surface) {
-    throw new Error("agent-eval probe could not parse the initial artifact response");
+    throw new Error("agent-eval probe could not parse the initial markdown response");
   }
   return surface;
 }
@@ -971,7 +971,7 @@ async function submitAgentAction(
   action: DiscoveredAction,
   body: Record<string, unknown>,
   useHttp: boolean
-): Promise<{ status: number; body: string; surface: AgentArtifactSurface | null }> {
+): Promise<{ status: number; body: string; surface: AgentMarkdownSurface | null }> {
   const requestBody = actionRequestBody(action, body);
   if (useHttp) {
     return fetch(new URL(action.target, baseUrl), {
@@ -1018,7 +1018,7 @@ export async function runSubmitMessageFixtureProbe(
     runId: input.runId,
     caseId: input.fixture.case.id,
     fixtureId: input.fixture.id,
-    agentId: "artifact-probe",
+    agentId: "markdown-probe",
     assumptionLevel: "A0",
     startedAt: input.startedAt
   });
@@ -1079,7 +1079,7 @@ export async function runPreviewConfirmFixtureProbe(
     runId: input.runId,
     caseId: input.fixture.case.id,
     fixtureId: input.fixture.id,
-    agentId: "artifact-probe",
+    agentId: "markdown-probe",
     assumptionLevel: "A0",
     startedAt: input.startedAt
   });
@@ -1164,7 +1164,7 @@ export async function runListDetailCompleteFixtureProbe(
     runId: input.runId,
     caseId: input.fixture.case.id,
     fixtureId: input.fixture.id,
-    agentId: "artifact-probe",
+    agentId: "markdown-probe",
     assumptionLevel: "A0",
     startedAt: input.startedAt
   });
@@ -1217,7 +1217,7 @@ export async function runListDetailCompleteFixtureProbe(
 
   const detailSurface = parseAgentReadableEnvelope(detailResponse.body);
   if (!detailSurface) {
-    throw new Error("list-detail fixture detail response was not parseable as an agent-readable artifact");
+    throw new Error("list-detail fixture detail response was not parseable as an agent-readable Markdown response");
   }
   const completeForm = discoverAction(detailSurface);
   if (completeForm.method !== "POST") {

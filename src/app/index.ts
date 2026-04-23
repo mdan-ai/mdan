@@ -1,5 +1,5 @@
 import type { MdanPage } from "../protocol/types.js";
-import { type ReadableSurface } from "../server/artifact.js";
+import { type ReadableSurface } from "../server/markdown-surface.js";
 import { type ActionProofOptions } from "../server/action-proofing.js";
 import { createMdanServer } from "../server/runtime.js";
 import type {

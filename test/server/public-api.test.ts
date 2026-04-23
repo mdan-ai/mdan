@@ -32,9 +32,9 @@ describe("@mdanai/sdk/server public API", () => {
     expect("openAssetStream" in server).toBe(false);
   });
 
-  it("keeps artifact assembly helpers off the main barrel", () => {
-    expect("createArtifactPage" in server).toBe(false);
-    expect("createArtifactFragment" in server).toBe(false);
+  it("keeps markdown surface helpers off the main barrel", () => {
+    expect("createMarkdownPage" in server).toBe(false);
+    expect("createMarkdownFragment" in server).toBe(false);
     expect("createExecutableContent" in server).toBe(false);
   });
 

@@ -4,15 +4,15 @@ import { createAuthGuestbookServer } from "../../examples/auth-guestbook/app.js"
 import type { MdanResponse } from "../../src/server/index.js";
 import { parseFrontmatter } from "../../src/content/content-actions.js";
 
-type ArtifactActions = {
+type MarkdownActions = {
   allowed_next_actions?: string[];
   actions?: Array<Record<string, unknown>>;
 };
 
-type ArtifactSurface = {
+type MarkdownSurface = {
   content: string;
   route?: string;
-  actions: ArtifactActions;
+  actions: MarkdownActions;
 };
 
 function cookieValue(setCookie: string | undefined): string {
@@ -29,7 +29,7 @@ function cookieMap(cookieHeader: string): Record<string, string> {
   };
 }
 
-function parseAgentSurface(response: MdanResponse): ArtifactSurface {
+function parseAgentSurface(response: MdanResponse): MarkdownSurface {
   expect(response.headers["content-type"]).toContain("text/markdown");
   expect(typeof response.body).toBe("string");
   const content = String(response.body);
@@ -39,11 +39,11 @@ function parseAgentSurface(response: MdanResponse): ArtifactSurface {
   return {
     content,
     ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
-    actions: JSON.parse(String(match?.[1])) as ArtifactActions
+    actions: JSON.parse(String(match?.[1])) as MarkdownActions
   };
 }
 
-function expectAction(surface: ArtifactSurface, id: string) {
+function expectAction(surface: MarkdownSurface, id: string) {
   const action = surface.actions.actions?.find((candidate) => candidate.id === id);
   expect(action).toBeTruthy();
   return action!;
@@ -53,7 +53,7 @@ async function getSurface(
   server: ReturnType<typeof createAuthGuestbookServer>,
   path: string,
   cookies: Record<string, string> = {}
-): Promise<ArtifactSurface> {
+): Promise<MarkdownSurface> {
   const response = await server.handle({
     method: "GET",
     url: `https://example.test${path}`,
@@ -77,7 +77,7 @@ function actionBody(action: { action_proof?: unknown }, input: Record<string, un
 }
 
 describe("auth-guestbook agent consumption", () => {
-  it("supports register, post, logout, and rejected old-session submit through markdown artifacts", async () => {
+  it("supports register, post, logout, and rejected old-session submit through markdown responses", async () => {
     const server = createAuthGuestbookServer();
 
     const loginPage = await server.handle({

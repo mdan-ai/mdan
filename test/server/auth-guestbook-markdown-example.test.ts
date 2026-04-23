@@ -3,15 +3,15 @@ import { describe, expect, it } from "vitest";
 import { createAuthGuestbookServer } from "../../examples/auth-guestbook/app.js";
 import { parseFrontmatter } from "../../src/content/content-actions.js";
 
-type ArtifactActions = {
+type MarkdownActions = {
   allowed_next_actions?: string[];
   actions?: Array<Record<string, unknown>>;
 };
 
-type ArtifactSurface = {
+type MarkdownSurface = {
   content: string;
   route?: string;
-  actions: ArtifactActions;
+  actions: MarkdownActions;
 };
 
 function cookieValue(setCookie: string | undefined): string {
@@ -42,12 +42,12 @@ async function proofForAction(
     },
     cookies
   });
-  const payload = parseArtifact(response);
+  const payload = parseMarkdownResponse(response);
   const action = payload.actions.actions?.find((candidate) => candidate.id === actionId);
   return String(action.action_proof);
 }
 
-function parseArtifact(response: { headers: Record<string, string>; body: string | AsyncIterable<string> }): ArtifactSurface {
+function parseMarkdownResponse(response: { headers: Record<string, string>; body: string | AsyncIterable<string> }): MarkdownSurface {
   expect(response.headers["content-type"]).toContain("text/markdown");
   expect(typeof response.body).toBe("string");
   const content = String(response.body);
@@ -57,7 +57,7 @@ function parseArtifact(response: { headers: Record<string, string>; body: string
   return {
     content,
     ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
-    actions: JSON.parse(String(match?.[1])) as ArtifactActions
+    actions: JSON.parse(String(match?.[1])) as MarkdownActions
   };
 }
 
@@ -70,7 +70,7 @@ function actionBody(proof: string, input: Record<string, unknown>) {
   });
 }
 
-describe("auth-guestbook artifact example", () => {
+describe("auth-guestbook markdown example", () => {
 	  it("supports register -> post -> logout -> login -> post flow with isolated sessions", async () => {
 	    const server = createAuthGuestbookServer();
 	    const registerAliceProof = await proofForAction(server, "/register", "register");
@@ -88,9 +88,9 @@ describe("auth-guestbook artifact example", () => {
     expect(registerAlice.status).toBe(200);
 	    const aliceCookie = cookieValue(registerAlice.headers["set-cookie"]);
 	    expect(aliceCookie).toContain("mdan_session=");
-	    const aliceRegisterArtifact = parseArtifact(registerAlice);
-	    expect(aliceRegisterArtifact.content).toContain("# Guestbook");
-	    const aliceSubmitProof = aliceRegisterArtifact.actions.actions?.find(
+	    const aliceRegisterResponse = parseMarkdownResponse(registerAlice);
+	    expect(aliceRegisterResponse.content).toContain("# Guestbook");
+	    const aliceSubmitProof = aliceRegisterResponse.actions.actions?.find(
 	      (action: { id?: string }) => action.id === "submit_message"
 	    ).action_proof;
 
@@ -105,9 +105,9 @@ describe("auth-guestbook artifact example", () => {
       cookies: cookieMap(aliceCookie)
     });
 	    expect(postAlice.status).toBe(200);
-	    const postAliceArtifact = parseArtifact(postAlice);
-	    expect(postAliceArtifact.content).toContain("hello from alice");
-	    const aliceLogoutProof = postAliceArtifact.actions.actions?.find(
+	    const postAliceResponse = parseMarkdownResponse(postAlice);
+	    expect(postAliceResponse.content).toContain("hello from alice");
+	    const aliceLogoutProof = postAliceResponse.actions.actions?.find(
 	      (action: { id?: string }) => action.id === "logout"
 	    ).action_proof;
 
@@ -123,7 +123,7 @@ describe("auth-guestbook artifact example", () => {
 	    });
     expect(logoutAlice.status).toBe(200);
     expect(logoutAlice.headers["set-cookie"]).toContain("Max-Age=0");
-    expect(parseArtifact(logoutAlice).content).toContain("# Sign In");
+    expect(parseMarkdownResponse(logoutAlice).content).toContain("# Sign In");
 
 	    const registerBobProof = await proofForAction(server, "/register", "register");
 	    const registerBob = await server.handle({
@@ -139,8 +139,8 @@ describe("auth-guestbook artifact example", () => {
 	    expect(registerBob.status).toBe(200);
 	    const bobCookie = cookieValue(registerBob.headers["set-cookie"]);
 	    expect(bobCookie).toContain("mdan_session=");
-	    const bobRegisterArtifact = parseArtifact(registerBob);
-	    const bobSubmitProof = bobRegisterArtifact.actions.actions?.find(
+	    const bobRegisterResponse = parseMarkdownResponse(registerBob);
+	    const bobSubmitProof = bobRegisterResponse.actions.actions?.find(
 	      (action: { id?: string }) => action.id === "submit_message"
 	    ).action_proof;
 
@@ -155,7 +155,7 @@ describe("auth-guestbook artifact example", () => {
       cookies: cookieMap(bobCookie)
     });
 	    expect(postBob.status).toBe(200);
-	    expect(parseArtifact(postBob).content).toContain("hello from bob");
+	    expect(parseMarkdownResponse(postBob).content).toContain("hello from bob");
 	    const loginAliceProof = await proofForAction(server, "/login", "login");
 
 	    const loginAliceAgain = await server.handle({
@@ -171,8 +171,8 @@ describe("auth-guestbook artifact example", () => {
     expect(loginAliceAgain.status).toBe(200);
 	    const aliceCookie2 = cookieValue(loginAliceAgain.headers["set-cookie"]);
 	    expect(aliceCookie2).toContain("mdan_session=");
-	    const aliceLoginArtifact = parseArtifact(loginAliceAgain);
-	    const aliceSubmitProof2 = aliceLoginArtifact.actions.actions?.find(
+	    const aliceLoginResponse = parseMarkdownResponse(loginAliceAgain);
+	    const aliceSubmitProof2 = aliceLoginResponse.actions.actions?.find(
 	      (action: { id?: string }) => action.id === "submit_message"
 	    ).action_proof;
 
@@ -187,7 +187,7 @@ describe("auth-guestbook artifact example", () => {
       cookies: cookieMap(aliceCookie2)
     });
     expect(postAliceAgain.status).toBe(200);
-    expect(parseArtifact(postAliceAgain).content).toContain("alice is back");
+    expect(parseMarkdownResponse(postAliceAgain).content).toContain("alice is back");
 
     const postWithOldAliceCookie = await server.handle({
       method: "POST",
@@ -200,7 +200,7 @@ describe("auth-guestbook artifact example", () => {
       cookies: cookieMap(aliceCookie)
     });
     expect(postWithOldAliceCookie.status).toBe(401);
-    expect(parseArtifact(postWithOldAliceCookie).content).toContain("Sign in required");
+    expect(parseMarkdownResponse(postWithOldAliceCookie).content).toContain("Sign in required");
   });
 
   it("renders html for page requests, keeps page markdown fetchable, and keeps block updates off html/markdown paths", async () => {
@@ -264,7 +264,7 @@ describe("auth-guestbook artifact example", () => {
     expect(String(registerMarkdown.body)).toContain("Invalid Action Request");
   });
 
-	  it("returns artifact guestbook actions with the expected page and action targets", async () => {
+	  it("returns guestbook markdown actions with the expected page and action targets", async () => {
 	    const server = createAuthGuestbookServer();
 	    const registerProof = await proofForAction(server, "/register", "register");
 
@@ -289,7 +289,7 @@ describe("auth-guestbook artifact example", () => {
       cookies: cookieMap(sessionCookie)
     });
 
-    const payload = parseArtifact(guestbookPage);
+    const payload = parseMarkdownResponse(guestbookPage);
     expect(payload.actions.actions?.map((action: { target: string }) => action.target)).toEqual([
       "/guestbook",
       "/guestbook/post",

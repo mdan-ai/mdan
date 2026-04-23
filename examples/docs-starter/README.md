@@ -1,4 +1,4 @@
-# docs-starter (artifact-native docs example)
+# docs-starter (Markdown-first docs example)
 
 Source layout:
 
@@ -8,9 +8,9 @@ Source layout:
 Runtime contract:
 
 - `GET page` supports `text/html` and `text/markdown`
-- `GET page` no longer exposes `application/json`; page discovery happens through the Markdown artifact
-- the example exposes a `GET` refresh action and returns the same Markdown artifact contract for action reads
-- HTML page responses are rendered on the server from the same underlying artifact
+- `GET page` no longer exposes `application/json`; page discovery happens through the Markdown response
+- the example exposes a `GET` refresh action and returns the same Markdown response contract for action reads
+- HTML page responses are rendered on the server from the same underlying surface
 
 Run:
 

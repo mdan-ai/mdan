@@ -95,7 +95,7 @@ Create `app/actions/main.json`:
 }
 ```
 
-This is the executable contract that the returned artifact will carry in its
+This is the executable contract that the returned Markdown response will carry in its
 embedded `mdan` block.
 
 ## 4. Build The Server
@@ -210,7 +210,7 @@ curl -X POST \
   http://127.0.0.1:4321/post
 ```
 
-Use the real `action_proof` from the current artifact when action proof is
+Use the real `action_proof` from the current Markdown response when action proof is
 enabled.
 
 ## 8. What To Read Next

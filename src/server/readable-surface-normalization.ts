@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import type { ReadableSurface } from "./artifact.js";
+import type { ReadableSurface } from "./markdown-surface.js";
 
 function routeStateSegment(route: string | undefined): string {
   const normalized = (route ?? "/")

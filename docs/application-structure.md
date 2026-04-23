@@ -40,7 +40,7 @@ Several in-repo examples use a slightly different workspace-oriented layout:
 The exact file names differ, but the responsibilities stay the
 same:
 
-- content files define the readable artifact shape
+- content files define the readable surface shape
 - server code attaches runtime state and action handlers
 - the host entry serves the app in Node or Bun
 
@@ -77,7 +77,7 @@ Shared browser-shell concerns should usually stay in host-level configuration:
 - static files and mounts
 - HTML transforms if needed
 
-The Markdown artifact remains the app surface. The HTML shell wraps it for
+The Markdown response remains the app surface. The HTML shell wraps it for
 browser delivery.
 
 ## How To Organize Actions
@@ -92,18 +92,18 @@ Each action should stay explicit about:
 
 The common cases are:
 
-- page reads that return a full artifact
+- page reads that return a full surface
 - local refresh or read actions
-- write actions that return the next artifact or updated region state
+- write actions that return the next surface or updated region state
 
 If all you need is to refresh current state, keep the result focused. If a write
 needs to return the next allowed action context, keep that in the returned
-artifact rather than scattering it into parallel response channels.
+surface rather than scattering it into parallel response channels.
 
 ## Recommended Build Order
 
 1. Decide your route list and page content files.
-2. Write the readable artifact shape first.
+2. Write the readable surface shape first.
 3. Register page routes and action routes in the server runtime.
 4. Choose your host adapter for Node or Bun.
 5. Add browser continuation only if your app needs it.

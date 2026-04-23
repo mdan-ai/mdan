@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createDocsStarterServer } from "../../examples/docs-starter/app.js";
 
-describe("docs-starter artifact example", () => {
+describe("docs-starter markdown example", () => {
   it("renders docs starter page", async () => {
     const server = createDocsStarterServer();
 

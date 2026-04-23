@@ -10,7 +10,7 @@ page for the current SDK docs site.
 
 Goal:
 
-- keep the new docs site focused on the current artifact-first SDK
+- keep the new docs site focused on the current Markdown-first SDK
 - reuse good conceptual writing from the old docs where it still fits
 - avoid importing pages that are tightly coupled to removed APIs or examples
 
@@ -99,7 +99,7 @@ Why:
 Recommendation:
 
 - migrate this early
-- update wording so it matches the artifact-first runtime and current SDK positioning
+- update wording so it matches the Markdown-first runtime and current SDK positioning
 
 ### `mdan-vs-mcp.md`
 
@@ -127,7 +127,7 @@ Why:
 Recommendation:
 
 - migrate early
-- rewrite examples so they use the current artifact-first language and current block/action terms where needed
+- rewrite examples so they use the current Markdown-first language and current block/action terms where needed
 
 ### `developer-paths.md`
 
@@ -360,4 +360,4 @@ Only after we have stronger current demos or clearer product scope:
 The old docs set is still valuable mainly for concept pages and narrative
 structure. The best first moves are to migrate concept-heavy pages, while
 runtime/API/example pages should mostly be rewritten against the current
-artifact-first SDK rather than copied directly.
+Markdown-first SDK rather than copied directly.

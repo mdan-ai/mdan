@@ -93,7 +93,7 @@ function artifactResponse(body: FixtureSurface, status = 200) {
   };
 }
 
-function markdownArtifact(routePath: string, message: string): string {
+function markdownResponse(routePath: string, message: string): string {
   return `---
 route: "${routePath}"
 ---
@@ -158,13 +158,13 @@ function expectAcceptHeaders(input: unknown, value: string) {
   expect(headers?.get("Accept")).toBe(value);
 }
 
-describe("artifact-first headless host", () => {
-  it("visits routes by requesting markdown artifacts", async () => {
+describe("Markdown-first headless host", () => {
+  it("visits routes by requesting markdown responses", async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,
       status: 200,
       statusText: "OK",
-      text: async () => markdownArtifact("/demo", "Hello")
+      text: async () => markdownResponse("/demo", "Hello")
     }));
     const host = createHeadlessHost({ fetchImpl: fetchImpl as unknown as typeof fetch });
 
@@ -186,9 +186,9 @@ describe("artifact-first headless host", () => {
     ]);
   });
 
-  it("submits actions by requesting markdown artifacts", async () => {
+  it("submits actions by requesting markdown responses", async () => {
     const fetchImpl = vi.fn(async () => artifactResponse(surface("/next", "Saved")));
-    const host = createHeadlessHost({ initialArtifact: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
+    const host = createHeadlessHost({ initialMarkdown: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
     const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "submit_message");
     expect(operation).toBeTruthy();
 
@@ -207,14 +207,14 @@ describe("artifact-first headless host", () => {
     expect(host.getSnapshot().markdown).toContain("Saved");
   });
 
-  it("accepts markdown artifacts from POST actions while keeping JSON submits", async () => {
+  it("accepts markdown responses from POST actions while keeping JSON submits", async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,
       status: 200,
       statusText: "OK",
-      text: async () => markdownArtifact("/next", "Saved from artifact")
+      text: async () => markdownResponse("/next", "Saved from markdown")
     }));
-    const host = createHeadlessHost({ initialArtifact: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
+    const host = createHeadlessHost({ initialMarkdown: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
     const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "submit_message");
     expect(operation).toBeTruthy();
 
@@ -229,12 +229,12 @@ describe("artifact-first headless host", () => {
     );
     expectAcceptHeaders(fetchImpl.mock.calls[0]?.[1], "text/markdown");
     expect(host.getSnapshot().route).toBe("/next");
-    expect(host.getSnapshot().markdown).toContain("Saved from artifact");
+    expect(host.getSnapshot().markdown).toContain("Saved from markdown");
   });
 
-  it("preserves typed POST values while submitting for markdown artifact responses", async () => {
+  it("preserves typed POST values while submitting for markdown responses", async () => {
     const fetchImpl = vi.fn(async () => artifactResponse(surface("/next", "Saved")));
-    const host = createHeadlessHost({ initialArtifact: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
+    const host = createHeadlessHost({ initialMarkdown: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
     const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "submit_message");
     expect(operation).toBeTruthy();
 
@@ -294,9 +294,9 @@ describe("artifact-first headless host", () => {
       ok: true,
       status: 200,
       statusText: "OK",
-      text: async () => markdownArtifact("/next", "Filtered")
+      text: async () => markdownResponse("/next", "Filtered")
     }));
-    const host = createHeadlessHost({ initialArtifact: artifactBody(initialSurface), fetchImpl: fetchImpl as unknown as typeof fetch });
+    const host = createHeadlessHost({ initialMarkdown: artifactBody(initialSurface), fetchImpl: fetchImpl as unknown as typeof fetch });
     const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "filter_messages");
     expect(operation).toBeTruthy();
 
@@ -315,7 +315,7 @@ describe("artifact-first headless host", () => {
   it("patches matching regions for region responses", async () => {
     const fetchImpl = vi.fn(async () => artifactResponse(surface("/dashboard", "New main", { main: "New main", side: "New side" })));
     const host = createHeadlessHost({
-      initialArtifact: artifactBody(surface("/dashboard", "Old main", { main: "Old main", side: "Old side" })),
+      initialMarkdown: artifactBody(surface("/dashboard", "Old main", { main: "Old main", side: "Old side" })),
       fetchImpl: fetchImpl as unknown as typeof fetch
     });
     const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "patch_messages");
@@ -332,7 +332,7 @@ describe("artifact-first headless host", () => {
   it("falls back to page replacement when a region response changes route", async () => {
     const fetchImpl = vi.fn(async () => artifactResponse(surface("/archive", "Archived", { main: "Archived" })));
     const host = createHeadlessHost({
-      initialArtifact: artifactBody(surface("/dashboard", "Old main", { main: "Old main", side: "Old side" })),
+      initialMarkdown: artifactBody(surface("/dashboard", "Old main", { main: "Old main", side: "Old side" })),
       fetchImpl: fetchImpl as unknown as typeof fetch
     });
     const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "patch_messages");
@@ -346,9 +346,9 @@ describe("artifact-first headless host", () => {
     expect(host.getSnapshot().blocks.find((block) => block.name === "side")).toBeUndefined();
   });
 
-  it("moves to error state with parsed markdown artifact content on non-2xx responses", async () => {
+  it("moves to error state with parsed markdown content on non-2xx responses", async () => {
     const fetchImpl = vi.fn(async () => artifactResponse(surface("/missing", "## Not Found", {}), 404));
-    const host = createHeadlessHost({ initialArtifact: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
+    const host = createHeadlessHost({ initialMarkdown: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
 
     await host.visit("/missing");
 
@@ -364,7 +364,7 @@ describe("artifact-first headless host", () => {
       statusText: "Not Acceptable",
       text: async () => "## Not Acceptable\n\nUse text/markdown."
     }));
-    const host = createHeadlessHost({ initialArtifact: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
+    const host = createHeadlessHost({ initialMarkdown: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
 
     await host.visit("/missing");
 
@@ -374,7 +374,7 @@ describe("artifact-first headless host", () => {
     expect(host.getSnapshot().error).toContain("Not Acceptable");
   });
 
-  it("does not treat POST action targets as the next semantic route when the artifact omits one", async () => {
+  it("does not treat POST action targets as the next semantic route when the markdown omits one", async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,
       status: 200,
@@ -409,7 +409,7 @@ describe("artifact-first headless host", () => {
 \`\`\`
 `
     }));
-    const host = createHeadlessHost({ initialArtifact: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
+    const host = createHeadlessHost({ initialMarkdown: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });
     const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "submit_message");
     expect(operation).toBeTruthy();
 
@@ -420,26 +420,26 @@ describe("artifact-first headless host", () => {
     expect(host.getSnapshot().markdown).toContain("# Saved");
   });
 
-  it("can bootstrap from an initial markdown artifact", () => {
+  it("can bootstrap from an initial markdown response", () => {
     const host = createHeadlessHost({
-      initialArtifact: markdownArtifact("/artifact", "Artifact Start"),
-      initialRoute: "/artifact"
+      initialMarkdown: markdownResponse("/markdown", "Markdown Start"),
+      initialRoute: "/markdown"
     });
 
-    expect(host.getSnapshot().route).toBe("/artifact");
-    expect(host.getSnapshot().markdown).toContain("# Artifact Start");
+    expect(host.getSnapshot().route).toBe("/markdown");
+    expect(host.getSnapshot().markdown).toContain("# Markdown Start");
     expect(host.getSnapshot().blocks[0]?.operations.map((operation) => operation.name)).toEqual([
       "submit_message",
       "patch_messages"
     ]);
   });
 
-  it("can bootstrap from a markdown artifact that contains an extra mdan example block", () => {
+  it("can bootstrap from markdown that contains an extra mdan example block", () => {
     const host = createHeadlessHost({
-      initialArtifact: `# Artifact Start
+      initialMarkdown: `# Markdown Start
 
 ::: block{id="main" actions="submit_message"}
-Artifact block.
+Markdown block.
 :::
 
 \`\`\`mdan
@@ -449,7 +449,7 @@ example only
 \`\`\`mdan
 {
   "app_id": "demo",
-  "state_id": "demo:/artifact:Artifact Start",
+  "state_id": "demo:/markdown:Markdown Start",
   "state_version": 1,
   "blocks": ["main"],
   "actions": [
@@ -473,10 +473,10 @@ example only
 }
 \`\`\`
 `,
-      initialRoute: "/artifact"
+      initialRoute: "/markdown"
     });
 
-    expect(host.getSnapshot().route).toBe("/artifact");
+    expect(host.getSnapshot().route).toBe("/markdown");
     expect(host.getSnapshot().markdown).toContain("example only");
     expect(host.getSnapshot().blocks[0]?.operations.map((operation) => operation.name)).toEqual([
       "submit_message"

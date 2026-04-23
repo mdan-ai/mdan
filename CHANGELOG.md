@@ -15,7 +15,7 @@ The format is intentionally lightweight and based on Keep a Changelog style:
 ### Added
 
 - Added `CONTRIBUTING.md` with repository layout, command reference, and doc update expectations.
-- Added `ARCHITECTURE.md` describing public package surfaces, layer boundaries, and the artifact-first runtime model.
+- Added `ARCHITECTURE.md` describing public package surfaces, layer boundaries, and the Markdown-first runtime model.
 - Added a dedicated `spec/` tree for standard-layer protocol documents.
 - Added `docs/index.md`, `docs/getting-started.md`, and `docs/examples.md` as docs-site entry pages.
 - Added a dedicated `docs-site/` directory for rendering current repository docs and specs as a developer docs site.
@@ -23,7 +23,7 @@ The format is intentionally lightweight and based on Keep a Changelog style:
 ### Changed
 
 - Updated `README.md` to link maintainers to the contributing guide, architecture guide, parity notes, and spec entry points.
-- Updated `docs/PARITY-CHECK.md` to reflect the current artifact-first runtime and current regression evidence.
+- Updated `docs/PARITY-CHECK.md` to reflect the current Markdown-first runtime and current regression evidence.
 - Moved spec-oriented content out of `docs/` and into `spec/`.
 
 ## 0.7.1 - 2026-04-22
@@ -39,8 +39,8 @@ The format is intentionally lightweight and based on Keep a Changelog style:
 - Package version is `0.7.1`.
 - Root app authoring now centers `page`, `route`, `action`, and `page.bind(...)`, and the starter/template/examples have been synchronized to that path.
 - The default browser shell path now uses an internal browser-shell client bundle instead of depending on a public `@mdanai/sdk/ui` product surface.
-- The server barrel has been tightened further so artifact assembly helpers, standalone asset-store helpers, and lower-level internal typing details are no longer part of the main public runtime surface.
-- The spec tree has been rewritten around `surface` / `action surface` terminology, with legacy `artifact` and `JSON surface envelope` framing removed from the active spec and public docs.
+- The server barrel has been tightened further so low-level Markdown assembly helpers, standalone asset-store helpers, and lower-level internal typing details are no longer part of the main public runtime surface.
+- The spec tree has been rewritten around `surface` / `action surface` terminology, with older Markdown-response and `JSON surface envelope` framing removed from the active spec and public docs.
 
 ### Removed
 
@@ -58,7 +58,7 @@ The format is intentionally lightweight and based on Keep a Changelog style:
   `@mdanai/sdk/server/bun`,
   `@mdanai/sdk/surface`,
   `@mdanai/sdk/ui`.
-- The repository and docs position the SDK around an artifact-first runtime where Markdown is the canonical read path and HTML is the browser projection.
+- The repository and docs position the SDK around a Markdown-first runtime where Markdown is the canonical read path and HTML is the browser projection.
 
 ### Deprecated
 

@@ -21,14 +21,14 @@ The runtime has two route families:
 - action routes, registered with `server.get(path, handler)` or
   `server.post(path, handler)`
 
-Page handlers may return an artifact-native page, a readable surface shape, a
+Page handlers may return a Markdown-native page, a readable surface shape, a
 legacy JSON compatibility shape, or `null`. Action handlers may return an
-artifact-native action result, a readable surface shape, that same legacy
+Markdown-native action result, a readable surface shape, that same legacy
 compatibility shape, or a stream result from `stream(...)`.
 
 Legacy JSON compatibility shapes are currently used as an internal bridge
-while the runtime moves toward artifact-native handlers. The SDK projects them
-into the canonical Markdown artifact shape before `text/markdown` responses are
+while the runtime moves toward Markdown-native handlers. The SDK projects them
+into the canonical Markdown surface shape before `text/markdown` responses are
 serialized.
 
 Readable surface results are the lighter-weight default authoring shape:
@@ -52,7 +52,7 @@ compatibility notes under `docs/archive/`.
 
 The runtime negotiates the response representation from `Accept`:
 
-- `text/markdown` returns the canonical page artifact
+- `text/markdown` returns the canonical page surface
 - `text/html` is only for page `GET` requests when a browser shell host is in
   front of the runtime
 - `text/event-stream` is only for stream action results
@@ -65,7 +65,7 @@ ordinary action results. `text/html` remains the browser projection for page
 a compatibility bridge while the runtime still supports legacy envelope paths.
 
 Raw action submissions still use JSON request bodies, but ordinary action
-results can now be returned as Markdown artifacts. A `POST` action with
+results can now be returned as Markdown surfaces. A `POST` action with
 `Accept: text/html` returns `406 Not Acceptable`; `Accept: text/markdown` is
 the preferred non-stream action response.
 
@@ -129,7 +129,7 @@ declared action `state_effect`:
 - a route change or missing region data falls back to page replacement
 
 Server-side auto dependencies are resolved before responses are sent, so the
-compatibility JSON bridge, Markdown artifacts, HTML projections, and browser
+compatibility JSON bridge, Markdown surfaces, HTML projections, and browser
 clients observe the same final state.
 
 `auto` is intentionally narrower than action execution:
@@ -152,7 +152,7 @@ createMdanServer({
 
 The runtime validates returned results before sending them:
 
-- page handlers and action handlers may return artifact-native results or the
+- page handlers and action handlers may return Markdown-native results or the
   readable surface / legacy JSON compatibility shapes
 - action contracts must pass `assertActionsContractEnvelope`
 - agent blocks must be balanced and valid

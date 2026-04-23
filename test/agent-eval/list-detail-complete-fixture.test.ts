@@ -46,13 +46,13 @@ describe("list-detail-complete agent eval fixture", () => {
 	    expect(detail.status).toBe(200);
 	    expect(String(detail.body)).toContain("Alpha task detail");
 
-	    const detailArtifact = await fixture.server.handle({
+	    const detailResponse = await fixture.server.handle({
 	      method: "GET",
 	      url: "https://example.test/items/alpha",
 	      headers: { accept: "text/markdown" },
 	      cookies: {}
 	    });
-	    const completeProof = extractActionProof(String(detailArtifact.body));
+	    const completeProof = extractActionProof(String(detailResponse.body));
 
 	    const complete = await fixture.server.handle({
       method: "POST",
@@ -76,7 +76,7 @@ describe("list-detail-complete agent eval fixture", () => {
     expect(fixture.getCompletedItems()).toEqual(["alpha"]);
   });
 
-  it("serves the list-detail pages as artifact-native reads instead of page JSON", async () => {
+  it("serves the list-detail pages as Markdown-native reads instead of page JSON", async () => {
     const fixture = createListDetailCompleteFixture();
 
     const jsonList = await fixture.server.handle({
@@ -101,7 +101,7 @@ describe("list-detail-complete agent eval fixture", () => {
           runId: "detail-only",
           caseId: fixture.case.id,
           fixtureId: fixture.id,
-          agentId: "artifact-probe",
+          agentId: "markdown-probe",
           assumptionLevel: "A0",
           startedAt: "2026-04-12T10:00:00.000Z"
         })

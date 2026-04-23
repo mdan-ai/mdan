@@ -13,8 +13,8 @@ function extractActionProof(markdown: string, actionId: string): string {
   return String(action?.action_proof);
 }
 
-describe("starter artifact example", () => {
-  it("renders and updates starter feed through markdown artifacts", async () => {
+describe("starter markdown example", () => {
+  it("renders and updates starter feed through markdown responses", async () => {
     const server = createStarterServer(["Booted"]);
 
     const home = await server.handle({

@@ -3,9 +3,9 @@ import { stripAgentBlocks } from "../content/agent-blocks.js";
 export { stripAgentBlocks };
 export {
   parseReadableSurface,
-  type ParseMarkdownArtifactSurfaceOptions,
+  type ParseMarkdownSurfaceOptions,
   type ReadableSurface
-} from "../content/artifact-surface.js";
+} from "../content/readable-markdown.js";
 export {
   basicMarkdownRenderer,
   type MdanMarkdownRenderContext,

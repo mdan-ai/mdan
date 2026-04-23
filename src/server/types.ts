@@ -1,5 +1,5 @@
 import type { MdanFragment, MdanPage } from "../protocol/types.js";
-import type { ReadableSurface } from "./artifact.js";
+import type { ReadableSurface } from "./markdown-surface.js";
 import type { MdanAssetHandle } from "./asset-types.js";
 
 export interface MdanRequest {

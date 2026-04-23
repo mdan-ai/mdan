@@ -5,7 +5,7 @@ The server runtime supports streaming action responses through `stream(...)` and
 
 Streaming is useful for long-running generated output, incremental logs, or
 progress updates. Ordinary page, form, and agent flows should usually return a
-normal Markdown artifact instead.
+normal Markdown response instead.
 
 ## Handler Result
 
@@ -59,7 +59,7 @@ Accept: text/event-stream
 Page reads with `Accept: text/event-stream` return `406 Not Acceptable`.
 
 Ordinary non-stream action requests should usually use `Accept: text/markdown`
-and return a normal Markdown artifact.
+and return a normal Markdown response.
 If a `POST` action requests `text/event-stream` but the runtime path is not a
 stream result, the current runtime rejects the request as an action
 representation mismatch before calling the handler.
@@ -94,9 +94,9 @@ alternate representation for ordinary surfaces.
 
 ## Browser And Headless Boundary
 
-The current headless host is Markdown-first for page and artifact reads. It can
+The current headless host is Markdown-first for page and action reads. It can
 still interoperate with legacy JSON compatibility responses where needed, but the preferred
-path is Markdown artifacts for page reads and normal action results.
+path is Markdown responses for page reads and normal action results.
 
 The default UI therefore does not yet provide a full streaming UI
 contract. Custom clients can consume stream action endpoints directly with
@@ -105,7 +105,7 @@ final-state reconciliation.
 
 When a stream produces a final page state that should be visible to normal MDAN
 clients, expose a follow-up action or route that returns the final Markdown
-artifact.
+response.
 
 ## When To Use Streaming
 
@@ -116,7 +116,7 @@ Use streaming when:
 - the client has explicit SSE handling
 - the interaction is read/progress-oriented or has a clear final recovery route
 
-Return a normal Markdown artifact when:
+Return a normal Markdown response when:
 
 - the result is a page or region update
 - agents need to inspect `allowed_next_actions`
@@ -126,11 +126,11 @@ Return a normal Markdown artifact when:
 
 ## Contract Notes
 
-Stream results are not readable-surface or artifact page responses, and they do
+Stream results are not readable-surface or Markdown page responses, and they do
 not pass through the legacy compatibility envelope validation path either.
 
 Action proof can protect the request that starts a stream, but stream chunks do
 not carry action proofs and do not expose next actions.
 
 Do not put executable action metadata only in streamed Markdown. Expose
-follow-up actions through a normal Markdown artifact.
+follow-up actions through a normal Markdown response.

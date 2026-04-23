@@ -6,7 +6,7 @@ description: Runnable MDAN agent app, skills app, and interactive Markdown examp
 # Examples
 
 The current repository keeps a small set of examples that exercise the intended
-artifact-first runtime model.
+Markdown-first runtime model.
 
 Use these examples when you want to see a small MDAN agent app, a docs-shaped
 app, an authenticated flow, or an interactive Markdown service before building
@@ -18,7 +18,7 @@ Route: [Starter Example](/examples/starter)
 
 Use it when you want the smallest app that still demonstrates:
 
-- Markdown as the canonical artifact
+- Markdown as the canonical readable surface
 - a declared action contract
 - browser HTML projection from the same underlying state
 
@@ -44,8 +44,8 @@ Use it when you want the canonical auth flow in this repository:
 
 Route: [Weather Markdown Demo](/examples/weather-markdown)
 
-Use it when you want a Markdown-first service example that returns deliverable
-artifacts for both browsers and agents.
+Use it when you want a Markdown-first service example that returns readable
+responses for both browsers and agents.
 
 ## Which One To Read First
 

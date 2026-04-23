@@ -13,7 +13,7 @@
 ## Intentional differences
 
 - Runtime now has a single server entrypoint (`createMdanServer()`).
-- Artifact-native page and action results are now supported directly.
+- Markdown-native page and action results are now supported directly.
 - `text/markdown` is the preferred public read contract.
 - `application/json` remains a legacy compatibility path, not the preferred primary contract.
 - `auth-guestbook` is the single canonical auth example flow in this SDK workspace.
@@ -21,7 +21,7 @@
 ## Regression evidence
 
 - `test/server/runtime-json-contract-mode.test.ts`
-- `test/server/auth-guestbook-artifact-example.test.ts`
+- auth guestbook Markdown-read regression coverage
 - `test/server/result-content-type-session.test.ts`
 - `test/server/response.test.ts`
 - `test/web/headless.test.ts`

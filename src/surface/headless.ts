@@ -10,7 +10,7 @@ import type {
 } from "./protocol.js";
 
 export interface CreateHeadlessHostOptions {
-  initialArtifact?: string;
+  initialMarkdown?: string;
   initialRoute?: string;
   fetchImpl?: typeof fetch;
   debugMessages?: boolean;
@@ -209,14 +209,14 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
   const fetchImpl = options.fetchImpl ?? fetch;
   const debugMessages = options.debugMessages === true;
   let mounted = false;
-  const initialParsedArtifact = options.initialArtifact
-    ? parseReadableSurface(options.initialArtifact, {
+  const initialParsedMarkdown = options.initialMarkdown
+    ? parseReadableSurface(options.initialMarkdown, {
         fallbackRoute: options.initialRoute,
         allowBareMarkdown: true
       })
     : null;
-  let snapshot = initialParsedArtifact
-      ? toSnapshot(initialParsedArtifact, null)
+  let snapshot = initialParsedMarkdown
+      ? toSnapshot(initialParsedMarkdown, null)
       : emptySnapshot(options.initialRoute);
   let status: HeadlessRuntimeState = { status: "idle", transition: "page" };
   const listeners = new Set<HeadlessListener>();

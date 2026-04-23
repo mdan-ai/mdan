@@ -27,7 +27,7 @@ It is a good fit when you want to:
 
 - serve both browsers and agents from the same app
 - keep content and follow-up interaction in one readable page model
-- return the next interaction context as a readable artifact
+- return the next interaction context as a readable Markdown response
 - negotiate Markdown for agents and HTML for browsers
 
 ## They Solve Different Layers

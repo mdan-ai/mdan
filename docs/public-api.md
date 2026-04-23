@@ -87,7 +87,7 @@ shipping as part of the main server barrel.
 Standalone asset-store read/write helpers also stay off the main server barrel.
 Standalone asset-store config/result typing also stays off the main server
 barrel.
-Artifact assembly helpers also stay off the main server barrel.
+Low-level Markdown assembly helpers also stay off the main server barrel.
 Browser-shell and auto-dependency tuning types are likewise kept off the main
 server barrel.
 Post-input validation helpers and their detailed type graph stay internal to the
@@ -146,7 +146,7 @@ serving.
 Do not import `src/browser/*` or corresponding `dist/browser/*` files from
 application code.
 
-## Dist Browser Artifacts
+## Dist Browser Bundles
 
 `dist-browser/` contains bundled browser modules served by the host in
 `browserShell.moduleMode: "local-dist"`:
@@ -157,7 +157,7 @@ application code.
 /__mdan/ui.js
 ```
 
-These artifacts are served to browsers by the host adapter. They are not
+These bundles are served to browsers by the host adapter. They are not
 general Node import paths and are not a replacement for `@mdanai/sdk/surface`.
 
 ## Internal Modules

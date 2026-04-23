@@ -95,7 +95,7 @@ server.post("/auth/logout", async () => ({
 ```
 
 For readable-surface results like these, the runtime fills in `app_id`,
-`state_id`, and `state_version` before the final artifact is serialized when
+`state_id`, and `state_version` before the final Markdown response is serialized when
 the server is configured with `createMdanServer({ appId })`.
 
 `refreshSession(session)` is available for handlers that want to re-commit the

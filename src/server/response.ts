@@ -1,9 +1,9 @@
 import type { MdanPage } from "../protocol/types.js";
 import {
-  serializeArtifactFragment,
-  serializeArtifactPage,
+  serializeMarkdownFragment,
+  serializeMarkdownPage,
   type ReadableSurface
-} from "./artifact.js";
+} from "./markdown-surface.js";
 import { serializeSseMessage } from "./sse.js";
 import { renderBrowserShell, type BrowserShellOptions } from "./browser-shell.js";
 import { toMarkdownContentType } from "./content-type.js";
@@ -16,14 +16,14 @@ import type {
 
 function resolveResponseBody(result: MdanActionResult): string {
   if (result.page) {
-    return serializeArtifactPage(result.page);
+    return serializeMarkdownPage(result.page);
   }
 
   if (!result.fragment) {
     throw new Error("Action results must include either a fragment or a page.");
   }
 
-  return serializeArtifactFragment(result.fragment);
+  return serializeMarkdownFragment(result.fragment);
 }
 
 function toAsyncIterable(stream: AsyncIterable<MdanStreamChunk> | Iterable<MdanStreamChunk>): AsyncIterable<MdanStreamChunk> {
@@ -41,12 +41,12 @@ function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<str
     if (!result.fragment) {
       throw new Error("Non-stream event-stream responses must include a fragment.");
     }
-    return serializeSseMessage(serializeArtifactFragment(result.fragment));
+    return serializeSseMessage(serializeMarkdownFragment(result.fragment));
   }
 
   return (async function* () {
     for await (const chunk of toAsyncIterable(result.stream)) {
-      const markdown = typeof chunk === "string" ? chunk : serializeArtifactFragment(chunk);
+      const markdown = typeof chunk === "string" ? chunk : serializeMarkdownFragment(chunk);
       yield serializeSseMessage(markdown);
     }
   })();
@@ -107,7 +107,7 @@ export function createPageResponse(
       "content-type": toMarkdownContentType(),
       ...(headers ?? {})
     },
-    body: serializeArtifactPage(page)
+    body: serializeMarkdownPage(page)
   };
 }
 

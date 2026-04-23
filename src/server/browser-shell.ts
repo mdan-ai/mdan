@@ -6,7 +6,7 @@ import {
   renderInitialProjection,
   type ReadableSurface,
   type RenderSurfaceSnapshotOptions
-} from "./artifact.js";
+} from "./markdown-surface.js";
 
 export interface BrowserShellOptions {
   title?: string;

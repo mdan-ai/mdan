@@ -32,10 +32,10 @@ rendering docs and specs. It is not part of the published SDK package surface.
 
 ## Architectural Model
 
-The current system is artifact-first.
+The current system is Markdown-first.
 
-- Markdown is the canonical app artifact for reads
-- HTML is a projection of that artifact for browser document requests
+- Markdown is the canonical readable app surface for reads
+- HTML is a projection of that same surface for browser document requests
 - Actions remain structured and executable
 - Legacy JSON surfaces still exist as a compatibility bridge for older runtime paths and tests
 
@@ -43,7 +43,7 @@ At a high level, the flow is:
 
 1. A host adapter accepts an HTTP request.
 2. The server runtime normalizes the request, validates input and proof, and resolves the matching route.
-3. The app/runtime layer returns an artifact-native result or a legacy readable surface.
+3. The app/runtime layer returns a Markdown-native result or a legacy readable surface.
 4. The runtime validates contracts, resolves auto dependencies, and negotiates the response representation.
 5. The response is returned as Markdown, HTML, SSE, or a limited compatibility JSON shape.
 
@@ -97,7 +97,7 @@ Key responsibilities:
 - semantic-slot support
 - agent block handling
 - content action helpers
-- artifact surface helpers
+- readable surface helpers
 
 This layer supports both runtime validation and projection logic.
 
@@ -109,7 +109,7 @@ Key responsibilities:
 
 - fetching page and action results
 - tracking current route and snapshot state
-- adapting returned artifacts or compatibility surfaces
+- adapting returned Markdown responses or compatibility surfaces
 - form and action submission
 - region patching
 - browser history integration
@@ -160,7 +160,7 @@ The runtime currently supports these representations:
 
 That representation split is deliberate:
 
-- agents and tests should be able to consume the same Markdown artifact directly
+- agents and tests should be able to consume the same Markdown response directly
 - browsers should be able to load readable HTML without inventing a separate app model
 - compatibility JSON should not drive new application design
 
@@ -168,8 +168,8 @@ That representation split is deliberate:
 
 Examples exercise the intended surfaces:
 
-- `examples/starter/`: smallest artifact-native app path
-- `examples/docs-starter/`: docs-oriented artifact app
+- `examples/starter/`: smallest Markdown-first app path
+- `examples/docs-starter/`: docs-oriented Markdown-first app
 - `examples/auth-guestbook/`: canonical auth flow
 - `demo/weather-markdown/`: deliverable Markdown-first service
 
@@ -187,7 +187,7 @@ Tests are organized by concern rather than by one giant integration suite:
 - Treat `root` as the primary product surface
 - Treat `surface` as the custom frontend boundary
 - Treat `server` and `ui` as secondary implementation/integration layers
-- Prefer artifact-native behavior over expanding legacy JSON usage
+- Prefer Markdown-native behavior over expanding legacy JSON usage
 - Promote helpers into public exports deliberately; do not rely on deep imports
 - Keep browser runtime concerns out of protocol-only modules
 - Keep Lit and UI concerns out of `surface`

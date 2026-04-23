@@ -96,11 +96,11 @@ describe("package export boundary", () => {
     expect(serverIndexSource).not.toMatch(/MdanStreamResult/);
   });
 
-  it("keeps artifact assembly helpers off the server barrel", async () => {
+  it("keeps markdown surface helpers off the server barrel", async () => {
     const serverIndexSource = await readFile(join(repoRoot, "src/server/index.ts"), "utf8");
 
-    expect(serverIndexSource).not.toMatch(/createArtifactPage/);
-    expect(serverIndexSource).not.toMatch(/createArtifactFragment/);
+    expect(serverIndexSource).not.toMatch(/createMarkdownPage/);
+    expect(serverIndexSource).not.toMatch(/createMarkdownFragment/);
     expect(serverIndexSource).not.toMatch(/createExecutableContent/);
   });
 

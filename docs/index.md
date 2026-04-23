@@ -51,7 +51,7 @@ Use it for three kinds of reading:
 - [Server Adapters](/reference/server-adapters)
 - [UI Action Semantics](/reference/ui-action-semantics)
 - [Agent Evaluation Contract](/reference/agent-eval)
-- [Agent Markdown Artifact Contract](/reference/agent-markdown-artifact-contract)
+- [Agent Markdown Surface Contract](/reference/agent-surface-contract)
 - [Baseline Parity Check](/reference/parity-check)
 - [Test Baseline](/reference/test-baseline)
 - [Changelog](/reference/changelog)

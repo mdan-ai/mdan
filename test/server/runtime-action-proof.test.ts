@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseMarkdownArtifactSurface } from "../../src/content/artifact-surface.js";
+import { parseMarkdownSurface } from "../../src/content/readable-markdown.js";
 import { createMdanServer } from "../../src/server/index.js";
 import { adaptReadableSurfaceToHeadlessSnapshot } from "../../src/surface/adapter.js";
 
@@ -100,18 +100,18 @@ function createEnvelopeWithActionSemantics(options: {
   };
 }
 
-function readArtifactSurface(payload: string) {
-  const surface = parseMarkdownArtifactSurface(payload);
+function readMarkdownSurface(payload: string) {
+  const surface = parseMarkdownSurface(payload);
   expect(surface).toBeTruthy();
   return surface!;
 }
 
 function readActionOperation(payload: string) {
-  return readArtifactSurface(payload).actions.actions?.[0] as Record<string, unknown>;
+  return readMarkdownSurface(payload).actions.actions?.[0] as Record<string, unknown>;
 }
 
 function readHeadlessOperation(payload: string) {
-  return adaptReadableSurfaceToHeadlessSnapshot(readArtifactSurface(payload)).blocks[0]?.operations[0];
+  return adaptReadableSurfaceToHeadlessSnapshot(readMarkdownSurface(payload)).blocks[0]?.operations[0];
 }
 
 async function handleMarkdownGet(server: TestServer, path: string) {
@@ -236,7 +236,7 @@ describe("runtime action proof", () => {
     expect(String(response.body)).toContain("Created: Doc");
   });
 
-  it("emits action proof metadata in markdown artifact pages and accepts issued proof", async () => {
+  it("emits action proof metadata in markdown markdown pages and accepts issued proof", async () => {
     const server = createMdanServer({
       actionProof: { secret: "proof-secret" }
     });
@@ -252,7 +252,7 @@ describe("runtime action proof", () => {
     expect(operation.submit_format).toBe("mdan-action-input-v1");
     expect(operation.submit_example).toBeTruthy();
 
-    const snapshot = adaptReadableSurfaceToHeadlessSnapshot(readArtifactSurface(String(pageResponse.body)));
+    const snapshot = adaptReadableSurfaceToHeadlessSnapshot(readMarkdownSurface(String(pageResponse.body)));
     const headlessOperation = snapshot.blocks[0]?.operations[0];
     expect(headlessOperation?.actionProof).toBeTypeOf("string");
     expect(headlessOperation?.submitFormat).toBe("mdan-action-input-v1");

@@ -139,7 +139,7 @@ Use the default mode when:
 - you do not want the app host to serve local browser bundles
 
 For the current runtime, ordinary browser page reads are still server-rendered
-artifact projections. Do not assume that serving the browser bundles is
+Markdown projections. Do not assume that serving the browser bundles is
 required for every browser request.
 
 ## 6. Static Files
@@ -235,7 +235,7 @@ If you expose SSE endpoints:
 - keep timeouts compatible with long-running streams
 
 If your infra cannot preserve streaming semantics reliably, prefer returning a
-normal Markdown artifact plus a follow-up polling/read action.
+normal Markdown response plus a follow-up polling/read action.
 
 ## 11. Logging And Observability
 

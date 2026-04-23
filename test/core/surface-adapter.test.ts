@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { adaptReadableSurfaceToHeadlessSnapshot } from "../../src/surface/adapter.js";
-import type { ReadableSurface } from "../../src/content/artifact-surface.js";
+import type { ReadableSurface } from "../../src/content/readable-markdown.js";
 import type { MdanActionManifest } from "../../src/protocol/surface.js";
 
 type LegacyFixtureSurface = {
