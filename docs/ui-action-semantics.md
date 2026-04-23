@@ -1,3 +1,8 @@
+---
+title: UI Action Semantics
+description: Reference how MDAN protocol action fields map into browser behavior, default UI interaction patterns, and client-side expectations.
+---
+
 # UI Action Semantics
 
 This document describes how protocol action fields are projected into browser

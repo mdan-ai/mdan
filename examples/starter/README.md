@@ -1,3 +1,8 @@
+---
+title: Starter Example
+description: Smallest runnable MDAN starter example showing Markdown as the canonical artifact, declared actions, and browser HTML projection.
+---
+
 # starter (Markdown-first example)
 
 Source layout:

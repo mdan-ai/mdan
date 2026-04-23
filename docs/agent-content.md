@@ -1,3 +1,8 @@
+---
+title: Agent Content
+description: See how the current TypeScript SDK implements shared readable content, semantic slots, and agent-only blocks on top of the MDAN agent content spec.
+---
+
 # Agent Content
 
 For normative protocol rules, see [Agent Content](/spec/agent-content).

@@ -1,3 +1,8 @@
+---
+title: Runtime Contract
+description: Practical guide to the current MDAN server runtime, including page routes, action routes, response shapes, and host-facing behavior.
+---
+
 # Runtime Contract
 
 This document describes the server runtime behavior implemented by

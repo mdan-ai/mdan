@@ -1,3 +1,8 @@
+---
+title: Agent Markdown Surface Contract
+description: Implementation guide for the current SDK's Markdown-first agent consumption path, embedded action metadata, and HTML projection boundary.
+---
+
 # Agent Markdown Surface Contract
 
 Status: implementation guide for the current TypeScript SDK.

@@ -1,3 +1,8 @@
+---
+title: Public API And Package Boundaries
+description: Supported public package entry paths for `@mdanai/sdk`, including the app API, surface runtime, and Node and Bun host adapters.
+---
+
 # Public API And Package Boundaries
 
 This document describes the supported package entry paths for `@mdanai/sdk`.

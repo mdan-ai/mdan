@@ -1,3 +1,8 @@
+---
+title: Server Host Adapters
+description: Compare the MDAN Node and Bun host adapters, and understand how the transport-neutral server runtime connects to real HTTP servers.
+---
+
 # Server Host Adapters
 
 The server runtime is transport-neutral. Host adapters connect a

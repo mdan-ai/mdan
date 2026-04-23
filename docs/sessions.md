@@ -1,3 +1,8 @@
+---
+title: Sessions
+description: Configure MDAN session providers, cookie-backed session mutation, and the runtime rules for sign-in, refresh, and sign-out flows.
+---
+
 # Sessions
 
 The server runtime has a small session mutation contract. It does not prescribe

@@ -1,3 +1,8 @@
+---
+title: Auth Guestbook Example
+description: Canonical MDAN auth example covering login, registration, session state, and a guestbook posting flow.
+---
+
 # auth-guestbook (Markdown surface runtime)
 
 This example organizes assets into explicit source files while following the Markdown surface runtime contract:

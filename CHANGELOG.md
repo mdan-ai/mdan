@@ -1,3 +1,8 @@
+---
+title: Changelog
+description: Release notes and notable changes for the current MDAN TypeScript SDK package.
+---
+
 # Changelog
 
 All notable changes to this package should be documented in this file.

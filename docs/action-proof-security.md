@@ -1,3 +1,8 @@
+---
+title: Action Proof Security
+description: Learn how the current MDAN TypeScript SDK implements action proof, execution guards, and server-issued action capabilities.
+---
+
 # Action Proof Security
 
 For normative protocol rules, see [Action Proof](/spec/action-proof).

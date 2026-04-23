@@ -1,3 +1,8 @@
+---
+title: Error Model And Status Codes
+description: Reference the MDAN runtime error model, status codes, and how readable Markdown and legacy JSON compatibility responses are returned on failure.
+---
+
 # Error Model And Status Codes
 
 MDAN errors are part of the runtime contract. Clients should handle non-2xx

@@ -1,3 +1,8 @@
+---
+title: Baseline Parity Check
+description: Summary of confirmed behavior parity and intentional differences between the current SDK runtime and the legacy JSON bridge model.
+---
+
 # Baseline Parity Check (tssdk vs json-bridge)
 
 ## Confirmed aligned

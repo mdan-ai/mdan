@@ -1,3 +1,8 @@
+---
+title: Architecture
+description: Architectural overview of the MDAN SDK package surfaces, internal layers, runtime boundaries, and the Markdown-first app model.
+---
+
 # Architecture
 
 This repository ships the reference MDAN SDK as a small set of public package

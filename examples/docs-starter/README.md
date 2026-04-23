@@ -1,3 +1,8 @@
+---
+title: Docs Starter Example
+description: Runnable MDAN docs-style example that serves multiple Markdown pages with a simple read and refresh flow.
+---
+
 # docs-starter (Markdown-first docs example)
 
 Source layout:

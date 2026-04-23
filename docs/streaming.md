@@ -1,3 +1,8 @@
+---
+title: Streaming And SSE
+description: Use MDAN streaming responses and Server-Sent Events for incremental action output, progress updates, and long-running readable flows.
+---
+
 # Streaming And SSE
 
 The server runtime supports streaming action responses through `stream(...)` and

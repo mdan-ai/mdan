@@ -1,3 +1,8 @@
+---
+title: Agent Evaluation Contract
+description: Contributor-focused contract for evaluating whether MDAN surfaces and examples remain naturally usable by general-purpose agents.
+---
+
 # Agent Evaluation Contract
 
 The agent evaluation support under `test/agent-eval/` defines a lightweight

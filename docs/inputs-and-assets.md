@@ -1,3 +1,8 @@
+---
+title: Inputs And Assets
+description: Learn how MDAN action inputs, field schemas, uploads, and asset handling work across the server runtime, browser runtime, and default UI.
+---
+
 # Inputs And Assets
 
 MDAN action inputs are declared with JSON Schema in each action's

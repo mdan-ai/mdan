@@ -1,3 +1,8 @@
+---
+title: Browser And Headless Runtime
+description: Understand the MDAN browser shell, headless surface runtime, and how browser-facing delivery works across default and custom frontends.
+---
+
 # Browser And Headless Runtime
 
 The SDK has two browser-facing layers:

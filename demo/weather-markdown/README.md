@@ -1,3 +1,8 @@
+---
+title: Weather Markdown Demo
+description: MDAN weather demo that turns public weather API data into a direct online skill with readable Markdown surfaces for both agents and humans.
+---
+
 # MDAN Weather
 
 This demo turns public weather API data into a very direct online weather skill.

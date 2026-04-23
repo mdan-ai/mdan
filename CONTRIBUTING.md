@@ -1,3 +1,8 @@
+---
+title: Contributing
+description: Maintainer guide for contributing to the MDAN TypeScript SDK, including repository layout, commands, docs updates, and test expectations.
+---
+
 # Contributing
 
 This repository contains the reference TypeScript SDK for building MDAN apps.
