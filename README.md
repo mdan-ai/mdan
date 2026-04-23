@@ -87,6 +87,9 @@ import { actions, createApp, fields } from "@mdanai/sdk";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const messages = ["Welcome to MDAN"];
+interface SubmitMessageInputs {
+  message?: string;
+}
 
 const app = createApp({
   appId: "starter",
@@ -133,7 +136,7 @@ The surface should expose the current messages and next allowed actions.
 
 app.route(home.bind(messages));
 
-app.action("/post", async ({ inputs }) => {
+app.action<SubmitMessageInputs>("/post", async ({ inputs }) => {
   const message = String(inputs.message ?? "").trim();
   if (message) {
     messages.unshift(message);
@@ -154,9 +157,16 @@ export default createHost(app, {
 - `app.page(path, config)`: define a reusable page
 - `app.route(page)`: register a page that can render directly
 - `app.route(path, handler)`: bind request-time state to a page or route
-- `app.action(path, handler)`: register an action
+- `app.action(path, handler)`: register a POST action handler
+- `app.action(path, { method: "GET" }, handler)`: register a GET action handler
 - `page.bind(state)`: associate current state with a page definition
 - `page.render(state)`: render directly when you want the explicit form
+
+Field helpers include:
+
+- `fields.string()`, `fields.number()`, `fields.boolean()`
+- `fields.enum([...])`, `fields.date()`, `fields.datetime()`
+- `fields.array(itemField)`, `fields.object(shape)`
 
 For stateful pages, `page.bind(...)` is the shortest path:
 

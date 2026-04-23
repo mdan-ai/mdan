@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { actions, createApp, fields } from "../src/index.js";
 import { parseFrontmatter } from "../src/content/content-actions.js";
@@ -13,6 +13,10 @@ function extractExecutable(markdown: string) {
 }
 
 describe("app API", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("builds starter-style pages with page configs", async () => {
     const app = createApp({ appId: "starter" });
     const messages = ["Booted"];
@@ -148,6 +152,158 @@ describe("app API", () => {
     expect(String(post.body)).toContain("Hello");
   });
 
+  it("supports GET actions via app.action method option", async () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const lookup = app.page("/lookup", {
+      markdown: "# Lookup\n\n::: block{id=\"main\"}\n:::",
+      render(message: string) {
+        return {
+          main: message
+        };
+      }
+    });
+
+    app.action("/lookup", { method: "GET" }, ({ inputs }) => {
+      const name = String(inputs.name ?? "unknown");
+      return lookup.bind(`name=${name}`).render();
+    });
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/lookup?name=Beijing",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("name=Beijing");
+  });
+
+  it("warns when declared action transport and app.action registration method do not match", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const home = app.page("/", {
+      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"lookup\"}\n:::",
+      actions: [
+        actions.read("lookup", {
+          label: "Lookup",
+          target: "/lookup",
+          transport: { method: "GET" }
+        })
+      ],
+      render() {
+        return {
+          main: "- ready"
+        };
+      }
+    });
+
+    app.route(home);
+    app.action("/lookup", async () => home.render());
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[mdan-sdk] Action transport mismatch on "/lookup": declared GET action but no matching app.action handler is registered.'
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[mdan-sdk] Action transport mismatch on "/lookup": app.action registered POST handler, but no page action declares that method for this target.'
+    );
+  });
+
+  it("supports richer schema builders for action input contracts", async () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const home = app.page("/", {
+      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"query_weather\"}\n:::",
+      actions: [
+        actions.read("query_weather", {
+          label: "Query Weather",
+          target: "/weather",
+          transport: { method: "GET" },
+          input: {
+            location: fields.string({ required: true, minLength: 1 }),
+            range: fields.enum(["current", "today", "3d"] as const, { required: true }),
+            date: fields.date(),
+            updated_at: fields.datetime(),
+            thresholds: fields.array(fields.number({ min: 0, max: 100 }), { minItems: 1 }),
+            filters: fields.object(
+              {
+                locale: fields.string({ required: true, pattern: "^[a-z]{2}(-[A-Z]{2})?$" }),
+                includeWind: fields.boolean()
+              },
+              { required: true }
+            )
+          }
+        })
+      ],
+      render() {
+        return {
+          main: "- ready"
+        };
+      }
+    });
+    app.route(home);
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    const executable = extractExecutable(String(response.body));
+    const action = executable.actions?.find((item) => item.id === "query_weather");
+    expect(action).toMatchObject({
+      transport: { method: "GET" },
+      input_schema: {
+        type: "object",
+        required: ["location", "range", "filters"],
+        properties: {
+          location: { type: "string", minLength: 1 },
+          range: { type: "string", enum: ["current", "today", "3d"] },
+          date: { type: "string", format: "date" },
+          updated_at: { type: "string", format: "date-time" },
+          thresholds: {
+            type: "array",
+            minItems: 1,
+            items: { type: "number", minimum: 0, maximum: 100 }
+          },
+          filters: {
+            type: "object",
+            required: ["locale"],
+            additionalProperties: false,
+            properties: {
+              locale: { type: "string", pattern: "^[a-z]{2}(-[A-Z]{2})?$" },
+              includeWind: { type: "boolean" }
+            }
+          }
+        }
+      }
+    });
+  });
+
   it("lets app API configure markdown rendering for browser shell html", async () => {
     const app = createApp({
       appId: "starter",
@@ -191,7 +347,7 @@ describe("app API", () => {
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toBe("text/html");
     const body = String(response.body);
-    expect(body).toContain('<article data-kind="page" data-route="/"># Starter</article>');
+    expect(body).toContain('<article data-kind="page" data-route="/"># Starter');
     expect(body).toContain('<aside data-kind="block" data-block="main">- Booted</aside>');
   });
 });

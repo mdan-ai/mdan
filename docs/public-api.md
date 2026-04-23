@@ -46,10 +46,17 @@ The root package includes:
 - `createApp()`
 - `actions.read()`, `actions.write()`, `actions.navigate()`
 - `fields.string()`, `fields.number()`, `fields.boolean()`
+- `fields.enum()`, `fields.date()`, `fields.datetime()`
+- `fields.array()`, `fields.object()`
 - `AppBrowserShellOptions`
 - `CreateAppOptions`
 - app-level markdown rendering types
 - `signIn()` and `signOut()` session helpers
+
+Action registration supports both method styles:
+
+- `app.action(path, handler)` (default `POST`)
+- `app.action(path, { method: "GET" }, handler)`
 
 This is the preferred entry for defining app pages and actions without exposing
 protocol or runtime internals in your application code.

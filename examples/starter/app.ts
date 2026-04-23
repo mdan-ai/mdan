@@ -11,6 +11,10 @@ export function createStarterServer(
   initialMessages: string[] = ["Welcome to MDAN"],
   browserShell: AppBrowserShellOptions = { moduleMode: "local-dist" }
 ) {
+  interface SubmitMessageInputs {
+    message?: string;
+  }
+
   const messages = [...initialMessages];
   const app = createApp({
     appId: "starter",
@@ -47,7 +51,7 @@ ${list}`
 
   app.route(home.bind(messages));
 
-  app.action("/post", async ({ inputs }) => {
+  app.action<SubmitMessageInputs>("/post", async ({ inputs }) => {
     const message = String(inputs.message ?? "").trim();
     if (message) {
       messages.unshift(message);

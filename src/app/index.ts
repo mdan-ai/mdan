@@ -18,11 +18,14 @@ import type {
 type AppActionVerb = "read" | "write" | "navigate";
 type AppTransportMethod = "GET" | "POST";
 type AppInputSchemaProperty = Record<string, unknown>;
+const appActionDefinitionsSymbol = Symbol("mdan.app.action-definitions");
 
 export interface AppFieldDefinition {
   required?: boolean;
   schema: AppInputSchemaProperty;
 }
+
+export type AppFieldMap = Record<string, AppFieldDefinition>;
 
 export interface AppActionDefinition {
   id: string;
@@ -52,6 +55,14 @@ export interface AppPageDefinition<TRenderArgs extends unknown[] = []> {
   render: (...args: TRenderArgs) => ReadableSurface;
   bind: (...args: TRenderArgs) => AppBoundPageDefinition;
 }
+
+type AppPageWithActionDefinitions<TRenderArgs extends unknown[] = []> = AppPageDefinition<TRenderArgs> & {
+  [appActionDefinitionsSymbol]?: AppActionDefinition[];
+};
+
+type AppBoundPageWithActionDefinitions = AppBoundPageDefinition & {
+  [appActionDefinitionsSymbol]?: AppActionDefinition[];
+};
 
 export interface AppMarkdownRenderContext {
   kind: "page" | "block";
@@ -83,7 +94,12 @@ export interface AppInstance {
   route(page: AppBoundPageDefinition): void;
   route(page: AppPageDefinition<[]>): void;
   route(path: string, handler: AppPageHandler): void;
-  action(path: string, handler: AppActionHandler): void;
+  action<TInputs extends MdanInputMap = MdanInputMap>(
+    path: string,
+    options: { method?: AppTransportMethod },
+    handler: AppActionHandler<TInputs>
+  ): void;
+  action<TInputs extends MdanInputMap = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
   handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
@@ -91,8 +107,8 @@ export type AppPageHandler = (
   context: MdanPageHandlerContext
 ) => Promise<ReadableSurface | MdanPage | MdanPageResult | null> | ReadableSurface | MdanPage | MdanPageResult | null;
 
-export type AppActionHandler = (
-  context: MdanHandlerContext
+export type AppActionHandler<TInputs extends MdanInputMap = MdanInputMap> = (
+  context: Omit<MdanHandlerContext, "inputs"> & { inputs: TInputs }
 ) => Promise<ReadableSurface | MdanActionResult | MdanStreamResult> | ReadableSurface | MdanActionResult | MdanStreamResult;
 
 function cloneJson<T>(value: T): T {
@@ -111,6 +127,22 @@ function compileInputSchema(input: Record<string, AppFieldDefinition> | undefine
     Object.entries(input ?? {}).map(([name, definition]) => [name, cloneJson(definition.schema)])
   );
   const required = Object.entries(input ?? {})
+    .filter(([, definition]) => definition.required)
+    .map(([name]) => name);
+
+  return {
+    type: "object",
+    ...(required.length > 0 ? { required } : {}),
+    properties,
+    additionalProperties: false
+  };
+}
+
+function compileObjectFieldSchema(shape: AppFieldMap): AppInputSchemaProperty {
+  const properties = Object.fromEntries(
+    Object.entries(shape).map(([name, definition]) => [name, cloneJson(definition.schema)])
+  );
+  const required = Object.entries(shape)
     .filter(([, definition]) => definition.required)
     .map(([name]) => name);
 
@@ -157,20 +189,33 @@ function buildReadableSurface(
 }
 
 export const fields = {
-  string(options: { required?: boolean; password?: boolean } = {}): AppFieldDefinition {
+  string(
+    options: {
+      required?: boolean;
+      password?: boolean;
+      minLength?: number;
+      maxLength?: number;
+      pattern?: string;
+    } = {}
+  ): AppFieldDefinition {
     return {
       required: options.required,
       schema: {
         type: "string",
-        ...(options.password ? { format: "password" } : {})
+        ...(options.password ? { format: "password" } : {}),
+        ...(typeof options.minLength === "number" ? { minLength: options.minLength } : {}),
+        ...(typeof options.maxLength === "number" ? { maxLength: options.maxLength } : {}),
+        ...(typeof options.pattern === "string" ? { pattern: options.pattern } : {})
       }
     };
   },
-  number(options: { required?: boolean } = {}): AppFieldDefinition {
+  number(options: { required?: boolean; min?: number; max?: number } = {}): AppFieldDefinition {
     return {
       required: options.required,
       schema: {
-        type: "number"
+        type: "number",
+        ...(typeof options.min === "number" ? { minimum: options.min } : {}),
+        ...(typeof options.max === "number" ? { maximum: options.max } : {})
       }
     };
   },
@@ -180,6 +225,59 @@ export const fields = {
       schema: {
         type: "boolean"
       }
+    };
+  },
+  enum<const TValues extends readonly string[]>(
+    values: TValues,
+    options: { required?: boolean; description?: string } = {}
+  ): AppFieldDefinition {
+    return {
+      required: options.required,
+      schema: {
+        type: "string",
+        enum: [...values],
+        ...(typeof options.description === "string" ? { description: options.description } : {})
+      }
+    };
+  },
+  date(options: { required?: boolean; description?: string } = {}): AppFieldDefinition {
+    return {
+      required: options.required,
+      schema: {
+        type: "string",
+        format: "date",
+        ...(typeof options.description === "string" ? { description: options.description } : {})
+      }
+    };
+  },
+  datetime(options: { required?: boolean; description?: string } = {}): AppFieldDefinition {
+    return {
+      required: options.required,
+      schema: {
+        type: "string",
+        format: "date-time",
+        ...(typeof options.description === "string" ? { description: options.description } : {})
+      }
+    };
+  },
+  array(
+    item: AppFieldDefinition,
+    options: { required?: boolean; minItems?: number; maxItems?: number } = {}
+  ): AppFieldDefinition {
+    return {
+      required: options.required,
+      schema: {
+        type: "array",
+        items: cloneJson(item.schema),
+        ...(typeof options.minItems === "number" ? { minItems: options.minItems } : {}),
+        ...(typeof options.maxItems === "number" ? { maxItems: options.maxItems } : {})
+      }
+    };
+  },
+  object(shape: AppFieldMap, options: { required?: boolean } = {}): AppFieldDefinition {
+    return {
+      required: options.required,
+      schema: compileObjectFieldSchema(shape)
     };
   }
 };
@@ -217,42 +315,112 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
       ...(rendering?.markdown ? { markdownRenderer: rendering.markdown } : {})
     }
   });
+  const declaredActionMethodsByPath = new Map<string, Set<AppTransportMethod>>();
+  const registeredActionMethodsByPath = new Map<string, Set<AppTransportMethod>>();
+  let validatedActionTransport = false;
+
+  function registerDeclaredActionDefinitions(definitions: AppActionDefinition[] | undefined): void {
+    for (const definition of definitions ?? []) {
+      const method = resolveTransportMethod(definition.verb, definition.transport?.method);
+      const methods = declaredActionMethodsByPath.get(definition.target) ?? new Set<AppTransportMethod>();
+      methods.add(method);
+      declaredActionMethodsByPath.set(definition.target, methods);
+    }
+  }
+
+  function registerActionHandlerMethod(path: string, method: AppTransportMethod): void {
+    const methods = registeredActionMethodsByPath.get(path) ?? new Set<AppTransportMethod>();
+    methods.add(method);
+    registeredActionMethodsByPath.set(path, methods);
+  }
+
+  function validateActionTransportConsistency(): void {
+    for (const [path, declaredMethods] of declaredActionMethodsByPath.entries()) {
+      const registeredMethods = registeredActionMethodsByPath.get(path) ?? new Set<AppTransportMethod>();
+      for (const method of declaredMethods) {
+        if (!registeredMethods.has(method)) {
+          console.warn(
+            `[mdan-sdk] Action transport mismatch on "${path}": declared ${method} action but no matching app.action handler is registered.`
+          );
+        }
+      }
+      for (const method of registeredMethods) {
+        if (!declaredMethods.has(method)) {
+          console.warn(
+            `[mdan-sdk] Action transport mismatch on "${path}": app.action registered ${method} handler, but no page action declares that method for this target.`
+          );
+        }
+      }
+    }
+  }
+
   const page: AppInstance["page"] = <TRenderArgs extends unknown[]>(
     path: string,
     config: AppPageConfig<TRenderArgs>
-  ): AppPageDefinition<TRenderArgs> => ({
-    path,
-    render: (...args: TRenderArgs) => buildReadableSurface(
+  ): AppPageDefinition<TRenderArgs> => {
+    const actionDefinitions = config.actions ?? [];
+    return {
       path,
-      config.markdown,
-      config.render(...args),
-      config.actions ?? []
-      ),
-    bind: (...args: TRenderArgs) => ({
-      path,
-      render: () => buildReadableSurface(
+      render: (...args: TRenderArgs) => buildReadableSurface(
         path,
         config.markdown,
         config.render(...args),
-        config.actions ?? []
-      )
-    })
-  });
+        actionDefinitions
+      ),
+      bind: (...args: TRenderArgs) => ({
+        path,
+        render: () => buildReadableSurface(
+          path,
+          config.markdown,
+          config.render(...args),
+          actionDefinitions
+        ),
+        [appActionDefinitionsSymbol]: actionDefinitions
+      }),
+      [appActionDefinitionsSymbol]: actionDefinitions
+    };
+  };
 
   const route = ((pathOrPage: string | AppBoundPageDefinition | AppPageDefinition<[]>, handler?: AppPageHandler) => {
     if (typeof pathOrPage === "string") {
       server.page(pathOrPage, handler as MdanPageHandler);
       return;
     }
+    registerDeclaredActionDefinitions(
+      (pathOrPage as AppPageWithActionDefinitions | AppBoundPageWithActionDefinitions)[appActionDefinitionsSymbol]
+    );
     server.page(pathOrPage.path, async () => pathOrPage.render());
   }) as AppInstance["route"];
+
+  const action: AppInstance["action"] = (
+    path: string,
+    optionsOrHandler: { method?: AppTransportMethod } | AppActionHandler,
+    maybeHandler?: AppActionHandler
+  ): void => {
+    const hasOptions = typeof optionsOrHandler !== "function";
+    const method = hasOptions ? optionsOrHandler.method ?? "POST" : "POST";
+    const handler = hasOptions ? maybeHandler : optionsOrHandler;
+    if (!handler) {
+      throw new Error("app.action requires a handler");
+    }
+    registerActionHandlerMethod(path, method);
+    if (method === "GET") {
+      server.get(path, handler as MdanHandler);
+      return;
+    }
+    server.post(path, handler as MdanHandler);
+  };
 
   return {
     page,
     route,
-    action(path: string, handler: AppActionHandler): void {
-      server.post(path, handler as MdanHandler);
-    },
-    handle: server.handle
+    action,
+    async handle(request: MdanRequest): Promise<MdanResponse> {
+      if (!validatedActionTransport) {
+        validatedActionTransport = true;
+        validateActionTransportConsistency();
+      }
+      return await server.handle(request);
+    }
   };
 }
