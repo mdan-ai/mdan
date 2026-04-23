@@ -43,8 +43,10 @@ The current interoperable action shape is:
 type MdanAction = {
   id: string;
   label?: string;
-  verb?: "navigate" | "read" | "write";
+  verb?: "route" | "read" | "write";
   target: string;
+  auto?: boolean;
+  block?: string;
   transport?: {
     method?: "GET" | "POST";
   };
@@ -64,6 +66,18 @@ type MdanAction = {
   submit_example?: Record<string, unknown>;
 };
 ```
+
+For the complete field-level reference (including guard/security/runtime-injected
+execution metadata), see [Actions JSON Field Reference](/spec/action-json-fields).
+
+Field notes:
+
+- `auto`, when `true`, marks a GET action as an auto-resolvable dependency
+  candidate in implementations that support auto dependency resolution.
+- `block` associates the action with a rendered region/block in the current
+  surface projection.
+- `auto` MUST NOT bypass action proof requirements, allow-list checks, or
+  authorization checks.
 
 ## 3. Action Identity
 
@@ -86,7 +100,7 @@ Method semantics:
 
 When `transport.method` is absent:
 
-- consumers SHOULD derive `GET` for `verb: "navigate"` and `verb: "read"`
+- consumers SHOULD derive `GET` for `verb: "route"` and `verb: "read"`
 - consumers SHOULD derive `POST` for `verb: "write"`
 - producers SHOULD prefer declaring the method explicitly
 
@@ -111,6 +125,9 @@ An explicitly empty `allowed_next_actions` means:
 ## 6. Input Contract
 
 `input_schema` declares the accepted input shape for the action.
+
+For normative input value and schema semantics, see
+[Input And Input Schema](/spec/input-and-schema).
 
 For interoperable use:
 
@@ -149,13 +166,16 @@ When `response_mode` is `region`:
 - consumers MUST fall back to page replacement if region application is unsafe
   or ambiguous
 
+For full patch/fallback contract details, see
+[Region Update Semantics](/spec/region-update-semantics).
+
 ## 8. Verb Semantics
 
 `verb` communicates the semantic intent of the action.
 
 Stable interoperable values are:
 
-- `navigate`
+- `route`
 - `read`
 - `write`
 
@@ -198,3 +218,6 @@ A conforming action consumer:
 - MUST build inputs from `input_schema` when present
 - MUST treat `state_effect` as execution intent, not as permission to skip
   validation or safety checks
+
+For strict runtime validation claims, see
+[Action Envelope Validation Profile](/spec/action-envelope-validation-profile).

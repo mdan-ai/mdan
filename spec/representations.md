@@ -104,6 +104,9 @@ If an implementation supports representation negotiation, it:
 An implementation MUST NOT silently substitute a conflicting representation when
 the request semantics clearly require another form.
 
+For deterministic `Accept` parsing, weighting, and tie-break behavior, see
+[Representation Negotiation](/spec/representation-negotiation).
+
 ## 9. Compatibility Rules
 
 Additional projections or transport forms MAY coexist.

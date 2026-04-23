@@ -46,6 +46,7 @@ Use it for three kinds of reading:
 - [Streaming](/guides/streaming)
 - [Agent Content](/guides/agent-content)
 - [Action Proof Security](/guides/action-proof-security)
+- [Action JSON](/action-json)
 
 ## Reference
 
@@ -63,12 +64,17 @@ Use it for three kinds of reading:
 
 - [Spec Overview](/spec)
 - [Application Surface Spec](/spec/application-surface)
+- [Actions JSON Field Reference](/spec/action-json-fields)
 - [Surface Contract](/spec/surface-contract)
 - [Action Execution](/spec/action-execution)
+- [Action Envelope Validation Profile](/spec/action-envelope-validation-profile)
+- [Input And Input Schema](/spec/input-and-schema)
 - [Action Proof](/spec/action-proof)
 - [Agent Content](/spec/agent-content)
 - [State And Identity](/spec/state-and-identity)
 - [Representations](/spec/representations)
+- [Representation Negotiation](/spec/representation-negotiation)
+- [Region Update Semantics](/spec/region-update-semantics)
 - [Versioning And Conformance](/spec/versioning-and-conformance)
 
 ## Contributing
