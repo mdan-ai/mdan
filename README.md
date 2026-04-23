@@ -83,7 +83,8 @@ Advanced path:
 ## Minimal App
 
 ```ts
-import { actions, createApp, fields, type InferAppInputs } from "@mdanai/sdk";
+import { actions, createApp, fields } from "@mdanai/sdk";
+import type { InferAppInputs } from "@mdanai/sdk";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const messages = ["Welcome to MDAN"];
@@ -156,12 +157,17 @@ export default createHost(app, {
 ## App API Shape
 
 - `createApp(...)`: create the app runtime
+- `actions.route(id, options)`: declare route-style page navigation actions
+- `actions.read(id, options)`: declare read/query actions
+- `actions.write(id, options)`: declare mutation actions
 - `app.page(path, config)`: define a reusable page
 - `app.route(page)`: register a page that can render directly
 - `app.route(path, handler)`: bind request-time state to a page or route
 - `app.bindActions(page, handlers)`: register handlers from declared page action ids
 - `app.action(path, handler)`: register a POST action handler
 - `app.action(path, { method: "GET" }, handler)`: register a GET action handler
+- `app.read(path, handler)`: semantic helper for GET read handlers
+- `app.write(path, handler)`: semantic helper for POST write handlers
 - `page.bind(state)`: associate current state with a page definition
 - `page.render(state)`: render directly when you want the explicit form
 

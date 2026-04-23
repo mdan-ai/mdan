@@ -51,6 +51,28 @@ authoring/runtime type graph.
 Use this entry when you want the shortest path to shipping an app without
 directly modeling protocol/runtime internals.
 
+### App Authoring Helpers
+
+- action declaration helpers: `actions.route(...)`, `actions.read(...)`, `actions.write(...)`
+- page registration: `app.route(...)`
+- action registration:
+  - `app.action(path, handler)` (POST default)
+  - `app.action(path, { method: "GET" }, handler)`
+  - `app.read(path, handler)` and `app.write(path, handler)` semantic shortcuts
+
+### App API Runtime Rules
+
+- `route` and `read` are both GET-capable, but they are not interchangeable:
+  - `app.route(path, ...)` owns page-level GET navigation.
+  - `app.read(path, ...)` owns data-read GET handlers.
+- The same GET path cannot be registered by both `app.route(...)` and `app.read(...)`/`app.action(..., { method: "GET" }, ...)`.
+  The SDK throws early to prevent ambiguous routing semantics.
+- `app.bindActions(page, handlers)` binds handlers by declared action id and target/method:
+  - throws if multiple declared actions collapse to the same `method+target` and cannot be disambiguated
+  - skips GET actions already served by a registered page route
+  - warns for unknown ids and missing declared handlers
+- Current action transport support in the app/runtime layer is `GET` and `POST`.
+
 ## `@mdanai/sdk/server`
 
 The shared lower-level server runtime and server-side helpers.

@@ -1,42 +1,35 @@
 ---
 title: Build Your First App
-description: Build a small MDAN app from scratch with one page, one action, and a local host.
+description: Build a minimal MDAN app with the current App API (`createApp`, `page`, `route`, `read/write`, `bindActions`) and run it locally.
 ---
 
 # Build Your First App
 
-This guide walks through the smallest real MDAN app you can build in the
-current SDK.
+This guide is the canonical starter path for the current SDK.
 
 By the end, you will have:
 
-- one Markdown page
-- one action contract
-- one server file
-- one local host entry
+- one page defined with `app.page(...)`
+- one write action contract
+- one app handler wired through `app.bindActions(...)`
+- one local Bun host
 
 ## 1. Create The App Files
-
-Start with this shape:
 
 ```text
 app/
   index.md
-  actions/
-    main.json
 app.ts
 dev.ts
 ```
 
-If you prefer generated scaffolding, run:
+If you prefer scaffolding:
 
 ```bash
 npm create mdan@latest my-app
 ```
 
-This guide shows the same structure manually so the moving pieces stay clear.
-
-## 2. Write The Page
+## 2. Write The Page Markdown
 
 Create `app/index.md`:
 
@@ -55,112 +48,69 @@ Submit only actions declared by the current surface.
 ## Result
 The latest messages appear below.
 
-::: block{id="main"}
+::: block{id="main" actions="submit_message"}
 ```
 
-The Markdown body is the readable surface for both people and agents.
-
-## 3. Declare The Action
-
-Create `app/actions/main.json`:
-
-```json
-{
-  "app_id": "starter",
-  "state_id": "starter:home:1",
-  "state_version": 1,
-  "blocks": ["main"],
-  "actions": [
-    {
-      "id": "submit_message",
-      "label": "Post message",
-      "verb": "write",
-      "target": "/post",
-      "transport": { "method": "POST" },
-      "input_schema": {
-        "type": "object",
-        "required": ["message"],
-        "properties": {
-          "message": { "type": "string" }
-        },
-        "additionalProperties": false
-      },
-      "state_effect": {
-        "response_mode": "page"
-      }
-    }
-  ],
-  "allowed_next_actions": ["submit_message"]
-}
-```
-
-This is the executable contract that the returned Markdown response will carry in its
-embedded `mdan` block.
-
-## 4. Build The Server
+## 3. Build The App With `createApp`
 
 Create `app.ts`:
 
 ```ts
-import { readFileSync } from "node:fs";
-import { createMdanServer } from "@mdanai/sdk/server";
+import { actions, createApp, fields, type InferAppInputs } from "@mdanai/sdk";
 
-const template = readFileSync(new URL("./app/index.md", import.meta.url), "utf8");
-const baseActions = JSON.parse(
-  readFileSync(new URL("./app/actions/main.json", import.meta.url), "utf8")
-);
+const app = createApp({
+  appId: "starter"
+});
 
-function createSurface(messages: string[]) {
-  const stateVersion = messages.length + 1;
-  const stateId = `starter:home:${stateVersion}`;
-  const list = messages.length > 0 ? messages.map((line) => `- ${line}`).join("\n") : "- No messages yet";
+const messages = ["Welcome to MDAN"];
+const submitInput = {
+  message: fields.string({ required: true, minLength: 1 })
+} as const;
+type SubmitMessageInputs = InferAppInputs<typeof submitInput>;
 
-  return {
-    markdown: `---\nroute: \"/\"\napp_id: \"starter\"\nstate_id: \"${stateId}\"\nstate_version: ${stateVersion}\n---\n\n${template}\n\n${list}`,
-    actions: {
-      ...baseActions,
-      state_id: stateId,
-      state_version: stateVersion
-    },
-    route: "/",
-    regions: {
-      main: list
-    }
-  };
-}
+const home = app.page("/", {
+  markdown: `# Starter App
 
-export function createAppServer() {
-  const messages = ["Welcome to MDAN"];
-  const server = createMdanServer();
+::: block{id="main" actions="submit_message"}`,
+  actions: [
+    actions.write("submit_message", {
+      label: "Post message",
+      target: "/post",
+      input: submitInput
+    })
+  ],
+  render(currentMessages: string[]) {
+    return {
+      main: currentMessages.map((line) => `- ${line}`).join("\n")
+    };
+  }
+});
 
-  server.page("/", async () => createSurface(messages));
+app.route(home.bind(messages));
 
-  server.post("/post", async ({ inputs }) => {
-    const message = String(inputs.message ?? "").trim();
+app.bindActions(home, {
+  submit_message: async ({ inputs }) => {
+    const typed = inputs as SubmitMessageInputs;
+    const message = String(typed.message ?? "").trim();
     if (message) {
       messages.unshift(message);
     }
-    return createSurface(messages);
-  });
+    return home.bind(messages).render();
+  }
+});
 
-  return server;
-}
+export default app;
 ```
 
-This returns the next readable surface after each action instead of building a
-separate JSON API.
-
-## 5. Host It Locally
+## 4. Host It Locally (Bun)
 
 Create `dev.ts`:
 
 ```ts
 import { createHost } from "@mdanai/sdk/server/bun";
-import { createAppServer } from "./app.js";
+import app from "./app.js";
 
-const port = 4321;
-const server = createAppServer();
-const host = createHost(server, {
+const host = createHost(app, {
   browserShell: {
     title: "Starter App",
     moduleMode: "local-dist"
@@ -168,14 +118,12 @@ const host = createHost(server, {
 });
 
 Bun.serve({
-  port,
+  port: 4321,
   fetch: host
 });
 ```
 
-## 6. Run It
-
-From the repository root:
+## 5. Run It
 
 ```bash
 npm install
@@ -183,9 +131,7 @@ npm run build
 node scripts/run-example-dev.mjs dev.ts
 ```
 
-If you are working in a generated Bun app, `bun start` is enough.
-
-## 7. Check Both Read Paths
+## 6. Verify Both Read Paths
 
 Browser projection:
 
@@ -193,13 +139,15 @@ Browser projection:
 curl -H 'Accept: text/html' http://127.0.0.1:4321/
 ```
 
-Canonical Markdown surface:
+Canonical Markdown response:
 
 ```bash
 curl -H 'Accept: text/markdown' http://127.0.0.1:4321/
 ```
 
-POST action:
+## 7. Submit An Action
+
+Send a write action request:
 
 ```bash
 curl -X POST \
@@ -209,12 +157,11 @@ curl -X POST \
   http://127.0.0.1:4321/post
 ```
 
-Use the real `action_proof` from the current Markdown response when action proof is
-enabled.
+Use the real `action_proof` from the current Markdown response when action proof is enabled.
 
-## 8. What To Read Next
+## 8. Next Steps
 
-- [Application Structure](/application-structure)
-- [Server Integration](/server-integration)
-- [Runtime Contract](/guides/runtime-contract)
-- [Surface Contract](/spec/surface-contract)
+- [Quickstart](/getting-started)
+- [Public API](/reference/public-api)
+- [API Reference](/api-reference)
+- [Server Integration](/server-integration) for lower-level runtime/host details

@@ -15,6 +15,10 @@ the shared application surface model.
 The short version is: keep content, server logic, and browser behavior
 separate, but do not split them into something heavier than the app itself.
 
+For most application code, prefer the root app API (`createApp`, `page`,
+`route`, `read/write`, `bindActions`) and only drop to `createMdanServer()`
+when you intentionally need lower-level runtime control.
+
 ## Recommended Shape
 
 There are two common shapes in the current repository:
@@ -50,7 +54,8 @@ A clean split usually looks like this:
 
 - Markdown defines readable content and block structure
 - executable action metadata stays explicit
-- `createMdanServer()` registers page routes and action routes
+- `createApp()` defines pages and action contracts for normal app authoring
+- `createMdanServer()` is the lower-level runtime path when needed
 - `createHost()` from the Node or Bun adapter hosts that runtime
 - `createHeadlessHost()` handles follow-up browser interaction when you need a custom UI
 

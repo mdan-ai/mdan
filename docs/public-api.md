@@ -61,6 +61,13 @@ Action registration supports both method styles:
 - `app.read(path, handler)` and `app.write(path, handler)` semantic helpers
 - `app.bindActions(page, handlers)` to register handlers by declared action id and transport
 
+App routing/handler boundary rules:
+
+- `app.route(path, ...)` is the page-route GET entry.
+- `app.read(path, ...)` is the data-read GET entry.
+- the same GET path cannot be owned by both; the SDK throws when you try to register conflicting ownership.
+- app-level action transport currently supports `GET` and `POST`.
+
 This is the preferred entry for defining app pages and actions without exposing
 protocol or runtime internals in your application code.
 
