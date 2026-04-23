@@ -7,7 +7,7 @@ description: Maintainer guide for contributing to the MDAN TypeScript SDK, inclu
 
 This repository contains the reference TypeScript SDK for building MDAN apps.
 
-The current codebase is centered on an artifact-first runtime:
+The current codebase is centered on a Markdown-first runtime:
 
 - `text/markdown` is the canonical read path
 - `text/html` is the browser projection for page reads
@@ -18,11 +18,11 @@ The current codebase is centered on an artifact-first runtime:
 - `src/server/`: runtime modeling, request handling, action proofing, assets, sessions, response generation
 - `src/surface/`: headless browser/client runtime for transport, route state, and action submission
 - `src/ui/`: optional default Web Components UI
-- `src/content/`: Markdown and artifact/content helpers
+- `src/content/`: Markdown and content helpers
 - `src/protocol/`: protocol contracts, schema normalization, negotiation helpers
 - `test/`: active runtime, API, UI, browser, and contract tests
 - `examples/`: runnable SDK examples
-- `demo/weather-markdown/`: focused artifact-first demo app
+- `demo/weather-markdown/`: focused Markdown-first demo app
 - `docs/`: implementation notes, contracts, and migration history
 - `spec/`: standard-layer protocol and compatibility specifications
 - `docs-site/`: developer docs site that renders current repository docs and specs
@@ -154,7 +154,7 @@ contract docs and regression tests together.
 
 ## Pull Request Checklist
 
-- The code or docs reflect the current artifact-first runtime model
+- The code or docs reflect the current Markdown-first runtime model
 - Relevant tests were added or updated when behavior changed
 - The nearest contract doc was updated when public behavior changed
 - `README.md` was updated if entry-path guidance or product positioning changed
