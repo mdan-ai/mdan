@@ -226,68 +226,85 @@ Signing out returns the surface to the login route.
     return guestbookPage.bind(username, messages).render();
   });
 
-  app.action("/auth/login", async ({ inputs }) => {
-    const username = (inputs.username ?? "").trim();
-    const password = inputs.password ?? "";
-    if (!username || !password || users.get(username) !== password) {
+  app.bindActions(loginPage, {
+    open_register: async () => registerPage.bind("Create a new account.").render(),
+    login: async ({ inputs }) => {
+      const username = String(inputs.username ?? "").trim();
+      const password = String(inputs.password ?? "");
+      if (!username || !password || users.get(username) !== password) {
+        return {
+          status: 401,
+          ...loginPage.bind("Login rejected. Check username and password.").render()
+        };
+      }
+      const sid = randomUUID();
       return {
-        status: 401,
-        ...loginPage.bind("Login rejected. Check username and password.").render()
-      };
-    }
-    const sid = randomUUID();
-    return {
-      session: signIn({ sid, username }),
-      ...guestbookPage.bind(username, messages).render()
-    };
-  });
-
-  app.action("/auth/register", async ({ inputs }) => {
-    const username = (inputs.username ?? "").trim();
-    const password = inputs.password ?? "";
-    if (!username || !password) {
-      return {
-        status: 400,
-        ...registerPage.bind("Invalid input. Username and password are required.").render()
-      };
-    }
-    if (users.has(username)) {
-      return {
-        status: 409,
-        ...registerPage.bind("Username already exists. Try another username or sign in.").render()
-      };
-    }
-    users.set(username, password);
-    const sid = randomUUID();
-    return {
-      session: signIn({ sid, username }),
-      ...guestbookPage.bind(username, messages).render()
-    };
-  });
-
-  app.action("/guestbook/post", async ({ inputs, session }) => {
-    const username = typeof session?.username === "string" ? session.username : "";
-    if (!username) {
-      return {
-        status: 401,
-        ...loginPage.bind("Sign in required. Open /login and sign in.").render()
-      };
-    }
-    const message = (inputs.message ?? "").trim();
-    if (!message) {
-      return {
-        status: 400,
+        session: signIn({ sid, username }),
         ...guestbookPage.bind(username, messages).render()
       };
     }
-    messages.unshift({ username, text: message });
-    return guestbookPage.bind(username, messages).render();
   });
 
-  app.action("/guestbook/logout", async () => ({
-    session: signOut(),
-    ...loginPage.bind("Signed out.").render()
-  }));
+  app.bindActions(registerPage, {
+    open_login: async () => loginPage.bind("Not signed in.").render(),
+    register: async ({ inputs }) => {
+      const username = String(inputs.username ?? "").trim();
+      const password = String(inputs.password ?? "");
+      if (!username || !password) {
+        return {
+          status: 400,
+          ...registerPage.bind("Invalid input. Username and password are required.").render()
+        };
+      }
+      if (users.has(username)) {
+        return {
+          status: 409,
+          ...registerPage.bind("Username already exists. Try another username or sign in.").render()
+        };
+      }
+      users.set(username, password);
+      const sid = randomUUID();
+      return {
+        session: signIn({ sid, username }),
+        ...guestbookPage.bind(username, messages).render()
+      };
+    }
+  });
+
+  app.bindActions(guestbookPage, {
+    refresh_messages: async ({ session }) => {
+      const username = typeof session?.username === "string" ? session.username : "";
+      if (!username) {
+        return {
+          status: 401,
+          ...loginPage.bind("Sign in required. Open /login and sign in.").render()
+        };
+      }
+      return guestbookPage.bind(username, messages).render();
+    },
+    submit_message: async ({ inputs, session }) => {
+      const username = typeof session?.username === "string" ? session.username : "";
+      if (!username) {
+        return {
+          status: 401,
+          ...loginPage.bind("Sign in required. Open /login and sign in.").render()
+        };
+      }
+      const message = String(inputs.message ?? "").trim();
+      if (!message) {
+        return {
+          status: 400,
+          ...guestbookPage.bind(username, messages).render()
+        };
+      }
+      messages.unshift({ username, text: message });
+      return guestbookPage.bind(username, messages).render();
+    },
+    logout: async () => ({
+      session: signOut(),
+      ...loginPage.bind("Signed out.").render()
+    })
+  });
 
   return app;
 }

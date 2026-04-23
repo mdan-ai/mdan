@@ -9,6 +9,14 @@ export {
   createMdanServer,
   type CreateMdanServerOptions
 } from "./runtime.js";
+export {
+  getClientIp,
+  getCookie,
+  getHeader,
+  getLocaleFromRequest,
+  getQueryParam,
+  type RequestLocaleOptions
+} from "./request-helpers.js";
 export { refreshSession, signIn, signOut } from "./session.js";
 export type {
   MdanRequest,

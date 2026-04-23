@@ -399,19 +399,23 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
       router.post(path, handler);
     },
     async handle(request: MdanRequest): Promise<MdanResponse> {
-      const negotiated = negotiateRepresentation(request.headers.accept);
+      const normalizedRequest: MdanRequest = {
+        ...request,
+        cookies: request.cookies ?? {}
+      };
+      const negotiated = negotiateRepresentation(normalizedRequest.headers.accept);
       if (negotiated === "not-acceptable") {
         return createErrorResponse("markdown", 406, "Not Acceptable");
       }
       const representation = negotiated;
 
-      const pathname = getPathname(request);
-      const session = sessionProvider ? await sessionProvider.read(request) : null;
+      const pathname = getPathname(normalizedRequest);
+      const session = sessionProvider ? await sessionProvider.read(normalizedRequest) : null;
 
-      if (request.method === "GET") {
+      if (normalizedRequest.method === "GET") {
         const pageMatch = router.resolvePage(pathname);
         if (pageMatch) {
-          const pageResponse = await handlePageRequest(context, request, representation, pageMatch, session);
+          const pageResponse = await handlePageRequest(context, normalizedRequest, representation, pageMatch, session);
           if (pageResponse) {
             return await pageResponse;
           }
@@ -422,13 +426,13 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
         return createMarkdownErrorResultResponse(createHtmlPageOnlyResult());
       }
 
-      const match = router.resolve(request.method, pathname);
+      const match = router.resolve(normalizedRequest.method, pathname);
       if (!match) {
         return createResponse(createNotFoundResult(pathname), representation);
       }
       return await handleActionRequest(
         context,
-        request,
+        normalizedRequest,
         representation,
         pathname,
         match,

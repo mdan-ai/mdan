@@ -27,6 +27,39 @@ export interface AppFieldDefinition {
 
 export type AppFieldMap = Record<string, AppFieldDefinition>;
 
+type RequiredFieldKeys<TFields extends AppFieldMap> = {
+  [K in keyof TFields]: TFields[K]["required"] extends true ? K : never;
+}[keyof TFields];
+
+type OptionalFieldKeys<TFields extends AppFieldMap> = Exclude<keyof TFields, RequiredFieldKeys<TFields>>;
+
+type SchemaPrimitiveFromType<TType> =
+  TType extends "string" ? string :
+  TType extends "number" ? number :
+  TType extends "integer" ? number :
+  TType extends "boolean" ? boolean :
+  unknown;
+
+type SchemaValue<TSchema> =
+  TSchema extends { enum: readonly (infer TEnum)[] } ? TEnum :
+  TSchema extends { type: "array"; items: infer TItemSchema } ? SchemaValue<TItemSchema>[] :
+  TSchema extends { type: "object"; properties: infer TProps; required?: readonly (infer TRequired)[] }
+    ? TProps extends Record<string, unknown>
+      ? (
+          { [K in Extract<TRequired, keyof TProps>]-?: SchemaValue<TProps[K]> } &
+          { [K in Exclude<keyof TProps, Extract<TRequired, keyof TProps>>]?: SchemaValue<TProps[K]> }
+        )
+      : Record<string, unknown>
+    : TSchema extends { type: infer TType }
+      ? SchemaPrimitiveFromType<TType>
+      : unknown;
+
+type FieldValue<TField extends AppFieldDefinition> = SchemaValue<TField["schema"]>;
+
+export type InferAppInputs<TFields extends AppFieldMap> =
+  { [K in RequiredFieldKeys<TFields>]: FieldValue<TFields[K]> } &
+  { [K in OptionalFieldKeys<TFields>]?: FieldValue<TFields[K]> };
+
 export interface AppActionDefinition {
   id: string;
   label: string;
@@ -94,6 +127,10 @@ export interface AppInstance {
   route(page: AppBoundPageDefinition): void;
   route(page: AppPageDefinition<[]>): void;
   route(path: string, handler: AppPageHandler): void;
+  bindActions(
+    page: AppPageDefinition<unknown[]> | AppBoundPageDefinition,
+    handlers: Record<string, AppActionHandler>
+  ): void;
   action<TInputs extends MdanInputMap = MdanInputMap>(
     path: string,
     options: { method?: AppTransportMethod },
@@ -317,6 +354,7 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
   });
   const declaredActionMethodsByPath = new Map<string, Set<AppTransportMethod>>();
   const registeredActionMethodsByPath = new Map<string, Set<AppTransportMethod>>();
+  const registeredPageRoutes = new Set<string>();
   let validatedActionTransport = false;
 
   function registerDeclaredActionDefinitions(definitions: AppActionDefinition[] | undefined): void {
@@ -338,6 +376,9 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     for (const [path, declaredMethods] of declaredActionMethodsByPath.entries()) {
       const registeredMethods = registeredActionMethodsByPath.get(path) ?? new Set<AppTransportMethod>();
       for (const method of declaredMethods) {
+        if (method === "GET" && registeredPageRoutes.has(path)) {
+          continue;
+        }
         if (!registeredMethods.has(method)) {
           console.warn(
             `[mdan-sdk] Action transport mismatch on "${path}": declared ${method} action but no matching app.action handler is registered.`
@@ -383,12 +424,14 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
 
   const route = ((pathOrPage: string | AppBoundPageDefinition | AppPageDefinition<[]>, handler?: AppPageHandler) => {
     if (typeof pathOrPage === "string") {
+      registeredPageRoutes.add(pathOrPage);
       server.page(pathOrPage, handler as MdanPageHandler);
       return;
     }
     registerDeclaredActionDefinitions(
       (pathOrPage as AppPageWithActionDefinitions | AppBoundPageWithActionDefinitions)[appActionDefinitionsSymbol]
     );
+    registeredPageRoutes.add(pathOrPage.path);
     server.page(pathOrPage.path, async () => pathOrPage.render());
   }) as AppInstance["route"];
 
@@ -411,9 +454,35 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     server.post(path, handler as MdanHandler);
   };
 
+  const bindActions: AppInstance["bindActions"] = (
+    page: AppPageDefinition<unknown[]> | AppBoundPageDefinition,
+    handlers: Record<string, AppActionHandler>
+  ): void => {
+    const definitions =
+      (page as AppPageWithActionDefinitions | AppBoundPageWithActionDefinitions)[appActionDefinitionsSymbol] ?? [];
+    const definitionById = new Map(definitions.map((definition) => [definition.id, definition]));
+
+    for (const [id, handler] of Object.entries(handlers)) {
+      const definition = definitionById.get(id);
+      if (!definition) {
+        console.warn(`[mdan-sdk] app.bindActions received unknown action id "${id}".`);
+        continue;
+      }
+      const method = resolveTransportMethod(definition.verb, definition.transport?.method);
+      action(definition.target, { method }, handler);
+    }
+
+    for (const definition of definitions) {
+      if (!(definition.id in handlers)) {
+        console.warn(`[mdan-sdk] app.bindActions missing handler for declared action "${definition.id}".`);
+      }
+    }
+  };
+
   return {
     page,
     route,
+    bindActions,
     action,
     async handle(request: MdanRequest): Promise<MdanResponse> {
       if (!validatedActionTransport) {

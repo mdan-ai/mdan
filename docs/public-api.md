@@ -48,6 +48,7 @@ The root package includes:
 - `fields.string()`, `fields.number()`, `fields.boolean()`
 - `fields.enum()`, `fields.date()`, `fields.datetime()`
 - `fields.array()`, `fields.object()`
+- `InferAppInputs<...>` (derive handler input types from declared field maps)
 - `AppBrowserShellOptions`
 - `CreateAppOptions`
 - app-level markdown rendering types
@@ -57,6 +58,7 @@ Action registration supports both method styles:
 
 - `app.action(path, handler)` (default `POST`)
 - `app.action(path, { method: "GET" }, handler)`
+- `app.bindActions(page, handlers)` to register handlers by declared action id and transport
 
 This is the preferred entry for defining app pages and actions without exposing
 protocol or runtime internals in your application code.
@@ -79,6 +81,7 @@ import {
 Server includes:
 
 - `createMdanServer()`
+- request helper primitives: `getHeader()`, `getCookie()`, `getQueryParam()`, `getLocaleFromRequest()`, `getClientIp()`
 - handler types and request/response types
 - result helpers
 - session mutation helpers

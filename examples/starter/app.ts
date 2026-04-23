@@ -51,12 +51,15 @@ ${list}`
 
   app.route(home.bind(messages));
 
-  app.action<SubmitMessageInputs>("/post", async ({ inputs }) => {
-    const message = String(inputs.message ?? "").trim();
-    if (message) {
-      messages.unshift(message);
+  app.bindActions(home, {
+    submit_message: async ({ inputs }) => {
+      const typed = inputs as SubmitMessageInputs;
+      const message = String(typed.message ?? "").trim();
+      if (message) {
+        messages.unshift(message);
+      }
+      return home.bind(messages).render();
     }
-    return home.bind(messages).render();
   });
 
   return app;

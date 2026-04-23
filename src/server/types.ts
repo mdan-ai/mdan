@@ -8,7 +8,7 @@ export interface MdanRequest {
   headers: Record<string, string | undefined>;
   query?: Record<string, string>;
   body?: string;
-  cookies: Record<string, string>;
+  cookies?: Record<string, string>;
 }
 
 export interface MdanResponse {

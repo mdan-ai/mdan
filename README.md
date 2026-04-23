@@ -83,13 +83,14 @@ Advanced path:
 ## Minimal App
 
 ```ts
-import { actions, createApp, fields } from "@mdanai/sdk";
+import { actions, createApp, fields, type InferAppInputs } from "@mdanai/sdk";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const messages = ["Welcome to MDAN"];
-interface SubmitMessageInputs {
-  message?: string;
-}
+const submitInput = {
+  message: fields.string({ required: true })
+} as const;
+type SubmitMessageInputs = InferAppInputs<typeof submitInput>;
 
 const app = createApp({
   appId: "starter",
@@ -122,9 +123,7 @@ The surface should expose the current messages and next allowed actions.
     actions.write("submit_message", {
       label: "Submit",
       target: "/post",
-      input: {
-        message: fields.string({ required: true })
-      }
+      input: submitInput
     })
   ],
   render(currentMessages: string[]) {
@@ -136,12 +135,15 @@ The surface should expose the current messages and next allowed actions.
 
 app.route(home.bind(messages));
 
-app.action<SubmitMessageInputs>("/post", async ({ inputs }) => {
-  const message = String(inputs.message ?? "").trim();
-  if (message) {
-    messages.unshift(message);
+app.bindActions(home, {
+  submit_message: async ({ inputs }) => {
+    const typed = inputs as SubmitMessageInputs;
+    const message = String(typed.message ?? "").trim();
+    if (message) {
+      messages.unshift(message);
+    }
+    return home.bind(messages).render();
   }
-  return home.bind(messages).render();
 });
 
 export default createHost(app, {
@@ -157,6 +159,7 @@ export default createHost(app, {
 - `app.page(path, config)`: define a reusable page
 - `app.route(page)`: register a page that can render directly
 - `app.route(path, handler)`: bind request-time state to a page or route
+- `app.bindActions(page, handlers)`: register handlers from declared page action ids
 - `app.action(path, handler)`: register a POST action handler
 - `app.action(path, { method: "GET" }, handler)`: register a GET action handler
 - `page.bind(state)`: associate current state with a page definition

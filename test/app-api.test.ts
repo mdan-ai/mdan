@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { actions, createApp, fields } from "../src/index.js";
+import { actions, createApp, fields, type InferAppInputs } from "../src/index.js";
 import { parseFrontmatter } from "../src/content/content-actions.js";
 
 function extractExecutable(markdown: string) {
@@ -86,6 +86,28 @@ describe("app API", () => {
         })
       ])
     );
+  });
+
+  it("handles requests without explicit cookies payload", async () => {
+    const app = createApp({ appId: "starter" });
+    const home = app.page("/", {
+      markdown: "# Starter\n\n::: block{id=\"main\"}\n:::",
+      render() {
+        return { main: "- Booted" };
+      }
+    });
+    app.route(home);
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("Booted");
   });
 
   it("can reuse a defined page across page and action handlers", async () => {
@@ -227,6 +249,42 @@ describe("app API", () => {
     );
   });
 
+  it("does not warn for GET read actions that target registered page routes", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const home = app.page("/", {
+      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"refresh_main\"}\n:::",
+      actions: [
+        actions.read("refresh_main", {
+          label: "Refresh",
+          target: "/",
+          transport: { method: "GET" }
+        })
+      ],
+      render() {
+        return {
+          main: "- ready"
+        };
+      }
+    });
+
+    app.route(home);
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
   it("supports richer schema builders for action input contracts", async () => {
     const app = createApp({
       appId: "starter",
@@ -304,6 +362,63 @@ describe("app API", () => {
     });
   });
 
+  it("can infer action input types from field maps", async () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const input = {
+      location: fields.string({ required: true }),
+      range: fields.enum(["current", "today"] as const),
+      options: fields.object(
+        {
+          locale: fields.string({ required: true }),
+          includeWind: fields.boolean()
+        },
+        { required: true }
+      )
+    } as const;
+
+    type QueryInputs = InferAppInputs<typeof input>;
+
+    const result = app.page("/typed", {
+      markdown: "# Typed\n\n::: block{id=\"main\"}\n:::",
+      render(content: string) {
+        return { main: content };
+      }
+    });
+
+    app.action<QueryInputs>("/typed", async ({ inputs }) => {
+      const location = inputs.location;
+      const range = inputs.range ?? "current";
+      const locale = inputs.options.locale;
+      return result.bind(`${location}:${range}:${locale}`).render();
+    });
+
+    const response = await app.handle({
+      method: "POST",
+      url: "https://example.test/typed",
+      headers: {
+        accept: "text/markdown",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        action: { id: "manual", proof: "manual" },
+        input: {
+          location: "Beijing",
+          range: "today",
+          options: {
+            locale: "zh-CN"
+          }
+        }
+      }),
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("Beijing:today:zh-CN");
+  });
+
   it("lets app API configure markdown rendering for browser shell html", async () => {
     const app = createApp({
       appId: "starter",
@@ -349,5 +464,82 @@ describe("app API", () => {
     const body = String(response.body);
     expect(body).toContain('<article data-kind="page" data-route="/"># Starter');
     expect(body).toContain('<aside data-kind="block" data-block="main">- Booted</aside>');
+  });
+
+  it("can bind handlers directly from page action declarations", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const values: string[] = [];
+    const page = app.page("/bind", {
+      markdown: "# Bind\n\n::: block{id=\"main\" actions=\"lookup\"}\n:::",
+      actions: [
+        actions.read("lookup", {
+          label: "Lookup",
+          target: "/lookup",
+          transport: { method: "GET" },
+          input: {
+            name: fields.string({ required: true })
+          }
+        })
+      ],
+      render(content: string) {
+        return {
+          main: content
+        };
+      }
+    });
+    app.route(page.bind("ready"));
+    app.bindActions(page, {
+      lookup: ({ inputs }) => {
+        const name = String(inputs.name ?? "");
+        values.push(name);
+        return page.bind(`name=${name}`).render();
+      }
+    });
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/lookup?name=Beijing",
+      headers: {
+        accept: "text/markdown"
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(values).toEqual(["Beijing"]);
+    expect(String(response.body)).toContain("name=Beijing");
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it("warns for missing or unknown handlers when using app.bindActions", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true }
+    });
+    const page = app.page("/bind", {
+      markdown: "# Bind\n\n::: block{id=\"main\" actions=\"lookup\"}\n:::",
+      actions: [
+        actions.read("lookup", {
+          label: "Lookup",
+          target: "/lookup"
+        })
+      ],
+      render(content: string) {
+        return {
+          main: content
+        };
+      }
+    });
+
+    app.bindActions(page, {
+      unknown: async () => page.bind("x").render()
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith('[mdan-sdk] app.bindActions received unknown action id "unknown".');
+    expect(warnSpy).toHaveBeenCalledWith('[mdan-sdk] app.bindActions missing handler for declared action "lookup".');
   });
 });
