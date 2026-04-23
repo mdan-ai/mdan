@@ -131,8 +131,7 @@ return {
   status: 400,
   markdown: `# Upload failed
 
-::: block{id="error" trust="untrusted"}
-:::`,
+::: block{id="error" trust="untrusted"}`,
   actions: {
     blocks: ["error"],
     actions: [],

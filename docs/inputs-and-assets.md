@@ -39,8 +39,7 @@ server.post("/submit", async ({ inputs, inputsRaw }) => {
   return {
     markdown: `# Saved
 
-::: block{id="result" trust="untrusted"}
-:::`,
+::: block{id="result" trust="untrusted"}`,
     actions: {
       blocks: ["result"],
       actions: [],
@@ -135,8 +134,7 @@ server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
   return {
     markdown: `# Uploaded
 
-::: block{id="result" trust="untrusted"}
-:::`,
+::: block{id="result" trust="untrusted"}`,
     actions: {
       blocks: ["result"],
       actions: [],

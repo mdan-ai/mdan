@@ -56,7 +56,6 @@ Submit only actions declared by the current surface.
 The latest messages appear below.
 
 ::: block{id="main"}
-:::
 ```
 
 The Markdown body is the readable surface for both people and agents.

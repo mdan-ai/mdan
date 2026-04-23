@@ -67,8 +67,7 @@ server.post("/auth/login", async ({ inputs }) => {
     session: signIn({ sid, username }),
     markdown: `# Guestbook
 
-::: block{id="session_status" trust="untrusted"}
-    :::`,
+::: block{id="session_status" trust="untrusted"}`,
     actions: {
       blocks: ["session_status"],
       actions: [],
@@ -85,8 +84,7 @@ server.post("/auth/logout", async () => ({
   session: signOut(),
   markdown: `# Signed out
 
-::: block{id="session_status" trust="untrusted"}
-:::`,
+::: block{id="session_status" trust="untrusted"}`,
   actions: {
     blocks: ["session_status"],
     actions: [],

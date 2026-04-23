@@ -56,10 +56,9 @@ slots.
 
 ## Current SDK Untrusted Blocks
 
-Content inside Markdown blocks marked `trust="untrusted"` is masked before
-semantic-slot and agent-block validation. This lets apps display user-provided
-Markdown without letting that content satisfy or break host-authored prompt
-structure.
+Block anchors can mark a region as `trust="untrusted"` so hosts and UIs can
+apply stricter handling to that region content (typically provided via
+`actions.regions` / `regions`).
 
 ```md
 ::: block{id="comments" trust="untrusted"}
