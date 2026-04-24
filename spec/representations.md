@@ -86,7 +86,7 @@ consistent in:
 - application identity
 - state identity
 - action set
-- allow-list semantics
+- block-scoped action availability semantics
 - trust and security semantics
 - page versus region outcome semantics
 

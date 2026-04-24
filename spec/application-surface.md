@@ -60,8 +60,8 @@ does not by itself define full executable truth.
 ### 3.2 Actions Contract
 
 An actions contract is the machine-interpretable execution contract for the
-current state. It defines state identity, actions, input constraints, state
-effects, and the set of allowed next actions.
+current state. It defines state identity, blocks, actions, input constraints,
+and state effects.
 
 ### 3.3 Surface
 
@@ -219,7 +219,6 @@ It MAY additionally contain:
 - `state_id`
 - `state_version`
 - `blocks`
-- `allowed_next_actions`
 - `security`
 
 ### 6.2 State Identity Fields
@@ -239,27 +238,21 @@ one another on state identity.
 
 If present:
 
+- it MUST be an object keyed by block id
 - each region id MUST be non-empty
-- duplicates MUST NOT be allowed
+- each referenced action id in `blocks.<id>.actions`, when present, MUST exist
+  in the top-level `actions` object
 
 ### 6.4 Actions Collection
 
-`actions` MUST be an array of action objects.
+`actions` MUST be an object keyed by action id.
 
-Every action MUST have at least:
+Every action entry MUST have at least:
 
-- `id`
 - `target`
 
-Action ids MUST be unique within the same state.
-
-### 6.5 Allowed Next Actions
-
-When `allowed_next_actions` is present:
-
-- it MUST be an array of action ids
-- every listed id MUST exist in `actions`
-- consumers MUST NOT execute actions absent from the list
+Action ids are carried by the object keys and MUST be unique within the same
+state.
 
 ## 7. Surface Model
 
@@ -315,7 +308,7 @@ Consumers:
 - MUST choose actions by `id`
 - MUST respect target and method semantics
 - MUST respect input constraints
-- MUST respect `allowed_next_actions`
+- MUST NOT invent actions absent from the declared `actions` object
 
 ### 8.2 Execution Outcomes
 
@@ -334,7 +327,8 @@ If an action cannot be executed:
 
 - the result SHOULD remain readable where possible
 - the result MUST NOT imply forbidden execution succeeded
-- the result MAY narrow or clear `allowed_next_actions`
+- the result MAY change which actions are associated with blocks in the next
+  returned state
 
 ## 9. Representations And Delivery
 

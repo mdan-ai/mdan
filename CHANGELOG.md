@@ -22,7 +22,7 @@ The format is intentionally lightweight and based on Keep a Changelog style:
 - Added `CONTRIBUTING.md` with repository layout, command reference, and doc update expectations.
 - Added `ARCHITECTURE.md` describing public package surfaces, layer boundaries, and the Markdown-first runtime model.
 - Added a dedicated `spec/` tree for standard-layer protocol documents.
-- Added `docs/index.md`, `docs/getting-started.md`, and `docs/examples.md` as docs-site entry pages.
+- Added `docs/index.md`, `docs/quickstart.md`, and `docs/examples.md` as docs-site entry pages.
 - Added a dedicated `docs-site/` directory for rendering current repository docs and specs as a developer docs site.
 
 ### Changed

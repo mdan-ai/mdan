@@ -73,9 +73,13 @@ state_version: 1
   "app_id": "auth-guestbook",
   "state_id": "auth-guestbook:login:1",
   "state_version": 1,
-  "blocks": ["login"],
-  "actions": [],
-  "allowed_next_actions": []
+  "blocks": {
+    "login": {
+      "actions": [],
+      "trust": "untrusted"
+    }
+  },
+  "actions": {}
 }
 ```
 ```
@@ -133,9 +137,8 @@ type SurfaceExecutableState = {
   app_id?: string;
   state_id?: string;
   state_version?: number;
-  blocks?: string[];
-  actions?: unknown[];
-  allowed_next_actions?: string[];
+  blocks?: Record<string, unknown>;
+  actions?: Record<string, unknown>;
 };
 ```
 
@@ -193,8 +196,6 @@ A conforming surface consumer:
 
 - MUST parse the Markdown body as the readable surface
 - MUST parse the embedded `mdan` block as executable metadata when present
-- MUST treat `allowed_next_actions` as the current executable allow-list when
-  present
 - MUST NOT invent executable actions that are absent from the surface
 - MUST preserve route and identity context across subsequent action execution
 

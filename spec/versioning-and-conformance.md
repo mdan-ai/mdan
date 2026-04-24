@@ -53,7 +53,7 @@ Profiles MUST NOT redefine the core semantic meaning of:
 
 - surface identity
 - action identity
-- allowed-next-action semantics
+- block-scoped action availability semantics
 - state-effect semantics
 - trust and confirmation semantics
 
@@ -83,7 +83,7 @@ A potentially breaking change:
 
 - removes a previously stable required field
 - changes the semantic meaning of an existing stable field
-- changes allow-list behavior for `allowed_next_actions`
+- changes how `blocks.<id>.actions` determines executable action availability
 - changes state identity interpretation
 - changes the required relation between readable surface and executable truth
 

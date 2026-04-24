@@ -118,13 +118,13 @@ same branch whenever practical.
 
 Most common mappings:
 
-- public package surface or import guidance: `docs/public-api.md`
-- runtime behavior, representations, result semantics: `docs/runtime-contract.md`
-- browser host and headless runtime behavior: `docs/browser-and-headless-runtime.md`
+- public package surface or import guidance: `docs/sdk-packages.md` and `docs/api-reference.md`
+- runtime behavior, representations, result semantics: `docs/server-behavior.md`
+- browser host and headless runtime behavior: `docs/browser-behavior.md`
 - server adapter behavior: `docs/server-adapters.md`
-- request validation and status behavior: `docs/errors.md`
-- action proof rules: `docs/action-proof-security.md`
-- inputs and uploaded assets: `docs/inputs-and-assets.md`
+- request validation and status behavior: `spec/error-model.md`
+- action proof rules: `spec/action-proof.md`
+- inputs and uploaded assets: `docs/uploads-and-assets.md`
 - session lifecycle: `docs/sessions.md`
 - streaming behavior: `docs/streaming.md`
 

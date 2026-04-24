@@ -28,13 +28,18 @@ type ActionsContract = {
   app_id?: string;
   state_id?: string;
   state_version?: number;
-  blocks?: string[];
+  blocks?: Record<string, BlockObject>;
   regions?: Record<string, string>;
-  actions: ActionObject[];
-  allowed_next_actions?: string[];
+  actions?: Record<string, ActionObject>;
   security?: {
     default_confirmation_policy?: "never" | "always" | "high-and-above";
   };
+};
+
+type BlockObject = {
+  trust?: "trusted" | "untrusted";
+  actions?: string[];
+  auto?: boolean;
 };
 ```
 
@@ -60,30 +65,24 @@ type ActionsContract = {
 
 ### 3.4 `blocks`
 
-- type: string[]
+- type: object keyed by block id
 - required: optional
-- meaning: declared region/block names for this state.
+- meaning: declared regions/blocks for this state, including per-block trust,
+  action references, and optional auto-resolution hints.
 
 ### 3.5 `actions`
 
-- type: array of action objects
+- type: object keyed by action id
 - required: MUST
 - meaning: executable actions for the current state.
 
-### 3.6 `allowed_next_actions`
-
-- type: string[]
-- required: optional
-- meaning: allow-list of executable action ids from `actions`.
-- rule: each id MUST reference an existing action `id`.
-
-### 3.7 `regions`
+### 3.6 `regions`
 
 - type: `Record<string, string>`
 - required: optional
 - meaning: rendered region payload keyed by region/block name.
 
-### 3.8 `security`
+### 3.7 `security`
 
 - type: object
 - required: optional
@@ -94,14 +93,42 @@ type ActionsContract = {
 - allowed values: `never`, `always`, `high-and-above`
 - meaning: default confirmation policy when action-level override is absent.
 
-## 4. Action Object Fields
+## 4. Block Object Fields
+
+```ts
+type BlockObject = {
+  trust?: "trusted" | "untrusted";
+  actions?: string[];
+  auto?: boolean;
+};
+```
+
+### 4.1 `trust`
+
+- type: string enum
+- allowed values: `trusted`, `untrusted`
+- meaning: interpretation boundary for that block's rendered content.
+
+### 4.2 `actions`
+
+- type: string[]
+- meaning: action ids associated with the block.
+- rule: every id MUST reference an existing key in the top-level `actions`
+  object.
+
+### 4.3 `auto`
+
+- type: boolean
+- meaning: marks the block as participating in auto dependency resolution when
+  supported by the implementation.
+
+## 5. Action Object Fields
 
 ```ts
 type ActionObject = {
-  id: string;
   label?: string;
   verb?: "route" | "read" | "write";
-  target: string;
+  target?: string;
   transport?: {
     method?: "GET" | "POST";
   };
@@ -132,17 +159,20 @@ type ActionObject = {
 };
 ```
 
-### 4.1 Required Core
+Each action id is carried by the key under `actions.<id>`, not by a required
+`id` field inside the action object itself.
 
-- `id`: non-empty string, unique within `actions`.
-- `target`: non-empty string action target path.
+### 5.1 Required Core
 
-### 4.2 `label`
+- action keys under `actions` MUST be non-empty and unique.
+- `target` MUST be a non-empty string action target path.
+
+### 5.2 `label`
 
 - type: string
 - meaning: user-facing action label.
 
-### 4.3 `verb`
+### 5.3 `verb`
 
 - type: string enum
 - allowed values: `route`, `read`, `write`
@@ -151,7 +181,7 @@ type ActionObject = {
   - `read`: data refresh/read semantics.
   - `write`: mutation semantics.
 
-### 4.4 `transport.method`
+### 5.4 `transport.method`
 
 - type: string enum
 - allowed values in current runtime: `GET`, `POST`
@@ -160,12 +190,12 @@ type ActionObject = {
   - `route`/`read` -> `GET`
   - `write` -> `POST`
 
-### 4.5 `auto`
+### 5.5 `auto`
 
 - type: boolean
 - meaning: marks GET action as auto-resolvable dependency candidate.
 
-### 4.6 `input_schema`
+### 5.6 `input_schema`
 
 - type: JSON object-schema
 - meaning: action input constraints and shape.
@@ -175,26 +205,26 @@ type ActionObject = {
   - `properties: Record<string, unknown>`
   - `additionalProperties: boolean`
 
-### 4.7 `block`
+### 5.7 `block`
 
 - type: string
 - meaning: source region/block id associated with the current action.
 
-### 4.8 `state_effect`
+### 5.8 `state_effect`
 
 - `response_mode`: `page` or `region`
 - `updated_regions`: region names for region updates.
 
-### 4.9 `guard`
+### 5.9 `guard`
 
 - `risk_level`: implementation-defined risk marker string.
 
-### 4.10 `security.confirmation_policy`
+### 5.10 `security.confirmation_policy`
 
 - allowed values: `never`, `always`, `high-and-above`
 - meaning: action-level confirmation policy override.
 
-## 5. Runtime-Injected Execution Metadata
+## 6. Runtime-Injected Execution Metadata
 
 The following fields are runtime execution metadata and may be added after
 action-proof processing:
@@ -208,35 +238,41 @@ action-proof processing:
 
 These fields MUST NOT change the underlying action identity or target semantics.
 
-## 6. Validation Rules
+## 7. Validation Rules
 
 Conforming validators MUST enforce at least:
 
-1. `actions` exists and is an array.
-2. each action has non-empty `id` and `target`.
-3. action `id` values are unique.
-4. `verb`, when present, is one of `route/read/write`.
-5. `transport.method`, when present, is one of `GET/POST` for current runtime profile.
-6. `state_effect.response_mode`, when present, is `page` or `region`.
-7. `regions`, when present, is an object with string values.
-8. `block`, when present, is a string.
-9. `allowed_next_actions`, when present, references existing action ids only.
-10. confirmation policy values, when present, are valid enums.
+1. `actions` exists and is an object keyed by action id.
+2. each action key is non-empty.
+3. each action has non-empty `target`.
+4. `blocks`, when present, is an object keyed by block id.
+5. each `blocks.<id>.actions` entry, when present, references an existing action id.
+6. `verb`, when present, is one of `route/read/write`.
+7. `transport.method`, when present, is one of `GET/POST` for current runtime profile.
+8. `state_effect.response_mode`, when present, is `page` or `region`.
+9. `regions`, when present, is an object with string values.
+10. `block`, when present, is a string.
+11. confirmation policy values, when present, are valid enums.
+12. `allowed_next_actions`, when present, MUST be rejected by current runtimes.
 
-## 7. Example
+## 8. Example
 
 ```json
 {
   "app_id": "weather",
   "state_id": "weather:/:3",
   "state_version": 3,
-  "blocks": ["query"],
+  "blocks": {
+    "query": {
+      "actions": ["query_weather"],
+      "trust": "untrusted"
+    }
+  },
   "regions": {
     "query": "Location: {{location}}"
   },
-  "actions": [
-    {
-      "id": "query_weather",
+  "actions": {
+    "query_weather": {
       "label": "Query",
       "verb": "read",
       "target": "/",
@@ -253,7 +289,6 @@ Conforming validators MUST enforce at least:
       },
       "state_effect": { "response_mode": "page" }
     }
-  ],
-  "allowed_next_actions": ["query_weather"]
+  }
 }
 ```

@@ -40,9 +40,8 @@ JSON compatibility responses:
     "app_id": "mdan",
     "state_id": "mdan:error:404",
     "state_version": 1,
-    "blocks": [],
-    "actions": [],
-    "allowed_next_actions": []
+    "blocks": {},
+    "actions": {}
   },
   "view": {
     "route_path": "/missing"
@@ -133,9 +132,13 @@ return {
 
 ::: block{id="error" trust="untrusted"}`,
   actions: {
-    blocks: ["error"],
-    actions: [],
-    allowed_next_actions: []
+    blocks: {
+      error: {
+        actions: [],
+        trust: "untrusted"
+      }
+    },
+    actions: {}
   },
   route: "/upload",
   regions: {
@@ -177,9 +180,9 @@ See [Action Proof](/spec/action-proof) for proof semantics and boundaries.
 Malformed request bodies return `400` with an `Invalid Request Body` response.
 
 For Markdown-first clients, read the body directly. For legacy JSON clients,
-parse the body as the legacy compatibility JSON shape first. In both cases,
-`allowed_next_actions` is empty unless an application handler produced a richer
-recovery surface.
+parse the body as the legacy compatibility JSON shape first. In both cases, the
+runtime does not invent recovery actions unless an application handler produced
+a richer recovery surface.
 
 ## Unsupported Media Type
 
@@ -222,4 +225,4 @@ Custom frontends should follow the same pattern:
 2. try to parse a Markdown response first
 3. fall back to legacy JSON only when needed
 4. render the returned content if present
-5. avoid inventing next actions when `allowed_next_actions` is empty
+5. avoid inventing next actions when the returned `actions` contract is empty

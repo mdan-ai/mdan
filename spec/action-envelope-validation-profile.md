@@ -31,15 +31,14 @@ In this profile, `actions` envelope MUST satisfy:
 - `app_id` is present, non-empty string
 - `state_id` is present, non-empty string
 - `state_version` is present, finite number
-- `actions` is present and is an array
-- every action has non-empty `id`
+- `actions` is present and is an object keyed by action id
+- every action key is non-empty
 - every action has non-empty `target`
-- action `id` is unique within envelope
-
-If `allowed_next_actions` is present:
-
-- it MUST be an array of strings
-- every value MUST reference an existing action `id`
+- `blocks`, when present, is an object keyed by block id
+- every `blocks.<id>.actions` reference, when present, points at an existing
+  action id
+- `allowed_next_actions`, when present, causes validation failure in current
+  runtimes
 
 ## 4. Enum Constraints (Profile)
 

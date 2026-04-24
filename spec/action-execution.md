@@ -15,7 +15,7 @@ This document defines the normative execution contract for MDAN actions.
 It covers:
 
 - action metadata shape
-- execution allow-list semantics
+- block-scoped action availability semantics
 - method and target semantics
 - input declaration semantics
 - page and region state-effect semantics
@@ -32,16 +32,15 @@ An MDAN surface MAY expose zero or more actions.
 
 Each action represents a potential next operation from the current state.
 
-An action object MUST have:
-
-- a stable `id`
-- a non-empty `target`
+Each action entry is keyed by a stable action id in the surrounding `actions`
+object and MUST have a non-empty `target`.
 
 The current interoperable action shape is:
 
 ```ts
+type MdanActions = Record<string, MdanAction>;
+
 type MdanAction = {
-  id: string;
   label?: string;
   verb?: "route" | "read" | "write";
   target: string;
@@ -76,7 +75,7 @@ Field notes:
   candidate in implementations that support auto dependency resolution.
 - `block` associates the action with a rendered region/block in the current
   surface projection.
-- `auto` MUST NOT bypass action proof requirements, allow-list checks, or
+- `auto` MUST NOT bypass action proof requirements, block/action consistency checks, or
   authorization checks.
 
 ## 3. Action Identity
@@ -104,23 +103,18 @@ When `transport.method` is absent:
 - consumers SHOULD derive `POST` for `verb: "write"`
 - producers SHOULD prefer declaring the method explicitly
 
-## 5. Allowed Next Actions
+## 5. Block-Scoped Action Availability
 
-`allowed_next_actions` is the current-state execution allow-list.
+The current runtime model does not use a top-level `allowed_next_actions`
+allow-list.
 
-When `allowed_next_actions` is present:
+Instead, a returned surface declares action availability through:
 
-- it MUST be an array of action ids
-- each listed id MUST exist in `actions`
-- consumers MUST NOT execute actions absent from the allow-list
+- the top-level `actions` object, which defines executable actions by id
+- `blocks.<id>.actions`, which associates action ids with readable
+  blocks/regions
 
-When `allowed_next_actions` is omitted:
-
-- the surface MAY be interpreted as allowing any declared action
-
-An explicitly empty `allowed_next_actions` means:
-
-- the surface currently exposes no executable next action
+Current runtimes MUST reject `allowed_next_actions` in the action manifest.
 
 ## 6. Input Contract
 
@@ -205,14 +199,14 @@ If an action cannot be executed:
 
 - the response SHOULD remain readable where possible
 - the response MUST NOT imply that a forbidden action succeeded
-- the resulting surface MAY narrow or clear `allowed_next_actions`
+- the resulting surface MAY change block/action associations in the next
+  returned state
 
 ## 11. Consumer Requirements
 
 A conforming action consumer:
 
 - MUST choose actions by declared `id`
-- MUST respect `allowed_next_actions`
 - MUST submit to the declared `target`
 - MUST use the declared or derived method consistently
 - MUST build inputs from `input_schema` when present
