@@ -32,6 +32,8 @@ Pick the first example by the question you are trying to answer:
   Start with [Docs Starter Example](/examples/docs-starter).
 - "How do login, registration, and session-aware actions work?"
   Start with [Auth Guestbook Example](/examples/auth-guestbook).
+- "How do I replace the default browser-shell form UI without replacing the whole page?"
+  Start with [Form Customization Example](/examples/form-customization).
 - "Where did the weather demo go?"
   Open [Weather Markdown Demo](/examples/weather-markdown) for the migration pointer.
 
@@ -102,6 +104,29 @@ What you learn:
 Read this after the starter if you are building anything user-aware or
 account-based.
 
+## Form Customization Example
+
+Route: [Form Customization Example](/examples/form-customization)
+
+Choose this when you want to keep the browser shell but replace the default
+form panel.
+
+Best for:
+
+- custom search panels
+- branded query forms
+- preserving MDAN behavior while changing form presentation
+
+What you learn:
+
+- how one shared `UiFormRenderer` can drive both browser-shell snapshot HTML and
+  hydrated UI
+- how `createApp({ rendering: { form } })` affects server-side projection
+- how a custom `uiModuleSrc` keeps hydration aligned with the same renderer
+
+Read this after the starter if your main question is form customization rather
+than full custom rendering.
+
 ## Weather Markdown Demo
 
 Route: [Weather Markdown Demo](/examples/weather-markdown)
@@ -118,7 +143,8 @@ Active project path:
 
 1. [Starter Example](/examples/starter)
 2. [Docs Starter Example](/examples/docs-starter) if you care about docs-style apps
-3. [Auth Guestbook Example](/examples/auth-guestbook) if you care about sessions and auth
+3. [Form Customization Example](/examples/form-customization) if you care about browser-shell form UI
+4. [Auth Guestbook Example](/examples/auth-guestbook) if you care about sessions and auth
 
 You do not need to read every example. Pick the one that is closest to the app
 shape you want to build.
@@ -127,3 +153,4 @@ shape you want to build.
 
 - [Online Skills](/online-skills)
 - [Customize The Starter](/customize-the-starter)
+- [Form Rendering](/form-rendering)

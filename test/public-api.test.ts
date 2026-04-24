@@ -26,6 +26,7 @@ describe("package export boundary", () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
     expect(indexSource).toMatch(/MDAN_PAGE_MANIFEST_VERSION/);
+    expect(indexSource).toMatch(/export type \{ UiFormRenderer \}/);
     expect(indexSource).toMatch(/type\s+MdanActionManifest/);
     expect(indexSource).toMatch(/type\s+JsonAction/);
     expect(indexSource).toMatch(/type\s+JsonBlock/);

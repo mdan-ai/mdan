@@ -1,0 +1,39 @@
+{
+  "version": "mdan.page.v1",
+  "blocks": {
+    "main": {
+      "actions": ["query_weather"]
+    }
+  },
+  "actions": {
+    "query_weather": {
+      "id": "query_weather",
+      "label": "Update Forecast",
+      "verb": "read",
+      "transport": {
+        "method": "GET"
+      },
+      "target": "/",
+      "input_schema": {
+        "type": "object",
+        "required": ["location"],
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City or neighborhood"
+          },
+          "units": {
+            "type": "string",
+            "enum": ["metric", "imperial"],
+            "description": "Display units"
+          },
+          "include_alerts": {
+            "type": "boolean",
+            "description": "Include advisory summary"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

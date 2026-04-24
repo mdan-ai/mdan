@@ -52,6 +52,7 @@ The default app-authoring entrypoint.
 
 - `AppBrowserShellOptions`
 - `CreateAppOptions`
+- `UiFormRenderer`
 - `MdanActionManifest`
 - `MDAN_PAGE_MANIFEST_VERSION`
 
