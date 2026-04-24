@@ -85,6 +85,6 @@ Your integration layer must preserve the runtime contract:
 
 ## Related Docs
 
-- [Runtime Contract](/guides/runtime-contract)
+- [Server Behavior](/server-behavior)
 - [Server Adapters](/reference/server-adapters)
 - [Application Structure](/application-structure)

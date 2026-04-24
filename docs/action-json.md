@@ -104,8 +104,18 @@ Example output:
 - This output is declaration-level compilation and does not include runtime proof
   fields like `action_proof`; those are added by runtime response handling.
 
+## When You Will Actually Need This
+
+Action JSON matters most when:
+
+- you are debugging action behavior from `curl` or tests
+- you are building a custom frontend and need the real action contract
+- you are trying to understand why the runtime accepts or rejects an action
+- you want to confirm how SDK field declarations compiled into `input_schema`
+
 ## Related Docs
 
+- [Deep Dive](/deep-dive)
+- [Input Schemas](/input-schemas)
 - [API Reference](/api-reference)
-- [Agent Markdown Surface Contract](/reference/agent-surface-contract)
 - [Actions JSON Field Reference](/spec/action-json-fields)

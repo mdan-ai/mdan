@@ -1,9 +1,9 @@
 ---
-title: Deployment And Production
+title: Deploy To Production
 description: Deploy an MDAN app to production with Node or Bun, reverse proxies, sessions, assets, streaming, and browser delivery handled correctly.
 ---
 
-# Deployment And Production
+# Deploy To Production
 
 This guide focuses on practical production concerns for MDAN apps:
 
@@ -269,7 +269,7 @@ Useful production questions to answer quickly:
 ## Related Docs
 
 - [Server Adapters](/reference/server-adapters)
-- [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
+- [Browser Behavior](/browser-behavior)
 - [Inputs And Assets](/guides/inputs-and-assets)
 - [Sessions](/guides/sessions)
 - [Streaming](/guides/streaming)

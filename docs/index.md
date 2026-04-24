@@ -1,83 +1,59 @@
 ---
 title: MDAN SDK Docs
-description: Developer documentation for the MDAN TypeScript SDK, runtime guides, examples, and protocol specs.
+description: Developer documentation for the MDAN TypeScript SDK for building agent apps, skills apps, online skills, and interactive Markdown apps shared by humans and agents.
 ---
 
 # MDAN SDK Docs
 
-This site is the developer documentation home for the MDAN TypeScript SDK.
+MDAN is a Markdown-first application surface model and TypeScript SDK for
+building agent apps, skills apps, online skills, and interactive Markdown apps
+that work for both humans and agents.
 
-Use it for three kinds of reading:
+This docs site works best when you read it in one of two ways:
 
-- getting started with the SDK and local examples
-- understanding app authoring, browser behavior, and public package boundaries
-- reading the current protocol and compatibility specifications
+- follow the recommended onboarding path if you are new to MDAN
+- jump directly to guides, reference, or spec if you already know what you need
 
-## Start Here
+## Recommended Path
 
-- Want the product-level explanation first: [What is MDAN?](/what-is-mdan)
-- Want the mental model: [Understanding MDAN](/understanding-mdan)
-- Ready to run an app: [Quickstart](/getting-started)
-- Want a hands-on walkthrough: [Build Your First App](/build-your-first-app)
-- Want runnable app flows: [Examples](/examples)
-- Comparing with tool protocols: [MDAN vs MCP](/mdan-vs-mcp)
-- Need the vocabulary: [Glossary](/glossary)
-- Want the package surface first: [Public API](/reference/public-api)
-- Want the integration split first: [Developer Paths](/developer-paths)
-- Want the protocol side first: [Spec Overview](/spec)
+If this is your first time here, read these pages in order:
 
-## Guides
+1. [What is MDAN?](/what-is-mdan)
+2. [Quickstart](/quickstart)
+3. [Customize The Starter](/customize-the-starter)
+4. [Examples](/examples)
 
-- [Understanding MDAN](/understanding-mdan)
-- [MDAN vs MCP](/mdan-vs-mcp)
-- [Build Your First App](/build-your-first-app)
-- [Glossary](/glossary)
-- [Developer Paths](/developer-paths)
-- [Application Structure](/application-structure)
-- [Markdown Semantic Slot Authoring](/semantic-slot-authoring)
-- [Server Integration](/server-integration)
-- [Deployment And Production](/deployment-and-production)
-- [Runtime Contract](/guides/runtime-contract)
-- [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
-- [Custom Rendering](/custom-rendering)
-- [Inputs And Assets](/guides/inputs-and-assets)
-- [Sessions](/guides/sessions)
-- [Errors](/guides/errors)
-- [Streaming](/guides/streaming)
-- [Agent Content](/guides/agent-content)
-- [Action Proof Security](/guides/action-proof-security)
-- [Action JSON](/action-json)
+That path takes you from product model to running app to first real change.
 
-## Reference
+## Choose By Goal
 
-- [Public API](/reference/public-api)
-- [API Reference](/api-reference)
-- [Server Adapters](/reference/server-adapters)
-- [UI Action Semantics](/reference/ui-action-semantics)
-- [Agent Evaluation Contract](/reference/agent-eval)
-- [Agent Markdown Surface Contract](/reference/agent-surface-contract)
-- [Baseline Parity Check](/reference/parity-check)
-- [Test Baseline](/reference/test-baseline)
-- [Changelog](/reference/changelog)
+### I Need The Product Model
 
-## Spec
+- [What is MDAN?](/what-is-mdan)
+- [Online Skills](/online-skills)
+
+### I Want To Run Something Fast
+
+- [Quickstart](/quickstart)
+- [Customize The Starter](/customize-the-starter)
+- [Examples](/examples)
+
+### I Need The Protocol And Spec
 
 - [Spec Overview](/spec)
 - [Application Surface Spec](/spec/application-surface)
-- [Actions JSON Field Reference](/spec/action-json-fields)
 - [Surface Contract](/spec/surface-contract)
-- [Action Execution](/spec/action-execution)
-- [Action Envelope Validation Profile](/spec/action-envelope-validation-profile)
-- [Input And Input Schema](/spec/input-and-schema)
-- [Action Proof](/spec/action-proof)
-- [Agent Content](/spec/agent-content)
-- [State And Identity](/spec/state-and-identity)
-- [Representations](/spec/representations)
-- [Representation Negotiation](/spec/representation-negotiation)
-- [Region Update Semantics](/spec/region-update-semantics)
-- [Versioning And Conformance](/spec/versioning-and-conformance)
 
-## Contributing
+## More Docs
+
+- [Troubleshooting](/troubleshooting)
+- [Deep Dive](/deep-dive)
+- [SDK Packages](/sdk-packages)
+- [API Reference](/api-reference)
+- [Auto Dependencies](/auto-dependencies)
+- [Glossary](/glossary)
+
+## Maintainers
 
 - [Contributing](/contributing)
 - [Architecture](/architecture)

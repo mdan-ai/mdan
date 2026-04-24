@@ -1,43 +1,74 @@
 ---
 title: Custom Rendering
-description: Build a custom frontend for an MDAN agent app while keeping the browser runtime, with React, Vue, or another UI layer in charge of rendering.
+description: Build your own browser UI on top of `@mdanai/sdk/surface`, while keeping MDAN route state, action submission, and region update behavior.
 ---
 
 # Custom Rendering
 
-If you want to keep the MDAN browser runtime while letting your own framework
-fully own the UI, this is the path to take.
+Use this page when you want to keep MDAN behavior but replace the shipped
+browser UI with your own frontend.
 
-This is the right path when you want a custom frontend for an MDAN agent app,
-including a React agent UI, a Vue agent UI, or another browser layer that keeps
-MDAN behavior but replaces the default rendering path.
+This is the right path when:
 
-If all you need is custom Markdown-to-HTML projection for the default browser
-shell, stay on the root app API and configure `createApp({ rendering: { markdown } })`.
-Reach for `@mdanai/sdk/surface` only when you want to own the browser UI itself.
+- you want your own React, Vue, or other component tree
+- you still want MDAN to own route state and action submission
+- you do not want to re-implement the browser/runtime contract yourself
 
-## Shared Principle
+If you just want the fastest browser app, stay on the default browser shell.
 
-- `@mdanai/sdk/surface` handles request lifecycle, route state, action
-  submission, and update semantics
-- your framework handles the component tree, rendering, form controls, and
-  local visual state
+## What You Keep And What You Replace
 
-In other words: keep the MDAN behavior layer, replace the view layer.
+With custom rendering:
 
-## Lifecycle Pattern
+- `@mdanai/sdk/surface` keeps transport, route state, action submission, and
+  region update behavior
+- your UI layer renders the current snapshot and owns local visual state
 
-Whether you use Vue, React, or another framework, the recommended pattern is
-the same:
+In short:
 
-1. create the host once during mount/setup
-2. subscribe to current state immediately after creation
-3. call `host.mount()`
-4. unsubscribe and `host.unmount()` during teardown
+- MDAN still owns application behavior
+- your frontend owns presentation
 
-That avoids duplicate subscriptions, stale runtime instances, and memory leaks.
+## When To Choose This Path
 
-## Core Host Shape
+Choose custom rendering when:
+
+- the shipped default UI is not the presentation you want
+- you need your own design system
+- you want to connect MDAN behavior to an existing frontend app
+
+Do not choose it just because you want to tweak styles or Markdown rendering.
+That is a much smaller customization problem.
+
+## The Main Entry Point
+
+Import the headless browser runtime:
+
+```ts
+import { createHeadlessHost } from "@mdanai/sdk/surface";
+```
+
+The host gives you the main browser-side behavior:
+
+- `mount()`
+- `unmount()`
+- `subscribe(listener)`
+- `getSnapshot()`
+- `visit(target)`
+- `sync(target?)`
+- `submit(operation, values)`
+
+## The Basic Lifecycle
+
+The recommended pattern is:
+
+1. create the host once
+2. subscribe to snapshot updates
+3. mount the host
+4. call `sync()` for the first load when needed
+5. unmount and unsubscribe during teardown
+
+Example:
 
 ```ts
 import { createHeadlessHost } from "@mdanai/sdk/surface";
@@ -47,17 +78,80 @@ const host = createHeadlessHost({
   fetchImpl: window.fetch
 });
 
-host.mount();
-
 const unsubscribe = host.subscribe((snapshot) => {
-  console.log(snapshot.route, snapshot.status);
+  console.log(snapshot.status, snapshot.route);
 });
+
+host.mount();
+await host.sync();
+
+// later
+unsubscribe();
+host.unmount();
 ```
 
-## Debugging Custom UIs
+The important rule is: create one long-lived host for the current UI tree, not
+one host per component render.
 
-If you want to inspect raw protocol traffic while building a custom UI, enable
-browser-side debug messages on the host:
+## What Your UI Renders
+
+Your rendering layer should derive UI from the current snapshot:
+
+- `snapshot.markdown`
+- `snapshot.blocks`
+- `snapshot.route`
+- `snapshot.status`
+- `snapshot.error`
+
+That means your UI reacts to MDAN state instead of duplicating server
+assumptions in frontend state machines.
+
+## Navigation And Actions
+
+Use `visit(target)` for route-style navigation.
+
+Use `submit(operation, values)` for declared actions.
+
+Practical rules:
+
+- submit only fields declared by the current operation
+- let GET actions stay query-driven
+- let POST actions submit declared input values
+- react to returned page or region updates instead of predicting them locally
+
+## Files And Form Data
+
+If a submitted value is a `File`, the headless host automatically switches to
+multipart form data and includes `action.proof` as a form field when needed.
+
+If there is no file, POST actions are submitted as JSON.
+
+That means your UI usually does not need separate transport logic for ordinary
+vs file-backed action submission.
+
+## Region Updates
+
+When an action declares `state_effect.response_mode: "region"`, the headless
+host will try to patch only the named regions.
+
+If the returned route changes, or the expected region is missing, the host
+falls back to a page replacement.
+
+Your UI should be ready for either outcome.
+
+## Error Handling
+
+Non-2xx responses move the host into `error` status.
+
+If the server returns readable Markdown, the host still adapts that content so
+your UI can render a useful error surface instead of only showing a transport
+failure.
+
+Use `snapshot.status` and `snapshot.error` as the main error-state signals.
+
+## Debugging
+
+Enable debug messages during development:
 
 ```ts
 const host = createHeadlessHost({
@@ -66,35 +160,32 @@ const host = createHeadlessHost({
 });
 ```
 
-That keeps a browser-visible log of raw request/response messages at
-`window.__MDAN_DEBUG__.messages`.
+Debug records are stored in:
 
-## Forms And Actions
+```ts
+window.__MDAN_DEBUG__.messages
+```
 
-Your rendering layer should derive UI from current runtime state plus local form
-state, not from a duplicated set of server assumptions.
+This is useful when you need to inspect the actual request/response flow while
+building a custom UI.
 
-Practical rules:
+## Practical Rule
 
-- submit only values declared by the current operation
-- let `GET` actions map to query-driven reads
-- let `POST` actions submit declared input values
-- react to returned page or region updates instead of predicting them locally
+When building a custom frontend:
 
-## When To Choose This Path
+- do not invent a parallel action model
+- do not hardcode expected page transitions
+- do not submit undeclared input fields
+- do let the headless host own MDAN behavior
+- do let your framework own presentation
 
-Choose custom rendering when:
-
-- you want MDAN transport and state handling
-- but you need your own React, Vue, or other component system
-- and the shipped default browser-shell UI is not the right presentation layer
-
-If you want the fastest path to a readable browser app, stay with the server
-browser-shell path instead. If you want full client-side rendering control, pair
-your own frontend with `@mdanai/sdk/surface` directly.
+That split is what keeps a custom frontend aligned with the same runtime
+contract as the default browser path.
 
 ## Related Docs
 
-- [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
-- [Public API](/reference/public-api)
+- [Custom Server](/custom-server)
+- [Browser Behavior](/browser-behavior)
+- [SDK Packages](/sdk-packages)
+- [API Reference](/api-reference)
 - [Examples](/examples)

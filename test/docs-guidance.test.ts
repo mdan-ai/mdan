@@ -7,15 +7,12 @@ import { describe, expect, it } from "vitest";
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
 describe("docs guidance", () => {
-  it("keeps developer paths centered on root plus surface", async () => {
-    const developerPaths = await readFile(join(repoRoot, "docs/developer-paths.md"), "utf8");
+  it("keeps quickstart centered on the generated starter files", async () => {
+    const quickstart = await readFile(join(repoRoot, "docs/quickstart.md"), "utf8");
 
-    expect(developerPaths).toContain("## Path A: App + Browser Shell");
-    expect(developerPaths).toContain("## Path B: App + Surface + Your Own UI");
-    expect(developerPaths).toContain("For new work, default to:");
-    expect(developerPaths).toContain("`@mdanai/sdk` for app authoring");
-    expect(developerPaths).toContain("`@mdanai/sdk/surface` only when you need a custom frontend");
-    expect(developerPaths).not.toContain("optional `@mdanai/sdk/ui`");
+    expect(quickstart).toContain("`app/index.md`");
+    expect(quickstart).toContain("`app/server.mjs`");
+    expect(quickstart).toContain("`index.mjs`");
   });
 
   it("keeps create-mdan focused on root app authoring", async () => {

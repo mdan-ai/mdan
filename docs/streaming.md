@@ -1,18 +1,34 @@
 ---
 title: Streaming And SSE
-description: Use MDAN streaming responses and Server-Sent Events for incremental action output, progress updates, and long-running readable flows.
+description: Use `stream(...)` from `@mdanai/sdk/server` for incremental action output in the current SDK, and understand when streaming fits better than a normal Markdown response.
 ---
 
 # Streaming And SSE
 
-The server runtime supports streaming action responses through `stream(...)` and
-`Accept: text/event-stream`.
+Use this page when you want to stream incremental action output in the current
+SDK.
 
-Streaming is useful for long-running generated output, incremental logs, or
-progress updates. Ordinary page, form, and agent flows should usually return a
-normal Markdown response instead.
+This is an SDK usage guide, not the normative spec.
 
-## Handler Result
+For protocol-layer execution rules, use [Action Execution](/spec/action-execution).
+
+## When To Use Streaming
+
+Use streaming when:
+
+- partial output is useful before the operation finishes
+- the operation may take noticeably longer than an ordinary action
+- the client explicitly supports SSE consumption
+- the flow is progress-oriented or log-oriented
+
+Return a normal Markdown response when:
+
+- the result is a page or region update
+- agents need `allowed_next_actions`
+- the default browser flow should handle the interaction normally
+- the response should become the next stable readable surface
+
+## The SDK Entry Point
 
 Import `stream` from the server package:
 
@@ -39,7 +55,7 @@ server.post("/draft", async () => {
 `stream(source, result?)` accepts an iterable or async iterable. `result` may
 carry status, headers, route, or session metadata supported by stream results.
 
-## Chunk Types
+## What You Can Yield
 
 Each stream chunk may be:
 
@@ -51,7 +67,7 @@ String chunks are sent as Markdown text.
 Fragment chunks are serialized with the same Markdown fragment serializer used
 by non-stream action results.
 
-## Accept Header
+## What The Client Must Request
 
 Clients must explicitly request streaming:
 
@@ -63,11 +79,7 @@ Accept: text/event-stream
 
 Page reads with `Accept: text/event-stream` return `406 Not Acceptable`.
 
-Ordinary non-stream action requests should usually use `Accept: text/markdown`
-and return a normal Markdown response.
-If a `POST` action requests `text/event-stream` but the runtime path is not a
-stream result, the current runtime rejects the request as an action
-representation mismatch before calling the handler.
+Ordinary non-stream action requests should still use `Accept: text/markdown`.
 
 ## SSE Wire Format
 
@@ -87,17 +99,7 @@ The shared SSE helpers can:
 - parse complete SSE content into messages
 - drain a partial buffer and return the remaining incomplete chunk
 
-## Non-Stream Fallback
-
-The response serializer can serialize a non-stream fragment as a single SSE
-message when called directly with `event-stream`.
-
-The public runtime path is stricter for action requests: page routes reject
-`text/event-stream`, and non-stream action handlers should generally return
-`text/markdown` instead. Treat SSE as a stream-action feature, not as an
-alternate representation for ordinary surfaces.
-
-## Browser And Headless Boundary
+## Browser Boundary
 
 The current headless host is Markdown-first for page and action reads. It can
 still interoperate with legacy JSON compatibility responses where needed, but the preferred
@@ -112,30 +114,18 @@ When a stream produces a final page state that should be visible to normal MDAN
 clients, expose a follow-up action or route that returns the final Markdown
 response.
 
-## When To Use Streaming
+## Practical Rule
 
-Use streaming when:
+Treat streaming as a specialized SDK feature for incremental output.
 
-- partial output is useful before the operation finishes
-- the operation may take noticeably longer than ordinary form submission
-- the client has explicit SSE handling
-- the interaction is read/progress-oriented or has a clear final recovery route
+Do not treat it as a replacement for the normal MDAN readable surface.
 
-Return a normal Markdown response when:
+If the user, browser, or agent needs a stable next interaction state, return a
+normal Markdown response after the stream or provide a follow-up route/action
+that does.
 
-- the result is a page or region update
-- agents need to inspect `allowed_next_actions`
-- the default browser UI should handle the interaction
-- the response includes recoverable validation errors
-- the action changes session state and the client needs a stable next surface
+## Related Docs
 
-## Contract Notes
-
-Stream results are not readable-surface or Markdown page responses, and they do
-not pass through the legacy compatibility envelope validation path either.
-
-Action proof can protect the request that starts a stream, but stream chunks do
-not carry action proofs and do not expose next actions.
-
-Do not put executable action metadata only in streamed Markdown. Expose
-follow-up actions through a normal Markdown response.
+- [Server Behavior](/server-behavior)
+- [Error Model And Status Codes](/spec/error-model)
+- [MDAN Action Execution](/spec/action-execution)

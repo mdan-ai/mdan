@@ -59,13 +59,13 @@ Recommendation:
 - reuse sections such as "What MDAN Is", "What Problem It Solves", and "When To Use MDAN"
 - fold the best parts into the new docs home or a dedicated `what-is-mdan.md`
 
-### `getting-started.md`
+### `quickstart.md`
 
 Status: `Partially adopted already`
 
 Why:
 
-- we already created a new `docs/getting-started.md`
+- we already created a new `docs/quickstart.md`
 - the old version still has useful product framing, but it references older release numbers and starter structure
 
 Recommendation:

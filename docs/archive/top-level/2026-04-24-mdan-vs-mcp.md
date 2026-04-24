@@ -72,5 +72,4 @@ Choose MCP first when your core problem is:
 ## Related Docs
 
 - [What is MDAN?](/what-is-mdan)
-- [Understanding MDAN](/understanding-mdan)
-- [Quickstart](/getting-started)
+- [Quickstart](/quickstart)

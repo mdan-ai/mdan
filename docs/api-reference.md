@@ -1,21 +1,33 @@
 ---
 title: API Reference
-description: MDAN SDK API reference for the current `@mdanai/sdk` package, including the supported page, route, action, and runtime entry paths.
+description: TypeScript API reference for the public `@mdanai/sdk` packages, including the app API, host adapters, surface runtime, and lower-level server runtime.
 ---
 
 # API Reference
 
-This document covers the public MDAN SDK surface you should actually depend on.
+Use this page when your question is:
 
-Use it when you need the stable API for building MDAN apps with pages, routes,
-actions, browser delivery, or lower-level runtime integration.
+- what does this package export
+- which functions do I actually call
+- what are the main public entrypoints in each package
 
-If something does not appear here or in [Public API](/reference/public-api), do
-not rely on it as a stable interface.
+This page is the TypeScript API reference for the public SDK surface.
 
-## Supported Entry Paths
+If your question is "which package should I choose at all?", start with
+[SDK Packages](/sdk-packages).
 
-The supported public package entries are:
+## Start Here
+
+If you only need the most common entrypoints, start with these:
+
+- `createApp(...)` from `@mdanai/sdk`
+- `createHost(...)` from `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
+- `createHeadlessHost(...)` from `@mdanai/sdk/surface` when you build a custom frontend
+- `createMdanServer(...)` from `@mdanai/sdk/server` only for lower-level runtime control
+
+## Entry Points
+
+The main public package entries are:
 
 - `@mdanai/sdk`
 - `@mdanai/sdk/server/node`
@@ -23,111 +35,58 @@ The supported public package entries are:
 - `@mdanai/sdk/surface`
 - `@mdanai/sdk/server`
 
-Treat the first three as the normal app-development path. Treat `surface`,
-and `server` as progressively lower-level or more specialized entries.
-
-For boundary rules, see [Public API](/reference/public-api).
-
 ## `@mdanai/sdk`
 
 The default app-authoring entrypoint.
 
-### Main Exports
+### Most Developers Use
 
 - `createApp(options?)`
 - `actions`
 - `fields`
 - `getHeader()`, `getCookie()`, `getQueryParam()`
-- `AppBrowserShellOptions`
-- `CreateAppOptions`
 - `signIn()`
 - `signOut()`
 
-### App Types
+### Types You May Notice
 
-The root package exports the app-level browser-shell and markdown-rendering
-types that shape `createApp(...)`, without exposing the broader internal
-authoring/runtime type graph.
-
-Use this entry when you want the shortest path to shipping an app without
-directly modeling protocol/runtime internals.
+- `AppBrowserShellOptions`
+- `CreateAppOptions`
 
 ### App Authoring Helpers
 
-- action declaration helpers: `actions.route(...)`, `actions.read(...)`, `actions.write(...)`
-- page registration: `app.route(...)`
-- action JSON inspection: `page.actionJson()` for compiled protocol-facing action output
-- action registration:
-  - `app.action(path, handler)` (POST default)
-  - `app.action(path, { method: "GET" }, handler)`
-  - `app.read(path, handler)` and `app.write(path, handler)` semantic shortcuts
+- `actions.route(...)`
+- `actions.read(...)`
+- `actions.write(...)`
+- `app.route(...)`
+- `app.action(...)`
+- `app.read(...)`
+- `app.write(...)`
+- `app.bindActions(...)`
+- `page.actionJson()`
 
-### App API Runtime Rules
+### Runtime Rules You Will Care About
 
-- `route` and `read` are both GET-capable, but they are not interchangeable:
-  - `app.route(path, ...)` owns page-level GET navigation.
-  - `app.read(path, ...)` owns data-read GET handlers.
-- The same GET path cannot be registered by both `app.route(...)` and `app.read(...)`/`app.action(..., { method: "GET" }, ...)`.
-  The SDK throws early to prevent ambiguous routing semantics.
-- `app.bindActions(page, handlers)` binds handlers by declared action id and target/method:
-  - throws if multiple declared actions collapse to the same `method+target` and cannot be disambiguated
-  - skips GET actions already served by a registered page route
-  - warns for unknown ids and missing declared handlers
-- Current action transport support in the app/runtime layer is `GET` and `POST`.
+- `route` and `read` are both GET-capable, but they are not interchangeable
+- the same GET path cannot be owned by both `app.route(...)` and `app.read(...)`
+- current action transport support is `GET` and `POST`
 
 ## `@mdanai/sdk/server`
 
-The shared lower-level server runtime and server-side helpers.
+The lower-level server runtime.
 
-Reach for this package intentionally, not as the default app-authoring path.
-
-### Core Runtime
+### Main Exports
 
 - `createMdanServer(options?)`
-  Creates the server runtime and lets you register:
-  - `server.page(path, handler)`
-  - `server.get(path, handler)`
-  - `server.post(path, handler)`
-
-### Result Helpers
-
 - `ok(result)`
 - `fail(result)`
 - `stream(chunks, result?)`
-
-Use these helpers when you want explicit success, failure, or streaming action
-results.
-
-### Session Helpers
-
 - `signIn(session)`
 - `signOut()`
 - `refreshSession(session)`
-
-These create session mutation intents for the configured session provider.
-
-### Asset Helpers
-
 - `cleanupExpiredAssets(options)`
 
-### Common Exported Types
-
-The server package also exports only the common request, response, session, and
-asset-handle types used by applications and tests.
-
-The browser-shell implementation helpers are intentionally not part of this main
-barrel.
-The host-level body-normalization helpers are also intentionally kept off this
-main barrel.
-Standalone asset-store read/write helpers are also intentionally kept off this
-main barrel.
-Runtime-tuning types such as browser-shell or auto-dependency config details
-are intentionally kept off this main barrel as well.
-Post-input validation helpers and their detailed types are also kept off this
-main barrel.
-Low-level Markdown assembly helpers are also intentionally kept off this main barrel.
-Lower-level handler, input, and stream/result typing details are also kept off
-this main barrel.
+Use this package intentionally, not as the default app-authoring path.
 
 ## `@mdanai/sdk/server/node`
 
@@ -139,8 +98,9 @@ The Node HTTP integration layer.
 - `createNodeHost(server, options?)`
 - `createNodeRequestListener(server, options?)`
 
-Use `createHost()` for the usual Node entry path. Reach for
-`createNodeRequestListener()` only when you need a lower-level `http` listener.
+Use `createHost()` for the normal Node path.
+
+`createNodeHost()` is the Node-specific alias behind `createHost()`.
 
 ## `@mdanai/sdk/server/bun`
 
@@ -150,17 +110,17 @@ The Bun host integration layer.
 
 - `createHost(server, options?)`
 
-Use it as the `fetch` entry for `Bun.serve(...)`.
+Use it as the `fetch` handler for `Bun.serve(...)`.
 
 ## `@mdanai/sdk/surface`
 
-The lightweight browser/headless runtime for custom frontends.
+The headless browser runtime for custom frontends.
 
-### Main Export
+### Most Developers Use
 
 - `createHeadlessHost(options?)`
 
-The returned host provides the main browser-continuation methods:
+The returned host provides:
 
 - `mount()`
 - `unmount()`
@@ -170,27 +130,30 @@ The returned host provides the main browser-continuation methods:
 - `sync(target?)`
 - `submit(operation, values)`
 
-The surface package also exports protocol and adapter-layer types used by
-custom frontends.
+### Other Public Surface Exports
 
-## Default UI Implementation
+This package also re-exports protocol and adapter helpers used by more advanced
+custom frontend work.
 
-The shipped Web Components UI remains an internal SDK implementation detail used
-by the browser shell and browser bundles. Application code should not import it
-as a public package entry.
+If you only need the main browser runtime path, `createHeadlessHost()` is the
+entrypoint to care about first.
 
-## Legacy And Internal Paths To Avoid
+## What This Page Does Not Cover
 
-Do not depend on:
+This page does not try to explain runtime behavior, browser continuation, or
+package-boundary rules in depth.
 
-- deep `src/` imports
-- deep `dist/` imports
-- old package names such as `@mdanai/sdk/web` or `@mdanai/sdk/elements`
-- undocumented internal modules under `protocol`, `content`, or server internals
+Use:
+
+- [SDK Packages](/sdk-packages) for package choice and stability boundaries
+- [Custom Server](/custom-server) for host integration guidance
+- [Server Behavior](/server-behavior) for runtime behavior
+- [Browser Behavior](/browser-behavior) for browser continuation behavior
 
 ## Related Docs
 
-- [Public API](/reference/public-api)
+- [SDK Packages](/sdk-packages)
+- [Custom Server](/custom-server)
 - [Action JSON](/action-json)
-- [Runtime Contract](/guides/runtime-contract)
-- [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
+- [Server Behavior](/server-behavior)
+- [Browser Behavior](/browser-behavior)

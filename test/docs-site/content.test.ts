@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,24 @@ describe("docs-site content manifest", () => {
     await Promise.all(
       docsPages.map((page) => access(join(repoRoot, page.sourcePath), constants.R_OK))
     );
+  });
+
+  it("keeps internal markdown links aligned with published routes", async () => {
+    const routes = new Set(listDocsRoutes());
+
+    for (const page of docsPages) {
+      const source = await readFile(join(repoRoot, page.sourcePath), "utf8");
+      const matches = source.matchAll(/\[[^\]]+\]\((\/[^)\s]+)\)/g);
+
+      for (const match of matches) {
+        const rawTarget = match[1];
+        const route = rawTarget.split("#", 1)[0]?.split("?", 1)[0] ?? rawTarget;
+        expect(
+          routes.has(route),
+          `Expected ${page.sourcePath} to link to a published route, but ${route} is missing from docsPages.`
+        ).toBe(true);
+      }
+    }
   });
 });
 

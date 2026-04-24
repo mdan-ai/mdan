@@ -1,22 +1,24 @@
 ---
-title: Runtime Contract
-description: Practical guide to the current MDAN server runtime, including page routes, action routes, response shapes, and host-facing behavior.
+title: Server Behavior
+description: Practical guide to how the MDAN server runtime handles routes, response representations, action requests, post-action results, and runtime validation.
 ---
 
-# Runtime Contract
+# Server Behavior
 
-This document describes the server runtime behavior implemented by
-`createMdanServer()`. The protocol shape itself remains in
-`../spec/application-surface.md`; this file is the practical SDK guide for
-hosts, tests, and agents.
+Use this page when your question is about what the server does at runtime.
 
-Related contract documents:
+Typical questions:
 
-- `server-adapters.md`: Node/Bun host adapter behavior
-- `errors.md`: status codes and error surface shape
-- `streaming.md`: `stream(...)` and `text/event-stream`
-- `ui-action-semantics.md`: browser/default UI action behavior
-- `public-api.md`: package export boundaries
+- what kinds of routes exist
+- what response representations the server returns
+- what an action request should look like
+- what happens after an action runs
+- what validation the runtime enforces
+
+This page describes the practical behavior of `createMdanServer()`.
+
+If your question is about browser continuation behavior, use
+[Browser Behavior](/browser-behavior).
 
 ## Runtime Shape
 
@@ -27,55 +29,37 @@ The runtime has two route families:
   `server.post(path, handler)`
 
 Page handlers may return a Markdown-native page, a readable surface shape, a
-legacy JSON compatibility shape, or `null`. Action handlers may return an
-Markdown-native action result, a readable surface shape, that same legacy
-compatibility shape, or a stream result from `stream(...)`.
+legacy JSON compatibility shape, or `null`.
 
-Legacy JSON compatibility shapes are currently used as an internal bridge
-while the runtime moves toward Markdown-native handlers. The SDK projects them
-into the canonical Markdown surface shape before `text/markdown` responses are
-serialized.
+Action handlers may return a Markdown-native action result, a readable surface
+shape, a legacy JSON compatibility shape, or a stream result from `stream(...)`.
 
 Readable surface results are the lighter-weight default authoring shape:
 
-- `markdown`: page markdown template
-- `actions`: the executable action contract
-- `route`: the current route path
-- `regions`: named region markdown used for block updates
+- `markdown`
+- `actions`
+- `route`
+- `regions`
 
-For compatibility only, every legacy JSON compatibility shape contains:
-
-- `content`: Markdown for humans and agents
-- `actions`: the executable action contract
-- `view.route_path`: the browser/history route for the returned surface
-- `view.regions`: named region markdown used for block updates
-
-For the full legacy envelope and action schema contract, see the archived
-compatibility notes under `docs/archive/`.
-
-## Representations
+## Response Representations
 
 The runtime negotiates the response representation from `Accept`:
 
-- `text/markdown` returns the canonical page surface
-- `text/html` is only for page `GET` requests when a browser shell host is in
-  front of the runtime
-- `text/event-stream` is only for stream action results
-- `application/json` is only available for handlers that still expose the
-  legacy JSON compatibility bridge
+- `text/markdown`
+  canonical page/action read surface
+- `text/html`
+  only for page `GET` requests when a browser shell host is involved
+- `text/event-stream`
+  only for stream action results
+- `application/json`
+  compatibility-only path for handlers that still expose legacy JSON
 
-`text/markdown` is the recommended public read path for both page reads and
-ordinary action results. `text/html` remains the browser projection for page
-`GET` requests. The `application/json` representation remains available only as
-a compatibility bridge while the runtime still supports legacy envelope paths.
+Practical rule:
 
-Raw action submissions still use JSON request bodies, but ordinary action
-results can now be returned as Markdown surfaces. A `POST` action with
-`Accept: text/html` returns `406 Not Acceptable`; `Accept: text/markdown` is
-the preferred non-stream action response.
-
-See `streaming.md` for the stricter stream-action boundary and `errors.md` for
-status-code behavior.
+- page read: prefer `text/markdown`
+- ordinary action result: prefer `text/markdown`
+- stream action: use `text/event-stream`
+- do not request `text/html` from a normal action POST
 
 ## Action Request Format
 
@@ -101,20 +85,17 @@ Form-style compatibility fields are also parsed:
 }
 ```
 
-See `action-proof-security.md` for the security boundary and disable escape
-hatch.
-
 ## Handler Context
 
 Action handlers receive:
 
-- `request`: normalized runtime request metadata
-- `inputs`: schema-normalized values
-- `inputsRaw`: submitted values before schema coercion
-- `session`: the current session snapshot or `null`
-- `params`: route parameters
-- `readAsset(assetId)`: read an uploaded asset as a `Buffer`
-- `openAssetStream(assetId)`: stream an uploaded asset
+- `request`
+- `inputs`
+- `inputsRaw`
+- `session`
+- `params`
+- `readAsset(assetId)`
+- `openAssetStream(assetId)`
 
 Page handlers receive:
 
@@ -122,43 +103,28 @@ Page handlers receive:
 - `session`
 - `params`
 
-## Result Semantics
+## What Happens After An Action
 
 An action result may return a new page or a region update depending on the
-declared action `state_effect`:
+declared `state_effect`:
 
-- `response_mode: "page"` replaces the current page snapshot and may update
-  browser history using the returned route
-- `response_mode: "region"` patches only the declared `updated_regions` when the
-  returned route still matches the current route
-- a route change or missing region data falls back to page replacement
+- `response_mode: "page"`
+  replaces the current page snapshot
+- `response_mode: "region"`
+  patches only the declared `updated_regions` when possible
 
-Server-side auto dependencies are resolved before responses are sent, so the
-compatibility JSON bridge, Markdown surfaces, HTML projections, and browser
-clients observe the same final state.
+If the route changes or expected region data is missing, the runtime falls back
+to page replacement.
 
-`auto` is intentionally narrower than action execution:
+Server-side auto dependencies are resolved before responses are sent, so
+Markdown surfaces, HTML projections, and browser clients observe the same final
+state.
 
-- only `GET` operations can be projected as auto dependencies
-- auto resolution runs inside the server runtime and does not consume client
-  action proof
-- external `POST` actions still require action proof by default
-- hosts can cap implicit auto fan-out with `autoDependencies.maxPasses`
-
-```ts
-createMdanServer({
-  autoDependencies: {
-    maxPasses: 3
-  }
-});
-```
-
-## Validation
+## Runtime Validation
 
 The runtime validates returned results before sending them:
 
-- page handlers and action handlers may return Markdown-native results or the
-  readable surface / legacy JSON compatibility shapes
+- page and action handlers must return supported result shapes
 - action contracts must pass `assertActionsContractEnvelope`
 - agent blocks must be balanced and valid
 - semantic slots are enforced when `semanticSlots` is configured
@@ -166,7 +132,24 @@ The runtime validates returned results before sending them:
   default
 
 Use `actionProof: { disabled: true }` only for tests, demos, or trusted local
-experiments that intentionally bypass action execution proofing.
+experiments.
 
-Validation failures are returned as runtime error surfaces. See `errors.md` for
-the exact status-code model.
+## Practical Rule
+
+Think of the server runtime as the owner of:
+
+- route semantics
+- representation negotiation
+- action request validation
+- result interpretation
+- final response shaping
+
+Do not re-implement those semantics in middleware or frontend assumptions.
+
+## Related Docs
+
+- [Custom Server](/custom-server)
+- [Auto Dependencies](/auto-dependencies)
+- [Browser Behavior](/browser-behavior)
+- [Error Model And Status Codes](/spec/error-model)
+- [MDAN Action Proof](/spec/action-proof)

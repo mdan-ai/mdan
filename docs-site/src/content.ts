@@ -19,112 +19,74 @@ export interface DocsPageDefinition {
 
 export const docsNav: DocsNavSection[] = [
   {
-    title: "Overview",
+    title: "Start Here",
     items: [
-      { route: "/", label: "Home" },
       { route: "/what-is-mdan", label: "What is MDAN?" },
-      { route: "/understanding-mdan", label: "Understanding MDAN" },
-      { route: "/getting-started", label: "Quickstart" },
-      { route: "/build-your-first-app", label: "Build Your First App" },
+      { route: "/quickstart", label: "Quickstart" },
+      { route: "/customize-the-starter", label: "Customize The Starter" },
       { route: "/examples", label: "Examples" },
-      { route: "/mdan-vs-mcp", label: "MDAN vs MCP" },
-      { route: "/glossary", label: "Glossary" }
+      { route: "/online-skills", label: "Online Skills" },
+      { route: "/troubleshooting", label: "Troubleshooting" }
     ]
   },
   {
     title: "Guides",
     items: [
-      { route: "/developer-paths", label: "Developer Paths" },
-      { route: "/application-structure", label: "Application Structure" },
-      { route: "/server-integration", label: "Server Integration" },
-      { route: "/deployment-and-production", label: "Deployment And Production" },
-      { route: "/custom-rendering", label: "Custom Rendering" },
-      { route: "/guides/runtime-contract", label: "Runtime Contract" },
-      { route: "/guides/browser-and-headless-runtime", label: "Browser And Headless Runtime" },
-      { route: "/guides/inputs-and-assets", label: "Inputs And Assets" },
+      { route: "/deep-dive", label: "Deep Dive" },
+      { route: "/semantic-slots", label: "Semantic Slots" },
+      { route: "/action-json", label: "Action JSON" },
+      { route: "/input-schemas", label: "Input Schemas" },
+      { route: "/auto-dependencies", label: "Auto Dependencies" },
       { route: "/guides/sessions", label: "Sessions" },
-      { route: "/guides/errors", label: "Errors" },
-      { route: "/guides/streaming", label: "Streaming" },
-      { route: "/guides/agent-content", label: "Agent Content" },
-      { route: "/guides/action-proof-security", label: "Action Proof Security" }
+      { route: "/custom-server", label: "Custom Server" },
+      { route: "/custom-rendering", label: "Custom Rendering" }
     ]
   },
   {
     title: "Reference",
     items: [
-      { route: "/reference/public-api", label: "Public API" },
+      { route: "/sdk-packages", label: "SDK Packages" },
       { route: "/api-reference", label: "API Reference" },
-      { route: "/reference/server-adapters", label: "Server Adapters" },
-      { route: "/reference/ui-action-semantics", label: "UI Action Semantics" },
-      { route: "/reference/agent-eval", label: "Agent Evaluation" },
-      { route: "/reference/agent-markdown-surface-contract", label: "Agent Surface Contract" },
-      { route: "/reference/parity-check", label: "Parity Check" },
-      { route: "/reference/test-baseline", label: "Test Baseline" },
-      { route: "/reference/changelog", label: "Changelog" }
-    ]
-  },
-  {
-    title: "Examples",
-    items: [
-      { route: "/examples/starter", label: "Starter" },
-      { route: "/examples/docs-starter", label: "Docs Starter" },
-      { route: "/examples/auth-guestbook", label: "Auth Guestbook" },
-      { route: "/examples/weather-markdown", label: "Weather Markdown" }
+      { route: "/server-behavior", label: "Server Behavior" },
+      { route: "/browser-behavior", label: "Browser Behavior" },
+      { route: "/glossary", label: "Glossary" }
     ]
   },
   {
     title: "Spec",
     items: [
       { route: "/spec", label: "Spec Overview" },
-      { route: "/spec/application-surface", label: "Application Surface Spec" },
+      { route: "/spec/application-surface", label: "Application Surface" },
       { route: "/spec/surface-contract", label: "Surface Contract" },
       { route: "/spec/action-execution", label: "Action Execution" },
       { route: "/spec/action-proof", label: "Action Proof" },
-      { route: "/spec/agent-content", label: "Agent Content" },
-      { route: "/spec/state-and-identity", label: "State And Identity" },
-      { route: "/spec/representations", label: "Representations" },
-      { route: "/spec/versioning-and-conformance", label: "Versioning And Conformance" }
-    ]
-  },
-  {
-    title: "Contributing",
-    items: [
-      { route: "/contributing", label: "Contributing" },
-      { route: "/architecture", label: "Architecture" }
+      { route: "/spec/error-model", label: "Error Model" }
     ]
   }
 ];
 
 export const docsPages: DocsPageDefinition[] = [
   { route: "/", sourcePath: "docs/index.md" },
-  { route: "/getting-started", sourcePath: "docs/getting-started.md" },
-  { route: "/build-your-first-app", sourcePath: "docs/build-your-first-app.md" },
+  { route: "/quickstart", sourcePath: "docs/quickstart.md" },
+  { route: "/customize-the-starter", sourcePath: "docs/customize-the-starter.md" },
   { route: "/glossary", sourcePath: "docs/glossary.md" },
   { route: "/what-is-mdan", sourcePath: "docs/what-is-mdan.md" },
-  { route: "/mdan-vs-mcp", sourcePath: "docs/mdan-vs-mcp.md" },
-  { route: "/understanding-mdan", sourcePath: "docs/understanding-mdan.md" },
+  { route: "/online-skills", sourcePath: "docs/online-skills.md" },
   { route: "/examples", sourcePath: "docs/examples.md" },
-  { route: "/developer-paths", sourcePath: "docs/developer-paths.md" },
-  { route: "/application-structure", sourcePath: "docs/application-structure.md" },
-  { route: "/server-integration", sourcePath: "docs/server-integration.md" },
-  { route: "/deployment-and-production", sourcePath: "docs/deployment-and-production.md" },
+  { route: "/deep-dive", sourcePath: "docs/deep-dive.md" },
+  { route: "/semantic-slots", sourcePath: "docs/semantic-slots.md" },
+  { route: "/custom-server", sourcePath: "docs/custom-server.md" },
   { route: "/custom-rendering", sourcePath: "docs/custom-rendering.md" },
-  { route: "/guides/runtime-contract", sourcePath: "docs/runtime-contract.md" },
-  { route: "/guides/browser-and-headless-runtime", sourcePath: "docs/browser-and-headless-runtime.md" },
-  { route: "/guides/inputs-and-assets", sourcePath: "docs/inputs-and-assets.md" },
+  { route: "/troubleshooting", sourcePath: "docs/troubleshooting.md" },
+  { route: "/server-behavior", sourcePath: "docs/server-behavior.md" },
+  { route: "/browser-behavior", sourcePath: "docs/browser-behavior.md" },
   { route: "/guides/sessions", sourcePath: "docs/sessions.md" },
-  { route: "/guides/errors", sourcePath: "docs/errors.md" },
-  { route: "/guides/streaming", sourcePath: "docs/streaming.md" },
-  { route: "/guides/agent-content", sourcePath: "docs/agent-content.md" },
-  { route: "/guides/action-proof-security", sourcePath: "docs/action-proof-security.md" },
-  { route: "/reference/public-api", sourcePath: "docs/public-api.md" },
+  { route: "/sdk-packages", sourcePath: "docs/sdk-packages.md" },
   { route: "/api-reference", sourcePath: "docs/api-reference.md" },
+  { route: "/auto-dependencies", sourcePath: "docs/auto-dependencies.md" },
+  { route: "/action-json", sourcePath: "docs/action-json.md" },
+  { route: "/input-schemas", sourcePath: "docs/input-schemas.md" },
   { route: "/reference/server-adapters", sourcePath: "docs/server-adapters.md" },
-  { route: "/reference/ui-action-semantics", sourcePath: "docs/ui-action-semantics.md" },
-  { route: "/reference/agent-eval", sourcePath: "docs/agent-eval.md" },
-  { route: "/reference/agent-markdown-surface-contract", sourcePath: "docs/agent-surface-contract.md" },
-  { route: "/reference/parity-check", sourcePath: "docs/parity-check.md" },
-  { route: "/reference/test-baseline", sourcePath: "docs/test-baseline.md" },
   { route: "/reference/changelog", sourcePath: "CHANGELOG.md" },
   { route: "/examples/starter", sourcePath: "examples/starter/README.md" },
   { route: "/examples/docs-starter", sourcePath: "examples/docs-starter/README.md" },
@@ -132,12 +94,18 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/examples/weather-markdown", sourcePath: "demo/weather-markdown/README.md" },
   { route: "/spec", sourcePath: "spec/index.md" },
   { route: "/spec/application-surface", sourcePath: "spec/application-surface.md" },
+  { route: "/spec/action-json-fields", sourcePath: "spec/action-json-fields.md" },
   { route: "/spec/surface-contract", sourcePath: "spec/surface-contract.md" },
   { route: "/spec/action-execution", sourcePath: "spec/action-execution.md" },
+  { route: "/spec/action-envelope-validation-profile", sourcePath: "spec/action-envelope-validation-profile.md" },
+  { route: "/spec/error-model", sourcePath: "spec/error-model.md" },
+  { route: "/spec/input-and-schema", sourcePath: "spec/input-and-schema.md" },
   { route: "/spec/action-proof", sourcePath: "spec/action-proof.md" },
   { route: "/spec/agent-content", sourcePath: "spec/agent-content.md" },
   { route: "/spec/state-and-identity", sourcePath: "spec/state-and-identity.md" },
   { route: "/spec/representations", sourcePath: "spec/representations.md" },
+  { route: "/spec/representation-negotiation", sourcePath: "spec/representation-negotiation.md" },
+  { route: "/spec/region-update-semantics", sourcePath: "spec/region-update-semantics.md" },
   { route: "/spec/versioning-and-conformance", sourcePath: "spec/versioning-and-conformance.md" },
   { route: "/contributing", sourcePath: "CONTRIBUTING.md" },
   { route: "/architecture", sourcePath: "ARCHITECTURE.md" }

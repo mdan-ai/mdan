@@ -170,7 +170,7 @@ Common proof failures:
 - submitted target/method/input shape does not match the issued proof
 - confirmation is required but `action.confirmed` is not true
 
-See `action-proof-security.md` for proof semantics and boundaries.
+See [Action Proof](/spec/action-proof) for proof semantics and boundaries.
 
 ## Invalid Request Body
 

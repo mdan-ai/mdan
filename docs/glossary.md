@@ -121,7 +121,7 @@ projections.
 The browser-facing HTML delivery layer used by the current host path for page
 document reads.
 
-See [Browser And Headless Runtime](/guides/browser-and-headless-runtime).
+See [Browser Behavior](/browser-behavior).
 
 ## Headless Host
 

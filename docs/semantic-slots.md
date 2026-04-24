@@ -1,9 +1,9 @@
 ---
-title: Markdown Semantic Slot Authoring
+title: Semantic Slots
 description: Practical guidance for writing MDAN semantic slots in Markdown so both humans and agents can consume the same surface reliably.
 ---
 
-# Markdown Semantic Slot Authoring
+# Semantic Slots
 
 Use this guide when writing Markdown content for MDAN pages and regions.
 
@@ -125,6 +125,7 @@ Return normalized inputs before submitting the action.
 
 ## Related Docs
 
-- [Agent Content](/guides/agent-content)
-- [Build Your First App](/build-your-first-app)
-- [Application Structure](/application-structure)
+- [MDAN Agent Content](/spec/agent-content)
+- [Deep Dive](/deep-dive)
+- [Input Schemas](/input-schemas)
+- [Customize The Starter](/customize-the-starter)

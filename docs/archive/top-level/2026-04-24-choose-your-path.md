@@ -1,9 +1,9 @@
 ---
-title: Developer Paths
+title: Choose Your Path
 description: Choose how to build an MDAN agent app, skills app, or custom-frontend app with `@mdanai/sdk` as the default path and `@mdanai/sdk/surface` as the frontend escape hatch.
 ---
 
-# Developer Paths
+# Choose Your Path
 
 Use this page to quickly pick the right MDAN integration path for your
 situation.
@@ -25,9 +25,9 @@ with server-rendered HTML.
 
 See:
 
-- [Quickstart](/getting-started)
+- [Quickstart](/quickstart)
 - [Application Structure](/application-structure)
-- [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
+- [Browser Behavior](/browser-behavior)
 
 ## Path B: App + Surface + Your Own UI
 
@@ -58,7 +58,7 @@ tests, or another client without owning a custom browser frontend.
 
 See:
 
-- [Runtime Contract](/guides/runtime-contract)
+- [Server Behavior](/server-behavior)
 - [Server Adapters](/reference/server-adapters)
 
 ## Path D: Advanced Runtime Integration
@@ -76,7 +76,6 @@ API.
 
 See:
 
-- [Server Integration](/server-integration)
 - [Server Adapters](/reference/server-adapters)
 
 ## Decision Checklist

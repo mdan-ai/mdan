@@ -1,16 +1,26 @@
 ---
 title: Server Host Adapters
-description: Compare the MDAN Node and Bun host adapters, and understand how the transport-neutral server runtime connects to real HTTP servers.
+description: Deep reference for the MDAN Node and Bun host adapters, including request normalization, browser form bridging, browser shell serving, and host-level transport details.
 ---
 
 # Server Host Adapters
+
+Use this page as a deep reference after reading
+[Custom Server](/custom-server).
 
 The server runtime is transport-neutral. Host adapters connect a
 `createMdanServer()` instance to Node or Bun HTTP servers and add browser-facing
 conveniences around the runtime.
 
-Use this document when choosing between the high-level host helpers and the
-lower-level request listener.
+This page is for the lower-level details:
+
+- what each host helper actually adds
+- how request bodies are normalized
+- how browser form submissions are bridged
+- what browser shell and static serving behavior the host owns
+
+If you are still deciding whether you need this path at all, go back to
+[Custom Server](/custom-server).
 
 ## Export Paths
 
@@ -31,6 +41,15 @@ Shared server modeling, handlers, sessions, assets, and result helpers stay in:
 ```ts
 import { createMdanServer, stream } from "@mdanai/sdk/server";
 ```
+
+## Read This Page When
+
+Read this page when you need to answer questions like:
+
+- what exactly does `createHost()` add on top of the runtime
+- what do I lose if I drop down to `createNodeRequestListener()`
+- how are forms, files, and browser HTML requests normalized
+- which transport details belong to the host instead of the runtime
 
 ## Runtime Boundary
 
@@ -55,6 +74,9 @@ The host adapter owns:
 - adapting no-JavaScript browser form submissions
 - writing string or streaming response bodies to the runtime-specific transport
 
+That means this page is mostly about the host side of the boundary, not the
+MDAN runtime semantics themselves.
+
 ## Node Helpers
 
 `createNodeRequestListener(handler, options)` returns a low-level Node
@@ -65,8 +87,8 @@ response writing. It does not add root redirects, favicon handling, static file
 serving, local browser bundle serving, or browser form response adaptation.
 
 `createHost(handler, options)` is the recommended Node entry for browser apps.
-It wraps `createNodeRequestListener()` and adds the full host behavior described
-below.
+It wraps `createNodeRequestListener()` and adds the browser-facing host
+behavior described below.
 
 ## Bun Helper
 
@@ -80,6 +102,14 @@ Bun.serve({
 
 The Bun helper mirrors the high-level Node host behavior as closely as the Bun
 runtime allows.
+
+## Choosing The Right Level
+
+Use `createHost()` when you want the normal browser-facing MDAN server path.
+
+Use `createNodeRequestListener()` only when you intentionally want to attach the
+runtime closer to raw Node HTTP and you are comfortable owning more of the
+surrounding behavior yourself.
 
 ## Request Normalization
 
@@ -179,7 +209,8 @@ The lower-level `renderBrowserShell()` helper can still be used separately when
 you want a hydrated shell, but high-level host adapters do not inject that
 client runtime for ordinary page reads today.
 
-See `browser-and-headless-runtime.md` for the browser client contract.
+See [Browser Behavior](/browser-behavior) for the browser client contract, and
+[Custom Server](/custom-server) for the higher-level server integration path.
 
 ## Local Browser Bundles
 
@@ -257,6 +288,21 @@ The hook is applied only to string responses with `Content-Type: text/html`.
 It can be used for local development injection, analytics snippets, CSP nonce
 insertion, or host-specific wrapping.
 
+## Practical Rule
+
+Treat this page as an adapter reference, not as your first server guide.
+
+- start with [Custom Server](/custom-server)
+- use `createHost()` unless you clearly need lower-level control
+- come back here when you need exact host behavior details
+
+## Related Docs
+
+- [Custom Server](/custom-server)
+- [Server Behavior](/server-behavior)
+- [Browser Behavior](/browser-behavior)
+- [SDK Packages](/sdk-packages)
+
 Do not use `transformHtml` to change the JSON surface contract. Surface
 validation happens before HTML is written.
 
@@ -267,5 +313,3 @@ Runtime responses may have an async iterable body, especially for
 
 Node writes each chunk with `response.write()` and ends the response after the
 iterable finishes. Bun converts the async iterable into a `ReadableStream`.
-
-See `streaming.md` for stream result authoring and SSE wire format.

@@ -1,19 +1,37 @@
 ---
 title: Quickstart
-description: Start a new MDAN app with create-mdan, run it locally, inspect both the browser HTML view and the canonical Markdown response, and know what to read next.
+description: Create and run a TypeScript MDAN starter app, open it in a browser, and inspect the same interactive Markdown app, agent app, or online skill surface as a Markdown response for agents.
 ---
 
 # Quickstart
 
-This page is for first-time MDAN users.
+Use this page when you want the shortest path from zero to a running MDAN agent
+app.
 
-If your goal is "I want to see a real MDAN app running as quickly as possible,"
-start here. The fastest path is to scaffold a starter app, run it locally, open
-it in a browser, and inspect the same app as a Markdown response.
+The goal is simple:
 
-## Fastest Path: Scaffold A New App
+1. generate a real TypeScript starter app
+2. run it locally
+3. open the browser view
+4. inspect the Markdown response that agents read
+5. understand what the generated files do
 
-Node starter:
+This page is only about getting the starter running. Make your first real edit
+on [Customize The Starter](/customize-the-starter).
+
+## Before You Start
+
+You need one of these:
+
+- Node.js with `npm`
+- Bun
+
+The generated starter runs as a normal local app. You do not need to understand
+the full MDAN protocol before starting.
+
+## 1. Create A Starter App
+
+Node:
 
 ```bash
 npm create mdan@latest agent-app
@@ -22,7 +40,7 @@ npm install
 npm start
 ```
 
-Bun starter:
+Bun:
 
 ```bash
 bunx create-mdan agent-app
@@ -31,101 +49,116 @@ bun install
 bun start
 ```
 
-Then open:
+This creates a small project that already includes:
+
+- `app/index.md`
+- `app/server.mjs`
+- `index.mjs`
+
+If you want a deeper file-by-file explanation after the app is running, read
+[Customize The Starter](/customize-the-starter) next.
+
+## 2. Open The App In Your Browser
+
+Open:
 
 ```text
 http://127.0.0.1:4321/
 ```
 
-What you get:
+This is the human-facing HTML projection of the app.
 
-- one runnable MDAN app
-- one Markdown page at `app/index.md`
-- one server file at `app/server.mjs`
-- one local host entry for Node or Bun
+You should see a simple starter page with:
 
-## Confirm The Two Read Paths
+- the project title
+- a short description of the starter flow
+- a message feed block
+- actions for refreshing and submitting a message
 
-MDAN apps are designed to serve:
+If the page does not load, first confirm the terminal is still showing the dev
+server as running on `http://127.0.0.1:4321/`.
 
-- browser HTML for humans
-- Markdown responses for agents and HTTP clients
+## 3. Inspect The Markdown View
 
-After the starter is running, check both:
-
-Browser view:
-
-```bash
-curl -H 'Accept: text/html' http://127.0.0.1:4321/
-```
-
-Canonical Markdown response:
+In another terminal:
 
 ```bash
 curl -H 'Accept: text/markdown' http://127.0.0.1:4321/
 ```
 
-That second request is the fastest way to see the core MDAN model in practice:
-one readable Markdown surface plus explicit next actions.
+This is the same app as a Markdown response. It includes readable content and
+the next actions the app exposes.
 
-## Make One Small Change
+You should now see the MDAN surface directly:
 
-Edit:
+- readable Markdown content
+- the current message block content
+- an embedded `mdan` block that declares the next actions
 
-```text
-app/index.md
-```
+That Markdown response is the canonical read surface. The HTML page is the
+browser projection of the same underlying app state.
 
-Then refresh the browser and run the Markdown `curl` again.
+## 4. Know What The Generated Files Are For
 
-That gives you the real first-use loop:
-
-1. change the page content
-2. reload the browser
-3. inspect the Markdown response
-
-## Understand The Generated Shape
-
-The generated starter keeps the moving pieces small:
+The starter is intentionally small.
 
 - `app/index.md`
-  readable page content
+  the shared readable page content
 - `app/server.mjs`
-  app definition, routes, actions, and render logic
+  the app definition, actions, and page rendering logic
 - `index.mjs`
-  local host entry for Node or Bun
+  the local Node or Bun host entry
 
-You do not need to clone this SDK repo or learn the low-level runtime first to
-try MDAN.
+You do not need to edit anything yet. The point of this step is to see the
+default starter working before you change it.
 
-## What To Read Next
+## 5. What You Just Proved
 
-Pick the next page based on what you need:
+The starter demonstrates the core MDAN loop:
 
-- want the product model first: [What is MDAN?](/what-is-mdan)
-- want to hand-build the same kind of app: [Build Your First App](/build-your-first-app)
-- want to choose the right integration style: [Developer Paths](/developer-paths)
-- want runnable reference apps: [Examples](/examples)
-- want the supported package surface: [Public API](/reference/public-api)
-- want the protocol side: [Spec Overview](/spec)
+- one app serves browsers as HTML
+- the same app serves agents as Markdown
+- actions are explicit instead of guessed
+- every response can provide the next readable interaction context
 
-## If You Are Working In This Repository
+## 6. Recommended Next Step
 
-If you are contributing to the SDK itself, not starting a new app, use the
-repo-local workflow instead:
+Continue to [Customize The Starter](/customize-the-starter).
+
+That page picks up from this exact starter and walks through the first useful
+change so you can understand how MDAN apps are actually edited.
+
+## 7. Common First Issues
+
+- port `4321` is already in use
+  Start again with another port such as `PORT=4322 npm start` or
+  `PORT=4322 bun start`.
+- the browser opens but you do not know what is MDAN-specific
+  Run the Markdown `curl` request first. That is where the shared app surface is
+  easiest to understand.
+- you are inside this SDK repository and do not want to scaffold a new app
+  Use the maintainer workflow at the bottom of this page instead.
+
+## 8. Other Useful Next Reads
+
+- [Customize The Starter](/customize-the-starter)
+  Make your first actual edit to the generated starter.
+- [Troubleshooting](/troubleshooting)
+  Use this if the starter does not behave the way this page says it should.
+- [What is MDAN?](/what-is-mdan)
+  Understand the model behind the starter.
+- [Examples](/examples)
+  See the other runnable examples.
+
+## Working Inside This Repository
+
+If you are working inside this SDK repository instead of creating a new app,
+use the local example scripts:
 
 ```bash
 npm install
 npm run dev:starter
 ```
-
-Useful repo entry points:
-
-- `npm run dev:starter`
-- `npm run dev:docs-starter`
-- `npm run dev:auth-guestbook`
-- `npm run dev:docs-site`
-- weather app moved to standalone project: `/Users/hencoo/projects/mdan/mdan-weather-app`
 
 For maintainer commands and contribution guidance, see
 [Contributing](/contributing).

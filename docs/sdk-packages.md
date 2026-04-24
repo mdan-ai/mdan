@@ -1,16 +1,54 @@
 ---
-title: Public API And Package Boundaries
-description: Supported public package entry paths for `@mdanai/sdk`, including the app API, surface runtime, and Node and Bun host adapters.
+title: SDK Packages
+description: Supported public package entry paths for `@mdanai/sdk`, including the default app API, host adapters, and custom frontend runtime.
 ---
 
-# Public API And Package Boundaries
+# SDK Packages
 
-This document describes the supported package entry paths for `@mdanai/sdk`.
-Use these paths instead of importing internal files from `dist/` or `src/`.
+Use this page when your question is:
 
-## Export Paths
+- which package should I import from
+- which package is the normal path
+- which package is advanced
+- which paths are internal and should not be imported
 
-The package exposes these public paths:
+This page is about package boundaries, not detailed API signatures.
+
+If you already know which package you need and want the exported symbols, go to
+[API Reference](/api-reference).
+
+## Choose By Task
+
+- I am building pages and actions:
+  use `@mdanai/sdk`
+- I need to host the app in Node:
+  use `@mdanai/sdk/server/node`
+- I need to host the app in Bun:
+  use `@mdanai/sdk/server/bun`
+- I need my own browser UI:
+  use `@mdanai/sdk/surface`
+- I intentionally need lower-level runtime control:
+  use `@mdanai/sdk/server`
+
+## The Short Version
+
+For most app development:
+
+- `@mdanai/sdk`
+  default app-authoring entry
+- `@mdanai/sdk/server/node`
+  Node host entry
+- `@mdanai/sdk/server/bun`
+  Bun host entry
+
+Only reach for these intentionally:
+
+- `@mdanai/sdk/surface`
+  custom frontend/runtime ownership
+- `@mdanai/sdk/server`
+  lower-level runtime control
+
+## Supported Public Paths
 
 ```text
 @mdanai/sdk
@@ -22,195 +60,113 @@ The package exposes these public paths:
 
 Anything outside these paths is not a stable public API.
 
-## Public Boundary
+## Which Package To Choose
 
-External consumers should build against `@mdanai/sdk` for app authoring,
-`@mdanai/sdk/surface` for custom browser-side work, plus the runtime-specific
-`@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun` host adapters. Reach for
-`@mdanai/sdk/server` only when you intentionally need the lower-level runtime
-API.
+## `@mdanai/sdk`
 
-Protocol, surface, content, and other lower-level modules are internal
-implementation boundaries and are not part of the supported package surface.
+Use this when you are building pages and actions with the default MDAN app API.
 
-## Root App API
+This is the normal starting point for most developers.
 
-Use `@mdanai/sdk` as the default application authoring surface:
+## `@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun`
 
-```ts
-import { actions, createApp, fields } from "@mdanai/sdk";
-```
+Use these when you need to host the app in Node or Bun.
 
-The root package includes:
+These are the normal host adapters for application code.
 
-- `createApp()`
-- `actions.route()`, `actions.read()`, `actions.write()`
-- `fields.string()`, `fields.number()`, `fields.boolean()`
-- `fields.enum()`, `fields.date()`, `fields.datetime()`
-- `fields.array()`, `fields.object()`
-- `InferAppInputs<...>` (derive handler input types from declared field maps)
-- `AppBrowserShellOptions`
-- `CreateAppOptions`
-- app-level markdown rendering types
-- request helpers: `getHeader()`, `getCookie()`, `getQueryParam()`
-- `signIn()` and `signOut()` session helpers
+## `@mdanai/sdk/surface`
 
-Action registration supports both method styles:
+Use this when you want to keep MDAN browser/runtime behavior but fully own the
+browser UI.
 
-- `app.action(path, handler)` (default `POST`)
-- `app.action(path, { method: "GET" }, handler)`
-- `app.read(path, handler)` and `app.write(path, handler)` semantic helpers
-- `app.bindActions(page, handlers)` to register handlers by declared action id and transport
+This is the custom-frontend path.
 
-App routing/handler boundary rules:
+## `@mdanai/sdk/server`
 
-- `app.route(path, ...)` is the page-route GET entry.
-- `app.read(path, ...)` is the data-read GET entry.
-- the same GET path cannot be owned by both; the SDK throws when you try to register conflicting ownership.
-- app-level action transport currently supports `GET` and `POST`.
+Use this only when you intentionally need the lower-level runtime API.
 
-This is the preferred entry for defining app pages and actions without exposing
-protocol or runtime internals in your application code.
+This is not the normal first choice for app authoring.
 
-## Server
+## Practical Decision Rule
 
-Use `@mdanai/sdk/server` for runtime modeling:
+If you are unsure, follow this order:
 
-```ts
-import {
-  createMdanServer,
-  ok,
-  fail,
-  stream,
-  signIn,
-  signOut
-} from "@mdanai/sdk/server";
-```
+1. start with `@mdanai/sdk`
+2. add `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` when you host the app
+3. add `@mdanai/sdk/surface` only when you need a custom frontend
+4. drop to `@mdanai/sdk/server` only when the higher-level app path is no longer enough
 
-Server includes:
+## What Each Public Package Owns
 
-- `createMdanServer()`
-- handler types and request/response types
-- result helpers
-- session mutation helpers
-- `cleanupExpiredAssets(...)`
+## Root app authoring: `@mdanai/sdk`
 
-The server package is runtime logic. It does not by itself bind to Node or Bun
-HTTP servers.
+This package owns:
 
-The main barrel intentionally keeps only the most common request/response and
-session-provider types. Lower-level handler, input, and result typing details
-stay behind `src/server/types.ts` as internal implementation structure unless
-they are promoted later.
+- `createApp(...)`
+- `actions.route(...)`, `actions.read(...)`, `actions.write(...)`
+- `fields.*(...)`
+- page registration and app-level action registration
+- app-level helpers such as request helpers and session helpers
 
-Browser-shell implementation helpers remain internal server-layer details rather
-than part of the main `@mdanai/sdk/server` barrel.
-Body-normalization helpers also stay behind the host-adapter layer instead of
-shipping as part of the main server barrel.
-Standalone asset-store read/write helpers also stay off the main server barrel.
-Standalone asset-store config/result typing also stays off the main server
-barrel.
-Low-level Markdown assembly helpers also stay off the main server barrel.
-Browser-shell and auto-dependency tuning types are likewise kept off the main
-server barrel.
-Post-input validation helpers and their detailed type graph stay internal to the
-runtime layer as well.
+Use this when you want to define pages and actions without dropping into lower
+runtime layers.
 
-## Server Host Adapters
+## Host adapters: `@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun`
 
-Use `@mdanai/sdk/server/node` for Node HTTP integration:
+These packages own HTTP runtime concerns such as:
 
-```ts
-import { createHost } from "@mdanai/sdk/server/node";
-```
+- body reading and normalization
+- cookies
+- browser shell serving
+- static file and mount handling
+- bridging browser forms into runtime requests
 
-Use `@mdanai/sdk/server/bun` for Bun:
+## Lower-level runtime: `@mdanai/sdk/server`
 
-```ts
-import { createHost } from "@mdanai/sdk/server/bun";
-```
+This package owns the reusable server runtime:
 
-Host adapters own HTTP runtime details such as body reading, cookies, static
-files, browser shell serving, and form bridging. See `server-adapters.md`.
+- `createMdanServer(...)`
+- lower-level page/action runtime registration
+- result helpers such as `ok(...)`, `fail(...)`, and `stream(...)`
+- session mutation intents
+- asset cleanup helpers
 
-## Surface
+## Browser continuation: `@mdanai/sdk/surface`
 
-Use `@mdanai/sdk/surface` for custom browser frontends:
-
-```ts
-import { createHeadlessHost } from "@mdanai/sdk/surface";
-```
-
-The surface runtime owns:
+This package owns browser-side continuation behavior:
 
 - transport
-- current route/snapshot state
+- current route state
 - action submission
 - region patching
 - browser history integration
 
-## Default UI
+## What Is Not Public
 
-The default Web Components UI implementation remains inside the SDK for browser
-shell rendering and browser bundle assembly, but it is no longer a supported
-public package entry.
+Do not import internal implementation paths such as:
 
-New integrations should prefer either:
-
-- `@mdanai/sdk` with the browser shell
-- `@mdanai/sdk` plus `@mdanai/sdk/surface` for custom UI ownership
-
-## Browser Re-Export Files
-
-The source tree contains browser re-export files used when building browser
-bundles. They are implementation details for package build output and host
-serving.
-
-Do not import `src/browser/*` or corresponding `dist/browser/*` files from
-application code.
-
-## Dist Browser Bundles
-
-`dist-browser/` contains bundled browser modules served by the host in
-`browserShell.moduleMode: "local-dist"`:
-
-```text
-/__mdan/browser-shell.js
-/__mdan/surface.js
-/__mdan/ui.js
-```
-
-These bundles are served to browsers by the host adapter. They are not
-general Node import paths and are not a replacement for `@mdanai/sdk/surface`.
-
-## Internal Modules
-
-Internal files under `src/` or `dist/` may change without a package-level
-compatibility guarantee.
-
-Examples of non-stable import targets:
-
-- `@mdanai/sdk/dist/...`
 - `@mdanai/sdk/src/...`
+- `@mdanai/sdk/dist/...`
 - `@mdanai/sdk/core`
-- deep files under `@mdanai/sdk/core/...`
-- deep files under `@mdanai/sdk/server/...`
 - `@mdanai/sdk/protocol`
-- `dist-browser/...` as a Node import
+- deep files under `@mdanai/sdk/server/...`
+- `dist-browser/...` as a Node import path
 
-If a helper is needed by applications, promote it to one of the documented
-export paths before relying on it.
+The shipped default browser UI is also internal. It is not a supported public
+package entry.
 
-## Boundary Rules
+## Practical Rule
 
-The SDK keeps these boundaries stable:
+Use this rule unless you have a clear reason not to:
 
-- `@mdanai/sdk` is the app-authoring surface for most developers.
-- `@mdanai/sdk/surface` is independent from ui, Lit, and Markdown rendering UI.
-- `@mdanai/sdk/server` is runtime modeling, not a Node/Bun host adapter.
-- `@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun` are host integration
-  layers.
-- protocol, surface, content, and other lower-level modules remain internal.
+- start with `@mdanai/sdk`
+- host with `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
+- add `@mdanai/sdk/surface` only when you need a custom frontend
+- reach for `@mdanai/sdk/server` only when you intentionally want lower-level runtime control
 
-These boundaries keep agent clients, custom frontends, browser hosts, and server
-apps from accidentally depending on the wrong layer.
+## Related Docs
+
+- [Custom Server](/custom-server)
+- [API Reference](/api-reference)
+- [Server Behavior](/server-behavior)
+- [Browser Behavior](/browser-behavior)

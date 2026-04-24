@@ -122,6 +122,5 @@ surface rather than scattering it into parallel response channels.
 
 ## Related Docs
 
-- [Developer Paths](/developer-paths)
-- [Server Integration](/server-integration)
+- [Choose Your Path](/choose-your-path)
 - [Custom Rendering](/custom-rendering)

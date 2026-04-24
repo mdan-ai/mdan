@@ -1,19 +1,35 @@
 ---
-title: Browser And Headless Runtime
-description: Understand the MDAN browser shell, headless surface runtime, and how browser-facing delivery works across default and custom frontends.
+title: Browser Behavior
+description: Practical guide to how browsers continue from an MDAN surface, including browser shell delivery, headless host behavior, action submission, region updates, and browser-side error handling.
 ---
 
-# Browser And Headless Runtime
+# Browser Behavior
+
+Use this page when your question is about how browsers continue from an MDAN
+surface after the initial page load.
+
+Typical questions:
+
+- what the browser shell does
+- when `@mdanai/sdk/surface` is involved
+- how browser actions are submitted
+- how region updates work in the browser
+- how browser-side errors are represented
+
+If your question is about server-side routing, request shape, or response
+negotiation, use [Server Behavior](/server-behavior).
+
+## The Two Browser Layers
 
 The SDK has two browser-facing layers:
 
-- `@mdanai/sdk/surface`: a lightweight headless runtime that owns transport, route
-  state, action submission, region patching, and debug messages
-- an internal shipped default UI implementation used by the browser shell
+- `@mdanai/sdk/surface`
+  the headless runtime that owns transport, route state, action submission, and
+  region patching
+- an internal shipped default UI implementation
+  used by the browser shell
 
-Custom frontends should depend on `@mdanai/sdk/surface` directly. The default UI
-is for quick starts, examples, and hosts that want a complete browser
-experience without writing rendering code. It is not a public extension path.
+Custom frontends should depend on `@mdanai/sdk/surface` directly.
 
 ## Browser Shell
 
@@ -27,32 +43,21 @@ const app = createApp({
 });
 ```
 
-For `GET` requests that negotiate `text/html`, the current runtime and host
-path returns a readable HTML projection of the current surface.
+For `GET` requests that negotiate `text/html`, the host returns a readable HTML
+projection of the current surface.
 
-Today, that means:
+Today that means:
 
-- page reads render server-side HTML from the current surface or page result
+- page reads render server-side HTML from the current surface
 - the default host path sets `hydrate: false`
-- browsers get a readable document without booting `createHeadlessHost()` or
-  `mountMdanUi()`
+- browsers can get a readable page without booting a custom frontend runtime
 
-The shipped UI implementation can still be mounted explicitly in lower-level
-browser-shell paths, but that is not the default page-read path currently
-served by the runtime adapters.
+## Local Browser Assets
 
-## Module Modes
+When you render a hydrated browser shell directly, browser modules load from CDN
+URLs by default.
 
-When you render a hydrated browser shell directly, it imports browser modules
-from CDN URLs by default:
-
-- `@mdanai/sdk/surface`
-- `@mdanai/sdk/dist-browser/browser-shell.js`
-
-Treat the browser-shell bundle as implementation-level default rendering, not as
-the primary frontend integration story.
-
-Local SDK development can use built browser bundles instead:
+For local SDK development you can use:
 
 ```ts
 browserShell: {
@@ -66,7 +71,7 @@ In `local-dist` mode, host adapters serve:
 - `/__mdan/surface.js`
 - `/__mdan/ui.js`
 
-from `dist-browser/`. The example `dev:*` scripts build and watch those files.
+from `dist-browser/`.
 
 ## Headless Host
 
@@ -75,17 +80,18 @@ route, an optional `fetchImpl`, and `debugMessages`.
 
 The host exposes:
 
-- `mount()` and `unmount()` for browser history listeners
-- `subscribe(listener)` for UI rendering
-- `getSnapshot()` for the current adapted snapshot
-- `visit(target)` for page navigation
-- `sync(target?)` for reloading the current route
-- `submit(operation, values)` for action execution
+- `mount()`
+- `unmount()`
+- `subscribe(listener)`
+- `getSnapshot()`
+- `visit(target)`
+- `sync(target?)`
+- `submit(operation, values)`
 
 The snapshot contains the current Markdown, blocks, route, loading/error
 status, and the current transition state.
 
-## Action Submission
+## Browser Action Submission
 
 POST actions are submitted with JSON request bodies by default:
 
@@ -100,9 +106,9 @@ POST actions are submitted with JSON request bodies by default:
 }
 ```
 
-The headless host now requests `Accept: text/markdown` for both page reads and
-ordinary action results, so the returned body is the same Markdown contract that
-an agent or curl client would read directly.
+The headless host requests `Accept: text/markdown` for both page reads and
+ordinary action results, so the returned body is the same Markdown contract an
+agent or curl client would read directly.
 
 If any submitted value is a `File`, the host sends multipart form data and
 includes `action.proof` as a form field.
@@ -112,19 +118,22 @@ action proof, the query includes `action.proof` too.
 
 ## Region Updates
 
-For action results with `state_effect.response_mode: "region"`, the headless host
-patches only the named `updated_regions` when possible. If the returned surface
-changes route, or the expected region is absent, the host falls back to a page
-replacement.
+For action results with `state_effect.response_mode: "region"`, the headless
+host patches only the named `updated_regions` when possible.
 
-## Error State
+If the returned surface changes route, or the expected region is absent, the
+host falls back to a page replacement.
 
-Non-2xx responses move the host into `error` status. If the response body is a
-Markdown response or a legacy JSON compatibility response, the host adapts it so the UI can
-show the server-provided error content.
+## Browser Error State
 
-Responses that are neither readable Markdown responses nor legacy JSON compatibility responses
-are treated as runtime errors for browser clients.
+Non-2xx responses move the host into `error` status.
+
+If the response body is readable Markdown or a legacy JSON compatibility
+response, the host adapts it so the UI can show the server-provided error
+content.
+
+Responses that are neither readable Markdown nor compatible legacy JSON are
+treated as runtime errors for browser clients.
 
 ## Debug Messages
 
@@ -136,6 +145,22 @@ const host = createHeadlessHost({
 });
 ```
 
-Debug records are stored in `window.__MDAN_DEBUG__.messages` and include outgoing
-requests and incoming surfaces. The shipped default UI also exposes a small
-debug drawer when debug messages are enabled.
+Debug records are stored in `window.__MDAN_DEBUG__.messages`.
+
+## Practical Rule
+
+Think of browser behavior as the layer that:
+
+- continues from the current surface
+- submits declared actions
+- applies returned page or region updates
+- preserves browser navigation state
+- surfaces readable server-provided errors
+
+It should not invent its own parallel action model.
+
+## Related Docs
+
+- [Server Behavior](/server-behavior)
+- [Custom Rendering](/custom-rendering)
+- [Troubleshooting](/troubleshooting)

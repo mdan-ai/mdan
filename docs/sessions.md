@@ -138,3 +138,9 @@ Session handling is separate from action proof:
 Use both for authenticated actions. Action proof does not replace authorization,
 and session checks do not prove that an agent followed the current page's
 declared action contract.
+
+## Related Docs
+
+- [Custom Server](/custom-server)
+- [Examples](/examples)
+- [MDAN Action Proof](/spec/action-proof)
