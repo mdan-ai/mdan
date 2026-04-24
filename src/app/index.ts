@@ -75,6 +75,28 @@ export interface AppActionDefinition<
   input?: TInput;
 }
 
+export interface AppActionJson {
+  id: string;
+  label: string;
+  verb: AppActionVerb;
+  target: string;
+  auto?: true;
+  transport: {
+    method: AppTransportMethod;
+  };
+  input_schema: {
+    type: "object";
+    required?: string[];
+    properties: Record<string, unknown>;
+    additionalProperties: false;
+  };
+}
+
+export interface AppActionJsonManifest {
+  actions: AppActionJson[];
+  allowed_next_actions: string[];
+}
+
 type ActionInputForHandler<TAction extends AppActionDefinition> =
   TAction extends AppActionDefinition<infer TInput, string>
     ? TInput extends AppFieldMap
@@ -103,6 +125,7 @@ export interface AppPageConfig<
 export interface AppBoundPageDefinition<TActions extends readonly AppActionDefinition[] = readonly AppActionDefinition[]> {
   path: string;
   render: () => ReadableSurface;
+  actionJson: () => AppActionJsonManifest;
   [appActionDefinitionsSymbol]?: TActions;
 }
 
@@ -113,6 +136,7 @@ export interface AppPageDefinition<
   path: string;
   render: (...args: TRenderArgs) => ReadableSurface;
   bind: (...args: TRenderArgs) => AppBoundPageDefinition<TActions>;
+  actionJson: () => AppActionJsonManifest;
   [appActionDefinitionsSymbol]?: TActions;
 }
 
@@ -215,7 +239,7 @@ function compileObjectFieldSchema(shape: AppFieldMap): AppInputSchemaProperty {
   };
 }
 
-function compileAction(action: AppActionDefinition) {
+function compileAction(action: AppActionDefinition): AppActionJson {
   const method = resolveTransportMethod(action.verb, action.transport?.method);
   return {
     id: action.id,
@@ -230,21 +254,28 @@ function compileAction(action: AppActionDefinition) {
   };
 }
 
+function buildActionJsonManifest(actionDefinitions: readonly AppActionDefinition[]): AppActionJsonManifest {
+  return {
+    actions: cloneJson(actionDefinitions.map((action) => compileAction(action))),
+    allowed_next_actions: actionDefinitions.map((action) => action.id)
+  };
+}
+
 function buildReadableSurface(
   path: string,
   markdown: string,
   regions: Record<string, string>,
   actionDefinitions: readonly AppActionDefinition[]
 ): ReadableSurface {
-  const compiledActions = actionDefinitions.map((action) => compileAction(action));
+  const actionJson = buildActionJsonManifest(actionDefinitions);
   return {
     markdown,
     route: path,
     regions,
     actions: {
       blocks: Object.keys(regions),
-      actions: cloneJson(compiledActions),
-      allowed_next_actions: actionDefinitions.map((action) => action.id)
+      actions: actionJson.actions,
+      allowed_next_actions: actionJson.allowed_next_actions
     }
   };
 }
@@ -449,8 +480,10 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     config: AppPageConfig<TRenderArgs, TActions>
   ): AppPageDefinition<TRenderArgs, TActions> => {
     const actionDefinitions = (config.actions ?? []) as TActions;
+    const actionJson = () => buildActionJsonManifest(actionDefinitions);
     return {
       path,
+      actionJson,
       render: (...args: TRenderArgs) => buildReadableSurface(
         path,
         config.markdown,
@@ -459,6 +492,7 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
       ),
       bind: (...args: TRenderArgs) => ({
         path,
+        actionJson,
         render: () => buildReadableSurface(
           path,
           config.markdown,

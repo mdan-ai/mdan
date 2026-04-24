@@ -128,6 +128,67 @@ describe("app API", () => {
     expect(openHelp).toEqual(expect.objectContaining({ verb: "route", transport: { method: "GET" } }));
   });
 
+  it("exposes compiled action json manifest from page definitions", () => {
+    const app = createApp({ appId: "starter" });
+    const page = app.page("/", {
+      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"open_docs,submit\"}\n:::",
+      actions: [
+        actions.route("open_docs", {
+          label: "Open Docs",
+          target: "/docs"
+        }),
+        actions.write("submit", {
+          label: "Submit",
+          target: "/submit",
+          input: {
+            message: fields.string({ required: true, minLength: 1 })
+          }
+        })
+      ],
+      render() {
+        return { main: "- ready" };
+      }
+    });
+
+    expect(page.actionJson()).toEqual({
+      actions: [
+        {
+          id: "open_docs",
+          label: "Open Docs",
+          verb: "route",
+          target: "/docs",
+          transport: { method: "GET" },
+          input_schema: {
+            type: "object",
+            properties: {},
+            additionalProperties: false
+          }
+        },
+        {
+          id: "submit",
+          label: "Submit",
+          verb: "write",
+          target: "/submit",
+          transport: { method: "POST" },
+          input_schema: {
+            type: "object",
+            required: ["message"],
+            properties: {
+              message: {
+                type: "string",
+                minLength: 1
+              }
+            },
+            additionalProperties: false
+          }
+        }
+      ],
+      allowed_next_actions: ["open_docs", "submit"]
+    });
+
+    expect(page.bind().actionJson()).toEqual(page.actionJson());
+  });
+
   it("handles requests without explicit cookies payload", async () => {
     const app = createApp({ appId: "starter" });
     const home = app.page("/", {

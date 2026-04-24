@@ -56,6 +56,7 @@ directly modeling protocol/runtime internals.
 
 - action declaration helpers: `actions.route(...)`, `actions.read(...)`, `actions.write(...)`
 - page registration: `app.route(...)`
+- action JSON inspection: `page.actionJson()` for compiled protocol-facing action output
 - action registration:
   - `app.action(path, handler)` (POST default)
   - `app.action(path, { method: "GET" }, handler)`
@@ -190,5 +191,6 @@ Do not depend on:
 ## Related Docs
 
 - [Public API](/reference/public-api)
+- [Action JSON](/action-json)
 - [Runtime Contract](/guides/runtime-contract)
 - [Browser And Headless Runtime](/guides/browser-and-headless-runtime)
