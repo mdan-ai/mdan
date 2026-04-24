@@ -49,7 +49,8 @@ Best for:
 
 What you learn:
 
-- how one page is defined
+- how one page is defined from `app/index.md`, `app/index.action.json`, and
+  `app.ts`
 - how an action is declared and handled
 - how the same app appears in HTML and Markdown
 
@@ -71,6 +72,8 @@ Best for:
 What you learn:
 
 - how multiple Markdown files map into one app
+- how explicit page manifests stay next to content files instead of hiding
+  action declarations inside runtime code
 - how a docs-style reading flow can stay Markdown-first
 - how lightweight read actions fit into a content app
 

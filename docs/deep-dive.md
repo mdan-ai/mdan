@@ -24,7 +24,8 @@ Read them in two stages:
 That order mirrors the real development flow:
 
 - first you structure the readable Markdown surface
-- then you inspect the real action contract emitted by the SDK
+- then you define and inspect the explicit action contract carried by
+  `app/index.action.json`
 - then you understand how action inputs are declared and validated
 
 If you only read three pages in this section, read those three first.
@@ -68,9 +69,10 @@ high-level App API declarations.
 
 It explains:
 
+- why explicit action manifests now live next to page Markdown
 - what `page.actionJson()` really returns
+- how that manifest connects to runtime handlers in `app.ts`
 - what fields matter during debugging and integration
-- how declared actions become protocol-facing JSON
 
 ### Input Schemas
 

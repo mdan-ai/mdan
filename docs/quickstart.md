@@ -52,7 +52,8 @@ bun start
 This creates a small project that already includes:
 
 - `app/index.md`
-- `app/server.mjs`
+- `app/index.action.json`
+- `app.ts`
 - `index.mjs`
 
 If you want a deeper file-by-file explanation after the app is running, read
@@ -102,12 +103,28 @@ browser projection of the same underlying app state.
 
 The starter is intentionally small.
 
+The most important thing to notice is that the starter already uses one clear
+three-part authoring model:
+
 - `app/index.md`
   the shared readable page content
-- `app/server.mjs`
-  the app definition, actions, and page rendering logic
+- `app/index.action.json`
+  the explicit action JSON manifest for that page
+- `app.ts`
+  the app definition, explicit manifest wiring, routes, actions, and page
+  rendering logic
 - `index.mjs`
   the local Node or Bun host entry
+
+Think of those three files like this:
+
+- `app/index.md`
+  what the page says
+- `app/index.action.json`
+  what the page declares can happen next
+- `app.ts`
+  how the runtime loads that page, binds state, and handles those declared
+  actions
 
 You do not need to edit anything yet. The point of this step is to see the
 default starter working before you change it.

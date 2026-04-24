@@ -225,7 +225,6 @@ intentionally want to own the browser UI layer.
 
 - [Quickstart](https://docs.mdan.ai/quickstart)
 - [What is MDAN?](https://docs.mdan.ai/what-is-mdan)
-- [What is MDAN?](https://docs.mdan.ai/what-is-mdan)
 - [API Reference](https://docs.mdan.ai/api-reference)
 - [Spec Overview](https://github.com/mdan-ai/mdan/blob/main/spec/index.md)
 - [Application Surface Spec](https://github.com/mdan-ai/mdan/blob/main/spec/application-surface.md)

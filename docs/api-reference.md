@@ -42,6 +42,7 @@ The default app-authoring entrypoint.
 ### Most Developers Use
 
 - `createApp(options?)`
+- `type AppActionJsonManifest`
 - `fields`
 - `getHeader()`, `getCookie()`, `getQueryParam()`
 - `signIn()`
@@ -51,10 +52,15 @@ The default app-authoring entrypoint.
 
 - `AppBrowserShellOptions`
 - `CreateAppOptions`
+- `MdanActionManifest`
+- `MDAN_PAGE_MANIFEST_VERSION`
 
 ### App Authoring Helpers
 
+- `app.page(path, { markdown, actionJson, render })`
 - `app.page(...)`
+- `page.bind(...)`
+- `page.render(...)`
 - `app.route(...)`
 - `app.action(...)`
 - `app.read(...)`
@@ -63,6 +69,8 @@ The default app-authoring entrypoint.
 
 ### Runtime Rules You Will Care About
 
+- page authoring now expects an explicit `actionJson` manifest instead of
+  inline action builder helpers
 - `route` and `read` are both GET-capable, but they are not interchangeable
 - the same GET path cannot be owned by both `app.route(...)` and `app.read(...)`
 - current action transport support is `GET` and `POST`

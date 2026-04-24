@@ -23,6 +23,19 @@ app/index.action.json
 `page.actionJson()` returns the explicit action manifest for tests and
 debugging.
 
+In the current app-authoring model, one page is usually split into three parts:
+
+- `app/index.md`
+  the readable Markdown surface
+- `app/index.action.json`
+  the explicit executable contract for that page
+- `app.ts`
+  the runtime that loads the page, binds state, and handles the declared
+  actions
+
+That split is the main reason this file exists at all. It keeps the declared
+contract visible instead of hiding it inside runtime code.
+
 ## Explicit JSON
 
 ```ts
@@ -102,6 +115,25 @@ Example output:
 - `transport.method`: current transport (`GET` or `POST` in current runtime).
 - `input_schema`: JSON object-schema for action input.
 
+## How It Connects To Runtime Code
+
+The action manifest does not execute anything by itself.
+
+It declares what the page exposes. Your runtime code in `app.ts` still needs to
+register matching behavior with `app.route(...)`, `app.read(...)`, or
+`app.action(...)`.
+
+In practice that usually means:
+
+- `actions.<id>.target` points at a real runtime path such as `/` or `/post`
+- `transport.method` matches the handler shape you register
+- `input_schema` matches the request body your handler expects
+- `blocks.*.actions` only lists action ids that are actually defined under
+  `actions`
+
+If those pieces drift apart, the page may still render, but the action contract
+you return will no longer match what the runtime can actually handle.
+
 ## Notes
 
 - `page.actionJson()` and `page.bind(...).actionJson()` return the same action manifest.
@@ -120,6 +152,14 @@ Action JSON matters most when:
 - you are building a custom frontend and need the real action contract
 - you are trying to understand why the runtime accepts or rejects an action
 - you want to confirm how your declared `input_schema` will be exposed at runtime
+
+It also matters any time you need to answer one of these very practical
+questions:
+
+- which actions does this page actually expose right now
+- which handler path is this button or form supposed to call
+- why did a label change without the underlying target or schema changing
+- why does the declared page contract not match the runtime behavior I expected
 
 ## Related Docs
 

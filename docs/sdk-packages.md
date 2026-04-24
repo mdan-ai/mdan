@@ -68,6 +68,12 @@ Use this when you are building pages and actions with the default MDAN app API.
 
 This is the normal starting point for most developers.
 
+In the current authoring model, that usually means:
+
+- readable page Markdown in `app/index.md`
+- an explicit action manifest in `app/index.action.json`
+- app runtime wiring in `app.ts`
+
 ## `@mdanai/sdk/server/node` and `@mdanai/sdk/server/bun`
 
 Use these when you need to host the app in Node or Bun.
@@ -104,6 +110,7 @@ This package owns:
 
 - `createApp(...)`
 - explicit page manifests passed through `app.page(..., { actionJson })`
+- manifest typing such as `AppActionJsonManifest` and `MdanActionManifest`
 - `fields.*(...)`
 - page registration and app-level action registration
 - app-level helpers such as request helpers and session helpers

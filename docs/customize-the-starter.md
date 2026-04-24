@@ -1,6 +1,6 @@
 ---
 title: Customize The Starter
-description: Build your first real MDAN agent app change by editing the generated Markdown page and server action behavior, then verify the browser and Markdown outputs.
+description: Build your first real MDAN agent app change by editing the generated Markdown page, explicit action JSON manifest, and app runtime code, then verify the browser and Markdown outputs.
 ---
 
 # Customize The Starter
@@ -17,7 +17,7 @@ By the end, you will have:
 
 - one page edited in `app/index.md`
 - one manifest edited in `app/index.action.json`
-- one action handler edited in `app/server.mjs`
+- one action handler edited in `app.ts`
 - one changed browser view
 - one changed Markdown response
 
@@ -32,7 +32,7 @@ You should already have this shape:
 app/
   index.md
   index.action.json
-  server.mjs
+app.ts
 index.mjs
 ```
 
@@ -56,13 +56,15 @@ The starter keeps the important pieces small:
   readable page content shared across browser and Markdown clients
 - `app/index.action.json`
   explicit executable action contract for that page
-- `app/server.mjs`
+- `app.ts`
   app definition, routes, actions, and render logic
 - `index.mjs`
   Node or Bun host entry
 
 For this first pass, only touch `app/index.md`, `app/index.action.json`, and
-`app/server.mjs`.
+`app.ts`.
+
+## 3. The Three-Part Authoring Model
 
 Think of those files as three different layers:
 
@@ -70,13 +72,26 @@ Think of those files as three different layers:
   the shared readable surface for both browsers and agents
 - `app/index.action.json`
   the explicit executable contract attached to that page
-- `app/server.mjs`
+- `app.ts`
   the runtime behavior that fills that surface with current state and handles
   actions
 
 That split is the main thing to understand in this guide.
 
-## 3. Edit The Shared Page Surface
+The shortest way to remember it is:
+
+- `app/index.md`
+  what the page says
+- `app/index.action.json`
+  what the page declares can happen next
+- `app.ts`
+  how the runtime loads that page, binds current state, and handles those
+  declared actions
+
+If you understand that split, the rest of the starter will stop feeling like a
+random set of files.
+
+## 4. Edit The Shared Page Surface
 
 Open `app/index.md` and change the title and page purpose:
 
@@ -108,7 +123,7 @@ What changed here:
 
 This is the MDAN surface layer.
 
-## 4. Edit The Action Contract And Runtime Behavior
+## 5. Edit The Action Contract And Runtime Behavior
 
 Open `app/index.action.json`.
 
@@ -130,7 +145,7 @@ Change the submit label there:
 }
 ```
 
-Then open `app/server.mjs`.
+Then open `app.ts`.
 
 The generated starter already uses the current App API:
 
@@ -139,10 +154,14 @@ The generated starter already uses the current App API:
 - `app.route(...)`
 - `app.action(...)`
 
+The generated starter runtime looks like the live starter example in this
+repository: it reads `app/index.md`, reads `app/index.action.json`, passes that
+manifest into `app.page(...)`, and binds current state with `page.bind(...)`.
+
 First change the initial message list so the app is clearly yours:
 
 ```js
-export function createAppServer(initialMessages = [
+export function createStarterServer(initialMessages = [
   "Hello from my first MDAN app"
 ]) {
 ```
@@ -158,7 +177,7 @@ What changed here:
 This is the runtime layer. It decides what the surface can do and what data it
 returns next.
 
-## 5. Verify The Markdown Response
+## 6. Verify The Markdown Response
 
 Check that the same change appears in the Markdown response:
 
@@ -177,13 +196,13 @@ That Markdown response is the core MDAN surface.
 This is the important checkpoint in the whole guide:
 
 - your `app/index.md` edit changed the readable surface
-- your `app/server.mjs` edit changed the current state and action metadata
+- your `app.ts` edit changed the current state and action metadata
 - the Markdown response shows both of those changes together
 
 That is the real MDAN model: page content and executable actions stay close
 together in one returned surface.
 
-## 6. Optional: Submit A Real Action From The CLI
+## 7. Optional: Submit A Real Action From The CLI
 
 First fetch the current Markdown response and copy the `action_proof` for
 `submit_message` from the embedded `mdan` block.
@@ -207,16 +226,17 @@ What this step proves:
 - the same declared action can also be executed from a client reading Markdown
 - the server keeps returning the next readable state after each action
 
-## 7. What You Just Learned
+## 8. What You Just Learned
 
 You changed a real MDAN starter app at the two layers that matter most:
 
 - the shared page surface in `app/index.md`
-- the runtime behavior in `app/server.mjs`
+- the explicit action contract in `app/index.action.json`
+- the runtime behavior in `app.ts`
 - the browser and Markdown outputs changed together because they come from the
   same app model
 
-## 8. What To Read Next
+## 9. What To Read Next
 
 - [Examples](/examples)
 - [Deep Dive](/deep-dive)
