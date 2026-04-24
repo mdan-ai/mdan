@@ -1,6 +1,6 @@
 {
   "name": "create-mdan",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "private": false,
   "description": "Scaffold a minimal MDAN agent app or skills app with npm create or bunx.",
   "license": "MIT",
@@ -44,6 +44,7 @@
     "postbuild": "chmod +x dist/cli-bin.js",
     "prepack": "node ../scripts/prepare-npm-package.mjs --package . --readme README.md --license ../LICENSE",
     "postpack": "node ../scripts/prepare-npm-package.mjs --package . --readme README.md --license ../LICENSE --restore true",
+    "prepublishOnly": "npm run build",
     "test": "bunx vitest run test"
   },
   "exports": {

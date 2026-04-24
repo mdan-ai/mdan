@@ -1,6 +1,6 @@
 {
   "name": "@mdanai/sdk",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "private": false,
   "description": "TypeScript SDK for building MDAN agent apps, skills apps, and online skills with interactive Markdown surfaces and actions.",
   "license": "MIT",
@@ -51,6 +51,7 @@
     "lint:names": "npm run lint",
     "prepack": "node scripts/prepare-npm-package.mjs --package . --readme README.md",
     "postpack": "node scripts/prepare-npm-package.mjs --package . --readme README.md --restore true",
+    "prepublishOnly": "npm run build",
     "test": "bun run test:baseline",
     "test:baseline": "bunx vitest run --config vitest.baseline.config.ts",
     "test:coverage": "bunx vitest run --config vitest.baseline.config.ts --coverage",
