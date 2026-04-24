@@ -1,0 +1,35 @@
+{
+  "version": "mdan.page.v1",
+  "app_id": "starter",
+  "state_id": "starter:index",
+  "state_version": 1,
+  "blocks": {
+    "main": {
+      "trust": "untrusted",
+      "actions": ["submit_message"]
+    }
+  },
+  "actions": {
+    "submit_message": {
+      "label": "Submit",
+      "verb": "write",
+      "target": "/post",
+      "transport": {
+        "method": "POST"
+      },
+      "input_schema": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "state_effect": {
+        "response_mode": "page"
+      }
+    }
+  }
+}

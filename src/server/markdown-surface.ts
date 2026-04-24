@@ -116,13 +116,12 @@ export function validateMarkdownSemanticSlots(
 export function createMarkdownPage(options: CreateMarkdownPageOptions): MdanPage {
   const blocks = options.blocks ?? [];
   const visibleBlockNames = options.visibleBlockNames ?? resolveVisibleBlockNames(options.blockContent, blocks);
+  const executableContent = resolveExecutableContent(options.executableContent, options.executableJson);
 
   return {
     frontmatter: options.frontmatter ?? {},
     markdown: options.markdown,
-    ...(resolveExecutableContent(options.executableContent, options.executableJson)
-      ? { executableContent: resolveExecutableContent(options.executableContent, options.executableJson) }
-      : {}),
+    ...(executableContent ? { executableContent } : {}),
     ...(options.blockContent ? { blockContent: options.blockContent } : {}),
     blocks,
     ...(visibleBlockNames ? { visibleBlockNames } : {})
@@ -130,11 +129,10 @@ export function createMarkdownPage(options: CreateMarkdownPageOptions): MdanPage
 }
 
 export function createMarkdownFragment(options: CreateMarkdownFragmentOptions): MdanFragment {
+  const executableContent = resolveExecutableContent(options.executableContent, options.executableJson);
   return {
     markdown: options.markdown,
-    ...(resolveExecutableContent(options.executableContent, options.executableJson)
-      ? { executableContent: resolveExecutableContent(options.executableContent, options.executableJson) }
-      : {}),
+    ...(executableContent ? { executableContent } : {}),
     blocks: options.blocks ?? []
   };
 }

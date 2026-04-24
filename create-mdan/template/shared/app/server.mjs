@@ -2,12 +2,13 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { actions, createApp, fields } from "@mdanai/sdk";
+import { createApp } from "@mdanai/sdk";
 
 const appId = "__APP_ID__";
 const projectName = __PROJECT_NAME_JSON__;
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "index.md"), "utf8");
+const actionJson = JSON.parse(readFileSync(join(root, "index.action.json"), "utf8"));
 
 export function createAppServer(initialMessages = ["Welcome to MDAN"]) {
   const messages = [...initialMessages];
@@ -20,19 +21,7 @@ export function createAppServer(initialMessages = ["Welcome to MDAN"]) {
   });
   const home = app.page("/", {
     markdown: template,
-    actions: [
-      actions.read("refresh_main", {
-        label: "Refresh",
-        target: "/"
-      }),
-      actions.write("submit_message", {
-        label: "Submit",
-        target: "/post",
-        input: {
-          message: fields.string({ required: true })
-        }
-      })
-    ],
+    actionJson,
     render(currentMessages) {
       const list = currentMessages.length > 0
         ? currentMessages.map((line) => `- ${line}`).join("\n")

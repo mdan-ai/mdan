@@ -22,6 +22,18 @@ describe("package export boundary", () => {
     expect(indexSource).not.toMatch(/type\s+BrowserShellOptions/);
   });
 
+  it("exposes explicit manifest types and version constant from the root app export", async () => {
+    const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
+
+    expect(indexSource).toMatch(/MDAN_PAGE_MANIFEST_VERSION/);
+    expect(indexSource).toMatch(/type\s+MdanActionManifest/);
+    expect(indexSource).toMatch(/type\s+JsonAction/);
+    expect(indexSource).toMatch(/type\s+JsonBlock/);
+    expect(indexSource).toMatch(/type\s+MdanActionVerb/);
+    expect(indexSource).toMatch(/type\s+MdanActionMethod/);
+    expect(indexSource).toMatch(/type\s+MdanConfirmationPolicy/);
+  });
+
   it("keeps low-level server tuning knobs off createApp options", async () => {
     const appSource = await readFile(join(repoRoot, "src/app/index.ts"), "utf8");
 

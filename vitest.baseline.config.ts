@@ -37,7 +37,6 @@ export default defineConfig({
       "test/server/host-adapter-shared.test.ts",
       "test/server/host-flow-shared.test.ts",
       "test/server/public-api.test.ts",
-      "test/server/request-helpers.test.ts",
       "test/server/result-content-type-session.test.ts",
       "test/server/router.test.ts",
       "test/server/runtime-assets.test.ts",

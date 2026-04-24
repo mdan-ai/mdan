@@ -31,7 +31,7 @@ inner
 Do action:open
 <!-- agent:end -->
 
-::: block{id="ugc" trust="untrusted"}
+<!-- mdan:block id="ugc" -->
 `;
 
     const blocks = extractAgentBlocks(content);

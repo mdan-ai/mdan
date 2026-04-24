@@ -39,6 +39,7 @@ describe("create-mdan scaffold", () => {
     const packageJson = await readGenerated(targetDir, "package.json");
     const indexSource = await readGenerated(targetDir, "index.mjs");
     const serverSource = await readGenerated(targetDir, "app/server.mjs");
+    const actionJson = await readGenerated(targetDir, "app/index.action.json");
 
     expect(packageJson).toContain('"name": "agent-app"');
     expect(packageJson).toContain('"@mdanai/sdk": "^0.7.0"');
@@ -51,8 +52,12 @@ describe("create-mdan scaffold", () => {
     expect(serverSource).toContain("app.route(home.bind(messages));");
     expect(serverSource).not.toContain('app.route("/", {');
     expect(serverSource).toContain("return home.bind(messages).render()");
-    expect(serverSource).toContain("actions.write(\"submit_message\"");
-    expect(serverSource).toContain("fields.string({ required: true })");
+    expect(serverSource).toContain('readFileSync(join(root, "index.action.json")');
+    expect(serverSource).toContain("actionJson,");
+    expect(serverSource).not.toContain("actions.write(\"submit_message\"");
+    expect(serverSource).not.toContain("fields.string({ required: true })");
+    expect(actionJson).toContain('"actions": {');
+    expect(actionJson).toContain('"submit_message": {');
     expect(serverSource).not.toContain('join(root, "actions", "main.json")');
     expect(`${indexSource}\n${serverSource}`).not.toMatch(/@mdanai\/sdk\/(?:core|web|elements)|createHostedApp/);
   });
@@ -93,6 +98,7 @@ describe("create-mdan scaffold", () => {
     const indexSource = await readGenerated(targetDir, "index.mjs");
     const serverSource = await readGenerated(targetDir, "app/server.mjs");
     const pageSource = await readGenerated(targetDir, "app/index.md");
+    const actionJson = await readGenerated(targetDir, "app/index.action.json");
 
     expect(packageJson.name).toBe("my-fancy-app");
     expect(indexSource).toContain('const projectName = "My \\"Fancy\\" App!";');
@@ -101,7 +107,10 @@ describe("create-mdan scaffold", () => {
     expect(serverSource).toContain("appId,");
     expect(serverSource).not.toContain("app_id:");
     expect(serverSource).not.toContain("state_id:");
+    expect(actionJson).toContain('"app_id": "my-fancy-app"');
+    expect(actionJson).toContain('"state_id": "my-fancy-app:index"');
     expect(pageSource).toContain('# My "Fancy" App!');
+    expect(pageSource).toContain('<!-- mdan:block id="main" -->');
   });
 
   it("rejects non-empty target directories", async () => {

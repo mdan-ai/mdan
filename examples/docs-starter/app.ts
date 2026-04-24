@@ -2,10 +2,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { actions, createApp } from "../../src/index.js";
+import { createApp, type AppActionJsonManifest } from "../../src/index.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
+const actionJson = JSON.parse(readFileSync(join(root, "app", "index.action.json"), "utf8")) as AppActionJsonManifest;
 const gettingStarted = readFileSync(join(root, "app", "getting-started.md"), "utf8").trim();
 
 export function createDocsStarterServer() {
@@ -14,12 +15,7 @@ export function createDocsStarterServer() {
   });
   const home = app.page("/", {
     markdown: template,
-    actions: [
-      actions.read("refresh_docs", {
-        label: "Refresh",
-        target: "/"
-      })
-    ],
+    actionJson,
     render() {
       return {
         docs: gettingStarted

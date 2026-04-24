@@ -11,10 +11,11 @@ function extractActionProof(markdown: string): string {
   const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
   expect(match?.[1]).toBeTruthy();
   const payload = JSON.parse(String(match?.[1])) as {
-    actions?: Array<{ action_proof?: string }>;
+    actions?: Array<{ action_proof?: string }> | Record<string, { action_proof?: string }>;
   };
-  expect(payload.actions?.[0]?.action_proof).toBeTypeOf("string");
-  return String(payload.actions?.[0]?.action_proof);
+  const actions = Array.isArray(payload.actions) ? payload.actions : Object.values(payload.actions ?? {});
+  expect(actions[0]?.action_proof).toBeTypeOf("string");
+  return String(actions[0]?.action_proof);
 }
 
 describe("submit message agent eval fixture", () => {
@@ -45,7 +46,7 @@ describe("submit message agent eval fixture", () => {
     expect(page.status).toBe(200);
     expect(String(page.body)).toContain("# Submit Message");
     expect(String(page.body)).toContain("Use this page to submit one message.");
-    expect(String(page.body)).toContain("::: block{id=\"main\"}");
+    expect(String(page.body)).toContain('"main": {');
 
     const artifactPage = await fixture.server.handle({
       method: "GET",

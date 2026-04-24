@@ -335,7 +335,7 @@ function submitMessagePage(messages: string[]) {
 
 Use this page to submit one message.
 
-::: block{id="main"}`,
+<!-- mdan:block id="main" -->`,
     blockContent: {
       main
     },
@@ -482,7 +482,7 @@ function previewConfirmPage(state: { draft?: string; messages: string[] }) {
 
 Use this page to preview one message, then confirm it.
 
-::: block{id="main"}`,
+<!-- mdan:block id="main" -->`,
     blockContent: {
       main
     },
@@ -674,8 +674,7 @@ function listDetailPage(completedItems: Set<string>, route: "list" | "detail", i
 
 Use this page to open the Alpha task from the list, then complete it on the detail page.
 
-::: block{id="main"}
-:::`,
+<!-- mdan:block id="main" -->`,
     blockContent: {
       main
     },
@@ -837,18 +836,34 @@ type AgentMarkdownSurface = {
   route?: string;
   regions?: Record<string, string>;
   actions: {
-    allowed_next_actions?: string[];
-    actions?: AgentMarkdownAction[];
+    blocks?: Record<string, { actions?: unknown }>;
+    actions?: Record<string, AgentMarkdownAction>;
   };
 };
 
-function discoverAction(surface: AgentMarkdownSurface, index = 0): DiscoveredAction {
-  const allowed = new Set(
-    Array.isArray(surface.actions.allowed_next_actions)
-      ? surface.actions.allowed_next_actions.filter((value): value is string => typeof value === "string")
-      : []
+function actionListFromSurface(surface: AgentMarkdownSurface): AgentMarkdownAction[] {
+  const actionRoot = surface.actions.actions;
+  if (actionRoot && typeof actionRoot === "object") {
+    return Object.entries(actionRoot).map(([id, action]) => ({ id, ...action }));
+  }
+  return [];
+}
+
+function allowedActionIdsFromSurface(surface: AgentMarkdownSurface): Set<string> {
+  const blocks = surface.actions.blocks;
+  if (!blocks) {
+    return new Set();
+  }
+  return new Set(
+    Object.values(blocks).flatMap((block) =>
+      Array.isArray(block.actions) ? block.actions.filter((value): value is string => typeof value === "string") : []
+    )
   );
-  const actions = (surface.actions.actions ?? []).filter((action) => {
+}
+
+function discoverAction(surface: AgentMarkdownSurface, index = 0): DiscoveredAction {
+  const allowed = allowedActionIdsFromSurface(surface);
+  const actions = actionListFromSurface(surface).filter((action) => {
     const id = typeof action.id === "string" ? action.id : "";
     return id.length > 0 && (allowed.size === 0 || allowed.has(id));
   });

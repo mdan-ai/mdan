@@ -28,11 +28,11 @@ The runtime has two route families:
 - action routes, registered with `server.get(path, handler)` or
   `server.post(path, handler)`
 
-Page handlers may return a Markdown-native page, a readable surface shape, a
-legacy JSON compatibility shape, or `null`.
+Page handlers may return a Markdown-native page, a readable surface shape, or
+`null`.
 
 Action handlers may return a Markdown-native action result, a readable surface
-shape, a legacy JSON compatibility shape, or a stream result from `stream(...)`.
+shape, or a stream result from `stream(...)`.
 
 Readable surface results are the lighter-weight default authoring shape:
 
@@ -51,9 +51,6 @@ The runtime negotiates the response representation from `Accept`:
   only for page `GET` requests when a browser shell host is involved
 - `text/event-stream`
   only for stream action results
-- `application/json`
-  compatibility-only path for handlers that still expose legacy JSON
-
 Practical rule:
 
 - page read: prefer `text/markdown`
@@ -73,15 +70,6 @@ Action proof is enabled by default. JSON action requests should use:
   "input": {
     "field": "value"
   }
-}
-```
-
-Form-style compatibility fields are also parsed:
-
-```json
-{
-  "action.proof": "<server-issued action proof>",
-  "field": "value"
 }
 ```
 

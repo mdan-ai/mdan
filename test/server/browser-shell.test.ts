@@ -25,8 +25,10 @@ describe("browser shell", () => {
           app_id: "starter",
           state_id: "starter:home:1",
           state_version: 1,
-          blocks: ["main"],
-          actions: []
+          blocks: {
+            main: { actions: [] }
+          },
+          actions: {}
         },
         route: "/",
         regions: {
@@ -57,7 +59,7 @@ describe("browser shell", () => {
           app_id: "custom",
           state_id: "custom:1",
           state_version: 1,
-          actions: []
+          actions: {}
         }
       }
     });
@@ -184,8 +186,10 @@ describe("browser shell", () => {
                 app_id: "demo",
                 state_id: "demo:direct:1",
                 state_version: 1,
-                blocks: ["main"],
-                actions: []
+                blocks: {
+                  main: { actions: [] }
+                },
+                actions: {}
               },
               view: {
                 route_path: "/direct",

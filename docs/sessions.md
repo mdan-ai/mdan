@@ -67,11 +67,12 @@ server.post("/auth/login", async ({ inputs }) => {
     session: signIn({ sid, username }),
     markdown: `# Guestbook
 
-::: block{id="session_status" trust="untrusted"}`,
+<!-- mdan:block id="session_status" -->`,
     actions: {
-      blocks: ["session_status"],
-      actions: [],
-      allowed_next_actions: []
+      blocks: {
+        session_status: { actions: [] }
+      },
+      actions: {}
     },
     route: "/guestbook",
     regions: {
@@ -84,11 +85,12 @@ server.post("/auth/logout", async () => ({
   session: signOut(),
   markdown: `# Signed out
 
-::: block{id="session_status" trust="untrusted"}`,
+<!-- mdan:block id="session_status" -->`,
   actions: {
-    blocks: ["session_status"],
-    actions: [],
-    allowed_next_actions: []
+    blocks: {
+      session_status: { actions: [] }
+    },
+    actions: {}
   },
   route: "/login",
   regions: {

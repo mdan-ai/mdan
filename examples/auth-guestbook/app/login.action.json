@@ -1,0 +1,49 @@
+{
+  "version": "mdan.page.v1",
+  "blocks": {
+    "auth_status": {
+      "actions": []
+    },
+    "login": {
+      "trust": "trusted",
+      "actions": ["login", "open_register"]
+    }
+  },
+  "actions": {
+    "open_register": {
+      "label": "Create Account",
+      "verb": "route",
+      "target": "/register",
+      "transport": {
+        "method": "GET"
+      },
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    "login": {
+      "label": "Sign In",
+      "verb": "write",
+      "target": "/auth/login",
+      "transport": {
+        "method": "POST"
+      },
+      "input_schema": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

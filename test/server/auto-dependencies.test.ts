@@ -37,18 +37,19 @@ function envelope(name: string, autoTarget?: string) {
       app_id: "auto-test",
       state_id: `auto-test:${name}`,
       state_version: 1,
-      blocks: ["main"],
+      blocks: {
+        main: { actions: autoTarget ? [`load-${name}`] : [] }
+      },
       actions: autoTarget
-        ? [
-            {
-              id: `load-${name}`,
+        ? {
+            [`load-${name}`]: {
               target: autoTarget,
               transport: { method: "GET" },
               verb: "read",
               auto: true
             }
-          ]
-        : []
+          }
+        : {}
     },
     route: `/${name}`,
     regions: {
@@ -83,7 +84,7 @@ describe("resolveAutoDependencies", () => {
     expect(disabled.route).toBeUndefined();
 
     calls.length = 0;
-    const defaulted = await resolveAutoDependencies(page("root", "/step-1"), request, null, router, {});
+    const defaulted = await resolveAutoDependencies(page("root", "/step-1"), request, null, router, {}, { maxPasses: 1 });
     expect(calls).toEqual(["step-1"]);
     expect(defaulted.route).toBe("/step-1");
   });
@@ -117,7 +118,7 @@ describe("resolveAutoDependencies", () => {
     expect(calls).toEqual([]);
   });
 
-  it("keeps legacy autoDependencies option working", async () => {
+  it("accepts the older autoDependencies option name", async () => {
     const calls: string[] = [];
     const server = createMdanServer({
       actionProof: { disabled: true },
@@ -420,18 +421,20 @@ describe("resolveAutoDependencies", () => {
 
 Broken
 
-::: block{id="main" actions="missing_action"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "auto-test",
         state_id: "auto-test:broken",
         state_version: 1,
-        actions: [
-          {
-            id: "open",
+        blocks: {
+          main: { actions: ["missing_action"] }
+        },
+        actions: {
+          open: {
             verb: "route",
             target: "/open"
           }
-        ]
+        }
       },
       route: "/step-1",
       regions: {
@@ -459,10 +462,13 @@ Broken
 
 Done
 
-::: block{id="main"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "auto-test",
-        actions: []
+        blocks: {
+          main: { actions: [] }
+        },
+        actions: {}
       },
       route: "/step-1",
       regions: {
@@ -490,18 +496,20 @@ Done
 
 Broken
 
-::: block{id="main" actions="missing_action"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "auto-test",
         state_id: "auto-test:broken",
         state_version: 1,
-        actions: [
-          {
-            id: "open",
+        blocks: {
+          main: { actions: ["missing_action"] }
+        },
+        actions: {
+          open: {
             verb: "route",
             target: "/open"
           }
-        ]
+        }
       },
       route: "/step-1",
       regions: {

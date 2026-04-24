@@ -18,7 +18,7 @@ function stripFrontmatter(markdown: string): string {
 
 function stripContentBlocks(markdown: string): string {
   return markdown
-    .replace(/^\s*:::\s*block\{[^}]*\}\s*$/gm, "")
+    .replace(/^\s*<!--\s*mdan:block\b[^>]*-->\s*$/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }

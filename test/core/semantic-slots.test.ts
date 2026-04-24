@@ -113,7 +113,7 @@ Trusted rules.
 ## Result
 Trusted result.
 
-::: block{id="ugc" trust="untrusted"}
+<!-- mdan:block id="ugc" -->
 `;
 
     expect(extractSemanticSlots(content).map((slot) => slot.name)).toEqual([

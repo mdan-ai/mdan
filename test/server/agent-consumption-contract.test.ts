@@ -8,8 +8,8 @@ import { createMdanServer, type MdanResponse } from "../../src/server/index.js";
 
 type AgentSurface = ReadableSurface;
 type MarkdownActions = {
-  allowed_next_actions?: string[];
-  actions?: Array<Record<string, unknown>>;
+  blocks?: Record<string, { actions?: string[] }>;
+  actions?: Record<string, Record<string, unknown>>;
   state_id?: string;
   state_version?: number;
 };
@@ -20,7 +20,7 @@ type MarkdownSurface = {
   actions: MarkdownActions;
 };
 
-function createEnvelope(routePath = "/login", allowedNextActions: string[] = ["login", "open_register"]): AgentSurface {
+function createEnvelope(routePath = "/login", blockActions: string[] = ["login", "open_register"]): AgentSurface {
   return {
     markdown: `---
 app_id: "auth-guestbook"
@@ -33,15 +33,18 @@ route: "${routePath}"
 
 Sign in with your username and password.
 
-::: block{id="login" actions="login,open_register" trust="trusted"}`,
+<!-- mdan:block id="login" -->`,
     actions: {
       app_id: "auth-guestbook",
       state_id: "auth-guestbook:login:1",
       state_version: 1,
-      blocks: ["login"],
-      actions: [
-        {
-          id: "open_register",
+      blocks: {
+        login: {
+          actions: blockActions
+        }
+      },
+      actions: {
+        open_register: {
           label: "Create Account",
           verb: "route",
           target: "/register",
@@ -54,8 +57,7 @@ Sign in with your username and password.
             additionalProperties: false
           }
         },
-        {
-          id: "login",
+        login: {
           label: "Sign In",
           verb: "write",
           target: "/auth/login",
@@ -72,8 +74,7 @@ Sign in with your username and password.
             additionalProperties: false
           }
         }
-      ],
-      allowed_next_actions: allowedNextActions
+      }
     },
     route: routePath,
     regions: {
@@ -93,12 +94,12 @@ function expectAgentMarkdown(response: MdanResponse): MarkdownSurface {
   return {
     content,
     ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
-    actions: match?.[1] ? (JSON.parse(String(match[1])) as MarkdownActions) : { actions: [], allowed_next_actions: [] }
+    actions: match?.[1] ? (JSON.parse(String(match[1])) as MarkdownActions) : { actions: {} }
   };
 }
 
 function expectAction(surface: MarkdownSurface, id: string) {
-  const action = surface.actions.actions?.find((candidate) => candidate.id === id);
+  const action = surface.actions.actions?.[id];
   expect(action).toBeTruthy();
   return action!;
 }
@@ -144,7 +145,7 @@ describe("agent consumption contract", () => {
     });
   });
 
-  it("filters blocked actions from the headless agent snapshot", () => {
+  it("uses block action refs as the headless executable action set", () => {
     const snapshot = adaptReadableSurfaceToHeadlessSnapshot(createEnvelope("/login", ["open_register"]));
 
     expect(snapshot.blocks[0]?.operations.map((operation) => operation.name)).toEqual(["open_register"]);
@@ -152,8 +153,9 @@ describe("agent consumption contract", () => {
 
   it("defaults operation methods from action verbs when transport is omitted", () => {
     const envelope = createEnvelope();
-    delete envelope.actions.actions?.[0]?.transport;
-    delete envelope.actions.actions?.[1]?.transport;
+    const actions = envelope.actions.actions as Record<string, Record<string, unknown>>;
+    delete actions.open_register?.transport;
+    delete actions.login?.transport;
 
     const snapshot = adaptReadableSurfaceToHeadlessSnapshot(envelope);
 
@@ -201,7 +203,11 @@ describe("agent consumption contract", () => {
     const surface = expectAgentMarkdown(response);
     const loginAction = expectAction(surface, "login");
     expect(surface.route).toBe("/login");
-    expect(surface.actions.allowed_next_actions).toContain("login");
+    expect(surface.actions.blocks).toMatchObject({
+      login: {
+        actions: expect.arrayContaining(["login"])
+      }
+    });
     expect(loginAction.target).toBe("/auth/login");
     expect(loginAction.transport?.method).toBe("POST");
     expect(loginAction.input_schema?.required).toEqual(["username", "password"]);

@@ -14,16 +14,22 @@ type FixtureSurface = {
 
 function surface(routePath: string, message: string, regions: Record<string, string> = { main: message }): FixtureSurface {
   return {
-    content: `# ${message}\n\n::: block{id="main" actions="submit_message,patch_messages" trust="trusted"}`,
+    content: `# ${message}\n\n<!-- mdan:block id="main" -->`,
     actions: {
       app_id: "demo",
       state_id: `demo:${routePath}:${message}`,
       state_version: 1,
-      blocks: Object.keys(regions),
+      blocks: Object.fromEntries(
+        Object.keys(regions).map((name) => [
+          name,
+          {
+            actions: name === "main" ? ["submit_message", "patch_messages"] : []
+          }
+        ])
+      ),
       regions,
-      actions: [
-        {
-          id: "submit_message",
+      actions: {
+        submit_message: {
           label: "Submit",
           verb: "write",
           target: "/messages",
@@ -40,8 +46,7 @@ function surface(routePath: string, message: string, regions: Record<string, str
             additionalProperties: false
           }
         },
-        {
-          id: "patch_messages",
+        patch_messages: {
           label: "Patch",
           verb: "write",
           target: "/messages/patch",
@@ -56,8 +61,7 @@ function surface(routePath: string, message: string, regions: Record<string, str
             additionalProperties: false
           }
         }
-      ],
-      allowed_next_actions: ["submit_message", "patch_messages"]
+      }
     },
     view: {
       route_path: routePath,
@@ -69,8 +73,8 @@ function surface(routePath: string, message: string, regions: Record<string, str
 function artifactBody(body: FixtureSurface): string {
   const content = body.content.trim();
   const regionBlocks = Object.entries(body.view?.regions ?? {})
-    .filter(([name]) => !new RegExp(`:::\\s*block\\{[^}]*\\bid="${name}"`).test(content))
-    .map(([name]) => `::: block{id="${name}"}`)
+    .filter(([name]) => !new RegExp(`<!--\\s*mdan:block\\s+[^>]*\\bid="${name}"`).test(content))
+    .map(([name]) => `<!-- mdan:block id="${name}" -->`)
     .join("\n\n");
   const markdown = [content, regionBlocks].filter(Boolean).join("\n\n");
   return `---
@@ -101,20 +105,21 @@ route: "${routePath}"
 
 # ${message}
 
-::: block{id="main" actions="submit_message,patch_messages" trust="trusted"}
+<!-- mdan:block id="main" -->
 
 \`\`\`mdan
 {
   "app_id": "demo",
   "state_id": "demo:${routePath}:${message}",
   "state_version": 1,
-  "blocks": ["main"],
+  "blocks": {
+    "main": { "actions": ["submit_message", "patch_messages"] }
+  },
   "regions": {
     "main": "${message}"
   },
-  "actions": [
-    {
-      "id": "submit_message",
+  "actions": {
+    "submit_message": {
       "label": "Submit",
       "verb": "write",
       "target": "/messages",
@@ -131,8 +136,7 @@ route: "${routePath}"
         "additionalProperties": false
       }
     },
-    {
-      "id": "patch_messages",
+    "patch_messages": {
       "label": "Patch",
       "verb": "write",
       "target": "/messages/patch",
@@ -147,8 +151,7 @@ route: "${routePath}"
         "additionalProperties": false
       }
     }
-  ],
-  "allowed_next_actions": ["submit_message", "patch_messages"]
+  }
 }
 \`\`\`
 `;
@@ -259,18 +262,19 @@ describe("Markdown-first headless host", () => {
 
   it("includes action proof metadata when submitting GET actions over markdown reads", async () => {
     const initialSurface: FixtureSurface = {
-      content: `# Start\n\n::: block{id="main" actions="filter_messages"}`,
+      content: `# Start\n\n<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "demo",
         state_id: "demo:get-proof",
         state_version: 1,
-        blocks: ["main"],
+        blocks: {
+          main: { actions: ["filter_messages"] }
+        },
         regions: {
           main: "Start"
         },
-        actions: [
-          {
-            id: "filter_messages",
+        actions: {
+          filter_messages: {
             label: "Filter",
             verb: "read",
             target: "/messages",
@@ -285,8 +289,7 @@ describe("Markdown-first headless host", () => {
               additionalProperties: false
             }
           }
-        ],
-        allowed_next_actions: ["filter_messages"]
+        }
       },
       view: {
         route_path: "/start",
@@ -391,10 +394,9 @@ describe("Markdown-first headless host", () => {
   "app_id": "demo",
   "state_id": "demo:saved",
   "state_version": 1,
-  "blocks": [],
-  "actions": [
-    {
-      "id": "submit_message",
+  "blocks": {},
+  "actions": {
+    "submit_message": {
       "label": "Submit",
       "verb": "write",
       "target": "/messages",
@@ -408,8 +410,7 @@ describe("Markdown-first headless host", () => {
         "additionalProperties": false
       }
     }
-  ],
-  "allowed_next_actions": ["submit_message"]
+  }
 }
 \`\`\`
 `
@@ -445,7 +446,7 @@ describe("Markdown-first headless host", () => {
 
 Markdown block.
 
-::: block{id="main" actions="submit_message"}
+<!-- mdan:block id="main" -->
 
 \`\`\`mdan
 example only
@@ -456,10 +457,11 @@ example only
   "app_id": "demo",
   "state_id": "demo:/markdown:Markdown Start",
   "state_version": 1,
-  "blocks": ["main"],
-  "actions": [
-    {
-      "id": "submit_message",
+  "blocks": {
+    "main": { "actions": ["submit_message"] }
+  },
+  "actions": {
+    "submit_message": {
       "label": "Submit",
       "verb": "write",
       "target": "/messages",
@@ -473,8 +475,7 @@ example only
         "additionalProperties": false
       }
     }
-  ],
-  "allowed_next_actions": ["submit_message"]
+  }
 }
 \`\`\`
 `,

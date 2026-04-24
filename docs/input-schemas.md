@@ -8,9 +8,9 @@ description: Practical guide to MDAN action input schemas, including how SDK fie
 Use this page when you are declaring action inputs or debugging why an action
 request was rejected.
 
-The current SDK lets you write input declarations with `fields.*(...)`, but the
-runtime ultimately enforces an object-shaped `input_schema`. This page focuses
-on that practical mapping.
+The current SDK lets you build object schemas with `fields.*(...)`, but the
+runtime ultimately enforces an explicit object-shaped `input_schema`. This page
+focuses on that practical mapping.
 
 ## Why This Matters
 
@@ -24,24 +24,20 @@ where development gets real:
 
 ## The Development Model
 
-You declare input like this:
+You can author input schema like this:
 
 ```ts
-actions.write("submit_message", {
-  label: "Submit",
-  target: "/post",
-  input: {
-    message: fields.string({ required: true, minLength: 1 }),
-    priority: fields.enum(["low", "high"])
-  }
-})
+const submitInputSchema = fields.object({
+  message: fields.string({ required: true, minLength: 1 }),
+  priority: fields.enum(["low", "high"])
+}).schema;
 ```
 
-The SDK compiles that into an `input_schema` inside the action JSON.
+You then place that schema directly into `actionJson.actions.<id>.input_schema`.
 
 That means two views of the same thing exist:
 
-- authoring-time field declarations in your app code
+- authoring-time field helpers in your app code
 - runtime `input_schema` in the emitted action contract
 
 When debugging, it helps to think in both layers.
@@ -113,15 +109,11 @@ If you need to inspect the compiled contract directly in code, use
 Authoring code:
 
 ```ts
-actions.write("submit", {
-  label: "Submit",
-  target: "/submit",
-  input: {
-    message: fields.string({ required: true, minLength: 1 }),
-    done: fields.boolean(),
-    category: fields.enum(["work", "personal"])
-  }
-})
+const submitSchema = fields.object({
+  message: fields.string({ required: true, minLength: 1 }),
+  done: fields.boolean(),
+  category: fields.enum(["work", "personal"])
+}).schema;
 ```
 
 Representative runtime shape:
@@ -141,7 +133,7 @@ Representative runtime shape:
 
 ## Practical Rule
 
-When you are authoring, think in `fields.*(...)`.
+When you are authoring, think in `fields.*(...).schema`.
 
 When you are debugging, think in `input_schema`.
 

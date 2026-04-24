@@ -16,10 +16,10 @@ Only the current allowed actions may be used to refresh messages, submit a new m
 The returned surface should show the current session state, the latest guestbook messages, and the next allowed authenticated actions.
 <!-- agent:end -->
 
-::: block{id="session_status" trust="untrusted"}
+<!-- mdan:block id="session_status" -->
 
-::: block{id="messages" actions="refresh_messages" trust="untrusted"}
+<!-- mdan:block id="messages" -->
 
-::: block{id="composer" actions="submit_message" trust="trusted"}
+<!-- mdan:block id="composer" -->
 
-::: block{id="session_actions" actions="logout" trust="trusted"}
+<!-- mdan:block id="session_actions" -->

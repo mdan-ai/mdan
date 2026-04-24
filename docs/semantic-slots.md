@@ -86,8 +86,11 @@ List the current state that affects decisions.
 ## Result
 Describe the expected output structure and success criteria.
 
-::: block{id="main" actions="refresh,submit"}
+<!-- mdan:block id="main" -->
 ```
+
+Bind block actions in the adjacent `*.action.json` file instead of embedding
+action ids in Markdown.
 
 For agent-only hidden guidance, use `agent:begin` blocks instead of polluting shared slots:
 

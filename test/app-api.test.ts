@@ -1,14 +1,42 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { actions, createApp, fields, type InferAppInputs } from "../src/index.js";
+import { createApp, fields, type InferAppInputs, type MdanActionManifest } from "../src/index.js";
 import { parseFrontmatter } from "../src/content/content-actions.js";
 
 function extractExecutable(markdown: string) {
   const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
   expect(match?.[1]).toBeTruthy();
   return JSON.parse(String(match?.[1])) as {
-    actions?: Array<Record<string, unknown>>;
-    allowed_next_actions?: string[];
+    actions?: Record<string, Record<string, unknown>>;
+    blocks?: Record<string, { actions?: string[] }>;
+  };
+}
+
+function starterManifest(overrides: Partial<MdanActionManifest> = {}): MdanActionManifest {
+  return {
+    version: "mdan.page.v1",
+    blocks: {
+      main: {
+        actions: ["submit_message"]
+      }
+    },
+    actions: {
+      submit_message: {
+        label: "Submit",
+        verb: "write",
+        target: "/post",
+        transport: { method: "POST" },
+        input_schema: {
+          type: "object",
+          required: ["message"],
+          properties: {
+            message: { type: "string" }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    ...overrides
   };
 }
 
@@ -17,24 +45,33 @@ describe("app API", () => {
     vi.restoreAllMocks();
   });
 
-  it("builds starter-style pages with page configs", async () => {
+  it("builds markdown pages from explicit action json manifests", async () => {
     const app = createApp({ appId: "starter" });
     const messages = ["Booted"];
     const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"refresh_main,submit_message\" trust=\"untrusted\"}\n:::",
-      actions: [
-        actions.read("refresh_main", {
-          label: "Refresh",
-          target: "/"
-        }),
-        actions.write("submit_message", {
-          label: "Submit",
-          target: "/post",
-          input: {
-            message: fields.string({ required: true })
+      markdown: "# Starter\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        ...starterManifest(),
+        blocks: {
+          main: {
+            actions: ["refresh_main", "submit_message"]
           }
-        })
-      ],
+        },
+        actions: {
+          refresh_main: {
+            label: "Refresh",
+            verb: "read",
+            target: "/",
+            transport: { method: "GET" },
+            input_schema: {
+              type: "object",
+              properties: {},
+              additionalProperties: false
+            }
+          },
+          ...starterManifest().actions
+        }
+      },
       render() {
         return {
           main: messages.map((message) => `- ${message}`).join("\n")
@@ -47,152 +84,85 @@ describe("app API", () => {
     const response = await app.handle({
       method: "GET",
       url: "https://example.test/",
-      headers: {
-        accept: "text/markdown"
-      },
+      headers: { accept: "text/markdown" },
       cookies: {}
     });
 
     expect(response.status).toBe(200);
-    expect(response.headers["content-type"]).toContain("text/markdown");
     const body = String(response.body);
     expect(body).toContain("# Starter");
     expect(body).toContain("Booted");
-
-    const frontmatter = parseFrontmatter(body);
-    expect(frontmatter.route).toBe("/");
+    expect(parseFrontmatter(body).route).toBe("/");
 
     const executable = extractExecutable(body);
-    expect(executable.allowed_next_actions).toEqual(["refresh_main", "submit_message"]);
-    expect(executable.actions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: "refresh_main",
-          verb: "read",
-          target: "/"
-        }),
-        expect.objectContaining({
-          id: "submit_message",
-          verb: "write",
-          target: "/post",
-          input_schema: expect.objectContaining({
-            required: ["message"],
-            properties: {
-              message: {
-                type: "string"
-              }
-            }
-          })
-        })
-      ])
-    );
-  });
-
-  it("normalizes route-like actions to verb=route", async () => {
-    const app = createApp({ appId: "starter" });
-    const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"open_docs,open_help\"}\n:::",
-      actions: [
-        actions.route("open_docs", {
-          label: "Open Docs",
-          target: "/docs"
-        }),
-        actions.route("open_help", {
-          label: "Open Help",
-          target: "/help"
-        })
-      ],
-      render() {
-        return {
-          main: "- ready"
-        };
+    expect(executable.blocks).toMatchObject({
+      main: {
+        actions: ["refresh_main", "submit_message"]
       }
     });
-
-    app.route(home);
-
-    const response = await app.handle({
-      method: "GET",
-      url: "https://example.test/",
-      headers: {
-        accept: "text/markdown"
-      },
-      cookies: {}
-    });
-
-    expect(response.status).toBe(200);
-    const executable = extractExecutable(String(response.body));
-    const openDocs = executable.actions?.find((action) => action.id === "open_docs");
-    const openHelp = executable.actions?.find((action) => action.id === "open_help");
-    expect(openDocs).toEqual(expect.objectContaining({ verb: "route", transport: { method: "GET" } }));
-    expect(openHelp).toEqual(expect.objectContaining({ verb: "route", transport: { method: "GET" } }));
+    expect(executable.actions?.submit_message?.target).toBe("/post");
   });
 
-  it("exposes compiled action json manifest from page definitions", () => {
+  it("returns defensive action json copies for explicit manifests", () => {
     const app = createApp({ appId: "starter" });
     const page = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"open_docs,submit\"}\n:::",
-      actions: [
-        actions.route("open_docs", {
-          label: "Open Docs",
-          target: "/docs"
-        }),
-        actions.write("submit", {
-          label: "Submit",
-          target: "/submit",
-          input: {
-            message: fields.string({ required: true, minLength: 1 })
-          }
-        })
-      ],
+      markdown: "# Starter\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: starterManifest({
+        app_id: "starter",
+        state_id: "starter:index",
+        state_version: 1
+      }),
       render() {
         return { main: "- ready" };
       }
     });
 
+    const first = page.actionJson();
+    first.actions!.submit_message!.label = "Mutated";
+
     expect(page.actionJson()).toEqual({
-      actions: [
-        {
-          id: "open_docs",
-          label: "Open Docs",
-          verb: "route",
-          target: "/docs",
-          transport: { method: "GET" },
-          input_schema: {
-            type: "object",
-            properties: {},
-            additionalProperties: false
-          }
-        },
-        {
-          id: "submit",
+      version: "mdan.page.v1",
+      app_id: "starter",
+      state_id: "starter:index",
+      state_version: 1,
+      blocks: {
+        main: {
+          actions: ["submit_message"]
+        }
+      },
+      actions: {
+        submit_message: {
           label: "Submit",
           verb: "write",
-          target: "/submit",
+          target: "/post",
           transport: { method: "POST" },
           input_schema: {
             type: "object",
             required: ["message"],
             properties: {
-              message: {
-                type: "string",
-                minLength: 1
-              }
+              message: { type: "string" }
             },
             additionalProperties: false
           }
         }
-      ],
-      allowed_next_actions: ["open_docs", "submit"]
+      }
     });
-
     expect(page.bind().actionJson()).toEqual(page.actionJson());
   });
 
   it("handles requests without explicit cookies payload", async () => {
     const app = createApp({ appId: "starter" });
     const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Starter\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: {
+            actions: []
+          }
+        },
+        actions: {}
+      },
       render() {
         return { main: "- Booted" };
       }
@@ -202,9 +172,7 @@ describe("app API", () => {
     const response = await app.handle({
       method: "GET",
       url: "https://example.test/",
-      headers: {
-        accept: "text/markdown"
-      }
+      headers: { accept: "text/markdown" }
     });
 
     expect(response.status).toBe(200);
@@ -215,16 +183,8 @@ describe("app API", () => {
     const app = createApp({ appId: "starter" });
     const messages = ["Booted"];
     const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"submit_message\" trust=\"untrusted\"}\n:::",
-      actions: [
-        actions.write("submit_message", {
-          label: "Submit",
-          target: "/post",
-          input: {
-            message: fields.string({ required: true })
-          }
-        })
-      ],
+      markdown: "# Starter\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: starterManifest(),
       render(currentMessages: string[]) {
         return {
           main: currentMessages.map((message) => `- ${message}`).join("\n")
@@ -244,14 +204,11 @@ describe("app API", () => {
     const page = await app.handle({
       method: "GET",
       url: "https://example.test/",
-      headers: {
-        accept: "text/markdown"
-      },
+      headers: { accept: "text/markdown" },
       cookies: {}
     });
-    const executable = extractExecutable(String(page.body));
-    const submit = executable.actions?.find((action) => action.id === "submit_message");
-    expect(typeof submit?.action_proof).toBe("string");
+    const proof = extractExecutable(String(page.body)).actions?.submit_message?.action_proof;
+    expect(typeof proof).toBe("string");
 
     const post = await app.handle({
       method: "POST",
@@ -262,7 +219,7 @@ describe("app API", () => {
       },
       body: JSON.stringify({
         action: {
-          proof: String(submit?.action_proof)
+          proof
         },
         input: {
           message: "Hello"
@@ -281,7 +238,16 @@ describe("app API", () => {
       actionProof: { disabled: true }
     });
     const lookup = app.page("/lookup", {
-      markdown: "# Lookup\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Lookup\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: {
+            actions: []
+          }
+        },
+        actions: {}
+      },
       render(message: string) {
         return {
           main: message
@@ -297,9 +263,7 @@ describe("app API", () => {
     const response = await app.handle({
       method: "GET",
       url: "https://example.test/lookup?name=Beijing",
-      headers: {
-        accept: "text/markdown"
-      },
+      headers: { accept: "text/markdown" },
       cookies: {}
     });
 
@@ -313,7 +277,16 @@ describe("app API", () => {
       actionProof: { disabled: true }
     });
     const page = app.page("/profile", {
-      markdown: "# Profile\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Profile\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: {
+            actions: []
+          }
+        },
+        actions: {}
+      },
       render(content: string) {
         return {
           main: content
@@ -333,12 +306,9 @@ describe("app API", () => {
     const readResponse = await app.handle({
       method: "GET",
       url: "https://example.test/profile/data?name=Ada",
-      headers: {
-        accept: "text/markdown"
-      },
+      headers: { accept: "text/markdown" },
       cookies: {}
     });
-
     expect(readResponse.status).toBe(200);
     expect(String(readResponse.body)).toContain("read:Ada");
 
@@ -368,7 +338,12 @@ describe("app API", () => {
       actionProof: { disabled: true }
     });
     const home = app.page("/", {
-      markdown: "# Home\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Home\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: { main: { actions: [] } },
+        actions: {}
+      },
       render() {
         return { main: "- ready" };
       }
@@ -386,7 +361,12 @@ describe("app API", () => {
       actionProof: { disabled: true }
     });
     const home = app.page("/", {
-      markdown: "# Home\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Home\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: { main: { actions: [] } },
+        actions: {}
+      },
       render() {
         return { main: "- ready" };
       }
@@ -398,163 +378,50 @@ describe("app API", () => {
     );
   });
 
-  it("warns when declared action transport and app.action registration method do not match", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const app = createApp({
-      appId: "starter",
-      actionProof: { disabled: true }
-    });
-    const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"lookup\"}\n:::",
-      actions: [
-        actions.read("lookup", {
-          label: "Lookup",
-          target: "/lookup",
-          transport: { method: "GET" }
-        })
-      ],
-      render() {
-        return {
-          main: "- ready"
-        };
-      }
-    });
+  it("supports richer schema builders for manifest authoring", () => {
+    const input = {
+      location: fields.string({ required: true, minLength: 1 }),
+      range: fields.enum(["current", "today", "3d"] as const, { required: true }),
+      date: fields.date(),
+      updated_at: fields.datetime(),
+      thresholds: fields.array(fields.number({ min: 0, max: 100 }), { minItems: 1 }),
+      filters: fields.object(
+        {
+          locale: fields.string({ required: true, pattern: "^[a-z]{2}(-[A-Z]{2})?$" }),
+          includeWind: fields.boolean()
+        },
+        { required: true }
+      )
+    } as const;
 
-    app.route(home);
-    app.action("/lookup", async () => home.render());
-
-    const response = await app.handle({
-      method: "GET",
-      url: "https://example.test/",
-      headers: {
-        accept: "text/markdown"
-      },
-      cookies: {}
-    });
-
-    expect(response.status).toBe(200);
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[mdan-sdk] Action transport mismatch on "/lookup": declared GET action but no matching app.action handler is registered.'
-    );
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[mdan-sdk] Action transport mismatch on "/lookup": app.action registered POST handler, but no page action declares that method for this target.'
-    );
-  });
-
-  it("does not warn for GET read actions that target registered page routes", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const app = createApp({
-      appId: "starter",
-      actionProof: { disabled: true }
-    });
-    const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"refresh_main\"}\n:::",
-      actions: [
-        actions.read("refresh_main", {
-          label: "Refresh",
-          target: "/",
-          transport: { method: "GET" }
-        })
-      ],
-      render() {
-        return {
-          main: "- ready"
-        };
-      }
-    });
-
-    app.route(home);
-
-    const response = await app.handle({
-      method: "GET",
-      url: "https://example.test/",
-      headers: {
-        accept: "text/markdown"
-      }
-    });
-
-    expect(response.status).toBe(200);
-    expect(warnSpy).not.toHaveBeenCalled();
-  });
-
-  it("supports richer schema builders for action input contracts", async () => {
-    const app = createApp({
-      appId: "starter",
-      actionProof: { disabled: true }
-    });
-    const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\" actions=\"query_weather\"}\n:::",
-      actions: [
-        actions.read("query_weather", {
-          label: "Query Weather",
-          target: "/weather",
-          transport: { method: "GET" },
-          input: {
-            location: fields.string({ required: true, minLength: 1 }),
-            range: fields.enum(["current", "today", "3d"] as const, { required: true }),
-            date: fields.date(),
-            updated_at: fields.datetime(),
-            thresholds: fields.array(fields.number({ min: 0, max: 100 }), { minItems: 1 }),
-            filters: fields.object(
-              {
-                locale: fields.string({ required: true, pattern: "^[a-z]{2}(-[A-Z]{2})?$" }),
-                includeWind: fields.boolean()
-              },
-              { required: true }
-            )
-          }
-        })
-      ],
-      render() {
-        return {
-          main: "- ready"
-        };
-      }
-    });
-    app.route(home);
-
-    const response = await app.handle({
-      method: "GET",
-      url: "https://example.test/",
-      headers: {
-        accept: "text/markdown"
-      },
-      cookies: {}
-    });
-
-    expect(response.status).toBe(200);
-    const executable = extractExecutable(String(response.body));
-    const action = executable.actions?.find((item) => item.id === "query_weather");
-    expect(action).toMatchObject({
-      transport: { method: "GET" },
-      input_schema: {
-        type: "object",
-        required: ["location", "range", "filters"],
-        properties: {
-          location: { type: "string", minLength: 1 },
-          range: { type: "string", enum: ["current", "today", "3d"] },
-          date: { type: "string", format: "date" },
-          updated_at: { type: "string", format: "date-time" },
-          thresholds: {
-            type: "array",
-            minItems: 1,
-            items: { type: "number", minimum: 0, maximum: 100 }
-          },
-          filters: {
-            type: "object",
-            required: ["locale"],
-            additionalProperties: false,
-            properties: {
-              locale: { type: "string", pattern: "^[a-z]{2}(-[A-Z]{2})?$" },
-              includeWind: { type: "boolean" }
-            }
-          }
+    expect(input).toMatchObject({
+      location: { schema: { type: "string", minLength: 1 }, required: true },
+      range: { schema: { type: "string", enum: ["current", "today", "3d"] }, required: true },
+      date: { schema: { type: "string", format: "date" } },
+      updated_at: { schema: { type: "string", format: "date-time" } },
+      thresholds: {
+        schema: {
+          type: "array",
+          minItems: 1,
+          items: { type: "number", minimum: 0, maximum: 100 }
         }
+      },
+      filters: {
+        schema: {
+          type: "object",
+          required: ["locale"],
+          additionalProperties: false,
+          properties: {
+            locale: { type: "string", pattern: "^[a-z]{2}(-[A-Z]{2})?$" },
+            includeWind: { type: "boolean" }
+          }
+        },
+        required: true
       }
     });
   });
 
-  it("can infer action input types from field maps", async () => {
+  it("can infer handler input types from field maps", async () => {
     const app = createApp({
       appId: "starter",
       actionProof: { disabled: true }
@@ -574,7 +441,16 @@ describe("app API", () => {
     type QueryInputs = InferAppInputs<typeof input>;
 
     const result = app.page("/typed", {
-      markdown: "# Typed\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Typed\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: {
+            actions: []
+          }
+        },
+        actions: {}
+      },
       render(content: string) {
         return { main: content };
       }
@@ -636,17 +512,29 @@ describe("app API", () => {
     });
 
     const home = app.page("/", {
-      markdown: "# Home\n\n::: block{id=\"main\" actions=\"resolve_root\"}\n:::",
-      actions: [
-        actions.read("resolve_root", {
-          label: "Resolve",
-          target: "/resolve",
-          auto: true,
-          input: {
-            location: fields.string()
+      markdown: "# Home\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: { actions: ["resolve_root"] }
+        },
+        actions: {
+          resolve_root: {
+            label: "Resolve",
+            verb: "read",
+            target: "/resolve",
+            auto: true,
+            transport: { method: "GET" },
+            input_schema: {
+              type: "object",
+              properties: {
+                location: { type: "string" }
+              },
+              additionalProperties: false
+            }
           }
-        })
-      ],
+        }
+      },
       render(content: string) {
         return { main: content };
       }
@@ -658,9 +546,7 @@ describe("app API", () => {
     const response = await app.handle({
       method: "GET",
       url: "https://example.test/?location=hangzhou",
-      headers: {
-        accept: "text/markdown"
-      },
+      headers: { accept: "text/markdown" },
       cookies: {}
     });
 
@@ -690,7 +576,16 @@ describe("app API", () => {
     });
 
     const home = app.page("/", {
-      markdown: "# Starter\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Starter\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: {
+            actions: []
+          }
+        },
+        actions: {}
+      },
       render() {
         return {
           main: "- Booted"
@@ -713,112 +608,5 @@ describe("app API", () => {
     const body = String(response.body);
     expect(body).toContain('<article data-kind="page" data-route="/"># Starter');
     expect(body).toContain('<aside data-kind="block" data-block="main">- Booted</aside>');
-  });
-
-  it("can bind handlers directly from page action declarations", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const app = createApp({
-      appId: "starter",
-      actionProof: { disabled: true }
-    });
-    const values: string[] = [];
-    const page = app.page("/bind", {
-      markdown: "# Bind\n\n::: block{id=\"main\" actions=\"lookup\"}\n:::",
-      actions: [
-        actions.read("lookup", {
-          label: "Lookup",
-          target: "/lookup",
-          transport: { method: "GET" },
-          input: {
-            name: fields.string({ required: true })
-          }
-        })
-      ],
-      render(content: string) {
-        return {
-          main: content
-        };
-      }
-    });
-    app.route(page.bind("ready"));
-    app.bindActions(page, {
-      lookup: ({ inputs }) => {
-        const upper = inputs.name.toUpperCase();
-        values.push(upper);
-        return page.bind(`name=${upper}`).render();
-      }
-    });
-
-    const response = await app.handle({
-      method: "GET",
-      url: "https://example.test/lookup?name=Beijing",
-      headers: {
-        accept: "text/markdown"
-      }
-    });
-
-    expect(response.status).toBe(200);
-    expect(values).toEqual(["BEIJING"]);
-    expect(String(response.body)).toContain("name=BEIJING");
-    expect(warnSpy).not.toHaveBeenCalled();
-  });
-
-  it("warns for missing or unknown handlers when using app.bindActions", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const app = createApp({
-      appId: "starter",
-      actionProof: { disabled: true }
-    });
-    const page = app.page("/bind", {
-      markdown: "# Bind\n\n::: block{id=\"main\" actions=\"lookup\"}\n:::",
-      actions: [
-        actions.read("lookup", {
-          label: "Lookup",
-          target: "/lookup"
-        })
-      ],
-      render(content: string) {
-        return {
-          main: content
-        };
-      }
-    });
-
-    app.bindActions(
-      page,
-      {
-        unknown: async () => page.bind("x").render()
-      } as unknown as Record<string, never>
-    );
-
-    expect(warnSpy).toHaveBeenCalledWith('[mdan-sdk] app.bindActions received unknown action id "unknown".');
-    expect(warnSpy).toHaveBeenCalledWith('[mdan-sdk] app.bindActions missing handler for declared action "lookup".');
-  });
-
-  it("throws when bindActions cannot disambiguate same route+method actions", () => {
-    const app = createApp({
-      appId: "starter",
-      actionProof: { disabled: true }
-    });
-    const page = app.page("/bind", {
-      markdown: "# Bind\n\n::: block{id=\"main\" actions=\"a,b\"}\n:::",
-      actions: [
-        actions.write("a", {
-          label: "A",
-          target: "/same"
-        }),
-        actions.write("b", {
-          label: "B",
-          target: "/same"
-        })
-      ],
-      render(content: string) {
-        return { main: content };
-      }
-    });
-
-    expect(() => app.bindActions(page, {})).toThrow(
-      '[mdan-sdk] app.bindActions cannot disambiguate actions "a", "b" for route "POST:/same". Use app.action(...) explicitly for this route.'
-    );
   });
 });

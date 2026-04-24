@@ -12,10 +12,11 @@ function extractActionProof(markdown: string): string {
   const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
   expect(match?.[1]).toBeTruthy();
   const payload = JSON.parse(String(match?.[1])) as {
-    actions?: Array<{ action_proof?: string }>;
+    actions?: Array<{ action_proof?: string }> | Record<string, { action_proof?: string }>;
   };
-  expect(payload.actions?.[0]?.action_proof).toBeTypeOf("string");
-  return String(payload.actions?.[0]?.action_proof);
+  const actions = Array.isArray(payload.actions) ? payload.actions : Object.values(payload.actions ?? {});
+  expect(actions[0]?.action_proof).toBeTypeOf("string");
+  return String(actions[0]?.action_proof);
 }
 
 describe("preview-confirm agent eval fixture", () => {

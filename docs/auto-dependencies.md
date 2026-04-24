@@ -59,7 +59,7 @@ At server level (`createMdanServer(...)`):
 - `auto.resolveRequest(context)`
 - `auto.fallbackToStaticTarget`
 
-Legacy `autoDependencies` is still supported. If both `auto` and
+The older `autoDependencies` option name is still accepted. If both `auto` and
 `autoDependencies` are provided, runtime merges them and `auto` wins for
 overlapping fields.
 
@@ -121,7 +121,15 @@ infinite auto chains.
 ## Example: Weather Root Resolver
 
 ```ts
-import { actions, createApp, fields } from "@mdanai/sdk";
+import { createApp, fields } from "@mdanai/sdk";
+
+const resolveRootSchema = fields.object({
+  location: fields.string(),
+  range: fields.string(),
+  date: fields.date(),
+  timezone: fields.string(),
+  locale: fields.string()
+}).schema;
 
 const app = createApp({
   auto: {
@@ -146,21 +154,25 @@ const app = createApp({
 });
 
 const home = app.page("/", {
-  markdown: "# Weather\n\n::: block{id=\"main\" actions=\"resolve_root\"}\n:::",
-  actions: [
-    actions.read("resolve_root", {
-      label: "Resolve Root",
-      target: "/resolve",
-      auto: true,
-      input: {
-        location: fields.string(),
-        range: fields.string(),
-        date: fields.date(),
-        timezone: fields.string(),
-        locale: fields.string()
+  markdown: "# Weather\n\n<!-- mdan:block id=\"main\" -->",
+  actionJson: {
+    version: "mdan.page.v1",
+    blocks: {
+      main: {
+        actions: ["resolve_root"]
       }
-    })
-  ],
+    },
+    actions: {
+      resolve_root: {
+        label: "Resolve Root",
+        verb: "read",
+        target: "/resolve",
+        auto: true,
+        transport: { method: "GET" },
+        input_schema: resolveRootSchema
+      }
+    }
+  },
   render(content: string) {
     return { main: content };
   }

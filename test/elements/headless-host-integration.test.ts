@@ -21,10 +21,11 @@ function surface(content: string, regions: Record<string, string> = { main: "Say
     content,
     actions: {
       app_id: "json-browser",
-      blocks: ["main"],
-      actions: [
-        {
-          id: "send",
+      blocks: {
+        main: { actions: ["send"] }
+      },
+      actions: {
+        send: {
           label: "Send",
           verb: "write",
           target: "/messages",
@@ -38,8 +39,7 @@ function surface(content: string, regions: Record<string, string> = { main: "Say
             additionalProperties: false
           }
         }
-      ],
-      allowed_next_actions: ["send"]
+      }
     },
     view: {
       route_path: "/",
@@ -79,7 +79,7 @@ describe("ui with Markdown-first headless host", () => {
 
 Say something useful.
 
-::: block{id="main" actions="send"}
+<!-- mdan:block id="main" -->
 `))
     });
     const runtime = mountMdanUi({ root: document, host });
@@ -101,7 +101,7 @@ Say something useful.
 
 Message accepted.
 
-::: block{id="main" actions="send"}
+<!-- mdan:block id="main" -->
 `, { main: "Message accepted." })
         ),
         { headers: { "Content-Type": "text/markdown" } }
@@ -112,7 +112,7 @@ Message accepted.
 
 Say something useful.
 
-::: block{id="main" actions="send"}
+<!-- mdan:block id="main" -->
 `)),
       fetchImpl: fetchImpl as unknown as typeof fetch
     });
@@ -143,7 +143,7 @@ Say something useful.
 
 Say something useful.
 
-::: block{id="main" actions="send"}
+<!-- mdan:block id="main" -->
 `))
     });
     const runtime = mountMdanUi({ root, host });
@@ -168,7 +168,7 @@ Say something useful.
 
 Say something useful.
 
-::: block{id="main" actions="send"}
+<!-- mdan:block id="main" -->
 `))
     });
     const runtime = mountMdanUi({ root, host });

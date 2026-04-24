@@ -1,48 +1,45 @@
 ---
 title: Action JSON
-description: Understand the compiled action JSON produced by the App API and how to inspect it with page.actionJson().
+description: Define explicit MDAN action JSON next to Markdown pages and inspect the runtime action contract.
 ---
 
 # Action JSON
 
-This page explains the concrete action JSON shape emitted by the App API.
+This page explains the concrete action JSON shape used by MDAN pages.
 
-Use it when you need to explain, debug, or validate the protocol-facing output
-instead of only reading high-level `actions.route/read/write` declarations.
+Use it when you need to define, debug, or validate the protocol-facing action
+contract for a Markdown page.
 
 ## Why This Exists
 
-The App API is intentionally high-level. That improves authoring speed, but can
-hide protocol details.
+An MDAN page is easiest to reason about when its readable Markdown and executable
+contract are both visible in source control:
 
-`page.actionJson()` is the inspection escape hatch:
+```txt
+app/index.md
+app/index.action.json
+```
 
-- it returns compiled `actions` JSON
-- it returns `allowed_next_actions`
-- it lets you document and test the exact protocol payload
+`page.actionJson()` returns the explicit action manifest for tests and
+debugging.
 
-## Inspecting JSON
+## Explicit JSON
 
 ```ts
-import { actions, createApp, fields } from "@mdanai/sdk";
+import { readFileSync } from "node:fs";
+import { MDAN_PAGE_MANIFEST_VERSION, createApp, type MdanActionManifest } from "@mdanai/sdk";
 
 const app = createApp();
+const markdown = readFileSync("app/index.md", "utf8");
+const actionJson = JSON.parse(readFileSync("app/index.action.json", "utf8")) as MdanActionManifest;
+
+if (actionJson.version !== MDAN_PAGE_MANIFEST_VERSION) {
+  throw new Error("Unexpected manifest version.");
+}
 
 const page = app.page("/", {
-  markdown: "# Demo\n\n::: block{id=\"main\" actions=\"open,submit\"}",
-  actions: [
-    actions.route("open", {
-      label: "Open docs",
-      target: "/docs"
-    }),
-    actions.write("submit", {
-      label: "Submit",
-      target: "/submit",
-      input: {
-        message: fields.string({ required: true, minLength: 1 })
-      }
-    })
-  ],
+  markdown,
+  actionJson,
   render() {
     return { main: "- ready" };
   }
@@ -55,9 +52,18 @@ Example output:
 
 ```json
 {
-  "actions": [
-    {
-      "id": "open",
+  "version": "mdan.page.v1",
+  "app_id": "demo",
+  "state_id": "demo:index",
+  "state_version": 1,
+  "blocks": {
+    "main": {
+      "trust": "untrusted",
+      "actions": ["open", "submit"]
+    }
+  },
+  "actions": {
+    "open": {
       "label": "Open docs",
       "verb": "route",
       "target": "/docs",
@@ -68,8 +74,7 @@ Example output:
         "additionalProperties": false
       }
     },
-    {
-      "id": "submit",
+    "submit": {
       "label": "Submit",
       "verb": "write",
       "target": "/submit",
@@ -83,26 +88,29 @@ Example output:
         "additionalProperties": false
       }
     }
-  ],
-  "allowed_next_actions": ["open", "submit"]
+  }
 }
 ```
 
 ## Field Meaning
 
-- `id`: stable action id within the current state.
+- `blocks`: block ids and their executable action ids.
+- `actions`: action definitions keyed by stable action id.
 - `label`: user-facing label.
 - `verb`: semantic intent (`route`, `read`, `write`).
 - `target`: action target path.
 - `transport.method`: current transport (`GET` or `POST` in current runtime).
 - `input_schema`: JSON object-schema for action input.
-- `allowed_next_actions`: allow-list for executable next actions.
 
 ## Notes
 
 - `page.actionJson()` and `page.bind(...).actionJson()` return the same action manifest.
-- This output is declaration-level compilation and does not include runtime proof
+- `MDAN_PAGE_MANIFEST_VERSION` and `MdanActionManifest` are exported from `@mdanai/sdk`
+  so explicit `.action.json` files can be typed without reaching into internal paths.
+- Source action JSON does not include runtime proof
   fields like `action_proof`; those are added by runtime response handling.
+- `allowed_next_actions` is no longer needed. The executable action set is
+  derived from `blocks.*.actions`.
 
 ## When You Will Actually Need This
 
@@ -111,7 +119,7 @@ Action JSON matters most when:
 - you are debugging action behavior from `curl` or tests
 - you are building a custom frontend and need the real action contract
 - you are trying to understand why the runtime accepts or rejects an action
-- you want to confirm how SDK field declarations compiled into `input_schema`
+- you want to confirm how your declared `input_schema` will be exposed at runtime
 
 ## Related Docs
 

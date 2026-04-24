@@ -16,6 +16,7 @@ starts becoming a TypeScript agent app you understand.
 By the end, you will have:
 
 - one page edited in `app/index.md`
+- one manifest edited in `app/index.action.json`
 - one action handler edited in `app/server.mjs`
 - one changed browser view
 - one changed Markdown response
@@ -30,6 +31,7 @@ You should already have this shape:
 ```text
 app/
   index.md
+  index.action.json
   server.mjs
 index.mjs
 ```
@@ -52,17 +54,22 @@ The starter keeps the important pieces small:
 
 - `app/index.md`
   readable page content shared across browser and Markdown clients
+- `app/index.action.json`
+  explicit executable action contract for that page
 - `app/server.mjs`
   app definition, routes, actions, and render logic
 - `index.mjs`
   Node or Bun host entry
 
-For this first pass, only touch `app/index.md` and `app/server.mjs`.
+For this first pass, only touch `app/index.md`, `app/index.action.json`, and
+`app/server.mjs`.
 
-Think of those two files as two different layers:
+Think of those files as three different layers:
 
 - `app/index.md`
   the shared readable surface for both browsers and agents
+- `app/index.action.json`
+  the explicit executable contract attached to that page
 - `app/server.mjs`
   the runtime behavior that fills that surface with current state and handles
   actions
@@ -88,8 +95,7 @@ Submit only actions declared by the current surface.
 ## Result
 The latest messages appear below.
 
-::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}
-:::
+<!-- mdan:block id="main" -->
 ```
 
 Refresh the browser after saving.
@@ -102,16 +108,34 @@ What changed here:
 
 This is the MDAN surface layer.
 
-## 4. Edit The Runtime Behavior
+## 4. Edit The Action Contract And Runtime Behavior
 
-Open `app/server.mjs`.
+Open `app/index.action.json`.
+
+The generated starter keeps action declarations explicit in JSON:
+
+- `blocks.*.actions`
+- `actions.<id>`
+- `input_schema`
+
+Change the submit label there:
+
+```json
+{
+  "actions": {
+    "submit_message": {
+      "label": "Post update"
+    }
+  }
+}
+```
+
+Then open `app/server.mjs`.
 
 The generated starter already uses the current App API:
 
 - `createApp(...)`
 - `app.page(...)`
-- `actions.read(...)`
-- `actions.write(...)`
 - `app.route(...)`
 - `app.action(...)`
 
@@ -123,24 +147,12 @@ export function createAppServer(initialMessages = [
 ]) {
 ```
 
-Then change the write action label:
-
-```js
-actions.write("submit_message", {
-  label: "Post update",
-  target: "/post",
-  input: {
-    message: fields.string({ required: true })
-  }
-})
-```
-
 Reload the browser and confirm the UI text changed.
 
 What changed here:
 
 - you changed the initial state returned by the server
-- you changed the declared action label for the writable action
+- you changed the declared action label in `app/index.action.json`
 - you still did not build a separate browser-only UI
 
 This is the runtime layer. It decides what the surface can do and what data it

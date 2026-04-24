@@ -16,6 +16,6 @@ Users must register through the declared register action or navigate back to sig
 The returned surface should either keep the user on this page with a registration status update or transition to the guestbook route.
 <!-- agent:end -->
 
-::: block{id="register_status" trust="untrusted"}
+<!-- mdan:block id="register_status" -->
 
-::: block{id="register" actions="register,open_login" trust="trusted"}
+<!-- mdan:block id="register" -->

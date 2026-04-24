@@ -1,6 +1,7 @@
+import { MDAN_PAGE_MANIFEST_VERSION } from "../protocol/surface.js";
 import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
 
-const blockDirectivePattern = /:::\s*block\{([^}]*)\}\s*(?:\n|$)/g;
+const blockAnchorPattern = /<!--\s*mdan:block\b([^>]*)-->\s*(?:\n|$)?/g;
 
 function extractBlockId(attrs: string): string | null {
   const id = attrs.match(/\bid="([^"]+)"/)?.[1]?.trim() ?? "";
@@ -104,33 +105,104 @@ function toExecutablePayloadFromPage(page: MdanPage): Record<string, unknown> {
   const frontmatter = page.frontmatter;
   const visibleBlockContent = getVisibleBlockContent(page);
   const actions = page.blocks.flatMap((block) => block.operations.map((operation) => toJsonAction(block, operation)));
-  const actionIds = actions
-    .map((action) => (typeof action.id === "string" ? action.id : null))
-    .filter((id): id is string => Boolean(id));
+  const actionsById = Object.fromEntries(
+    actions
+      .map((action) => {
+        const id = typeof action.id === "string" ? action.id : "";
+        if (!id) {
+          return null;
+        }
+        const { id: _id, block: _block, ...rest } = action;
+        return [id, rest] as const;
+      })
+      .filter((entry): entry is readonly [string, Record<string, unknown>] => Boolean(entry))
+  );
+  const blockActions = new Map<string, string[]>();
+  for (const action of actions) {
+    const id = typeof action.id === "string" ? action.id : "";
+    const block = typeof action.block === "string" ? action.block : "";
+    if (!id || !block) {
+      continue;
+    }
+    const ids = blockActions.get(block) ?? [];
+    ids.push(id);
+    blockActions.set(block, ids);
+  }
 
   return {
+    version: MDAN_PAGE_MANIFEST_VERSION,
     ...(typeof frontmatter.app_id === "string" ? { app_id: frontmatter.app_id } : {}),
     ...(typeof frontmatter.state_id === "string" ? { state_id: frontmatter.state_id } : {}),
     ...(typeof frontmatter.state_version === "number" ? { state_version: frontmatter.state_version } : {}),
     ...(typeof frontmatter.response_mode === "string" ? { response_mode: frontmatter.response_mode } : {}),
-    blocks: page.blocks.map((block) => block.name),
+    blocks: Object.fromEntries(
+      page.blocks.map((block) => [
+        block.name,
+        {
+          actions: blockActions.get(block.name) ?? []
+        }
+      ])
+    ),
     ...(visibleBlockContent && Object.keys(visibleBlockContent).length > 0 ? { regions: visibleBlockContent } : {}),
-    actions,
-    allowed_next_actions: actionIds
+    actions: actionsById
   };
 }
 
 function toExecutablePayloadFromFragment(fragment: MdanFragment): Record<string, unknown> {
   const actions = fragment.blocks.flatMap((block) => block.operations.map((operation) => toJsonAction(block, operation)));
-  const actionIds = actions
-    .map((action) => (typeof action.id === "string" ? action.id : null))
-    .filter((id): id is string => Boolean(id));
+  const actionsById = Object.fromEntries(
+    actions
+      .map((action) => {
+        const id = typeof action.id === "string" ? action.id : "";
+        if (!id) {
+          return null;
+        }
+        const { id: _id, block: _block, ...rest } = action;
+        return [id, rest] as const;
+      })
+      .filter((entry): entry is readonly [string, Record<string, unknown>] => Boolean(entry))
+  );
+  const blockActions = new Map<string, string[]>();
+  for (const action of actions) {
+    const id = typeof action.id === "string" ? action.id : "";
+    const block = typeof action.block === "string" ? action.block : "";
+    if (!id || !block) {
+      continue;
+    }
+    const ids = blockActions.get(block) ?? [];
+    ids.push(id);
+    blockActions.set(block, ids);
+  }
 
   return {
-    blocks: fragment.blocks.map((block) => block.name),
-    actions,
-    allowed_next_actions: actionIds
+    version: MDAN_PAGE_MANIFEST_VERSION,
+    blocks: Object.fromEntries(
+      fragment.blocks.map((block) => [
+        block.name,
+        {
+          actions: blockActions.get(block.name) ?? []
+        }
+      ])
+    ),
+    actions: actionsById
   };
+}
+
+function mergeObjectField(
+  base: unknown,
+  update: unknown
+): unknown {
+  if (!isJsonObjectRecord(base) || !isJsonObjectRecord(update)) {
+    return update;
+  }
+  return Object.fromEntries(
+    [...new Set([...Object.keys(base), ...Object.keys(update)])].map((key) => [
+      key,
+      isJsonObjectRecord(base[key]) && isJsonObjectRecord(update[key])
+        ? { ...base[key], ...update[key] }
+        : update[key] ?? base[key]
+    ])
+  );
 }
 
 function mergeExecutableContent(
@@ -149,7 +221,17 @@ function mergeExecutableContent(
     if (!isJsonObjectRecord(parsed)) {
       return trimmed;
     }
-    return JSON.stringify({ ...parsed, ...dynamicPayload }, null, 2);
+    const merged = {
+      ...parsed,
+      ...dynamicPayload,
+      ...(parsed.blocks !== undefined || dynamicPayload.blocks !== undefined
+        ? { blocks: mergeObjectField(parsed.blocks, dynamicPayload.blocks) }
+        : {}),
+      ...(parsed.actions !== undefined || dynamicPayload.actions !== undefined
+        ? { actions: mergeObjectField(parsed.actions, dynamicPayload.actions) }
+        : {})
+    };
+    return JSON.stringify(merged, null, 2);
   } catch {
     return trimmed;
   }
@@ -164,6 +246,49 @@ function serializeExecutableBlock(payload: string | undefined): string {
   return `\`\`\`mdan\n${payloadText}\n\`\`\``;
 }
 
+function serializeMarkdownWithVisibleBlockContent(
+  markdown: string,
+  visibleBlockNames: Set<string> | null,
+  visibleBlockContent: Record<string, string> | undefined
+): string {
+  const trimmed = markdown.trim();
+  const matches = [...trimmed.matchAll(blockAnchorPattern)];
+  if (matches.length === 0) {
+    return trimmed;
+  }
+
+  let result = "";
+  let cursor = 0;
+
+  matches.forEach((match, index) => {
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    const attrs = match[1] ?? "";
+    const id = extractBlockId(attrs);
+    const nextStart = matches[index + 1]?.index ?? trimmed.length;
+    const blockBody = trimmed.slice(end, nextStart);
+
+    result += trimmed.slice(cursor, start);
+
+    if (visibleBlockNames && id && !visibleBlockNames.has(id)) {
+      result += blockBody;
+      cursor = nextStart;
+      return;
+    }
+
+    const replacement = id ? visibleBlockContent?.[id]?.trim() : undefined;
+    if (replacement) {
+      result += `${replacement}\n\n`;
+    } else {
+      result += blockBody;
+    }
+    cursor = nextStart;
+  });
+
+  result += trimmed.slice(cursor);
+  return result.trim();
+}
+
 export function serializePage(page: MdanPage): string {
   const frontmatter = serializeFrontmatter(page.frontmatter);
   const visibleBlockNames = getVisibleBlockNames(page);
@@ -174,18 +299,7 @@ export function serializePage(page: MdanPage): string {
       : visibleBlockContent && Object.keys(visibleBlockContent).length > 0
         ? { regions: visibleBlockContent }
         : null;
-  const markdown = page.markdown
-    .trim()
-    .replace(blockDirectivePattern, (match, attrs) => {
-      if (!visibleBlockNames) {
-        return `::: block{${attrs}}\n`;
-      }
-      const id = extractBlockId(attrs);
-      if (!id || visibleBlockNames.has(id)) {
-        return `::: block{${attrs}}\n`;
-      }
-      return "";
-    })
+  const markdown = serializeMarkdownWithVisibleBlockContent(page.markdown, visibleBlockNames, visibleBlockContent)
     .replace(/\n{3,}/g, "\n\n")
     .trim();
   const executableBlock = serializeExecutableBlock(

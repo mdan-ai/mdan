@@ -25,8 +25,7 @@ function createMarkdownSubmitMessageFixture() {
 
 Use this page to submit one message.
 
-::: block{id="main"}
-:::`,
+<!-- mdan:block id="main" -->`,
       blockContent: {
         main
       },

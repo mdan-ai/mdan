@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { actions, createApp, fields, signIn, signOut, type AppBrowserShellOptions } from "../../src/index.js";
+import { createApp, signIn, signOut, type AppActionJsonManifest, type AppBrowserShellOptions } from "../../src/index.js";
 
 type SessionState = {
   sid: string;
@@ -17,12 +17,19 @@ type MessageEntry = {
 
 type ExampleAssets = {
   loginMarkdown: string;
+  loginActionJson: AppActionJsonManifest;
   registerMarkdown: string;
+  registerActionJson: AppActionJsonManifest;
   guestbookMarkdown: string;
+  guestbookActionJson: AppActionJsonManifest;
 };
 
 function loadText(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+function loadActionJson(path: string): AppActionJsonManifest {
+  return JSON.parse(readFileSync(path, "utf8")) as AppActionJsonManifest;
 }
 
 function loadExampleAssets(): ExampleAssets {
@@ -31,8 +38,11 @@ function loadExampleAssets(): ExampleAssets {
 
   return {
     loginMarkdown: loadText(join(appDir, "login.md")),
+    loginActionJson: loadActionJson(join(appDir, "login.action.json")),
     registerMarkdown: loadText(join(appDir, "register.md")),
-    guestbookMarkdown: loadText(join(appDir, "guestbook.md"))
+    registerActionJson: loadActionJson(join(appDir, "register.action.json")),
+    guestbookMarkdown: loadText(join(appDir, "guestbook.md")),
+    guestbookActionJson: loadActionJson(join(appDir, "guestbook.action.json"))
   };
 }
 
@@ -74,20 +84,7 @@ export function createAuthGuestbookServer(browserShell: AppBrowserShellOptions =
   });
   const loginPage = app.page("/login", {
     markdown: assets.loginMarkdown,
-    actions: [
-      actions.route("open_register", {
-        label: "Create Account",
-        target: "/register"
-      }),
-      actions.write("login", {
-        label: "Sign In",
-        target: "/auth/login",
-        input: {
-          username: fields.string({ required: true }),
-          password: fields.string({ required: true, password: true })
-        }
-      })
-    ],
+    actionJson: assets.loginActionJson,
     render(message = "Not signed in.") {
       return {
         auth_status: `Current status: ${message}
@@ -113,20 +110,7 @@ Submit valid credentials to continue to the guestbook, or open the register page
   });
   const registerPage = app.page("/register", {
     markdown: assets.registerMarkdown,
-    actions: [
-      actions.route("open_login", {
-        label: "Back to Sign In",
-        target: "/login"
-      }),
-      actions.write("register", {
-        label: "Create Account",
-        target: "/auth/register",
-        input: {
-          username: fields.string({ required: true }),
-          password: fields.string({ required: true, password: true })
-        }
-      })
-    ],
+    actionJson: assets.registerActionJson,
     render(message = "Create a new account.") {
       return {
         register_status: `Current status: ${message}
@@ -152,23 +136,7 @@ Submit valid registration data to continue to the guestbook, or open the login p
   });
   const guestbookPage = app.page("/guestbook", {
     markdown: assets.guestbookMarkdown,
-    actions: [
-      actions.read("refresh_messages", {
-        label: "Refresh",
-        target: "/guestbook"
-      }),
-      actions.write("submit_message", {
-        label: "Submit Message",
-        target: "/guestbook/post",
-        input: {
-          message: fields.string({ required: true })
-        }
-      }),
-      actions.write("logout", {
-        label: "Log Out",
-        target: "/guestbook/logout"
-      })
-    ],
+    actionJson: assets.guestbookActionJson,
     render(username: string, currentMessages: MessageEntry[]) {
       const lines = currentMessages.length > 0
         ? currentMessages.map((entry) => `- ${entry.username}: ${entry.text}`).join("\n")
@@ -226,73 +194,68 @@ Signing out returns the surface to the login route.
     return guestbookPage.bind(username, messages).render();
   });
 
-  app.bindActions(loginPage, {
-    login: async ({ inputs }) => {
-      const username = String(inputs.username ?? "").trim();
-      const password = String(inputs.password ?? "");
-      if (!username || !password || users.get(username) !== password) {
-        return {
-          status: 401,
-          ...loginPage.bind("Login rejected. Check username and password.").render()
-        };
-      }
-      const sid = randomUUID();
+  app.action("/auth/login", async ({ inputs }) => {
+    const username = String(inputs.username ?? "").trim();
+    const password = String(inputs.password ?? "");
+    if (!username || !password || users.get(username) !== password) {
       return {
-        session: signIn({ sid, username }),
+        status: 401,
+        ...loginPage.bind("Login rejected. Check username and password.").render()
+      };
+    }
+    const sid = randomUUID();
+    return {
+      session: signIn({ sid, username }),
+      ...guestbookPage.bind(username, messages).render()
+    };
+  });
+
+  app.action("/auth/register", async ({ inputs }) => {
+    const username = String(inputs.username ?? "").trim();
+    const password = String(inputs.password ?? "");
+    if (!username || !password) {
+      return {
+        status: 400,
+        ...registerPage.bind("Invalid input. Username and password are required.").render()
+      };
+    }
+    if (users.has(username)) {
+      return {
+        status: 409,
+        ...registerPage.bind("Username already exists. Try another username or sign in.").render()
+      };
+    }
+    users.set(username, password);
+    const sid = randomUUID();
+    return {
+      session: signIn({ sid, username }),
+      ...guestbookPage.bind(username, messages).render()
+    };
+  });
+
+  app.action("/guestbook/post", async ({ inputs, session }) => {
+    const username = typeof session?.username === "string" ? session.username : "";
+    if (!username) {
+      return {
+        status: 401,
+        ...loginPage.bind("Sign in required. Open /login and sign in.").render()
+      };
+    }
+    const message = String(inputs.message ?? "").trim();
+    if (!message) {
+      return {
+        status: 400,
         ...guestbookPage.bind(username, messages).render()
       };
     }
+    messages.unshift({ username, text: message });
+    return guestbookPage.bind(username, messages).render();
   });
 
-  app.bindActions(registerPage, {
-    register: async ({ inputs }) => {
-      const username = String(inputs.username ?? "").trim();
-      const password = String(inputs.password ?? "");
-      if (!username || !password) {
-        return {
-          status: 400,
-          ...registerPage.bind("Invalid input. Username and password are required.").render()
-        };
-      }
-      if (users.has(username)) {
-        return {
-          status: 409,
-          ...registerPage.bind("Username already exists. Try another username or sign in.").render()
-        };
-      }
-      users.set(username, password);
-      const sid = randomUUID();
-      return {
-        session: signIn({ sid, username }),
-        ...guestbookPage.bind(username, messages).render()
-      };
-    }
-  });
-
-  app.bindActions(guestbookPage, {
-    submit_message: async ({ inputs, session }) => {
-      const username = typeof session?.username === "string" ? session.username : "";
-      if (!username) {
-        return {
-          status: 401,
-          ...loginPage.bind("Sign in required. Open /login and sign in.").render()
-        };
-      }
-      const message = String(inputs.message ?? "").trim();
-      if (!message) {
-        return {
-          status: 400,
-          ...guestbookPage.bind(username, messages).render()
-        };
-      }
-      messages.unshift({ username, text: message });
-      return guestbookPage.bind(username, messages).render();
-    },
-    logout: async () => ({
-      session: signOut(),
-      ...loginPage.bind("Signed out.").render()
-    })
-  });
+  app.action("/guestbook/logout", async () => ({
+    session: signOut(),
+    ...loginPage.bind("Signed out.").render()
+  }));
 
   return app;
 }

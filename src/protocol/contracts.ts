@@ -35,6 +35,23 @@ function validateInputSchema(schema: unknown, path: string, violations: Contract
   }
 }
 
+function actionEntriesFromRoot(actionsRoot: UnknownRecord, violations: ContractViolation[]) {
+  const actionsValue = actionsRoot.actions;
+  if (Array.isArray(actionsValue)) {
+    pushViolation(violations, "actions.actions", "actions.actions must be an object keyed by action id");
+    return null;
+  }
+  if (isRecord(actionsValue)) {
+    return Object.entries(actionsValue).map(([id, action]) => ({
+      action,
+      idFromKey: id,
+      path: `actions.actions.${id}`
+    }));
+  }
+  pushViolation(violations, "actions.actions", "actions.actions must be an object keyed by action id");
+  return null;
+}
+
 export function validateActionsContractEnvelope(envelope: unknown): ContractViolation[] {
   const violations: ContractViolation[] = [];
   if (!isRecord(envelope)) {
@@ -60,27 +77,34 @@ export function validateActionsContractEnvelope(envelope: unknown): ContractViol
     pushViolation(violations, "actions.state_version", "state_version is required and must be a finite number");
   }
 
-  const actionsList = actionsRoot.actions;
-  if (!Array.isArray(actionsList)) {
-    pushViolation(violations, "actions.actions", "actions.actions must be an array");
+  const actionEntries = actionEntriesFromRoot(actionsRoot, violations);
+  if (!actionEntries) {
     return violations;
   }
 
   const actionIds = new Set<string>();
-  for (let index = 0; index < actionsList.length; index += 1) {
-    const action = actionsList[index];
-    const actionPath = `actions.actions[${index}]`;
+  for (const entry of actionEntries) {
+    const action = entry.action;
+    const actionPath = entry.path;
     if (!isRecord(action)) {
       pushViolation(violations, actionPath, "action must be an object");
       continue;
     }
 
-    const id = action.id;
+    const id = entry.idFromKey ?? action.id;
     if (typeof id !== "string" || id.trim().length === 0) {
-      pushViolation(violations, `${actionPath}.id`, "id is required and must be a non-empty string");
+      pushViolation(
+        violations,
+        entry.idFromKey === null ? `${actionPath}.id` : actionPath,
+        "id is required and must be a non-empty string"
+      );
     } else {
       if (actionIds.has(id)) {
-        pushViolation(violations, `${actionPath}.id`, `duplicate action id: "${id}"`);
+        pushViolation(
+          violations,
+          entry.idFromKey === null ? `${actionPath}.id` : actionPath,
+          `duplicate action id: "${id}"`
+        );
       }
       actionIds.add(id);
     }
@@ -168,21 +192,36 @@ export function validateActionsContractEnvelope(envelope: unknown): ContractViol
     }
   }
 
-  const allowedNextActions = actionsRoot.allowed_next_actions;
-  if (allowedNextActions !== undefined) {
-    if (!Array.isArray(allowedNextActions) || allowedNextActions.some((entry) => typeof entry !== "string")) {
-      pushViolation(violations, "actions.allowed_next_actions", "allowed_next_actions must be an array of strings");
-    } else {
-      for (const actionId of allowedNextActions) {
-        if (!actionIds.has(actionId)) {
-          pushViolation(
-            violations,
-            "actions.allowed_next_actions",
-            `unknown action id reference: "${actionId}"`
-          );
+  if (Array.isArray(actionsRoot.blocks)) {
+    pushViolation(violations, "actions.blocks", "actions.blocks must be an object keyed by block id");
+  } else if (isRecord(actionsRoot.blocks)) {
+    for (const [blockId, block] of Object.entries(actionsRoot.blocks)) {
+      const blockPath = `actions.blocks.${blockId}`;
+      if (!isRecord(block)) {
+        pushViolation(violations, blockPath, "block must be an object");
+        continue;
+      }
+      if (block.actions !== undefined) {
+        if (!Array.isArray(block.actions) || block.actions.some((entry) => typeof entry !== "string")) {
+          pushViolation(violations, `${blockPath}.actions`, "block actions must be an array of strings");
+          continue;
+        }
+        for (const actionId of block.actions) {
+          if (!actionIds.has(actionId)) {
+            pushViolation(violations, `${blockPath}.actions`, `unknown action id reference: "${actionId}"`);
+          }
         }
       }
     }
+  }
+
+  const allowedNextActions = actionsRoot.allowed_next_actions;
+  if (allowedNextActions !== undefined) {
+    pushViolation(
+      violations,
+      "actions.allowed_next_actions",
+      "allowed_next_actions is not supported; use blocks.<id>.actions"
+    );
   }
 
   return violations;

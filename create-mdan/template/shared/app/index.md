@@ -10,7 +10,6 @@ This page shows the current starter message feed and the next available actions.
 Read the current feed from the returned Markdown response and submit new messages through the declared action contract.
 
 ## Result
-The returned Markdown response should show the current messages and expose the next allowed actions for the main block.
+The returned Markdown response should show the current messages and expose the next executable actions for the main block.
 
-::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}
-:::
+<!-- mdan:block id="main" -->

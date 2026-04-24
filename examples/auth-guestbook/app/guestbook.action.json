@@ -1,0 +1,65 @@
+{
+  "version": "mdan.page.v1",
+  "blocks": {
+    "session_status": {
+      "actions": []
+    },
+    "messages": {
+      "actions": ["refresh_messages"]
+    },
+    "composer": {
+      "trust": "trusted",
+      "actions": ["submit_message"]
+    },
+    "session_actions": {
+      "trust": "trusted",
+      "actions": ["logout"]
+    }
+  },
+  "actions": {
+    "refresh_messages": {
+      "label": "Refresh",
+      "verb": "read",
+      "target": "/guestbook",
+      "transport": {
+        "method": "GET"
+      },
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    "submit_message": {
+      "label": "Submit Message",
+      "verb": "write",
+      "target": "/guestbook/post",
+      "transport": {
+        "method": "POST"
+      },
+      "input_schema": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "logout": {
+      "label": "Log Out",
+      "verb": "write",
+      "target": "/guestbook/logout",
+      "transport": {
+        "method": "POST"
+      },
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  }
+}

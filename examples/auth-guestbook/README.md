@@ -8,7 +8,8 @@ description: Canonical MDAN auth example covering login, registration, session s
 This example organizes assets into explicit source files while following the Markdown surface runtime contract:
 
 - `app/login.md`, `app/register.md`, `app/guestbook.md`
-- `app.ts` uses `createApp`, reusable `page(...)` definitions, `route(...)`, `action(...)`, and `page.bind(...)` to inject runtime state/session values.
+- `app/login.action.json`, `app/register.action.json`, `app/guestbook.action.json`
+- `app.ts` uses `createApp`, reusable `page(...)` definitions, `route(...)`, `action(...)`, and `page.bind(...)` to inject runtime state/session values into explicit page manifests.
 
 Runtime contract:
 

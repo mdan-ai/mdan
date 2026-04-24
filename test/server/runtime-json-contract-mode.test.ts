@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createMdanServer, ok } from "../../src/server/index.js";
 
-describe("legacy compatibility contract mode", () => {
+describe("markdown-native contract mode", () => {
   it("returns 406 for Markdown-native POST actions asked for application/json", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.post("/submit", async () =>
@@ -36,18 +36,20 @@ describe("legacy compatibility contract mode", () => {
 
 Body
 
-::: block{id="main" actions="missing_action"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:page",
         state_version: 1,
-        actions: [
-          {
-            id: "open",
+        blocks: {
+          main: { actions: ["missing_action"] }
+        },
+        actions: {
+          open: {
             verb: "route",
             target: "/open"
           }
-        ]
+        }
       },
       route: "/entry",
       regions: {
@@ -120,13 +122,15 @@ Body
   it("accepts readable-surface page handlers for markdown and html reads", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.page("/readable", async () => ({
-      markdown: "# Readable Page\n\n::: block{id=\"main\"}\nBody\n:::",
+      markdown: "# Readable Page\n\n<!-- mdan:block id=\"main\" -->\nBody",
       actions: {
         app_id: "readable-demo",
         state_id: "readable-demo:1",
         state_version: 1,
-        blocks: ["main"],
-        actions: []
+        blocks: {
+          main: { actions: [] }
+        },
+        actions: {}
       },
       route: "/readable",
       regions: {
@@ -176,11 +180,13 @@ Body
   it("accepts readable-surface page handlers without explicit state metadata", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.page("/implicit-state", async () => ({
-      markdown: "# Implicit State\n\n::: block{id=\"main\"}\nBody\n:::",
+      markdown: "# Implicit State\n\n<!-- mdan:block id=\"main\" -->\nBody",
       actions: {
         app_id: "implicit-demo",
-        blocks: ["main"],
-        actions: []
+        blocks: {
+          main: { actions: [] }
+        },
+        actions: {}
       },
       route: "/implicit-state",
       regions: {
@@ -209,10 +215,12 @@ Body
       actionProof: { disabled: true }
     });
     server.page("/fallback-app", async () => ({
-      markdown: "# Fallback App\n\n::: block{id=\"main\"}\nBody\n:::",
+      markdown: "# Fallback App\n\n<!-- mdan:block id=\"main\" -->\nBody",
       actions: {
-        blocks: ["main"],
-        actions: []
+        blocks: {
+          main: { actions: [] }
+        },
+        actions: {}
       },
       route: "/fallback-app",
       regions: {
@@ -240,7 +248,7 @@ Body
       ok({
         fragment: {
           markdown: "## Saved",
-          executableContent: JSON.stringify({ actions: [{ id: "next" }] }, null, 2),
+          executableContent: JSON.stringify({ actions: { next: {} } }, null, 2),
           blocks: []
         }
       })
@@ -258,7 +266,7 @@ Body
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("## Saved");
     expect(String(response.body)).toContain("```mdan");
-    expect(String(response.body)).toContain('"id": "next"');
+    expect(String(response.body)).toContain('"next": {}');
   });
 
   it("rejects invalid readable-surface GET action results during runtime validation", async () => {
@@ -268,18 +276,20 @@ Body
 
 Broken
 
-::: block{id="main" actions="missing_action"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "broken-demo",
         state_id: "broken-demo:1",
         state_version: 1,
-        actions: [
-          {
-            id: "open",
+        blocks: {
+          main: { actions: ["missing_action"] }
+        },
+        actions: {
+          open: {
             verb: "route",
             target: "/open"
           }
-        ]
+        }
       },
       route: "/broken",
       regions: {

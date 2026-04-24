@@ -8,7 +8,8 @@ description: Smallest runnable MDAN starter example showing Markdown as the cano
 Source layout:
 
 - `app/index.md`
-- `app.ts` (uses `createApp`, `page`, `route`, `action`, and `page.bind(...)` to connect markdown, actions, and runtime state)
+- `app/index.action.json`
+- `app.ts` (uses `createApp`, `page`, `route`, `action`, and `page.bind(...)` to connect markdown, explicit action JSON, and runtime state)
 
 Runtime contract:
 

@@ -1,0 +1,23 @@
+{
+  "version": "mdan.page.v1",
+  "blocks": {
+    "docs": {
+      "actions": ["refresh_docs"]
+    }
+  },
+  "actions": {
+    "refresh_docs": {
+      "label": "Refresh",
+      "verb": "read",
+      "target": "/",
+      "transport": {
+        "method": "GET"
+      },
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  }
+}

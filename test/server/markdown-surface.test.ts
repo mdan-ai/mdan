@@ -14,7 +14,7 @@ describe("markdown surface helpers", () => {
 
   it("builds a page and infers visible block names from block content and blocks", () => {
     const page = createMarkdownPage({
-      markdown: "# Demo\n\n::: block{id=\"main\"}\n:::",
+      markdown: "# Demo\n\n<!-- mdan:block id=\"main\" -->",
       executableJson: { app_id: "demo" },
       blockContent: {
         secondary: "## Secondary"
@@ -35,11 +35,11 @@ describe("markdown surface helpers", () => {
   it("builds a fragment with executable JSON", () => {
     const fragment = createMarkdownFragment({
       markdown: "## Saved",
-      executableJson: { actions: [{ id: "refresh" }] }
+      executableJson: { actions: { refresh: {} } }
     });
 
     expect(fragment.markdown).toBe("## Saved");
-    expect(fragment.executableContent).toContain('"id": "refresh"');
+    expect(fragment.executableContent).toContain('"refresh": {}');
     expect(fragment.blocks).toEqual([]);
   });
 
@@ -55,7 +55,7 @@ not valid json
 \`\`\`mdan
 {
   "app_id": "demo",
-  "actions": []
+  "actions": {}
 }
 \`\`\`
 `;
@@ -65,7 +65,7 @@ not valid json
     expect(surface).toMatchObject({
       actions: {
         app_id: "demo",
-        actions: []
+        actions: {}
       }
     });
     expect(surface?.markdown).toContain("not valid json");
@@ -81,8 +81,27 @@ not valid json
       markdown: "## Not Acceptable",
       actions: {
         app_id: "mdan",
-        actions: []
+        actions: {}
       }
     });
+  });
+
+  it("returns fresh fallback action manifests for bare markdown surfaces", () => {
+    const first = parseMarkdownSurface("## First", {
+      allowBareMarkdown: true
+    });
+    const second = parseMarkdownSurface("## Second", {
+      allowBareMarkdown: true
+    });
+
+    expect(first?.actions.version).toBe("mdan.page.v1");
+    expect(second?.actions.version).toBe("mdan.page.v1");
+
+    if (!first || !second) {
+      return;
+    }
+
+    first.actions.app_id = "mutated";
+    expect(second.actions.app_id).toBe("mdan");
   });
 });

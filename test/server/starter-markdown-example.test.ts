@@ -6,9 +6,9 @@ function extractActionProof(markdown: string, actionId: string): string {
   const match = markdown.match(/```mdan\n([\s\S]*?)\n```/);
   expect(match?.[1]).toBeTruthy();
   const executable = JSON.parse(String(match?.[1])) as {
-    actions?: Array<{ id?: string; action_proof?: string }>;
+    actions?: Record<string, { action_proof?: string }>;
   };
-  const action = executable.actions?.find((entry) => entry.id === actionId);
+  const action = executable.actions?.[actionId];
   expect(action?.action_proof).toBeTypeOf("string");
   return String(action?.action_proof);
 }

@@ -140,11 +140,12 @@ server.post("/upload", async ({ inputs, readAsset, openAssetStream }) => {
   return {
     markdown: `# Uploaded
 
-::: block{id="result" trust="untrusted"}`,
+<!-- mdan:block id="result" -->`,
     actions: {
-      blocks: ["result"],
-      actions: [],
-      allowed_next_actions: []
+      blocks: {
+        result: { actions: [] }
+      },
+      actions: {}
     },
     route: "/upload",
     regions: {

@@ -62,7 +62,7 @@ npm install @mdanai/sdk
 
 Default path:
 
-- `@mdanai/sdk`: app authoring with `createApp`, `page`, `route`, `action`, `actions`, `fields`
+- `@mdanai/sdk`: app authoring with `createApp`, `page`, `route`, `action`, `fields`, and explicit `actionJson`
 - `@mdanai/sdk/server/node`: host with Node HTTP
 - `@mdanai/sdk/server/bun`: host with Bun
 
@@ -83,15 +83,16 @@ Advanced path:
 ## Minimal App
 
 ```ts
-import { actions, createApp, fields } from "@mdanai/sdk";
+import { createApp, fields } from "@mdanai/sdk";
 import type { InferAppInputs } from "@mdanai/sdk";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const messages = ["Welcome to MDAN"];
-const submitInput = {
+const submitFields = {
   message: fields.string({ required: true })
 } as const;
-type SubmitMessageInputs = InferAppInputs<typeof submitInput>;
+const submitInputSchema = fields.object(submitFields).schema;
+type SubmitMessageInputs = InferAppInputs<typeof submitFields>;
 
 const app = createApp({
   appId: "starter",
@@ -115,18 +116,35 @@ Read the feed from the returned surface and submit messages through the declared
 ## Result
 The surface should expose the current messages and next allowed actions.
 
-::: block{id="main" actions="refresh_main,submit_message" trust="untrusted"}`,
-  actions: [
-    actions.read("refresh_main", {
-      label: "Refresh",
-      target: "/"
-    }),
-    actions.write("submit_message", {
-      label: "Submit",
-      target: "/post",
-      input: submitInput
-    })
-  ],
+<!-- mdan:block id="main" -->`,
+  actionJson: {
+    version: "mdan.page.v1",
+    blocks: {
+      main: {
+        actions: ["refresh_main", "submit_message"]
+      }
+    },
+    actions: {
+      refresh_main: {
+        label: "Refresh",
+        verb: "read",
+        target: "/",
+        transport: { method: "GET" },
+        input_schema: {
+          type: "object",
+          properties: {},
+          additionalProperties: false
+        }
+      },
+      submit_message: {
+        label: "Submit",
+        verb: "write",
+        target: "/post",
+        transport: { method: "POST" },
+        input_schema: submitInputSchema
+      }
+    }
+  },
   render(currentMessages: string[]) {
     return {
       main: currentMessages.map((message) => `- ${message}`).join("\n")
@@ -136,15 +154,13 @@ The surface should expose the current messages and next allowed actions.
 
 app.route(home.bind(messages));
 
-app.bindActions(home, {
-  submit_message: async ({ inputs }) => {
-    const typed = inputs as SubmitMessageInputs;
-    const message = String(typed.message ?? "").trim();
-    if (message) {
-      messages.unshift(message);
-    }
-    return home.bind(messages).render();
+app.action("/post", async ({ inputs }) => {
+  const typed = inputs as SubmitMessageInputs;
+  const message = String(typed.message ?? "").trim();
+  if (message) {
+    messages.unshift(message);
   }
+  return home.bind(messages).render();
 });
 
 export default createHost(app, {
@@ -157,19 +173,15 @@ export default createHost(app, {
 ## App API Shape
 
 - `createApp(...)`: create the app runtime
-- `actions.route(id, options)`: declare route-style page navigation actions
-- `actions.read(id, options)`: declare read/query actions
-- `actions.write(id, options)`: declare mutation actions
-- `app.page(path, config)`: define a reusable page
+- `app.page(path, config)`: define a reusable page with explicit `actionJson`
 - `app.route(page)`: register a page that can render directly
 - `app.route(path, handler)`: bind request-time state to a page or route
-- `app.bindActions(page, handlers)`: register handlers from declared page action ids
 - `app.action(path, handler)`: register a POST action handler
 - `app.action(path, { method: "GET" }, handler)`: register a GET action handler
 - `app.read(path, handler)`: semantic helper for GET read handlers
 - `app.write(path, handler)`: semantic helper for POST write handlers
 - `getHeader(request, name)`, `getCookie(request, name)`, `getQueryParam(request, name)`: request read helpers on root API
-- `page.actionJson()`: inspect compiled action JSON (`actions` + `allowed_next_actions`)
+- `page.actionJson()`: inspect the explicit action JSON (`blocks` + `actions`)
 - `page.bind(state)`: associate current state with a page definition
 - `page.render(state)`: render directly when you want the explicit form
 

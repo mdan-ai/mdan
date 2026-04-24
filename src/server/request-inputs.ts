@@ -41,16 +41,14 @@ function stripActionMetaKeys(inputs: Record<string, unknown>): Record<string, un
   const next = { ...inputs };
   delete next["action.proof"];
   delete next["action.confirmed"];
-  delete next.actionProof;
-  delete next.actionConfirmed;
   return next;
 }
 
 function extractActionMetaFromFlatInputs(
   inputs: Record<string, unknown>
 ): { action: ParsedRequestAction | null; input: Record<string, unknown> } {
-  const proofValue = inputs["action.proof"] ?? inputs.actionProof;
-  const confirmedValue = inputs["action.confirmed"] ?? inputs.actionConfirmed;
+  const proofValue = inputs["action.proof"];
+  const confirmedValue = inputs["action.confirmed"];
   const proof = typeof proofValue === "string" ? proofValue : undefined;
   const confirmedRaw = typeof confirmedValue === "string" ? confirmedValue : undefined;
   if (proof === undefined && confirmedRaw === undefined) {
@@ -64,6 +62,13 @@ function extractActionMetaFromFlatInputs(
     },
     input: stripActionMetaKeys(inputs)
   };
+}
+
+function hasFlatActionMeta(inputs: Record<string, unknown>): boolean {
+  return (
+    "action.proof" in inputs ||
+    "action.confirmed" in inputs
+  );
 }
 
 function applyEmbeddedInputSchema(
@@ -134,14 +139,8 @@ export function parseRequestInputs(request: MdanRequest, options: { actionProofE
       const parsed = parseActionRequestBody(body.length > 0 ? body : "{}");
       inputs = parsed.input;
       requestAction = parsed.action;
-      if (options.actionProofEnabled === true) {
-        if (requestAction) {
-          inputs = stripActionMetaKeys(inputs);
-        } else {
-          const extracted = extractActionMetaFromFlatInputs(inputs);
-          requestAction = extracted.action;
-          inputs = extracted.input;
-        }
+      if (hasFlatActionMeta(inputs)) {
+        inputs = stripActionMetaKeys(inputs);
       }
     }
   } catch (error) {

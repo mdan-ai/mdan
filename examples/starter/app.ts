@@ -2,10 +2,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { actions, createApp, fields, type AppBrowserShellOptions } from "../../src/index.js";
+import { createApp, type AppBrowserShellOptions, type AppActionJsonManifest } from "../../src/index.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
+const actionJson = JSON.parse(readFileSync(join(root, "app", "index.action.json"), "utf8")) as AppActionJsonManifest;
 
 export function createStarterServer(
   initialMessages: string[] = ["Welcome to MDAN"],
@@ -22,19 +23,7 @@ export function createStarterServer(
   });
   const home = app.page("/", {
     markdown: template,
-    actions: [
-      actions.read("refresh_main", {
-        label: "Refresh",
-        target: "/"
-      }),
-      actions.write("submit_message", {
-        label: "Submit",
-        target: "/post",
-        input: {
-          message: fields.string({ required: true })
-        }
-      })
-    ],
+    actionJson,
     render(currentMessages: string[]) {
       const list = currentMessages.length > 0
         ? currentMessages.map((line) => `- ${line}`).join("\n")
@@ -51,15 +40,13 @@ ${list}`
 
   app.route(home.bind(messages));
 
-  app.bindActions(home, {
-    submit_message: async ({ inputs }) => {
-      const typed = inputs as SubmitMessageInputs;
-      const message = String(typed.message ?? "").trim();
-      if (message) {
-        messages.unshift(message);
-      }
-      return home.bind(messages).render();
+  app.action("/post", async ({ inputs }) => {
+    const typed = inputs as SubmitMessageInputs;
+    const message = String(typed.message ?? "").trim();
+    if (message) {
+      messages.unshift(message);
     }
+    return home.bind(messages).render();
   });
 
   return app;

@@ -4,8 +4,7 @@ import { createAuthGuestbookServer } from "../../examples/auth-guestbook/app.js"
 import { parseFrontmatter } from "../../src/content/content-actions.js";
 
 type MarkdownActions = {
-  allowed_next_actions?: string[];
-  actions?: Array<Record<string, unknown>>;
+  actions?: Record<string, Record<string, unknown>>;
 };
 
 type MarkdownSurface = {
@@ -43,7 +42,7 @@ async function proofForAction(
     cookies
   });
   const payload = parseMarkdownResponse(response);
-  const action = payload.actions.actions?.find((candidate) => candidate.id === actionId);
+  const action = payload.actions.actions?.[actionId];
   return String(action.action_proof);
 }
 
@@ -59,6 +58,16 @@ function parseMarkdownResponse(response: { headers: Record<string, string>; body
     ...(typeof frontmatter.route === "string" ? { route: frontmatter.route } : {}),
     actions: JSON.parse(String(match?.[1])) as MarkdownActions
   };
+}
+
+function actionById(actions: MarkdownActions, actionId: string): Record<string, unknown> {
+  const action = actions.actions?.[actionId];
+  expect(action).toBeTruthy();
+  return action!;
+}
+
+function actionList(actions: MarkdownActions): Record<string, unknown>[] {
+  return actions.actions ? Object.entries(actions.actions).map(([id, action]) => ({ id, ...action })) : [];
 }
 
 function actionBody(proof: string, input: Record<string, unknown>) {
@@ -90,9 +99,7 @@ describe("auth-guestbook markdown example", () => {
 	    expect(aliceCookie).toContain("mdan_session=");
 	    const aliceRegisterResponse = parseMarkdownResponse(registerAlice);
 	    expect(aliceRegisterResponse.content).toContain("# Guestbook");
-	    const aliceSubmitProof = aliceRegisterResponse.actions.actions?.find(
-	      (action: { id?: string }) => action.id === "submit_message"
-	    ).action_proof;
+	    const aliceSubmitProof = actionById(aliceRegisterResponse.actions, "submit_message").action_proof;
 
 	    const postAlice = await server.handle({
       method: "POST",
@@ -107,9 +114,7 @@ describe("auth-guestbook markdown example", () => {
 	    expect(postAlice.status).toBe(200);
 	    const postAliceResponse = parseMarkdownResponse(postAlice);
 	    expect(postAliceResponse.content).toContain("hello from alice");
-	    const aliceLogoutProof = postAliceResponse.actions.actions?.find(
-	      (action: { id?: string }) => action.id === "logout"
-	    ).action_proof;
+	    const aliceLogoutProof = actionById(postAliceResponse.actions, "logout").action_proof;
 
 	    const logoutAlice = await server.handle({
       method: "POST",
@@ -140,9 +145,7 @@ describe("auth-guestbook markdown example", () => {
 	    const bobCookie = cookieValue(registerBob.headers["set-cookie"]);
 	    expect(bobCookie).toContain("mdan_session=");
 	    const bobRegisterResponse = parseMarkdownResponse(registerBob);
-	    const bobSubmitProof = bobRegisterResponse.actions.actions?.find(
-	      (action: { id?: string }) => action.id === "submit_message"
-	    ).action_proof;
+	    const bobSubmitProof = actionById(bobRegisterResponse.actions, "submit_message").action_proof;
 
 	    const postBob = await server.handle({
       method: "POST",
@@ -172,9 +175,7 @@ describe("auth-guestbook markdown example", () => {
 	    const aliceCookie2 = cookieValue(loginAliceAgain.headers["set-cookie"]);
 	    expect(aliceCookie2).toContain("mdan_session=");
 	    const aliceLoginResponse = parseMarkdownResponse(loginAliceAgain);
-	    const aliceSubmitProof2 = aliceLoginResponse.actions.actions?.find(
-	      (action: { id?: string }) => action.id === "submit_message"
-	    ).action_proof;
+	    const aliceSubmitProof2 = actionById(aliceLoginResponse.actions, "submit_message").action_proof;
 
 	    const postAliceAgain = await server.handle({
       method: "POST",
@@ -290,7 +291,7 @@ describe("auth-guestbook markdown example", () => {
     });
 
     const payload = parseMarkdownResponse(guestbookPage);
-    expect(payload.actions.actions?.map((action: { target: string }) => action.target)).toEqual([
+    expect(actionList(payload.actions).map((action) => action.target)).toEqual([
       "/guestbook",
       "/guestbook/post",
       "/guestbook/logout"

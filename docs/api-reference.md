@@ -42,7 +42,6 @@ The default app-authoring entrypoint.
 ### Most Developers Use
 
 - `createApp(options?)`
-- `actions`
 - `fields`
 - `getHeader()`, `getCookie()`, `getQueryParam()`
 - `signIn()`
@@ -55,14 +54,11 @@ The default app-authoring entrypoint.
 
 ### App Authoring Helpers
 
-- `actions.route(...)`
-- `actions.read(...)`
-- `actions.write(...)`
+- `app.page(...)`
 - `app.route(...)`
 - `app.action(...)`
 - `app.read(...)`
 - `app.write(...)`
-- `app.bindActions(...)`
 - `page.actionJson()`
 
 ### Runtime Rules You Will Care About

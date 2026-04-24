@@ -6,6 +6,7 @@
 Generated starters already follow the current default path:
 
 - Markdown is the public read surface
+- each page keeps an adjacent `.action.json` manifest
 - browsers use the HTML projection
 - actions submit JSON and return updated Markdown surfaces
 - the app code uses `createApp`, `page`, `route`, `action`, and `page.bind(...)`
@@ -42,6 +43,7 @@ bunx create-mdan agent-app --runtime node
 The generated project includes:
 
 - a Markdown-first starter page
+- an explicit `app/index.action.json` manifest
 - a simple write action
 - Node or Bun hosting
 - `@mdanai/sdk` pinned to the compatible minor line
@@ -57,4 +59,5 @@ After scaffolding:
 
 - open `http://127.0.0.1:4321/`
 - edit `app/index.md`
+- edit `app/index.action.json`
 - run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/`

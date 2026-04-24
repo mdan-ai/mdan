@@ -31,31 +31,68 @@ function toConfirmationPolicy(value: unknown): MdanConfirmationPolicy | null {
 
 function parseContentBlocks(content: string): Map<string, string[]> {
   const byBlock = new Map<string, string[]>();
-  const expression = /:::\s*block\{([^}]*)\}/g;
   let match: RegExpExecArray | null;
-  while ((match = expression.exec(content)) !== null) {
+
+  const commentExpression = /<!--\s*mdan:block\b([^>]*)-->/g;
+  while ((match = commentExpression.exec(content)) !== null) {
     const attrs = match[1] ?? "";
     const id = attrs.match(/\bid="([^"]+)"/)?.[1];
-    if (!id) {
+    if (!id || byBlock.has(id)) {
       continue;
     }
-    const actions = (attrs.match(/\bactions="([^"]+)"/)?.[1] ?? "")
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean);
-    byBlock.set(id, actions);
+    byBlock.set(id, []);
   }
   return byBlock;
+}
+
+function actionListFromManifest(actions: ReadableSurface["actions"]): JsonAction[] {
+  const actionRoot = actions.actions;
+  if (actionRoot && typeof actionRoot === "object") {
+    return Object.entries(actionRoot)
+      .map(([id, action]) => (
+        action && typeof action === "object" && !Array.isArray(action)
+          ? ({ id, ...action } as JsonAction)
+          : null
+      ))
+      .filter((value): value is JsonAction => Boolean(value));
+  }
+  return [];
+}
+
+function blockNamesFromManifestBlocks(blocks: ReadableSurface["actions"]["blocks"]): string[] {
+  if (blocks && typeof blocks === "object") {
+    return Object.keys(blocks);
+  }
+  return [];
+}
+
+function blockActionRefsFromManifest(
+  blocks: ReadableSurface["actions"]["blocks"],
+  blockName: string
+): string[] | null {
+  if (!blocks || typeof blocks !== "object") {
+    return null;
+  }
+  const block = blocks[blockName];
+  if (!block || typeof block !== "object" || Array.isArray(block)) {
+    return null;
+  }
+  const actions = block.actions;
+  if (!Array.isArray(actions)) {
+    return null;
+  }
+  return actions.filter((id): id is string => typeof id === "string");
 }
 
 function resolveBlockNames(
   actions: ReadableSurface["actions"],
   regions: Record<string, string> | undefined,
-  blockActionRefs: Map<string, string[]>
+  blockActionRefs: Map<string, string[]>,
+  actionList: JsonAction[]
 ): string[] {
   const names: string[] = [];
-  for (const name of actions.blocks ?? []) {
-    if (typeof name === "string" && !names.includes(name)) {
+  for (const name of blockNamesFromManifestBlocks(actions.blocks)) {
+    if (!names.includes(name)) {
       names.push(name);
     }
   }
@@ -69,7 +106,7 @@ function resolveBlockNames(
       names.push(name);
     }
   }
-  for (const action of actions.actions ?? []) {
+  for (const action of actionList) {
     if (typeof action.block === "string" && !names.includes(action.block)) {
       names.push(action.block);
     }
@@ -79,27 +116,27 @@ function resolveBlockNames(
 
 function resolveActionsForBlock(
   blockName: string,
+  blocks: ReadableSurface["actions"]["blocks"],
   actionList: JsonAction[],
-  blockActionRefs: Map<string, string[]>,
-  allowed: Set<string> | null
+  blockActionRefs: Map<string, string[]>
 ): JsonAction[] {
   const referencedActions = blockActionRefs.get(blockName);
-  if (referencedActions) {
+  const manifestActionRefs = blockActionRefsFromManifest(blocks, blockName);
+  const actionRefs = referencedActions && referencedActions.length > 0 ? referencedActions : manifestActionRefs;
+  if (actionRefs) {
     const actionById = new Map<string, JsonAction>();
     for (const action of actionList) {
       if (typeof action?.id === "string") {
         actionById.set(action.id, action);
       }
     }
-    return referencedActions
-      .filter((id) => allowed === null || allowed.has(id))
+    return actionRefs
       .map((id) => actionById.get(id))
       .filter((value): value is JsonAction => Boolean(value));
   }
 
   return actionList.filter((action) => {
-    const id = typeof action.id === "string" ? action.id : null;
-    return action.block === blockName && (allowed === null || (id !== null && allowed.has(id)));
+    return action.block === blockName;
   });
 }
 
@@ -107,17 +144,13 @@ export function adaptReadableSurfaceToHeadlessSnapshot(input: ReadableSurface): 
   const rawContent = String(input.markdown ?? "");
   const content = stripReadablePageMarkdown(rawContent);
   const blockActionRefs = parseContentBlocks(rawContent);
-  const actionList = Array.isArray(input.actions.actions) ? input.actions.actions : [];
-  const allowedNextActions = Array.isArray(input.actions.allowed_next_actions)
-    ? input.actions.allowed_next_actions.filter((entry): entry is string => typeof entry === "string")
-    : null;
-  const allowed = allowedNextActions ? new Set(allowedNextActions) : null;
+  const actionList = actionListFromManifest(input.actions);
   const defaultConfirmationPolicy =
     toConfirmationPolicy(input.actions.security?.default_confirmation_policy) ?? "never";
 
   const blocks: MdanHeadlessBlock[] = [];
-  for (const blockName of resolveBlockNames(input.actions, input.regions, blockActionRefs)) {
-    const actionsForBlock = resolveActionsForBlock(blockName, actionList, blockActionRefs, allowed);
+  for (const blockName of resolveBlockNames(input.actions, input.regions, blockActionRefs, actionList)) {
+    const actionsForBlock = resolveActionsForBlock(blockName, input.actions.blocks, actionList, blockActionRefs);
 
     const operations = actionsForBlock
       .map((action) => toOperation(action, defaultConfirmationPolicy))

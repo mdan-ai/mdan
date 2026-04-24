@@ -24,35 +24,35 @@ enabled: true
     });
   });
 
-  it("extracts single-line section anchors and trust values", () => {
+  it("extracts html comment block anchors", () => {
     const content = `# Demo
 
 Summary
 
-::: block{id="summary" actions="openDetails" trust="trusted"}
+<!-- mdan:block id="summary" -->
 
 Preview
 
-::: block{id="preview" actions="refreshPreview" trust="untrusted"}`;
+<!-- mdan:block id="preview" -->`;
 
     expect(extractSections(content)).toEqual([
       {
         id: "summary",
-        actions: ["openDetails"],
-        trust: "trusted",
+        actions: [],
+        trust: "unknown",
         body: ""
       },
       {
         id: "preview",
-        actions: ["refreshPreview"],
-        trust: "untrusted",
+        actions: [],
+        trust: "unknown",
         body: ""
       }
     ]);
 
     expect(extractRegionTrust(content)).toEqual({
-      summary: "trusted",
-      preview: "untrusted"
+      summary: "unknown",
+      preview: "unknown"
     });
   });
 
@@ -75,15 +75,10 @@ Run action:refreshPreview.
 
 Summary
 
-::: block{id="summary" actions="openDetails,missingAction" trust="trusted"}`;
+<!-- mdan:block id="summary" -->`;
 
     const violations = validateContentPair(content, ["openDetails", "saveDraft"]);
-    expect(violations).toEqual([
-      {
-        path: "content.block[summary].actions",
-        message: 'block references unknown action id: "missingAction"'
-      }
-    ]);
+    expect(violations).toEqual([]);
   });
 
   it("rejects duplicate block ids in content", () => {
@@ -91,11 +86,11 @@ Summary
 
 First
 
-::: block{id="summary" actions="openDetails" trust="trusted"}
+<!-- mdan:block id="summary" -->
 
 Second
 
-::: block{id="summary" actions="refreshPreview" trust="trusted"}`;
+<!-- mdan:block id="summary" -->`;
 
     const violations = validateContentPair(content, ["openDetails", "refreshPreview"]);
     expect(violations).toContainEqual({
@@ -104,17 +99,4 @@ Second
     });
   });
 
-  it("rejects duplicate action references inside a block", () => {
-    const content = `# Demo
-
-Summary
-
-::: block{id="summary" actions="openDetails,openDetails" trust="trusted"}`;
-
-    const violations = validateContentPair(content, ["openDetails"]);
-    expect(violations).toContainEqual({
-      path: "content.block[summary].actions",
-      message: 'duplicate action id reference: "openDetails"'
-    });
-  });
 });

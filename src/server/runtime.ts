@@ -72,7 +72,7 @@ function getPathname(request: MdanRequest): string {
   return new URL(request.url).pathname;
 }
 
-function mergeDefinedOptions<T extends Record<string, unknown>>(...sources: Array<T | undefined>): T {
+function mergeDefinedOptions<T extends object>(...sources: Array<T | undefined>): T {
   const merged: Record<string, unknown> = {};
   for (const source of sources) {
     if (!source) {

@@ -62,25 +62,19 @@ export function parseFrontmatter(content: string): UnknownRecord {
 
 export function extractSections(content: string): ContentSection[] {
   const sections: ContentSection[] = [];
-  const blockStartRe = /^\s*:::\s*block\{([^}]*)\}\s*$/gm;
   let match: RegExpExecArray | null;
 
-  while ((match = blockStartRe.exec(String(content))) !== null) {
+  const blockCommentRe = /^\s*<!--\s*mdan:block\b([^>]*)-->\s*$/gm;
+  while ((match = blockCommentRe.exec(String(content))) !== null) {
     const attrs = parseAttrs(match[1] ?? "");
     const id = (attrs.id ?? "").trim();
     if (!id) {
       continue;
     }
-    const actions = (attrs.actions ?? "")
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean);
-    const trustRaw = (attrs.trust ?? "").trim();
-    const trust = trustRaw === "trusted" || trustRaw === "untrusted" ? trustRaw : "unknown";
     sections.push({
       id,
-      actions,
-      trust,
+      actions: [],
+      trust: "unknown",
       body: ""
     });
   }

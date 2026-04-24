@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { adaptReadableSurfaceToHeadlessSnapshot } from "../../src/surface/adapter.js";
 import type { ReadableSurface } from "../../src/content/readable-markdown.js";
-import type { MdanActionManifest } from "../../src/protocol/surface.js";
+import type { JsonAction, MdanActionManifest } from "../../src/protocol/surface.js";
 
 type LegacyFixtureSurface = {
   content: string;
@@ -23,8 +23,32 @@ function adaptJsonEnvelopeToHeadlessSnapshot(input: LegacyFixtureSurface) {
   return adaptReadableSurfaceToHeadlessSnapshot(surface);
 }
 
+function manifest(
+  blocks: Record<string, string[]>,
+  actions: Array<JsonAction & { id: string }>,
+  extra: Omit<MdanActionManifest, "blocks" | "actions"> = {}
+): MdanActionManifest {
+  return {
+    ...extra,
+    blocks: Object.fromEntries(
+      Object.entries(blocks).map(([name, actionIds]) => [
+        name,
+        {
+          actions: actionIds
+        }
+      ])
+    ),
+    actions: Object.fromEntries(
+      actions.map((action) => {
+        const { id, ...definition } = action;
+        return [id, definition];
+      })
+    )
+  };
+}
+
 describe("adaptJsonEnvelopeToHeadlessSnapshot", () => {
-  it("maps a legacy JSON compatibility shape into headless route, blocks, inputs, and operations", () => {
+  it("maps a readable surface manifest into headless route, blocks, inputs, and operations", () => {
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `---
 app_id: "auth-guestbook"
@@ -38,14 +62,11 @@ state_version: 1
 
 Sign in with your username and password.
 
-::: block{id="login" actions="login,open_register" trust="trusted"}
+<!-- mdan:block id="login" -->
 `,
-      actions: {
-        app_id: "auth-guestbook",
-        state_id: "auth-guestbook:login:1",
-        state_version: 1,
-        blocks: ["login"],
-        actions: [
+      actions: manifest(
+        { login: ["login", "open_register"] },
+        [
           {
             id: "open_register",
             label: "Create Account",
@@ -77,8 +98,12 @@ Sign in with your username and password.
             }
           }
         ],
-        allowed_next_actions: ["login", "open_register"]
-      },
+        {
+          app_id: "auth-guestbook",
+          state_id: "auth-guestbook:login:1",
+          state_version: 1
+        }
+      ),
       view: {
         route_path: "/auth/login",
         regions: {
@@ -153,23 +178,94 @@ Sign in with your username and password.
     ]);
   });
 
+  it("maps html comment block anchors and object action manifests into operations", () => {
+    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
+      content: `# Demo
+
+Visible page copy.
+
+<!-- mdan:block id="main" -->
+`,
+      actions: {
+        version: "mdan.page.v1",
+        app_id: "starter",
+        state_id: "starter:index",
+        state_version: 1,
+        blocks: {
+          main: {
+            trust: "untrusted",
+            actions: ["submit_message"]
+          }
+        },
+        actions: {
+          submit_message: {
+            label: "Submit",
+            verb: "write",
+            target: "/post",
+            transport: {
+              method: "POST"
+            },
+            input_schema: {
+              type: "object",
+              required: ["message"],
+              properties: {
+                message: { type: "string" }
+              },
+              additionalProperties: false
+            }
+          }
+        }
+      },
+      view: {
+        route_path: "/",
+        regions: {
+          main: "- Booted"
+        }
+      }
+    });
+
+    expect(snapshot.markdown).toContain("Visible page copy.");
+    expect(snapshot.blocks).toHaveLength(1);
+    expect(snapshot.blocks[0]?.name).toBe("main");
+    expect(snapshot.blocks[0]?.markdown).toBe("- Booted");
+    expect(snapshot.blocks[0]?.operations).toEqual([
+      {
+        method: "POST",
+        target: "/post",
+        name: "submit_message",
+        inputs: ["message"],
+        label: "Submit",
+        verb: "write",
+        security: { confirmationPolicy: "never" },
+        inputSchema: {
+          type: "object",
+          required: ["message"],
+          properties: {
+            message: { type: "string" }
+          },
+          additionalProperties: false
+        }
+      }
+    ]);
+  });
+
   it("falls back to POST when action verb is write and transport is missing", () => {
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
 Body
 
-::: block{id="main" actions="submit"}`,
-      actions: {
-        blocks: ["main"],
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["submit"] },
+        [
           {
             id: "submit",
             verb: "write",
             target: "/submit"
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -196,9 +292,10 @@ Body
 
 Body
 
-::: block{id="main" actions="submit"}`,
-      actions: {
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["submit"] },
+        [
           {
             id: "submit",
             verb: "write",
@@ -208,7 +305,7 @@ Body
             }
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -231,16 +328,17 @@ Body
 
 Body
 
-::: block{id="main" actions="go"}`,
-      actions: {
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["go"] },
+        [
           {
             id: "go",
             verb: "route",
             target: "/next"
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -259,10 +357,10 @@ Body
 
 Body
 
-::: block{id="main" actions="refresh,submit"}`,
-      actions: {
-        blocks: ["main"],
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["refresh", "submit"] },
+        [
           {
             id: "refresh",
             verb: "read",
@@ -282,7 +380,7 @@ Body
             auto: true
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -312,40 +410,6 @@ Body
     ]);
   });
 
-  it("filters operations using allowed_next_actions", () => {
-    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
-      content: `# Demo
-
-Body
-
-::: block{id="main" actions="allowed,blocked"}`,
-      actions: {
-        actions: [
-          { id: "allowed", verb: "write", target: "/ok" },
-          { id: "blocked", verb: "write", target: "/nope" }
-        ],
-        allowed_next_actions: ["allowed"]
-      },
-      view: {
-        route_path: "/demo",
-        regions: {
-          main: "Body"
-        }
-      }
-    });
-
-    expect(snapshot.blocks[0]?.operations).toEqual([
-      {
-        method: "POST",
-        target: "/ok",
-        name: "allowed",
-        inputs: [],
-        verb: "write",
-        security: { confirmationPolicy: "never" }
-      }
-    ]);
-  });
-
   it("keeps agent-only blocks out of human-visible page and region markdown", () => {
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
@@ -359,10 +423,8 @@ Agent-only page rule.
 
 Body
 
-::: block{id="main" actions="submit"}`,
-      actions: {
-        actions: [{ id: "submit", verb: "write", target: "/submit" }]
-      },
+<!-- mdan:block id="main" -->`,
+      actions: manifest({ main: ["submit"] }, [{ id: "submit", verb: "write", target: "/submit" }]),
       view: {
         route_path: "/demo",
         regions: {
@@ -382,51 +444,29 @@ Agent-only region result.
     expect(snapshot.blocks[0]?.markdown).not.toContain("Agent-only region result.");
   });
 
-  it("filters all operations when allowed_next_actions is explicitly empty", () => {
-    const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
-      content: `# Demo
-
-Body
-
-::: block{id="main" actions="allowed,blocked"}`,
-      actions: {
-        actions: [
-          { id: "allowed", verb: "write", target: "/ok" },
-          { id: "blocked", verb: "write", target: "/nope" }
-        ],
-        allowed_next_actions: []
-      },
-      view: {
-        route_path: "/demo",
-        regions: {
-          main: "Body"
-        }
-      }
-    });
-
-    expect(snapshot.blocks[0]?.operations).toEqual([]);
-  });
-
   it("projects non-default confirmation policy onto operations", () => {
     const snapshot = adaptJsonEnvelopeToHeadlessSnapshot({
       content: `# Demo
 
 Body
 
-::: block{id="main" actions="danger"}`,
-      actions: {
-        security: {
-          default_confirmation_policy: "high-and-above"
-        },
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["danger"] },
+        [
           {
             id: "danger",
             verb: "write",
             target: "/danger",
             guard: { risk_level: "high" }
           }
-        ]
-      },
+        ],
+        {
+          security: {
+            default_confirmation_policy: "high-and-above"
+          }
+        }
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -455,12 +495,10 @@ Body
 
 Body
 
-::: block{id="main" actions="danger,quiet"}`,
-      actions: {
-        security: {
-          default_confirmation_policy: "always"
-        },
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["danger", "quiet"] },
+        [
           {
             id: "danger",
             verb: "write",
@@ -477,8 +515,13 @@ Body
               confirmation_policy: "never"
             }
           }
-        ]
-      },
+        ],
+        {
+          security: {
+            default_confirmation_policy: "always"
+          }
+        }
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -513,9 +556,10 @@ Body
 
 Body
 
-::: block{id="main" actions="refresh"}`,
-      actions: {
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["refresh"] },
+        [
           {
             id: "refresh",
             verb: "write",
@@ -526,7 +570,7 @@ Body
             }
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -549,9 +593,10 @@ Body
 
 Body
 
-::: block{id="main" actions="submit"}`,
-      actions: {
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["submit"] },
+        [
           {
             id: "submit",
             verb: "write",
@@ -575,7 +620,7 @@ Body
             }
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -609,9 +654,10 @@ Body
 
 Body
 
-::: block{id="main" actions="submit"}`,
-      actions: {
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["submit"] },
+        [
           {
             id: "submit",
             verb: "write",
@@ -626,7 +672,7 @@ Body
             }
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {
@@ -657,9 +703,10 @@ Body
 
 Body
 
-::: block{id="main" actions="save,search"}`,
-      actions: {
-        actions: [
+<!-- mdan:block id="main" -->`,
+      actions: manifest(
+        { main: ["save", "search"] },
+        [
           {
             id: "save",
             verb: "write",
@@ -683,7 +730,7 @@ Body
             }
           }
         ]
-      },
+      ),
       view: {
         route_path: "/demo",
         regions: {

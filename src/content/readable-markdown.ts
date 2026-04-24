@@ -1,13 +1,13 @@
 import { parseFrontmatter } from "./content-actions.js";
-import type { MdanActionManifest } from "../protocol/surface.js";
+import { MDAN_PAGE_MANIFEST_VERSION, type MdanActionManifest } from "../protocol/surface.js";
 
 const READABLE_MARKDOWN_FALLBACK_ACTIONS: MdanActionManifest = {
+  version: MDAN_PAGE_MANIFEST_VERSION,
   app_id: "mdan",
   state_id: "mdan:readable-markdown",
   state_version: 1,
-  blocks: [],
-  actions: [],
-  allowed_next_actions: []
+  blocks: {},
+  actions: {}
 };
 
 type MdanFence = {
@@ -25,6 +25,10 @@ export interface ReadableSurface {
   actions: MdanActionManifest;
   route?: string;
   regions?: Record<string, string>;
+}
+
+function cloneManifest(manifest: MdanActionManifest): MdanActionManifest {
+  return JSON.parse(JSON.stringify(manifest)) as MdanActionManifest;
 }
 
 function extractMdanFences(source: string): MdanFence[] {
@@ -73,14 +77,19 @@ function extractExecutableFencePayload(source: string, fence: MdanFence): { mark
   };
 }
 
-export function extractExecutableMdanBlock(source: string): { markdown: string; payload: string } | null {
+export function extractExecutableMdanBlock(
+  source: string
+): { markdown: string; payload: string; parsed: Record<string, unknown> } | null {
   const fences = extractMdanFences(source);
   for (let index = fences.length - 1; index >= 0; index -= 1) {
     const executable = extractExecutableFencePayload(source, fences[index]!);
     try {
       const parsed = JSON.parse(executable.payload) as unknown;
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-        return executable;
+        return {
+          ...executable,
+          parsed: parsed as Record<string, unknown>
+        };
       }
     } catch {
       continue;
@@ -105,15 +114,11 @@ export function parseMarkdownSurface(
       }
       return {
         markdown: content.trim(),
-        actions: READABLE_MARKDOWN_FALLBACK_ACTIONS,
+        actions: cloneManifest(READABLE_MARKDOWN_FALLBACK_ACTIONS),
         ...(route ? { route } : {})
       };
     }
-    const actions = JSON.parse(executable.payload) as unknown;
-    if (!actions || typeof actions !== "object" || Array.isArray(actions)) {
-      return null;
-    }
-    const manifest = actions as MdanActionManifest & { regions?: unknown };
+    const manifest = executable.parsed as MdanActionManifest & { regions?: unknown };
     const manifestRegions =
       manifest.regions && typeof manifest.regions === "object"
         ? Object.fromEntries(
@@ -122,12 +127,11 @@ export function parseMarkdownSurface(
             )
           )
         : {};
-    const mergedRegions = manifestRegions;
     return {
       markdown: executable.markdown,
       actions: manifest,
       ...(route ? { route } : {}),
-      ...(Object.keys(mergedRegions).length > 0 ? { regions: mergedRegions } : {})
+      ...(Object.keys(manifestRegions).length > 0 ? { regions: manifestRegions } : {})
     };
   } catch {
     return null;

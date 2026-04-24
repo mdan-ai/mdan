@@ -128,12 +128,11 @@ host falls back to a page replacement.
 
 Non-2xx responses move the host into `error` status.
 
-If the response body is readable Markdown or a legacy JSON compatibility
-response, the host adapts it so the UI can show the server-provided error
-content.
+If the response body is readable Markdown, the host adapts it so the UI can
+show the server-provided error content.
 
-Responses that are neither readable Markdown nor compatible legacy JSON are
-treated as runtime errors for browser clients.
+Responses that are not readable Markdown are treated as runtime errors for
+browser clients.
 
 ## Debug Messages
 

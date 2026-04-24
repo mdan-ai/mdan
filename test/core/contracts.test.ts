@@ -9,7 +9,7 @@ describe("actions contract validation", () => {
 
 Body
 
-::: block{id="main" actions="open,submit"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:valid",
@@ -17,16 +17,19 @@ Body
         security: {
           default_confirmation_policy: "never"
         },
-        actions: [
-          {
-            id: "open",
+        blocks: {
+          main: {
+            actions: ["open", "submit"]
+          }
+        },
+        actions: {
+          open: {
             verb: "route",
             target: "/open",
             transport: { method: "GET" },
             input_schema: { type: "object", properties: {}, required: [] }
           },
-          {
-            id: "submit",
+          submit: {
             verb: "write",
             target: "/submit",
             transport: { method: "POST" },
@@ -37,8 +40,45 @@ Body
               properties: { title: { type: "string" } }
             }
           }
-        ],
-        allowed_next_actions: ["open", "submit"]
+        }
+      }
+    };
+
+    expect(validateActionsContractEnvelope(envelope)).toEqual([]);
+    expect(() => assertActionsContractEnvelope(envelope)).not.toThrow();
+  });
+
+  it("accepts object keyed blocks and actions without allowed_next_actions", () => {
+    const envelope = {
+      content: `# Demo
+
+Body
+
+<!-- mdan:block id="main" -->`,
+      actions: {
+        version: "mdan.page.v1",
+        app_id: "contracts-test",
+        state_id: "contracts-test:object-actions",
+        state_version: 1,
+        blocks: {
+          main: {
+            trust: "untrusted",
+            actions: ["submit"]
+          }
+        },
+        actions: {
+          submit: {
+            verb: "write",
+            target: "/submit",
+            transport: { method: "POST" },
+            input_schema: {
+              type: "object",
+              required: ["title"],
+              properties: { title: { type: "string" } },
+              additionalProperties: false
+            }
+          }
+        }
       }
     };
 
@@ -52,14 +92,14 @@ Body
 
 Body
 
-::: block{id="main" actions="missingAction"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         security: {
           default_confirmation_policy: "sometimes"
         },
-        actions: [
-          {
-            id: "",
+        blocks: [],
+        actions: {
+          bad: {
             verb: "invalidVerb",
             target: "",
             transport: { method: "PUT" },
@@ -70,14 +110,17 @@ Body
               properties: []
             }
           }
-        ],
+        },
         allowed_next_actions: ["missingAction"]
       }
     };
 
     const violations = validateActionsContractEnvelope(envelope);
     expect(violations.length).toBeGreaterThan(0);
-    expect(violations.some((entry) => entry.path.includes("actions.actions[0].id"))).toBe(true);
+    expect(violations).toContainEqual({
+      path: "actions.blocks",
+      message: "actions.blocks must be an object keyed by block id"
+    });
     expect(
       violations.some((entry) =>
         entry.path.includes("actions.security.default_confirmation_policy")
@@ -85,20 +128,23 @@ Body
     ).toBe(true);
     expect(
       violations.some((entry) =>
-        entry.path.includes("actions.actions[0].security.confirmation_policy")
+        entry.path.includes("actions.actions.bad.security.confirmation_policy")
       )
     ).toBe(true);
-    expect(violations.some((entry) => entry.path.includes("actions.allowed_next_actions"))).toBe(true);
+    expect(violations).toContainEqual({
+      path: "actions.allowed_next_actions",
+      message: "allowed_next_actions is not supported; use blocks.<id>.actions"
+    });
     expect(() => assertActionsContractEnvelope(envelope)).toThrow(/invalid actions contract/);
   });
 
-  it("rejects duplicate action ids", () => {
+  it("rejects array action manifests", () => {
     const envelope = {
       content: `# Demo
 
 Body
 
-::: block{id="main" actions="open"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:duplicate-blocks",
@@ -119,63 +165,70 @@ Body
     };
 
     const violations = validateActionsContractEnvelope(envelope);
-    expect(violations.some((entry) => entry.path.includes("actions.actions[1].id"))).toBe(true);
+    expect(violations).toContainEqual({
+      path: "actions.actions",
+      message: "actions.actions must be an object keyed by action id"
+    });
     expect(() => assertActionsContractEnvelope(envelope)).toThrow(/invalid actions contract/);
   });
 
-  it("leaves duplicate block ids for higher-layer content validation", () => {
+  it("rejects array block manifests", () => {
     const envelope = {
       content: `# Demo
 
-First
-
-::: block{id="main" actions="open"}
-
-Second
-
-::: block{id="main" actions="open"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:duplicate-action-refs",
         state_version: 1,
-        actions: [
-          {
-            id: "open",
+        blocks: ["main"],
+        actions: {
+          open: {
             verb: "route",
             target: "/open"
           }
-        ]
+        }
       }
     };
 
     const violations = validateActionsContractEnvelope(envelope);
-    expect(violations.some((entry) => entry.path.includes("content.block[main].id"))).toBe(false);
-    expect(() => assertActionsContractEnvelope(envelope)).not.toThrow();
+    expect(violations).toContainEqual({
+      path: "actions.blocks",
+      message: "actions.blocks must be an object keyed by block id"
+    });
+    expect(() => assertActionsContractEnvelope(envelope)).toThrow(/invalid actions contract/);
   });
 
-  it("leaves duplicate block action references for higher-layer content validation", () => {
+  it("validates block action references from the manifest", () => {
     const envelope = {
       content: `# Demo
 
 Body
 
-::: block{id="main" actions="open,open"}`,
+<!-- mdan:block id="main" -->`,
       actions: {
         app_id: "contracts-test",
         state_id: "contracts-test:duplicate-action-refs",
         state_version: 1,
-        actions: [
-          {
-            id: "open",
+        blocks: {
+          main: {
+            actions: ["missing"]
+          }
+        },
+        actions: {
+          open: {
             verb: "route",
             target: "/open"
           }
-        ]
+        }
       }
     };
 
     const violations = validateActionsContractEnvelope(envelope);
-    expect(violations.some((entry) => entry.path.includes("content.block[main].actions"))).toBe(false);
-    expect(() => assertActionsContractEnvelope(envelope)).not.toThrow();
+    expect(violations).toContainEqual({
+      path: "actions.blocks.main.actions",
+      message: 'unknown action id reference: "missing"'
+    });
+    expect(() => assertActionsContractEnvelope(envelope)).toThrow(/invalid actions contract/);
   });
 });

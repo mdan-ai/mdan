@@ -6,7 +6,14 @@ export interface ServerContractViolation {
 }
 
 export function validateContentActionConsistency(surface: ReadableSurface): ServerContractViolation[] {
-  const actions = Array.isArray(surface.actions.actions) ? surface.actions.actions : [];
+  const actionRoot = surface.actions.actions;
+  const actions = actionRoot && typeof actionRoot === "object"
+    ? Object.entries(actionRoot).map(([id, action]) => (
+        action && typeof action === "object" && !Array.isArray(action)
+          ? { id, ...action }
+          : { id }
+      ))
+    : [];
   const actionIds = actions
     .map((action) => (typeof action?.id === "string" ? action.id : null))
     .filter((actionId): actionId is string => Boolean(actionId));

@@ -103,7 +103,7 @@ If you are unsure, follow this order:
 This package owns:
 
 - `createApp(...)`
-- `actions.route(...)`, `actions.read(...)`, `actions.write(...)`
+- explicit page manifests passed through `app.page(..., { actionJson })`
 - `fields.*(...)`
 - page registration and app-level action registration
 - app-level helpers such as request helpers and session helpers

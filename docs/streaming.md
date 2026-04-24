@@ -24,7 +24,7 @@ Use streaming when:
 Return a normal Markdown response when:
 
 - the result is a page or region update
-- agents need `allowed_next_actions`
+- agents need a stable next action contract
 - the default browser flow should handle the interaction normally
 - the response should become the next stable readable surface
 
@@ -102,7 +102,7 @@ The shared SSE helpers can:
 ## Browser Boundary
 
 The current headless host is Markdown-first for page and action reads. It can
-still interoperate with legacy JSON compatibility responses where needed, but the preferred
+still interoperate with readable Markdown responses where needed, but the preferred
 path is Markdown responses for page reads and normal action results.
 
 The default UI therefore does not yet provide a full streaming UI

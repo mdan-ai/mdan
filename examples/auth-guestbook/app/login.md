@@ -16,6 +16,6 @@ Users must sign in through the declared login action or navigate to register thr
 The returned surface should either keep the user on this page with an auth status update or transition to the guestbook route.
 <!-- agent:end -->
 
-::: block{id="auth_status" trust="untrusted"}
+<!-- mdan:block id="auth_status" -->
 
-::: block{id="login" actions="login,open_register" trust="trusted"}
+<!-- mdan:block id="login" -->

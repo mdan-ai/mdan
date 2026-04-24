@@ -32,28 +32,28 @@ describe("serializePage", () => {
     expect(out).toContain("---\n\n# Page\n");
   });
 
-  it("filters hidden block directives when visibleBlockNames is set", () => {
+  it("filters hidden block anchors when visibleBlockNames is set", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: [
         "# Guestbook",
         "",
-        "::: block{id=\"login\"}",
+        "<!-- mdan:block id=\"login\" -->",
         "",
-        "::: block{id=\"submit_message\"}"
+        "<!-- mdan:block id=\"submit_message\" -->"
       ].join("\n"),
       blocks: [],
       visibleBlockNames: ["submit_message"]
     });
 
     expect(out).not.toContain("id=\"login\"");
-    expect(out).toContain("id=\"submit_message\"");
+    expect(out).not.toContain("mdan:block");
   });
 
   it("writes block content into executable regions", () => {
     const out = serializePage({
       frontmatter: {},
-      markdown: ["# Guestbook", "", "::: block{id=\"submit_message\"}"].join("\n"),
+      markdown: ["# Guestbook", "", "<!-- mdan:block id=\"submit_message\" -->"].join("\n"),
       blocks: [],
       blockContent: {
         submit_message: "## Leave a message"
@@ -61,7 +61,7 @@ describe("serializePage", () => {
     });
 
     expect(out).toContain("## Leave a message");
-    expect(out).toContain("::: block{id=\"submit_message\"}");
+    expect(out).not.toContain("mdan:block");
     expect(out).toContain('"regions": {');
     expect(out).toContain('"submit_message": "## Leave a message"');
   });
@@ -104,9 +104,9 @@ describe("serializePage", () => {
       markdown: [
         "# Guestbook",
         "",
-        "::: block{id=\"a\"}",
+        "<!-- mdan:block id=\"a\" -->",
         "",
-        "::: block{id=\"b\"}"
+        "<!-- mdan:block id=\"b\" -->"
       ].join("\n"),
       blocks: [],
       visibleBlockNames: ["b"],
@@ -126,12 +126,11 @@ describe("serializePage", () => {
       markdown: "# Weather",
       executableContent: JSON.stringify(
         {
-          actions: [
-            {
-              id: "query_weather",
+          actions: {
+            query_weather: {
               target: "/weather/query"
             }
-          ]
+          }
         },
         null,
         2
@@ -140,7 +139,7 @@ describe("serializePage", () => {
     });
 
     expect(out).toContain("```mdan");
-    expect(out).toContain('"id": "query_weather"');
+    expect(out).toContain('"query_weather": {');
     expect(out).toContain('"target": "/weather/query"');
   });
 });
@@ -157,12 +156,12 @@ describe("serializeFragment", () => {
   it("includes a mdan block for fragment executable content", () => {
     const out = serializeFragment({
       markdown: "## Updated",
-      executableContent: JSON.stringify({ actions: [{ id: "refresh" }] }, null, 2),
+      executableContent: JSON.stringify({ actions: { refresh: {} } }, null, 2),
       blocks: []
     });
 
     expect(out).toContain("## Updated");
     expect(out).toContain("```mdan");
-    expect(out).toContain('"id": "refresh"');
+    expect(out).toContain('"refresh": {}');
   });
 });

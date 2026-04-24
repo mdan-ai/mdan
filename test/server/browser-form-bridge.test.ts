@@ -10,15 +10,16 @@ import type { MdanResponse } from "../../src/server/types.js";
 
 function createSurface(message: string, route: string) {
   return {
-    markdown: `# Demo\n\n::: block{id="main" actions="submit"}\n${message}\n:::`,
+    markdown: `# Demo\n\n<!-- mdan:block id="main" -->\n${message}`,
     actions: {
       app_id: "demo",
       state_id: `demo:${route}:1`,
       state_version: 1,
-      blocks: ["main"],
-      actions: [
-        {
-          id: "submit",
+      blocks: {
+        main: { actions: ["submit"] }
+      },
+      actions: {
+        submit: {
           label: "Submit",
           verb: "write",
           transport: { method: "POST" },
@@ -32,8 +33,42 @@ function createSurface(message: string, route: string) {
             additionalProperties: false
           }
         }
-      ],
-      allowed_next_actions: ["submit"]
+      }
+    },
+    route,
+    regions: {
+      main: message
+    }
+  };
+}
+
+function createProofedSurface(message: string, route: string, proof = "proof-token") {
+  return {
+    markdown: `# Demo\n\n<!-- mdan:block id="main" -->\n${message}`,
+    actions: {
+      app_id: "demo",
+      state_id: `demo:${route}:1`,
+      state_version: 1,
+      blocks: {
+        main: { actions: ["submit"] }
+      },
+      actions: {
+        submit: {
+          label: "Submit",
+          verb: "write",
+          transport: { method: "POST" },
+          target: "/submit",
+          action_proof: proof,
+          input_schema: {
+            type: "object",
+            required: ["count"],
+            properties: {
+              count: { type: "integer" }
+            },
+            additionalProperties: false
+          }
+        }
+      }
     },
     route,
     regions: {
@@ -44,15 +79,16 @@ function createSurface(message: string, route: string) {
 
 function createGetSurface(message: string, route: string) {
   return {
-    markdown: `# Weather\n\n::: block{id="main" actions="query"}\nQuery weather\n:::`,
+    markdown: `# Weather\n\n<!-- mdan:block id="main" -->\nQuery weather`,
     actions: {
       app_id: "weather",
       state_id: `weather:${route}:1`,
       state_version: 1,
-      blocks: ["main"],
-      actions: [
-        {
-          id: "query",
+      blocks: {
+        main: { actions: ["query"] }
+      },
+      actions: {
+        query: {
           label: "Query Weather",
           verb: "read",
           transport: { method: "GET" },
@@ -68,8 +104,7 @@ function createGetSurface(message: string, route: string) {
             additionalProperties: false
           }
         }
-      ],
-      allowed_next_actions: ["query"]
+      }
     },
     route,
     regions: {
@@ -89,6 +124,15 @@ describe("browser form bridge", () => {
     expect(html).toContain('name="count"');
     expect(html).toContain('type="number"');
     expect(html).toContain('name="mdan.input_schema"');
+  });
+
+  it("renders action proof as a hidden field in no-js POST forms", async () => {
+    const html = renderBrowserShell({
+      title: "Demo",
+      initialReadableSurface: createProofedSurface("Current value", "/demo")
+    });
+
+    expect(html).toContain('type="hidden" name="action.proof" value="proof-token"');
   });
 
   it("does not leak embedded input schema metadata into GET query forms", async () => {
@@ -148,6 +192,50 @@ describe("browser form bridge", () => {
     expect(receivedCount).toBe(4);
   });
 
+  it("keeps browser-form action proof submits working through host adaptation", async () => {
+    const server = createMdanServer();
+    let receivedCount: unknown;
+    server.post("/submit", async ({ inputs }) => {
+      receivedCount = inputs.count;
+      return createSurface(`Saved ${String(inputs.count ?? "?")}`, "/done");
+    });
+    const host = createBunHost(server, {
+      browserShell: {
+        title: "Demo"
+      }
+    });
+
+    const form = new URLSearchParams();
+    form.set("action.proof", "proof-token");
+    form.set("count", "4");
+    form.set(
+      "mdan.input_schema",
+      JSON.stringify({
+        type: "object",
+        required: ["count"],
+        properties: {
+          count: { type: "integer" }
+        },
+        additionalProperties: false
+      })
+    );
+
+    const response = await host(
+      new Request("https://example.test/submit", {
+        method: "POST",
+        headers: {
+          accept: "text/html",
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        body: form
+      })
+    );
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/done");
+    expect(receivedCount).toBe(4);
+  });
+
   it("keeps set-cookie headers when a browser-form success redirects", async () => {
     const host = createNodeHost(
       {
@@ -169,9 +257,8 @@ route: "/done"
   "app_id": "demo",
   "state_id": "demo:done:1",
   "state_version": 1,
-  "blocks": [],
-  "actions": [],
-  "allowed_next_actions": []
+  "blocks": {},
+  "actions": {}
 }
 \`\`\`
 `
@@ -303,17 +390,18 @@ route: "/submit"
 
 Count must be an integer
 
-::: block{id="main" actions="submit"}
+<!-- mdan:block id="main" -->
 
 \`\`\`mdan
 {
   "app_id": "demo",
   "state_id": "demo:/submit:1",
   "state_version": 1,
-  "blocks": ["main"],
-  "actions": [
-    {
-      "id": "submit",
+  "blocks": {
+    "main": { "actions": ["submit"] }
+  },
+  "actions": {
+    "submit": {
       "label": "Submit",
       "verb": "write",
       "transport": { "method": "POST" },
@@ -328,8 +416,7 @@ Count must be an integer
       },
       "block": "main"
     }
-  ],
-  "allowed_next_actions": ["submit"]
+  }
 }
 \`\`\`
 `

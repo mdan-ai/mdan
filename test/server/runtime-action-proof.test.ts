@@ -12,15 +12,16 @@ function createEnvelope() {
 
 Create resource.
 
-::: block{id="editor" actions="createResource"}`,
+<!-- mdan:block id="editor" -->`,
     actions: {
       app_id: "runtime-action-proof",
       state_id: "runtime-action-proof:demo",
       state_version: 1,
-      blocks: ["editor"],
-      actions: [
-        {
-          id: "createResource",
+      blocks: {
+        editor: { actions: ["createResource"] }
+      },
+      actions: {
+        createResource: {
           label: "Create",
           verb: "write",
           transport: { method: "POST" },
@@ -33,8 +34,7 @@ Create resource.
             }
           }
         }
-      ],
-      allowed_next_actions: ["createResource"]
+      }
     },
     route: "/demo",
     regions: {
@@ -70,7 +70,7 @@ function createEnvelopeWithActionSemantics(options: {
   riskLevel?: "low" | "medium" | "high" | "critical";
 }) {
   const base = createEnvelope();
-  const action = base.actions.actions?.[0];
+  const action = base.actions.actions.createResource;
   return {
     ...base,
     actions: {
@@ -82,20 +82,18 @@ function createEnvelopeWithActionSemantics(options: {
             }
           }
         : {}),
-      actions: action
-        ? [
-            {
-              ...action,
-              ...(options.riskLevel
-                ? {
-                    guard: {
-                      risk_level: options.riskLevel
-                    }
-                  }
-                : {})
-            }
-          ]
-        : []
+      actions: {
+        createResource: {
+          ...action,
+          ...(options.riskLevel
+            ? {
+                guard: {
+                  risk_level: options.riskLevel
+                }
+              }
+            : {})
+        }
+      }
     }
   };
 }
@@ -107,7 +105,11 @@ function readMarkdownSurface(payload: string) {
 }
 
 function readActionOperation(payload: string) {
-  return readMarkdownSurface(payload).actions.actions?.[0] as Record<string, unknown>;
+  const actions = readMarkdownSurface(payload).actions.actions;
+  if (actions && typeof actions === "object") {
+    return Object.values(actions)[0] as Record<string, unknown>;
+  }
+  return undefined as unknown as Record<string, unknown>;
 }
 
 function readHeadlessOperation(payload: string) {
@@ -281,15 +283,16 @@ describe("runtime action proof", () => {
 
 Create resource.
 
-::: block{id="editor" actions="createResource"}`,
+<!-- mdan:block id="editor" -->`,
       actions: {
         app_id: "runtime-action-proof",
         state_id: "runtime-action-proof:constraints",
         state_version: 1,
-        blocks: ["editor"],
-        actions: [
-          {
-            id: "createResource",
+        blocks: {
+          editor: { actions: ["createResource"] }
+        },
+        actions: {
+          createResource: {
             label: "Create",
             verb: "write",
             transport: { method: "POST" },
@@ -304,8 +307,7 @@ Create resource.
               additionalProperties: false
             }
           }
-        ],
-        allowed_next_actions: ["createResource"]
+        }
       },
       route: "/demo",
       regions: {
@@ -343,15 +345,16 @@ Create resource.
 
 Create resource.
 
-::: block{id="editor" actions="createResource"}`,
+<!-- mdan:block id="editor" -->`,
       actions: {
         app_id: "runtime-action-proof",
         state_id: "runtime-action-proof:typed",
         state_version: 1,
-        blocks: ["editor"],
-        actions: [
-          {
-            id: "createResource",
+        blocks: {
+          editor: { actions: ["createResource"] }
+        },
+        actions: {
+          createResource: {
             label: "Create",
             verb: "write",
             transport: { method: "POST" },
@@ -370,8 +373,7 @@ Create resource.
               additionalProperties: false
             }
           }
-        ],
-        allowed_next_actions: ["createResource"]
+        }
       },
       route: "/demo",
       regions: {
@@ -419,7 +421,7 @@ Create resource.
     });
   });
 
-  it("accepts form-style flat action metadata fields for compatibility", async () => {
+  it("rejects flat POST action metadata outside the structured action envelope", async () => {
     const server = createMdanServer({
       actionProof: { secret: "proof-secret" }
     });
@@ -433,8 +435,8 @@ Create resource.
       title: "Doc"
     });
 
-    expect(response.status).toBe(200);
-    expect(String(response.body)).toContain("Created: Doc");
+    expect(response.status).toBe(400);
+    expect(String(response.body)).toContain("Invalid Action Request Format");
   });
 
   it("rejects undeclared payload fields even when proof is valid", async () => {

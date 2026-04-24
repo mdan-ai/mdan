@@ -94,7 +94,7 @@ describe("asset handle runtime", () => {
       };
       return {
         markdown: "# ok",
-        actions: { app_id: "x", state_id: "x", state_version: 1, blocks: [], actions: [] },
+        actions: { app_id: "x", state_id: "x", state_version: 1, blocks: {}, actions: {} },
         route: "/upload-capture",
         regions: {}
       };

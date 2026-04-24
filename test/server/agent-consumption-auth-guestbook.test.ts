@@ -5,8 +5,8 @@ import type { MdanResponse } from "../../src/server/index.js";
 import { parseFrontmatter } from "../../src/content/content-actions.js";
 
 type MarkdownActions = {
-  allowed_next_actions?: string[];
-  actions?: Array<Record<string, unknown>>;
+  blocks?: Record<string, { actions?: string[] }>;
+  actions?: Record<string, Record<string, unknown>>;
 };
 
 type MarkdownSurface = {
@@ -44,9 +44,19 @@ function parseAgentSurface(response: MdanResponse): MarkdownSurface {
 }
 
 function expectAction(surface: MarkdownSurface, id: string) {
-  const action = surface.actions.actions?.find((candidate) => candidate.id === id);
+  const action = surface.actions.actions?.[id];
   expect(action).toBeTruthy();
   return action!;
+}
+
+function allBlockActionIds(surface: MarkdownSurface): string[] {
+  const blocks = surface.actions.blocks;
+  if (!blocks) {
+    return [];
+  }
+  return Object.values(blocks).flatMap((block) =>
+    Array.isArray(block.actions) ? block.actions.filter((id): id is string => typeof id === "string") : []
+  );
 }
 
 async function getSurface(
@@ -93,7 +103,7 @@ describe("auth-guestbook agent consumption", () => {
     const loginAction = expectAction(loginSurface, "login");
     const openRegisterAction = expectAction(loginSurface, "open_register");
     expect(loginSurface.content).toContain("# Sign In");
-    expect(loginSurface.actions.allowed_next_actions).toEqual(["login", "open_register"]);
+    expect(allBlockActionIds(loginSurface)).toEqual(["login", "open_register"]);
     expect(loginAction.target).toBe("/auth/login");
     expect(loginAction.transport?.method).toBe("POST");
     expect(loginAction.input_schema?.required).toEqual(["username", "password"]);
@@ -141,7 +151,7 @@ describe("auth-guestbook agent consumption", () => {
     expect(guestbook.status).toBe(200);
     const guestbookSurface = parseAgentSurface(guestbook);
     expect(guestbookSurface.content).toContain("# Guestbook");
-    expect(guestbookSurface.actions.allowed_next_actions).toEqual(["refresh_messages", "submit_message", "logout"]);
+    expect(allBlockActionIds(guestbookSurface)).toEqual(["refresh_messages", "submit_message", "logout"]);
     const submitMessageAction = expectAction(guestbookSurface, "submit_message");
     const logoutAction = expectAction(guestbookSurface, "logout");
     expect(submitMessageAction.target).toBe("/guestbook/post");
@@ -212,7 +222,7 @@ describe("auth-guestbook agent consumption", () => {
     expect(invalidLogin.status).toBe(401);
     const invalidLoginSurface = parseAgentSurface(invalidLogin);
     expect(invalidLoginSurface.content).toContain("Login rejected");
-    expect(invalidLoginSurface.actions.allowed_next_actions).toEqual(["login", "open_register"]);
+    expect(allBlockActionIds(invalidLoginSurface)).toEqual(["login", "open_register"]);
 
     const missingRegisterInput = await server.handle({
       method: "POST",
@@ -227,7 +237,7 @@ describe("auth-guestbook agent consumption", () => {
     expect(missingRegisterInput.status).toBe(400);
     const missingRegisterSurface = parseAgentSurface(missingRegisterInput);
     expect(missingRegisterSurface.content).toContain("Invalid input");
-    expect(missingRegisterSurface.actions.allowed_next_actions).toEqual(["register", "open_login"]);
+    expect(allBlockActionIds(missingRegisterSurface)).toEqual(["register", "open_login"]);
 
     const register = await server.handle({
       method: "POST",

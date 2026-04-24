@@ -10,13 +10,15 @@ import {
 describe("result normalization", () => {
   it("normalizes readable surfaces into Markdown-native action results", () => {
     const result = normalizeActionHandlerResult({
-      markdown: "# Demo\n\n::: block{id=\"main\"}\nBody\n:::",
+      markdown: "# Demo\n\n<!-- mdan:block id=\"main\" -->\nBody",
       actions: {
         app_id: "demo",
         state_id: "demo:1",
         state_version: 1,
-        blocks: ["main"],
-        actions: []
+        blocks: {
+          main: { actions: [] }
+        },
+        actions: {}
       },
       route: "/demo",
       regions: {
@@ -37,8 +39,8 @@ describe("result normalization", () => {
         app_id: "demo",
         state_id: "demo:page:1",
         state_version: 1,
-        blocks: [],
-        actions: []
+        blocks: {},
+        actions: {}
       },
       route: "/page"
     });
@@ -51,11 +53,13 @@ describe("result normalization", () => {
 
   it("fills missing readable-surface state metadata before projection", () => {
     const result = normalizeActionHandlerResult({
-      markdown: "# Demo\n\n::: block{id=\"main\"}\nBody\n:::",
+      markdown: "# Demo\n\n<!-- mdan:block id=\"main\" -->\nBody",
       actions: {
         app_id: "demo",
-        blocks: ["main"],
-        actions: []
+        blocks: {
+          main: { actions: [] }
+        },
+        actions: {}
       },
       route: "/demo",
       regions: {
