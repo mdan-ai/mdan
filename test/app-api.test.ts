@@ -611,6 +611,63 @@ describe("app API", () => {
     expect(String(response.body)).toContain("Beijing:today:zh-CN");
   });
 
+  it("supports app-level dynamic auto request resolvers", async () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: { disabled: true },
+      auto: {
+        resolveRequest({ action, sourceRequest }) {
+          if (action.name !== "resolve_root") {
+            return null;
+          }
+          const source = new URL(sourceRequest.url);
+          const target = new URL(action.target, sourceRequest.url);
+          const location = source.searchParams.get("location");
+          if (location) {
+            target.searchParams.set("location", location);
+          }
+          return {
+            ...sourceRequest,
+            method: "GET",
+            url: target.toString()
+          };
+        }
+      }
+    });
+
+    const home = app.page("/", {
+      markdown: "# Home\n\n::: block{id=\"main\" actions=\"resolve_root\"}\n:::",
+      actions: [
+        actions.read("resolve_root", {
+          label: "Resolve",
+          target: "/resolve",
+          auto: true,
+          input: {
+            location: fields.string()
+          }
+        })
+      ],
+      render(content: string) {
+        return { main: content };
+      }
+    });
+
+    app.route(home.bind("root"));
+    app.read("/resolve", ({ inputs }) => home.bind(String(inputs.location ?? "missing")).render());
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/?location=hangzhou",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("hangzhou");
+  });
+
   it("lets app API configure markdown rendering for browser shell html", async () => {
     const app = createApp({
       appId: "starter",

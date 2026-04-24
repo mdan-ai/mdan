@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { MdanPage } from "../../src/protocol/types.js";
 import { normalizeActionHandlerResult } from "../../src/server/result-normalization.js";
@@ -115,6 +115,154 @@ describe("resolveAutoDependencies", () => {
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("# root");
     expect(calls).toEqual([]);
+  });
+
+  it("keeps legacy autoDependencies option working", async () => {
+    const calls: string[] = [];
+    const server = createMdanServer({
+      actionProof: { disabled: true },
+      autoDependencies: {
+        maxPasses: 0
+      }
+    });
+
+    server.page("/root", async () => envelope("root", "/step-1"));
+    server.page("/step-1", async () => {
+      calls.push("step-1");
+      return envelope("step-1");
+    });
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/root",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("# root");
+    expect(calls).toEqual([]);
+  });
+
+  it("warns when both auto and autoDependencies are provided", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      createMdanServer({
+        actionProof: { disabled: true },
+        auto: { maxPasses: 1 },
+        autoDependencies: { maxPasses: 0 }
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        "[mdan-sdk] createMdanServer received both options.auto and options.autoDependencies; options.auto takes precedence."
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it("lets apps resolve dynamic auto requests before runtime dispatch", async () => {
+    const router = new MdanRouter();
+
+    router.get("/step-1", async ({ inputs }) => envelope(String(inputs.location ?? "missing")));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root?location=hangzhou",
+      headers: {},
+      cookies: {}
+    };
+
+    const resolved = await resolveAutoDependencies(page("root", "/step-1"), request, null, router, {}, {
+      resolveRequest({ action, sourceRequest }) {
+        const sourceUrl = new URL(sourceRequest.url);
+        const targetUrl = new URL(action.target, sourceRequest.url);
+        const location = sourceUrl.searchParams.get("location");
+        if (location) {
+          targetUrl.searchParams.set("location", location);
+        }
+        return {
+          ...sourceRequest,
+          method: "GET",
+          url: targetUrl.toString()
+        };
+      }
+    });
+
+    expect(resolved.page?.markdown).toContain("# hangzhou");
+  });
+
+  it("can skip static auto fallback when resolver returns null", async () => {
+    const router = new MdanRouter();
+    const calls: string[] = [];
+
+    router.page("/step-1", async () => {
+      calls.push("step-1");
+      return envelope("step-1");
+    });
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const resolved = await resolveAutoDependencies(page("root", "/step-1"), request, null, router, {}, {
+      fallbackToStaticTarget: false,
+      resolveRequest() {
+        return null;
+      }
+    });
+
+    expect(calls).toEqual([]);
+    expect(resolved.page?.markdown).toContain("# root");
+  });
+
+  it("rejects cross-origin dynamic auto requests", async () => {
+    const router = new MdanRouter();
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    await expect(
+      resolveAutoDependencies(page("root", "/step-1"), request, null, router, {}, {
+        resolveRequest({ sourceRequest }) {
+          return {
+            ...sourceRequest,
+            method: "GET",
+            url: "https://evil.example/step-1"
+          };
+        }
+      })
+    ).rejects.toThrow(/same-origin/i);
+  });
+
+  it("rejects invalid dynamic auto request shapes with actionable errors", async () => {
+    const router = new MdanRouter();
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    await expect(
+      resolveAutoDependencies(page("root", "/step-1"), request, null, router, {}, {
+        resolveRequest() {
+          return {
+            method: "GET",
+            url: "",
+            headers: {}
+          } as unknown as typeof request;
+        }
+      })
+    ).rejects.toThrow(/request\.url/i);
   });
 
   it("applies page auto dependencies before rendering html page reads", async () => {

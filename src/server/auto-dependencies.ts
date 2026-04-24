@@ -5,8 +5,21 @@ import type { MdanAssetStoreOptions } from "./assets.js";
 import { MdanRouter } from "./router.js";
 import type { MdanActionResult, MdanRequest, MdanSessionSnapshot } from "./types.js";
 
+export interface AutoResolveRequestContext {
+  action: MdanOperation;
+  blockName: string;
+  sourceRequest: MdanRequest;
+  session: MdanSessionSnapshot | null;
+}
+
+export type AutoRequestResolver = (
+  context: AutoResolveRequestContext
+) => Promise<MdanRequest | null | undefined> | MdanRequest | null | undefined;
+
 export interface AutoDependencyOptions {
   maxPasses?: number;
+  resolveRequest?: AutoRequestResolver;
+  fallbackToStaticTarget?: boolean;
 }
 
 const DEFAULT_MAX_AUTO_DEPENDENCY_PASSES = 10;
@@ -166,6 +179,72 @@ function createImplicitGetRequest(target: string, request: MdanRequest): MdanReq
   };
 }
 
+function normalizeResolvedRequest(request: MdanRequest, sourceRequest: MdanRequest): MdanRequest {
+  if (!request || typeof request !== "object") {
+    throw new Error("[mdan-sdk] auto.resolveRequest must return a request-like object.");
+  }
+  if (typeof request.url !== "string" || request.url.trim().length === 0) {
+    throw new Error("[mdan-sdk] auto.resolveRequest must return request.url as a non-empty string.");
+  }
+  if (request.headers === null || typeof request.headers !== "object" || Array.isArray(request.headers)) {
+    throw new Error("[mdan-sdk] auto.resolveRequest must return request.headers as an object.");
+  }
+
+  const sourceUrl = new URL(sourceRequest.url);
+  const targetUrl = new URL(request.url, sourceRequest.url);
+
+  if (targetUrl.origin !== sourceUrl.origin) {
+    throw new Error("[mdan-sdk] auto.resolveRequest must return a same-origin URL.");
+  }
+  if (request.method !== "GET") {
+    throw new Error('[mdan-sdk] auto.resolveRequest must return a GET request (method: "GET").');
+  }
+  if (typeof request.body === "string" && request.body.length > 0) {
+    throw new Error("[mdan-sdk] auto.resolveRequest GET requests cannot include a request body.");
+  }
+
+  return {
+    ...request,
+    method: "GET",
+    url: targetUrl.toString(),
+    headers: {
+      ...sourceRequest.headers,
+      ...request.headers,
+      accept: "text/markdown"
+    },
+    cookies: request.cookies ?? sourceRequest.cookies ?? {},
+    query: Object.fromEntries(targetUrl.searchParams.entries())
+  };
+}
+
+async function resolveAutoRequest(
+  operation: MdanOperation,
+  blockName: string,
+  request: MdanRequest,
+  session: MdanSessionSnapshot | null,
+  options: AutoDependencyOptions
+): Promise<MdanRequest | null> {
+  const fallbackToStaticTarget = options.fallbackToStaticTarget !== false;
+  const resolver = options.resolveRequest;
+
+  if (!resolver) {
+    return createImplicitGetRequest(operation.target, request);
+  }
+
+  const resolved = await Promise.resolve(
+    resolver({
+      action: operation,
+      blockName,
+      sourceRequest: request,
+      session
+    })
+  );
+  if (!resolved) {
+    return fallbackToStaticTarget ? createImplicitGetRequest(operation.target, request) : null;
+  }
+  return normalizeResolvedRequest(resolved, request);
+}
+
 function applyImplicitFragmentToPage(
   page: MdanPage,
   blockName: string,
@@ -194,14 +273,19 @@ function applyImplicitFragmentToPage(
 }
 
 async function resolveAutoTarget(
-  target: string,
+  blockName: string,
+  operation: MdanOperation,
   request: MdanRequest,
   session: MdanSessionSnapshot | null,
   router: MdanRouter,
   assetOptions: MdanAssetStoreOptions,
+  options: AutoDependencyOptions,
   fallbackAppId?: string
 ): Promise<MdanActionResult | null> {
-  const implicitRequest = createImplicitGetRequest(target, request);
+  const implicitRequest = await resolveAutoRequest(operation, blockName, request, session, options);
+  if (!implicitRequest) {
+    return null;
+  }
   return dispatchGetRoute(
     router,
     implicitRequest,
@@ -249,7 +333,16 @@ export async function resolveAutoDependencies(
         continue;
       }
 
-      const result = await resolveAutoTarget(operation.target, request, state.session, router, assetOptions, fallbackAppId);
+      const result = await resolveAutoTarget(
+        block.name,
+        operation,
+        request,
+        state.session,
+        router,
+        assetOptions,
+        options,
+        fallbackAppId
+      );
       if (!result) {
         continue;
       }
@@ -314,7 +407,16 @@ export async function resolveAutoActionResult(
       return current;
     }
 
-    const resolved = await resolveAutoTarget(dependency.operation.target, request, currentSession, router, assetOptions, fallbackAppId);
+    const resolved = await resolveAutoTarget(
+      dependency.blockName,
+      dependency.operation,
+      request,
+      currentSession,
+      router,
+      assetOptions,
+      options,
+      fallbackAppId
+    );
     if (!resolved) {
       return current;
     }

@@ -62,6 +62,7 @@ export interface CreateMdanServerOptions {
   validatePostRequest?: MdanPostInputValidator;
   actionProof?: ActionProofOptions;
   assets?: MdanAssetStoreOptions;
+  auto?: AutoDependencyOptions;
   autoDependencies?: AutoDependencyOptions;
   browserShell?: BrowserShellOptions;
   semanticSlots?: boolean | ReadableSurfaceSemanticSlotOptions;
@@ -377,7 +378,12 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
   const router = new MdanRouter();
   const sessionProvider = options.session;
   const assetOptions = options.assets ?? {};
-  const autoDependencyOptions = options.autoDependencies ?? {};
+  if (options.auto && options.autoDependencies) {
+    console.warn(
+      "[mdan-sdk] createMdanServer received both options.auto and options.autoDependencies; options.auto takes precedence."
+    );
+  }
+  const autoDependencyOptions = options.auto ?? options.autoDependencies ?? {};
   const actionProof = resolveActionProofOptions(options.actionProof);
   const context: RuntimeContext = {
     options,

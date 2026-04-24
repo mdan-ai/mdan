@@ -1,11 +1,13 @@
 import type { MdanPage } from "../protocol/types.js";
 import { type ReadableSurface } from "../server/markdown-surface.js";
 import { type ActionProofOptions } from "../server/action-proofing.js";
+import type { AutoRequestResolver } from "../server/auto-dependencies.js";
 import { createMdanServer } from "../server/runtime.js";
 import type {
   MdanActionResult,
   MdanHandler,
   MdanHandlerContext,
+  MdanInputMap,
   MdanPageResult,
   MdanPageHandler,
   MdanPageHandlerContext,
@@ -155,11 +157,17 @@ export interface AppBrowserShellOptions {
   moduleMode?: "cdn" | "local-dist";
 }
 
+export interface AppAutoOptions {
+  resolveRequest?: AutoRequestResolver;
+  fallbackToStaticTarget?: boolean;
+}
+
 export interface CreateAppOptions {
   appId?: string;
   session?: MdanSessionProvider;
   actionProof?: ActionProofOptions;
   browserShell?: AppBrowserShellOptions;
+  auto?: AppAutoOptions;
   rendering?: {
     markdown?: AppMarkdownRenderer;
   };
@@ -177,14 +185,14 @@ export interface AppInstance {
     page: AppPageDefinition<unknown[], TActions> | AppBoundPageDefinition<TActions>,
     handlers: BindActionHandlers<TActions>
   ): void;
-  action<TInputs extends MdanInputMap = MdanInputMap>(
+  action<TInputs extends Record<string, unknown> = MdanInputMap>(
     path: string,
     options: { method?: AppTransportMethod },
     handler: AppActionHandler<TInputs>
   ): void;
-  action<TInputs extends MdanInputMap = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
-  read<TInputs extends MdanInputMap = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
-  write<TInputs extends MdanInputMap = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
+  action<TInputs extends Record<string, unknown> = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
+  read<TInputs extends Record<string, unknown> = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
+  write<TInputs extends Record<string, unknown> = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
   handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
@@ -192,7 +200,7 @@ export type AppPageHandler = (
   context: MdanPageHandlerContext
 ) => Promise<ReadableSurface | MdanPage | MdanPageResult | null> | ReadableSurface | MdanPage | MdanPageResult | null;
 
-export type AppActionHandler<TInputs extends MdanInputMap = MdanInputMap> = (
+export type AppActionHandler<TInputs extends Record<string, unknown> = MdanInputMap> = (
   context: Omit<MdanHandlerContext, "inputs"> & { inputs: TInputs }
 ) => Promise<ReadableSurface | MdanActionResult | MdanStreamResult> | ReadableSurface | MdanActionResult | MdanStreamResult;
 
@@ -207,7 +215,7 @@ function resolveTransportMethod(verb: AppActionVerb, method: AppTransportMethod 
   return verb === "write" ? "POST" : "GET";
 }
 
-function compileInputSchema(input: AppFieldMap | undefined) {
+function compileInputSchema(input: AppFieldMap | undefined): AppActionJson["input_schema"] {
   const properties = Object.fromEntries(
     Object.entries(input ?? {}).map(([name, definition]) => [name, cloneJson(definition.schema)])
   );
@@ -414,7 +422,8 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     browserShell: {
       ...serverOptions.browserShell,
       ...(rendering?.markdown ? { markdownRenderer: rendering.markdown } : {})
-    }
+    },
+    auto: serverOptions.auto
   });
   const declaredActionMethodsByPath = new Map<string, Set<AppTransportMethod>>();
   const registeredActionMethodsByPath = new Map<string, Set<AppTransportMethod>>();
@@ -579,6 +588,10 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
       const definition = definitionById.get(id);
       if (!definition) {
         console.warn(`[mdan-sdk] app.bindActions received unknown action id "${id}".`);
+        continue;
+      }
+      if (!handler) {
+        console.warn(`[mdan-sdk] app.bindActions missing handler for declared action "${id}".`);
         continue;
       }
       const method = resolveTransportMethod(definition.verb, definition.transport?.method);
