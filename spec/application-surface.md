@@ -168,6 +168,7 @@ Recognized slot names are:
 - `Context`
 - `Rules`
 - `Result`
+- `Examples`
 - `Views`
 - `Handoff`
 

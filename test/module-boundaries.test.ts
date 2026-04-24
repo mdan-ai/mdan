@@ -160,12 +160,36 @@ describe("module boundaries", () => {
     }
   });
 
+  it("keeps ui surface imports funneled through src/ui/model.ts only", async () => {
+    const files = ["src/ui/index.ts", "src/ui/mount.ts", "src/ui/register.ts", "src/ui/snapshot.ts"];
+
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["']\.\.\/surface(?:\/|["'])/],
+        file
+      );
+    }
+
+    const modelSource = await readSource("src/ui/model.ts");
+    expect(modelSource).toMatch(/from\s+["']\.\.\/surface\/presentation\.js["']/);
+    expect(modelSource).toMatch(/from\s+["']\.\.\/surface\/protocol\.js["']/);
+    expect(modelSource).toMatch(/from\s+["']\.\.\/surface\/forms\.js["']/);
+  });
+
+  it("keeps the ui barrel focused on the default ui runtime entrypoints", async () => {
+    const source = await readSource("src/ui/index.ts");
+
+    expect(source).toContain('export * from "./register.js";');
+    expect(source).toContain('export * from "./mount.js";');
+    expect(source).not.toContain('export * from "./model.js";');
+  });
+
   it("keeps surface content helpers behind the surface content gateway", async () => {
     const files = [
       "src/surface/adapter.ts",
       "src/surface/headless.ts",
-      "src/surface/presentation.ts",
-      "src/surface/snapshot.ts"
+      "src/surface/presentation.ts"
     ];
 
     for (const file of files) {
@@ -184,7 +208,6 @@ describe("module boundaries", () => {
       "src/surface/presentation.ts",
       "src/surface/protocol.ts",
       "src/surface/render-semantics.ts",
-      "src/surface/snapshot.ts",
       "src/surface/surface-actions.ts"
     ];
 

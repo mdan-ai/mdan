@@ -120,6 +120,11 @@ describe("browser form bridge", () => {
       initialReadableSurface: createSurface("Current value", "/demo")
     });
 
+    expect(html).toContain("<mdan-page>");
+    expect(html).toContain("<mdan-block data-mdan-block=\"main\">");
+    expect(html).toContain("<mdan-form><form action=\"/submit\" method=\"post\"");
+    expect(html).toContain("<mdan-field><label><span class=\"mdan-label-text\">Count");
+    expect(html).toContain("<mdan-action><button type=\"submit\"");
     expect(html).toContain('<form action="/submit" method="post"');
     expect(html).toContain('name="count"');
     expect(html).toContain('type="number"');

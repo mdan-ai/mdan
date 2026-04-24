@@ -9,11 +9,12 @@ import { basicMarkdownRenderer } from "../content/markdown-renderer.js";
 import { validateSemanticSlots } from "../content/semantic-slots.js";
 import { serializeFragment, serializePage } from "../content/serialize.js";
 import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
-import { adaptReadableSurfaceToMdanPage } from "../surface/adapter.js";
+import { adaptReadableSurfaceToHeadlessSnapshot, adaptReadableSurfaceToMdanPage } from "../surface/adapter.js";
+import { resolveUiSnapshotView } from "../ui/model.js";
 import {
   renderSurfaceSnapshot as renderWebSurfaceSnapshot,
   type RenderSurfaceSnapshotOptions
-} from "../surface/snapshot.js";
+} from "../ui/snapshot.js";
 
 export type { ParseMarkdownSurfaceOptions, ReadableSurface, RenderSurfaceSnapshotOptions };
 
@@ -62,7 +63,10 @@ export function renderSurfaceSnapshot(
   surface: ReadableSurface | undefined,
   options?: RenderSurfaceSnapshotOptions
 ): string {
-  return renderWebSurfaceSnapshot(surface, options);
+  return renderWebSurfaceSnapshot(
+    surface ? resolveUiSnapshotView(adaptReadableSurfaceToHeadlessSnapshot(surface)) : undefined,
+    options
+  );
 }
 
 export function renderInitialProjection(

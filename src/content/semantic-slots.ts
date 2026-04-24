@@ -1,4 +1,4 @@
-export type SemanticSlotName = "Purpose" | "Context" | "Rules" | "Result" | "Views" | "Handoff";
+export type SemanticSlotName = "Purpose" | "Context" | "Rules" | "Result" | "Examples" | "Views" | "Handoff";
 
 export interface SemanticSlotEntry {
   name: SemanticSlotName;
@@ -10,7 +10,7 @@ export interface SemanticSlotValidationOptions {
   minCount?: number;
 }
 
-const SEMANTIC_SLOT_NAMES: SemanticSlotName[] = ["Purpose", "Context", "Rules", "Result", "Views", "Handoff"];
+const SEMANTIC_SLOT_NAMES: SemanticSlotName[] = ["Purpose", "Context", "Rules", "Result", "Examples", "Views", "Handoff"];
 const REQUIRED_SEMANTIC_SLOT_NAMES = new Set<SemanticSlotName>(["Purpose", "Context", "Rules", "Result"]);
 const SLOT_NAME_MAP = new Map<string, SemanticSlotName>(
   SEMANTIC_SLOT_NAMES.map((name) => [name.toLowerCase(), name])
@@ -70,7 +70,7 @@ export function validateSemanticSlots(content: string, options: SemanticSlotVali
     byName.set(slot.name, existing);
   }
 
-  const anySlotHeadingRe = /^(#{1,6})\s+(Purpose|Context|Rules|Result|Views|Handoff)\s*$/gim;
+  const anySlotHeadingRe = /^(#{1,6})\s+(Purpose|Context|Rules|Result|Examples|Views|Handoff)\s*$/gim;
   let headingMatch: RegExpExecArray | null;
   while ((headingMatch = anySlotHeadingRe.exec(cleaned)) !== null) {
     const level = headingMatch[1]?.length ?? 0;

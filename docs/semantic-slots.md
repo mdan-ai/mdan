@@ -20,6 +20,7 @@ Page-level semantic slots (H2 headings):
 
 Optional slots:
 
+- `## Examples`
 - `## Views`
 - `## Handoff`
 
@@ -64,7 +65,10 @@ Use clear MUST/SHOULD language. Keep it executable, not narrative.
 4. Put expected output shape in `Result`.
 Describe what a correct response should contain, not internal implementation.
 
-5. Keep slot content short and testable.
+5. Put common invocations in `Examples`.
+Use this for sample paths, query strings, input objects, or command snippets that show how to call the declared actions.
+
+6. Keep slot content short and testable.
 Prefer short bullets/sentences over long prose.
 
 ## Recommended Writing Pattern
@@ -85,6 +89,10 @@ List the current state that affects decisions.
 
 ## Result
 Describe the expected output structure and success criteria.
+
+## Examples
+- `location=London`
+- `/London/today`
 
 <!-- mdan:block id="main" -->
 ```
@@ -114,7 +122,7 @@ Return normalized inputs before submitting the action.
 
 ## Multi-Language Guidance
 
-- Keep slot headings canonical in English (`Purpose/Context/Rules/Result`) for parser stability.
+- Keep slot headings canonical in English (`Purpose/Context/Rules/Result/Examples`) for parser stability.
 - Body content can be localized (`zh-CN`, `en-US`, etc.).
 - If bilingual text is needed, keep one slot and place bilingual lines inside, instead of duplicating slots.
 
@@ -124,6 +132,7 @@ Return normalized inputs before submitting the action.
 - Slot headings are H2 (`##`) and unique.
 - Rules are actionable and verifiable.
 - Result describes observable output.
+- Examples, when present, show valid calls or inputs.
 - No sensitive/internal-only guidance leaked outside `agent:begin`.
 
 ## Related Docs

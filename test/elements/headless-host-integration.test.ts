@@ -156,7 +156,7 @@ Say something useful.
     expect(root.textContent).toContain("Say something useful.");
   });
 
-  it("replaces browser-shell snapshot markup instead of duplicating it on mount", async () => {
+  it("clears any existing container markup before mounting the interactive ui", async () => {
     const root = document.createElement("main");
     root.id = "mdan-app";
     root.setAttribute("data-mdan-browser-shell", "");

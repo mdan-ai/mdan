@@ -18,6 +18,7 @@ export interface BrowserShellOptions {
   initialReadableSurface?: ReadableSurface;
   initialPage?: MdanPage;
   markdownRenderer?: RenderSurfaceSnapshotOptions["markdownRenderer"];
+  formRenderer?: RenderSurfaceSnapshotOptions["formRenderer"];
   hydrate?: boolean;
 }
 
@@ -86,7 +87,8 @@ export function renderBrowserShell(options: BrowserShellOptions = {}): string {
   </head>
   <body>
     <main id="${escapeHtml(rootId)}" data-mdan-browser-shell>${renderInitialProjection(initialPage, initialReadableSurface, {
-      markdownRenderer: options.markdownRenderer
+      markdownRenderer: options.markdownRenderer,
+      formRenderer: options.formRenderer
     })}</main>
 ${clientRuntimeScript}
   </body>

@@ -1,20 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { resolveUiSnapshotView } from "../../src/ui/model.js";
 import {
   buildOperationPayload,
   createInputsByName,
   dispatchOperation,
-  getFormKey,
   getInputValue,
   groupOperations,
   resolveDispatchAction,
   resolveFormEnctype,
-  resolveActionPresentation,
-  resolveActionCapabilities,
-  resolveInputCapabilities,
   resolveInputDefaultValue,
-  resolveRenderableInputs
-} from "../../src/ui/model.js";
+  resolveRenderableInputs,
+  shouldOmitEmptyInput
+} from "../../src/surface/forms.js";
 
 describe("elements model helpers", () => {
   it("groups operations by method", () => {
@@ -57,18 +55,22 @@ describe("elements model helpers", () => {
     );
   });
 
-  it("builds stable form keys from block + operation identity", () => {
-    expect(getFormKey("editor", { method: "POST", target: "/resources", name: "create" })).toBe(
-      "editor:POST:/resources:create"
-    );
-  });
-
   it("returns semantic defaults for missing form values", () => {
     expect(getInputValue({ name: "enabled", kind: "boolean", required: false, secret: false }, {})).toBe("false");
     expect(
       getInputValue({ name: "status", kind: "enum", options: ["draft", "published"], required: false, secret: false }, {})
     ).toBe("draft");
     expect(getInputValue({ name: "title", kind: "string", required: false, secret: false }, {})).toBe("");
+  });
+
+  it("omits optional GET defaults instead of preselecting them", () => {
+    expect(getInputValue({ name: "enabled", kind: "boolean", required: false, secret: false }, {}, "GET")).toBe("");
+    expect(
+      getInputValue({ name: "status", kind: "enum", options: ["draft", "published"], required: false, secret: false }, {}, "GET")
+    ).toBe("");
+    expect(shouldOmitEmptyInput({ required: false }, "GET")).toBe(true);
+    expect(shouldOmitEmptyInput({ required: true }, "GET")).toBe(false);
+    expect(shouldOmitEmptyInput({ required: false }, "POST")).toBe(false);
   });
 
   it("prefers schema defaultValue when provided", () => {
@@ -103,6 +105,29 @@ describe("elements model helpers", () => {
       missing: "",
       status: "draft",
       title: "Hello"
+    });
+  });
+
+  it("omits empty optional GET values from operation payload", () => {
+    const inputsByName = createInputsByName([
+      { name: "q", kind: "string", required: false, secret: false },
+      { name: "status", kind: "enum", required: false, secret: false, options: ["draft", "published"] },
+      { name: "required", kind: "string", required: true, secret: false }
+    ]);
+
+    const payload = buildOperationPayload(
+      {
+        method: "GET",
+        target: "/search",
+        name: "search",
+        inputs: ["q", "status", "required"]
+      },
+      inputsByName,
+      { required: "hello" }
+    );
+
+    expect(payload).toEqual({
+      required: "hello"
     });
   });
 
@@ -164,22 +189,59 @@ describe("elements model helpers", () => {
     expect(payload.attachment).toBe(file);
   });
 
-  it("resolves input capabilities from canonical field kind", () => {
-    expect(resolveInputCapabilities({ kind: "enum", secret: false } as any)).toEqual({
-      control: "select",
-      inputType: null,
-      valueChannel: "value"
+  it("resolves one shared ui snapshot view for operations and fields", () => {
+    const view = resolveUiSnapshotView({
+      status: "idle",
+      route: "/search",
+      markdown: "# Search",
+      blocks: [
+        {
+          name: "main",
+          markdown: "Search block",
+          inputs: [
+            { name: "q", kind: "string", required: false, secret: false, description: "Query text" },
+            { name: "kind", kind: "enum", required: false, secret: false, options: ["all", "docs"] }
+          ],
+          operations: [
+            {
+              method: "GET",
+              target: "/search",
+              name: "search",
+              label: "Search",
+              inputs: ["q", "kind"],
+              actionProof: "proof-token"
+            } as any
+          ]
+        }
+      ]
+    }, () => ({ q: "mdan" }));
+
+    expect(view.blocks[0]?.operations[0]).toMatchObject({
+      formKey: "main:GET:/search:search",
+      method: "GET",
+      methodAttribute: "get",
+      target: "/search",
+      label: "Search",
+      actionVariant: "secondary",
+      actionBehavior: "page",
+      hiddenFields: [{ name: "action.proof", value: "proof-token" }]
     });
-    expect(resolveInputCapabilities({ kind: "integer", secret: false } as any)).toEqual({
-      control: "input",
-      inputType: "number",
-      valueChannel: "value"
-    });
-    expect(resolveInputCapabilities({ kind: "asset", secret: false } as any)).toEqual({
-      control: "file",
-      inputType: null,
-      valueChannel: "file"
-    });
+    expect(view.blocks[0]?.operations[0]?.fields).toMatchObject([
+      {
+        name: "q",
+        label: "Q",
+        control: "input",
+        inputType: "text",
+        value: "mdan",
+        description: "Query text"
+      },
+      {
+        name: "kind",
+        control: "select",
+        inputType: null,
+        omitEmpty: true
+      }
+    ]);
   });
 
   it("routes GET without payload to visit action", () => {
@@ -214,54 +276,33 @@ describe("elements model helpers", () => {
     });
   });
 
-  it("resolves action presentation for risk and behavior semantics", () => {
-    expect(
-      resolveActionPresentation(
+  it("encodes action presentation into resolved ui operations", () => {
+    const view = resolveUiSnapshotView({
+      status: "idle",
+      markdown: "",
+      blocks: [
         {
-          method: "POST",
-          target: "/danger/delete",
-          name: "delete_all",
-          inputs: [],
-          guard: { riskLevel: "high" }
-        } as any
-      )
-    ).toEqual({ variant: "danger", behavior: "submit" });
+          name: "main",
+          markdown: "",
+          inputs: [{ name: "q", kind: "string", required: false, secret: false }],
+          operations: [
+            { method: "POST", target: "/danger/delete", name: "delete_all", inputs: [], guard: { riskLevel: "high" } } as any,
+            { method: "POST", target: "/messages/refresh", name: "refresh_messages", inputs: [], stateEffect: { responseMode: "region" } } as any,
+            { method: "POST", target: "/resources/query", name: "query_resources", inputs: ["q"], verb: "read" } as any
+          ]
+        }
+      ]
+    });
 
-    expect(
-      resolveActionPresentation(
-        {
-          method: "POST",
-          target: "/danger/purge",
-          name: "purge_all",
-          inputs: [],
-          guard: { riskLevel: "critical" }
-        } as any
-      )
-    ).toEqual({ variant: "danger", behavior: "submit" });
-
-    expect(
-      resolveActionPresentation(
-        {
-          method: "POST",
-          target: "/messages/refresh",
-          name: "refresh_messages",
-          inputs: [],
-          stateEffect: { responseMode: "region" }
-        } as any
-      )
-    ).toEqual({ variant: "quiet", behavior: "region" });
-
-    expect(
-      resolveActionPresentation(
-        {
-          method: "POST",
-          target: "/resources/query",
-          name: "query_resources",
-          inputs: ["q"],
-          verb: "read"
-        } as any
-      )
-    ).toEqual({ variant: "quiet", behavior: "read" });
+    expect(view.blocks[0]?.operations.map((operation) => ({
+      name: operation.source.name,
+      variant: operation.actionVariant,
+      behavior: operation.actionBehavior
+    }))).toEqual([
+      { name: "delete_all", variant: "danger", behavior: "submit" },
+      { name: "refresh_messages", variant: "quiet", behavior: "region" },
+      { name: "query_resources", variant: "quiet", behavior: "read" }
+    ]);
   });
 
   it("executes visit dispatch against host", async () => {
@@ -303,105 +344,39 @@ describe("elements model helpers", () => {
     expect(visitSpy).not.toHaveBeenCalled();
   });
 
-  it("extracts generic action capabilities from json semantics", () => {
-    expect(
-      resolveActionCapabilities(
+  it("encodes input control semantics into resolved ui fields", () => {
+    const view = resolveUiSnapshotView({
+      status: "idle",
+      markdown: "",
+      blocks: [
         {
-          method: "POST",
-          target: "/resources/rebuild",
-          name: "rebuild_index",
-          inputs: ["scope"],
-          guard: { riskLevel: "high" },
-          stateEffect: { responseMode: "region", updatedRegions: ["summary", "status"] }
-        } as any
-      )
-    ).toEqual({
-      method: "POST",
-      target: "/resources/rebuild",
-      hasInputs: true,
-      acceptsStream: false,
-      dispatchWhenEmptyPayload: "submit",
-      presentation: { variant: "danger", behavior: "region" },
-      responseMode: "region",
-      updatedRegions: ["summary", "status"]
+          name: "main",
+          markdown: "",
+          inputs: [
+            { name: "enabled", kind: "boolean", required: false, secret: false },
+            { name: "attachment", kind: "asset", required: false, secret: false },
+            { name: "body", kind: "string", format: "textarea", required: false, secret: false },
+            { name: "password", kind: "string", format: "password", required: false, secret: true },
+            { name: "score", kind: "number", required: false, secret: false }
+          ],
+          operations: [
+            { method: "POST", target: "/submit", name: "submit", inputs: ["enabled", "attachment", "body", "password", "score"] } as any
+          ]
+        }
+      ]
     });
-  });
 
-  it("falls back to unknown response mode when semantics are unsupported", () => {
-    expect(
-      resolveActionCapabilities(
-        {
-          method: "POST",
-          target: "/resources/rebuild",
-          name: "rebuild_index",
-          inputs: [],
-          stateEffect: { responseMode: "full" }
-        } as any
-      )
-    ).toEqual({
-      method: "POST",
-      target: "/resources/rebuild",
-      hasInputs: false,
-      acceptsStream: false,
-      dispatchWhenEmptyPayload: "submit",
-      presentation: { variant: "primary", behavior: "submit" },
-      responseMode: "unknown",
-      updatedRegions: []
-    });
-  });
-
-  it("normalizes missing and empty updated regions to the same capability shape", () => {
-    expect(
-      resolveActionCapabilities(
-        {
-          method: "POST",
-          target: "/resources/rebuild",
-          name: "rebuild_index",
-          inputs: [],
-          stateEffect: { responseMode: "region" }
-        } as any
-      ).updatedRegions
-    ).toEqual([]);
-
-    expect(
-      resolveActionCapabilities(
-        {
-          method: "POST",
-          target: "/resources/rebuild",
-          name: "rebuild_index",
-          inputs: [],
-          stateEffect: { responseMode: "region", updatedRegions: [] }
-        } as any
-      ).updatedRegions
-    ).toEqual([]);
-  });
-
-  it("resolves generic input capabilities by schema type", () => {
-    expect(resolveInputCapabilities({ kind: "boolean", secret: false } as any)).toEqual({
-      control: "checkbox",
-      inputType: null,
-      valueChannel: "checked"
-    });
-    expect(resolveInputCapabilities({ kind: "asset", secret: false } as any)).toEqual({
-      control: "file",
-      inputType: null,
-      valueChannel: "file"
-    });
-    expect(resolveInputCapabilities({ kind: "string", format: "textarea", secret: false } as any)).toEqual({
-      control: "textarea",
-      inputType: null,
-      valueChannel: "value"
-    });
-    expect(resolveInputCapabilities({ kind: "string", format: "password", secret: true } as any)).toEqual({
-      control: "input",
-      inputType: "password",
-      valueChannel: "value"
-    });
-    expect(resolveInputCapabilities({ kind: "number", secret: false } as any)).toEqual({
-      control: "input",
-      inputType: "number",
-      valueChannel: "value"
-    });
+    expect(view.blocks[0]?.operations[0]?.fields.map((field) => ({
+      name: field.name,
+      control: field.control,
+      inputType: field.inputType
+    }))).toEqual([
+      { name: "enabled", control: "checkbox", inputType: null },
+      { name: "attachment", control: "file", inputType: null },
+      { name: "body", control: "textarea", inputType: null },
+      { name: "password", control: "input", inputType: "password" },
+      { name: "score", control: "input", inputType: "number" }
+    ]);
   });
 
   it("resolves generic default input values", () => {
@@ -412,16 +387,32 @@ describe("elements model helpers", () => {
     expect(resolveInputDefaultValue({ kind: "string" } as any)).toBe("");
   });
 
-  it("renders structured inputs as JSON textareas", () => {
-    expect(resolveInputCapabilities({ kind: "object", secret: false } as any)).toEqual({
-      control: "textarea",
-      inputType: null,
-      valueChannel: "value"
+  it("renders structured inputs as JSON textareas in resolved ui fields", () => {
+    const view = resolveUiSnapshotView({
+      status: "idle",
+      markdown: "",
+      blocks: [
+        {
+          name: "main",
+          markdown: "",
+          inputs: [
+            { name: "config", kind: "object", required: false, secret: false },
+            { name: "tags", kind: "array", required: false, secret: false }
+          ],
+          operations: [
+            { method: "POST", target: "/submit", name: "submit", inputs: ["config", "tags"] } as any
+          ]
+        }
+      ]
     });
-    expect(resolveInputCapabilities({ kind: "array", secret: false } as any)).toEqual({
-      control: "textarea",
-      inputType: null,
-      valueChannel: "value"
-    });
+
+    expect(view.blocks[0]?.operations[0]?.fields.map((field) => ({
+      name: field.name,
+      control: field.control,
+      inputType: field.inputType
+    }))).toEqual([
+      { name: "config", control: "textarea", inputType: null },
+      { name: "tags", control: "textarea", inputType: null }
+    ]);
   });
 });

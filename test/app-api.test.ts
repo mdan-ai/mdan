@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { html } from "lit";
 
 import { createApp, fields, type InferAppInputs, type MdanActionManifest } from "../src/index.js";
 import { parseFrontmatter } from "../src/content/content-actions.js";
@@ -608,5 +609,69 @@ describe("app API", () => {
     const body = String(response.body);
     expect(body).toContain('<article data-kind="page" data-route="/"># Starter');
     expect(body).toContain('<aside data-kind="block" data-block="main">- Booted</aside>');
+  });
+
+  it("lets app API configure form rendering for browser shell html", async () => {
+    const app = createApp({
+      appId: "starter",
+      actionProof: {
+        disabled: true
+      },
+      browserShell: {
+        title: "Starter"
+      },
+      rendering: {
+        form: {
+          renderSnapshotOperation(operation) {
+            return `<section data-app-form="${operation.source.name ?? ""}">${operation.label}</section>`;
+          },
+          renderMountedOperation() {
+            return html``;
+          }
+        }
+      }
+    });
+
+    const home = app.page("/", {
+      markdown: "# Starter\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: {
+            actions: ["submit"]
+          }
+        },
+        actions: {
+          submit: {
+            id: "submit",
+            label: "Submit",
+            verb: "write",
+            transport: { method: "POST" },
+            target: "/submit"
+          }
+        }
+      },
+      render() {
+        return {
+          main: "- Booted"
+        };
+      }
+    });
+    app.route(home);
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/html"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toBe("text/html");
+    const body = String(response.body);
+    expect(body).toContain('<section data-app-form="submit">Submit</section>');
+    expect(body).not.toContain("<mdan-form><form");
   });
 });

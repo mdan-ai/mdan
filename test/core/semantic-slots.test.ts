@@ -18,7 +18,7 @@ Runtime is Markdown-first.
     ]);
   });
 
-  it("treats Views and Handoff as optional", () => {
+  it("treats Examples, Views, and Handoff as optional", () => {
     const content = `# Demo
 
 ## Purpose
@@ -37,7 +37,7 @@ Done.
     expect(validateSemanticSlots(content)).toEqual([]);
   });
 
-  it("accepts and extracts Views and Handoff when present", () => {
+  it("accepts and extracts Examples, Views, and Handoff when present", () => {
     const content = `# Demo
 
 ## Purpose
@@ -52,6 +52,10 @@ R
 ## Result
 Done.
 
+## Examples
+- \`location=London\`
+- \`/London/today\`
+
 ## Views
 Browser and agent clients may read the same entry.
 
@@ -65,6 +69,7 @@ Continue into adjacent planning tools when appropriate.
       "Context",
       "Rules",
       "Result",
+      "Examples",
       "Views",
       "Handoff"
     ]);

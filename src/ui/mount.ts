@@ -2,21 +2,15 @@ import { html, nothing, render } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import {
   basicMarkdownRenderer,
-  buildOperationPayload,
-  createInputsByName,
-  dispatchOperation,
-  getFormKey,
-  getInputValue,
-  humanizeInputLabel,
-  type FieldSchema,
+  type HeadlessSnapshot,
   type MdanMarkdownRenderer,
+  type MdanHeadlessUiHost,
   type MdanSubmitValues,
-  resolveActionCapabilities,
-  resolveFormEnctype,
-  resolveInputCapabilities,
-  resolveRenderableInputs
+  resolveUiSnapshotView,
+  submitUiOperation,
+  type UiOperationView
 } from "./model.js";
-import type { HeadlessSnapshot, MdanHeadlessUiHost } from "../surface/protocol.js";
+import { defaultUiFormRenderer, type UiFormRenderer } from "./form-renderer.js";
 
 import { registerMdanUi } from "./register.js";
 
@@ -24,6 +18,7 @@ export interface MountMdanUiOptions {
   root: ParentNode;
   host: MdanHeadlessUiHost;
   markdownRenderer?: MdanMarkdownRenderer;
+  formRenderer?: UiFormRenderer;
 }
 
 export interface MdanUiRuntime {
@@ -101,12 +96,12 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
   ensureGlobalStyle(document);
   const host = options.host;
   const markdownRenderer = options.markdownRenderer ?? basicMarkdownRenderer;
+  const formRenderer = options.formRenderer ?? defaultUiFormRenderer;
 
   let unsubscribe: (() => void) | null = null;
   const valuesByForm: Record<string, MdanSubmitValues> = {};
   let debugDrawerOpen = false;
   let latestSnapshot: HeadlessSnapshot | null = null;
-  let clearedInitialMarkup = false;
 
   function getDebugMessages(): DebugMessageRecord[] {
     if (typeof window === "undefined") {
@@ -136,198 +131,41 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
   }
 
   async function executeOperation(
-    operation: Parameters<MdanHeadlessUiHost["submit"]>[0],
-    payload: MdanSubmitValues
+    operation: UiOperationView
   ): Promise<void> {
-    await dispatchOperation(host, operation as any, payload);
+    await submitUiOperation(host, operation, getFormValues(operation.formKey));
   }
 
   function renderSnapshot(snapshot: HeadlessSnapshot): void {
     const debugMessages = getDebugMessages();
 
-    const renderInputField = (
-      formKey: string,
-      formValues: MdanSubmitValues,
-      input: FieldSchema
-    ) => {
-      const label = html`<span class="mdan-label-text">
-        ${humanizeInputLabel(input.name, { titleCase: true })}
-        ${input.required ? html`<span class="mdan-required" aria-hidden="true">*</span>` : ""}
-      </span>`;
-      const description =
-        typeof input.description === "string" && input.description.trim().length > 0
-          ? html`<small class="mdan-field-help">${input.description}</small>`
-          : nothing;
-      const inputCapabilities = resolveInputCapabilities(input);
-
-      if (inputCapabilities.control === "select") {
-        return html`
-          <mdan-field>
-            <label>
-              ${label}
-              <select
-                name=${input.name}
-                ?required=${input.required}
-                .value=${getInputValue(input, formValues)}
-                @change=${(event: Event) => {
-                  onInput(formKey, input.name, (event.currentTarget as HTMLSelectElement).value);
-                }}
-              >
-                ${(input.options ?? []).map((option) => html`<option value=${option}>${option}</option>`)}
-              </select>
-              ${description}
-            </label>
-          </mdan-field>
-        `;
-      }
-
-      if (inputCapabilities.control === "checkbox") {
-        return html`
-          <mdan-field>
-            <label>
-              ${label}
-              <input
-                name=${input.name}
-                type="checkbox"
-                ?required=${input.required}
-                .checked=${formValues[input.name] === "true"}
-                @change=${(event: Event) => {
-                  onInput(formKey, input.name, (event.currentTarget as HTMLInputElement).checked ? "true" : "false");
-                }}
-              >
-              ${description}
-            </label>
-          </mdan-field>
-        `;
-      }
-
-      if (inputCapabilities.control === "file") {
-        return html`
-          <mdan-field>
-            <label>
-              ${label}
-              <input
-                name=${input.name}
-                type="file"
-                ?required=${input.required}
-                @change=${(event: Event) => {
-                  const file = (event.currentTarget as HTMLInputElement).files?.[0];
-                  onInput(formKey, input.name, file ?? "");
-                }}
-              >
-              ${description}
-            </label>
-          </mdan-field>
-        `;
-      }
-
-      if (inputCapabilities.control === "textarea") {
-        return html`
-          <mdan-field>
-            <label>
-              ${label}
-              <textarea
-                name=${input.name}
-                ?required=${input.required}
-                .value=${formValues[input.name] ?? ""}
-                minlength=${input.constraints?.minLength ?? nothing}
-                maxlength=${input.constraints?.maxLength ?? nothing}
-                pattern=${input.constraints?.pattern ?? nothing}
-                @input=${(event: Event) => {
-                  onInput(formKey, input.name, (event.currentTarget as HTMLTextAreaElement).value);
-                }}
-              ></textarea>
-              ${description}
-            </label>
-          </mdan-field>
-        `;
-      }
-
-      return html`
-        <mdan-field>
-          <label>
-            ${label}
-            <input
-              name=${input.name}
-              type=${inputCapabilities.inputType ?? "text"}
-              ?required=${input.required}
-              .value=${formValues[input.name] ?? ""}
-              min=${input.constraints?.minimum ?? nothing}
-              max=${input.constraints?.maximum ?? nothing}
-              minlength=${input.constraints?.minLength ?? nothing}
-              maxlength=${input.constraints?.maxLength ?? nothing}
-              pattern=${input.constraints?.pattern ?? nothing}
-              @input=${(event: Event) => {
-                onInput(formKey, input.name, (event.currentTarget as HTMLInputElement).value);
-              }}
-            >
-            ${description}
-          </label>
-        </mdan-field>
-      `;
-    };
-
-    const renderOperationForm = (
-      blockName: string,
-      operation: Parameters<MdanHeadlessUiHost["submit"]>[0],
-      inputsByName: ReturnType<typeof createInputsByName>
-    ) => {
-      const formKey = getFormKey(blockName, operation);
-      const formValues = getFormValues(formKey);
-      const { presentation } = resolveActionCapabilities(operation as any);
-      const { variant: actionVariant, behavior: actionBehavior } = presentation;
-      const renderableInputs = resolveRenderableInputs(operation as any, inputsByName);
-
-      return html`
-        <mdan-form>
-          <form
-            data-mdan-action-variant=${actionVariant}
-            data-mdan-action-behavior=${actionBehavior}
-            enctype=${resolveFormEnctype(renderableInputs)}
-            @submit=${(event: Event) => {
-              event.preventDefault();
-              const form = event.currentTarget as HTMLFormElement;
-              if (typeof form.reportValidity === "function" && !form.reportValidity()) {
-                return;
-              }
-              const payload = buildOperationPayload(operation as any, inputsByName, formValues);
-              void executeOperation(operation, payload);
-              if (operation.method === "POST") {
-                valuesByForm[formKey] = {};
-              }
-            }}
-          >
-            ${renderableInputs.map((input) => renderInputField(formKey, formValues, input))}
-            <mdan-action>
-              <button
-                type="submit"
-                data-mdan-action-variant=${actionVariant}
-                data-mdan-action-behavior=${actionBehavior}
-              >
-                ${operation.label ?? operation.name ?? operation.target}
-              </button>
-            </mdan-action>
-          </form>
-        </mdan-form>
-      `;
-    };
+    const view = resolveUiSnapshotView(snapshot, getFormValues);
 
     render(
       html`
         <mdan-page>
-          ${snapshot.status === "error" && snapshot.error
-            ? html`<mdan-error>${snapshot.error}</mdan-error>`
+          ${view.status === "error" && view.error
+            ? html`<mdan-error>${view.error}</mdan-error>`
             : nothing}
-          ${snapshot.markdown ? renderMarkdown(snapshot.markdown, markdownRenderer, { kind: "page" }) : ""}
-          ${snapshot.blocks.map((block) => {
-            const inputsByName = createInputsByName(block.inputs);
-
+          ${view.markdown ? renderMarkdown(view.markdown, markdownRenderer, { kind: "page", route: view.route }) : ""}
+          ${view.blocks.map((block) => {
             return html`
               <mdan-block data-mdan-block=${block.name}>
                 ${block.markdown
                   ? renderMarkdown(block.markdown, markdownRenderer, { kind: "block", blockName: block.name })
                   : ""}
-                ${block.operations.map((operation) => renderOperationForm(block.name, operation, inputsByName))}
+                ${block.operations.map((operation) =>
+                  formRenderer.renderMountedOperation({
+                    operation,
+                    onInput,
+                    onSubmit: (submittedOperation) => {
+                      void executeOperation(submittedOperation);
+                      if (submittedOperation.method === "POST") {
+                        valuesByForm[submittedOperation.formKey] = {};
+                      }
+                    }
+                  })
+                )}
               </mdan-block>
             `;
           })}
@@ -399,9 +237,8 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
 
   return {
     mount(): void {
-      if (!clearedInitialMarkup && container instanceof HTMLElement && container.hasAttribute("data-mdan-browser-shell")) {
+      if (container instanceof HTMLElement) {
         container.replaceChildren();
-        clearedInitialMarkup = true;
       }
       unsubscribe = host.subscribe((snapshot) => {
         latestSnapshot = snapshot;

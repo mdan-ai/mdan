@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { html } from "lit";
 
 import { createStarterServer } from "../../examples/starter/app.js";
 import { createHost } from "../../src/server/bun.js";
@@ -68,6 +69,47 @@ describe("browser shell", () => {
     expect(html).not.toContain("createHeadlessHost");
     expect(html).not.toContain("mountMdanUi");
     expect(html).not.toContain('id="mdan-initial-surface"');
+  });
+
+  it("lets apps provide their own form renderer for initial html projection", () => {
+    const pageHtml = renderBrowserShell({
+      title: "Custom Form Renderer",
+      hydrate: false,
+      formRenderer: {
+        renderSnapshotOperation(operation) {
+          return `<section data-custom-form="${operation.source.name ?? ""}">${operation.label}</section>`;
+        },
+        renderMountedOperation() {
+          return html``;
+        }
+      },
+      initialReadableSurface: {
+        markdown: "# Data\n\n<!-- mdan:block id=\"main\" -->",
+        route: "/",
+        regions: {
+          main: "Ready"
+        },
+        actions: {
+          app_id: "custom",
+          state_id: "custom:1",
+          state_version: 1,
+          blocks: {
+            main: { actions: ["submit"] }
+          },
+          actions: {
+            submit: {
+              label: "Submit",
+              verb: "write",
+              transport: { method: "POST" },
+              target: "/submit"
+            }
+          }
+        }
+      }
+    });
+
+    expect(pageHtml).toContain('<section data-custom-form="submit">Submit</section>');
+    expect(pageHtml).not.toContain("<mdan-form><form");
   });
 
   it("uses local hosted module URLs when browserShell local-dist mode is enabled", () => {
