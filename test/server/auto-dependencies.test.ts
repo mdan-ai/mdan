@@ -146,17 +146,101 @@ describe("resolveAutoDependencies", () => {
     expect(calls).toEqual([]);
   });
 
-  it("warns when both auto and autoDependencies are provided", async () => {
+  it("merges auto and autoDependencies when both are provided", async () => {
+    const calls: string[] = [];
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
-      createMdanServer({
+      const server = createMdanServer({
         actionProof: { disabled: true },
-        auto: { maxPasses: 1 },
+        auto: {
+          resolveRequest({ sourceRequest, action }) {
+            const sourceUrl = new URL(sourceRequest.url);
+            const targetUrl = new URL(action.target, sourceRequest.url);
+            const location = sourceUrl.searchParams.get("location");
+            if (location) {
+              targetUrl.searchParams.set("location", location);
+            }
+            return {
+              ...sourceRequest,
+              method: "GET",
+              url: targetUrl.toString()
+            };
+          }
+        },
         autoDependencies: { maxPasses: 0 }
       });
 
+      server.page("/root", async () => envelope("root", "/step-1"));
+      server.get("/step-1", async ({ inputs }) => {
+        calls.push(String(inputs.location ?? "missing"));
+        return envelope(String(inputs.location ?? "missing"));
+      });
+
+      const response = await server.handle({
+        method: "GET",
+        url: "https://example.test/root?location=hangzhou",
+        headers: {
+          accept: "text/markdown"
+        },
+        cookies: {}
+      });
+
+      expect(response.status).toBe(200);
+      expect(String(response.body)).toContain("# root");
+      expect(calls).toEqual([]);
       expect(warnSpy).toHaveBeenCalledWith(
-        "[mdan-sdk] createMdanServer received both options.auto and options.autoDependencies; options.auto takes precedence."
+        "[mdan-sdk] createMdanServer received both options.auto and options.autoDependencies; merging them with options.auto taking precedence for overlapping fields."
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it("does not let undefined auto fields override autoDependencies", async () => {
+    const calls: string[] = [];
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const server = createMdanServer({
+        actionProof: { disabled: true },
+        auto: {
+          maxPasses: undefined,
+          resolveRequest({ sourceRequest, action }) {
+            const sourceUrl = new URL(sourceRequest.url);
+            const targetUrl = new URL(action.target, sourceRequest.url);
+            const location = sourceUrl.searchParams.get("location");
+            if (location) {
+              targetUrl.searchParams.set("location", location);
+            }
+            return {
+              ...sourceRequest,
+              method: "GET",
+              url: targetUrl.toString()
+            };
+          }
+        },
+        autoDependencies: { maxPasses: 0 }
+      });
+
+      server.page("/root", async () => page("root", "/step-1"));
+      server.get("/step-1", async ({ inputs }) => {
+        calls.push(String(inputs.location ?? "missing"));
+        return envelope(String(inputs.location ?? "missing"));
+      });
+
+      const response = await server.handle({
+        method: "GET",
+        url: "https://example.test/root?location=hangzhou",
+        headers: {
+          accept: "text/markdown"
+        },
+        cookies: {}
+      });
+
+      expect(response.status).toBe(200);
+      expect(String(response.body)).toContain("# root");
+      expect(calls).toEqual([]);
+      expect(warnSpy).toHaveBeenCalledWith(
+        "[mdan-sdk] createMdanServer received both options.auto and options.autoDependencies; merging them with options.auto taking precedence for overlapping fields."
       );
     } finally {
       warnSpy.mockRestore();
@@ -633,5 +717,57 @@ Broken
       }
     });
     expect(result.fragment?.markdown).toBe("## Updated Again");
+  });
+
+  it("strips source request body when auto follows a POST flow", async () => {
+    const router = new MdanRouter();
+    const seenBodies: Array<string | undefined> = [];
+
+    router.get("/step-1", async ({ request }) => {
+      seenBodies.push(request.body);
+      return {
+        fragment: {
+          markdown: "## Auto Step",
+          blocks: []
+        }
+      };
+    });
+
+    const result = await resolveAutoActionResult(
+      {
+        fragment: {
+          markdown: "## Root",
+          blocks: [
+            {
+              name: "main",
+              operations: [
+                {
+                  method: "GET",
+                  target: "/step-1",
+                  name: "load-root",
+                  inputs: [],
+                  auto: true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        method: "POST",
+        url: "https://example.test/root",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({ message: "hello" }),
+        cookies: {}
+      },
+      null,
+      router,
+      {}
+    );
+
+    expect(seenBodies).toEqual([undefined]);
+    expect(result.fragment?.markdown).toBe("## Auto Step");
   });
 });

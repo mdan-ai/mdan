@@ -167,8 +167,9 @@ function applyResolvedFragmentResult(
 
 function createImplicitGetRequest(target: string, request: MdanRequest): MdanRequest {
   const targetUrl = new URL(target, request.url);
+  const { body: _ignoredBody, ...requestWithoutBody } = request;
   return {
-    ...request,
+    ...requestWithoutBody,
     method: "GET",
     url: targetUrl.toString(),
     headers: {
@@ -199,12 +200,7 @@ function normalizeResolvedRequest(request: MdanRequest, sourceRequest: MdanReque
   if (request.method !== "GET") {
     throw new Error('[mdan-sdk] auto.resolveRequest must return a GET request (method: "GET").');
   }
-  if (typeof request.body === "string" && request.body.length > 0) {
-    throw new Error("[mdan-sdk] auto.resolveRequest GET requests cannot include a request body.");
-  }
-
   return {
-    ...request,
     method: "GET",
     url: targetUrl.toString(),
     headers: {

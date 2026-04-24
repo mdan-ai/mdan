@@ -72,6 +72,21 @@ function getPathname(request: MdanRequest): string {
   return new URL(request.url).pathname;
 }
 
+function mergeDefinedOptions<T extends Record<string, unknown>>(...sources: Array<T | undefined>): T {
+  const merged: Record<string, unknown> = {};
+  for (const source of sources) {
+    if (!source) {
+      continue;
+    }
+    for (const [key, value] of Object.entries(source)) {
+      if (value !== undefined) {
+        merged[key] = value;
+      }
+    }
+  }
+  return merged as T;
+}
+
 type RequestRepresentation = "markdown" | "event-stream" | "html";
 type PageMatch = NonNullable<ReturnType<MdanRouter["resolvePage"]>>;
 type ActionMatch = NonNullable<ReturnType<MdanRouter["resolve"]>>;
@@ -380,10 +395,13 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
   const assetOptions = options.assets ?? {};
   if (options.auto && options.autoDependencies) {
     console.warn(
-      "[mdan-sdk] createMdanServer received both options.auto and options.autoDependencies; options.auto takes precedence."
+      "[mdan-sdk] createMdanServer received both options.auto and options.autoDependencies; merging them with options.auto taking precedence for overlapping fields."
     );
   }
-  const autoDependencyOptions = options.auto ?? options.autoDependencies ?? {};
+  const autoDependencyOptions = mergeDefinedOptions<AutoDependencyOptions>(
+    options.autoDependencies,
+    options.auto
+  );
   const actionProof = resolveActionProofOptions(options.actionProof);
   const context: RuntimeContext = {
     options,
