@@ -21,6 +21,7 @@ What it demonstrates:
 - define one shared `weatherFrontend`
 - keep frontend-specific code on the `@mdanai/sdk/frontend` entrypoint
 - keep the MDAN action contract unchanged while replacing the default panel markup
+- use one object frontend entry instead of wiring separate renderer parameters
 
 Run:
 

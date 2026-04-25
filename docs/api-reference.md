@@ -74,9 +74,10 @@ The shipped frontend helpers.
 
 ### Main Exports
 
+- `createFrontend(...)`
+- `defineFrontend(...)`
 - `mountMdanUi(...)`
 - `renderSurfaceSnapshot(...)`
-- `defineFrontend(...)`
 - `bootEntry(...)`
 - `resolveEntryRoute(...)`
 - `resolveMarkdownRoute(...)`

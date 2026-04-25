@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { autoBootEntry, bootEntry, defineFrontend, resolveEntryRoute, resolveMarkdownRoute } from "../../src/frontend/index.js";
+import { autoBootEntry, bootEntry, createFrontend, defineFrontend, resolveEntryRoute, resolveMarkdownRoute } from "../../src/frontend/index.js";
 
 afterEach(() => {
   document.body.replaceChildren();
@@ -173,6 +173,46 @@ describe("frontend entry", () => {
     expect(mountUi).toHaveBeenCalledWith(
       expect.objectContaining({
         frontend
+      })
+    );
+  });
+
+  it("creates an object frontend entry that wraps boot/mount/render around one extension", () => {
+    const frontend = createFrontend({
+      markdown: {
+        render(markdown) {
+          return `<article>${markdown}</article>`;
+        }
+      }
+    });
+    const sync = vi.fn(async () => {});
+    const createHost = vi.fn(() => ({
+      subscribe: vi.fn(() => () => {}),
+      submit: vi.fn(async () => {}),
+      visit: vi.fn(async () => {}),
+      sync
+    }));
+    const runtime = {
+      mount: vi.fn(),
+      unmount: vi.fn(),
+      submit: vi.fn(async () => {}),
+      visit: vi.fn(async () => {}),
+      sync
+    };
+    const mountUi = vi.fn(() => runtime);
+
+    frontend.boot({
+      createHost: createHost as never,
+      mountUi: mountUi as never,
+      fetchImpl: vi.fn() as never
+    });
+
+    expect(mountUi).toHaveBeenCalledWith(
+      expect.objectContaining({
+        frontend: expect.objectContaining({
+          markdown: frontend.markdown,
+          form: frontend.form
+        })
       })
     );
   });

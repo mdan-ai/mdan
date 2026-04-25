@@ -1,4 +1,4 @@
-import { defineFormRenderer, defineFrontend, html, nothing } from "@mdanai/sdk/frontend";
+import { createFrontend, defineFormRenderer, html, nothing } from "@mdanai/sdk/frontend";
 
 function fieldLabel(field) {
   return html`<span class="weather-form__label">
@@ -152,6 +152,6 @@ export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherF
   }
 });
 
-export const weatherFrontend = defineFrontend({
+export const weatherFrontend = createFrontend({
   form: weatherFormRenderer
 });

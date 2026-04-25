@@ -19,9 +19,9 @@ The shortest rule is:
 ```mermaid
 flowchart TD
     A["Need browser UI changes?"] --> B{"Only Markdown projection?"}
-    B -->|Yes| C["Use defineFrontend({ markdown })"]
+    B -->|Yes| C["Use createFrontend({ markdown })"]
     B -->|No| D{"Only form panel projection?"}
-    D -->|Yes| E["Use defineFrontend({ form })"]
+    D -->|Yes| E["Use createFrontend({ form })"]
     D -->|No| F{"Need your own component tree or design system?"}
     F -->|Yes| G["Use createHeadlessHost() from @mdanai/sdk/surface"]
     F -->|No| H["Stay on shipped frontend defaults"]
@@ -53,9 +53,9 @@ Choose this path when:
 
 Use:
 
-- `defineFrontend({ markdown })`
-- `frontend` with `mountMdanUi(...)`
-- `frontend` with `renderSurfaceSnapshot(...)`
+- `createFrontend({ markdown })`
+- `frontend.mount(...)`
+- `frontend.render(...)`
 
 Read:
 
@@ -71,10 +71,10 @@ Choose this path when:
 
 Use:
 
-- `defineFrontend({ form })`
+- `createFrontend({ form })`
 - `defineFormRenderer(...)`
-- `frontend` with `mountMdanUi(...)`
-- `frontend` with `renderSurfaceSnapshot(...)`
+- `frontend.mount(...)`
+- `frontend.render(...)`
 
 Read:
 

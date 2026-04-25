@@ -21,10 +21,10 @@ This means the current flow is:
 
 From `@mdanai/sdk/frontend` you get:
 
-- `defineFrontend(...)`
+- `createFrontend(...)`
 - `defineFormRenderer(...)`
-- `renderSurfaceSnapshot(...)`
-- `mountMdanUi(...)`
+- `frontend.render(...)`
+- `frontend.mount(...)`
 - `UiFormRenderer`
 
 That means you can keep MDAN transport, proof handling, route updates, and
@@ -33,7 +33,7 @@ surface semantics while changing only the panel markup.
 ## Basic Shape
 
 ```ts
-import { defineFormRenderer, defineFrontend, html } from "@mdanai/sdk/frontend";
+import { createFrontend, defineFormRenderer, html } from "@mdanai/sdk/frontend";
 
 export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherFormRenderer", {
   renderSnapshotOperation(operation) {
@@ -48,15 +48,16 @@ export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherF
   }
 });
 
-export const weatherFrontend = defineFrontend({
+export const weatherFrontend = createFrontend({
   form: weatherFormRenderer
 });
 ```
 
-You then pass that frontend extension into frontend rendering code, not into the server:
+You then use that object as the frontend entry, not as a server callback:
 
-- `renderSurfaceSnapshot(view, { frontend: weatherFrontend })`
-- `mountMdanUi({ root, host, frontend: weatherFrontend })`
+- `weatherFrontend.render(view)`
+- `weatherFrontend.mount({ root, host })`
+- `weatherFrontend.boot(...)`
 
 If you use the shipped browser entry, that still happens entirely in the
 frontend layer. The server never receives a form-rendering callback.

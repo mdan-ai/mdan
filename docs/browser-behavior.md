@@ -75,10 +75,11 @@ action proof, the query includes `action.proof` too.
 
 If you want the shipped frontend layer, use `@mdanai/sdk/frontend`:
 
-- `autoBootEntry(...)` or `bootEntry(...)` for the standalone browser entry
-- `renderSurfaceSnapshot(...)` for HTML projection from a surface view
-- `mountMdanUi(...)` for the interactive default UI
-- `defineFrontend(...)` for a unified shipped-frontend extension object
+- `createFrontend(...)` as the main shipped-frontend object entry
+- `frontend.boot(...)` for the standalone browser entry
+- `frontend.render(...)` for HTML projection from a surface view
+- `frontend.mount(...)` for the interactive default UI
+- `defineFrontend(...)` if you only want the lower-level extension object
 - `frontend.markdown` when you want custom Markdown projection
 - `defineFormRenderer(...)` and `UiFormRenderer` for custom form panels
 - `frontend.form` when you want custom form projection

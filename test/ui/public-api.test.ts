@@ -4,6 +4,7 @@ import * as frontend from "../../src/frontend/index.js";
 
 describe("frontend public api", () => {
   it("exposes the default frontend entrypoints without leaking ui internals", () => {
+    expect(frontend.createFrontend).toBeTypeOf("function");
     expect(frontend.mountMdanUi).toBeTypeOf("function");
     expect(frontend.bootEntry).toBeTypeOf("function");
     expect(frontend.autoBootEntry).toBeTypeOf("function");

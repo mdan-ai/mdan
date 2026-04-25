@@ -10,8 +10,10 @@ export {
   type BootedEntry
 } from "./entry.js";
 export {
-  type MdanFrontendExtension
-} from "./extension.js";
+  createFrontend,
+  type MdanFrontend
+} from "./frontend.js";
+export type { MdanFrontendExtension } from "./extension.js";
 export type {
   CreateFrontendHostOptions,
   FrontendHost,

@@ -15,12 +15,12 @@ and custom frontend integrations decide how to render that Markdown.
 
 ## What This Package Gives You
 
-From `@mdanai/sdk/frontend` you can pass a custom Markdown renderer through a
-frontend extension:
+From `@mdanai/sdk/frontend` you can create a frontend object that carries your
+custom Markdown renderer:
 
-- `defineFrontend(...)`
-- `mountMdanUi(...)`
-- `renderSurfaceSnapshot(...)`
+- `createFrontend(...)`
+- `frontend.mount(...)`
+- `frontend.render(...)`
 
 That means you can keep MDAN route state, action submission, proof handling,
 and region updates while changing only Markdown projection.
@@ -28,7 +28,7 @@ and region updates while changing only Markdown projection.
 ## Basic Shape
 
 ```ts
-import { defineFrontend, type MdanMarkdownRenderer } from "@mdanai/sdk/frontend";
+import { createFrontend, type MdanMarkdownRenderer } from "@mdanai/sdk/frontend";
 
 export const weatherMarkdownRenderer: MdanMarkdownRenderer = {
   render(markdown, context) {
@@ -37,15 +37,16 @@ export const weatherMarkdownRenderer: MdanMarkdownRenderer = {
   }
 };
 
-export const weatherFrontend = defineFrontend({
+export const weatherFrontend = createFrontend({
   markdown: weatherMarkdownRenderer
 });
 ```
 
-You then pass that frontend extension into shipped frontend rendering code:
+You then use that object as the shipped frontend entry:
 
-- `renderSurfaceSnapshot(view, { frontend: weatherFrontend })`
-- `mountMdanUi({ root, host, frontend: weatherFrontend })`
+- `weatherFrontend.render(view)`
+- `weatherFrontend.mount({ root, host })`
+- `weatherFrontend.boot(...)`
 
 ## Browser Entry Flow
 
@@ -53,7 +54,7 @@ With the shipped browser entry:
 
 1. the browser opens the natural route such as `/login`
 2. the frontend entry fetches the matching raw markdown route such as `/login.md`
-3. the shipped frontend renders that Markdown through your frontend extension
+3. the shipped frontend renders that Markdown through your `frontend.markdown`
 
 The Markdown renderer does not change transport. It only changes projection.
 
