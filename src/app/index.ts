@@ -6,6 +6,7 @@ import { createMdanServer, type CreateMdanServerOptions } from "../server/runtim
 export { refreshSession, signIn, signOut } from "../server/session.js";
 import type {
   MdanActionResult,
+  MdanBrowserBootstrapHandler,
   MdanHandler,
   MdanHandlerContext,
   MdanInputMap,
@@ -89,8 +90,13 @@ export interface AppAutoOptions {
   fallbackToStaticTarget?: NonNullable<CreateMdanServerOptions["auto"]>["fallbackToStaticTarget"];
 }
 
+export interface AppBrowserOptions {
+  bootstrap?: MdanBrowserBootstrapHandler;
+}
+
 export interface CreateAppOptions extends Pick<CreateMdanServerOptions, "appId" | "session" | "actionProof"> {
   auto?: AppAutoOptions;
+  browser?: AppBrowserOptions;
 }
 
 export interface AppInstance {
@@ -250,7 +256,8 @@ export const fields = {
 export function createApp(options: CreateAppOptions = {}): AppInstance {
   const server = createMdanServer({
     ...options,
-    auto: options.auto
+    auto: options.auto,
+    browserBootstrap: options.browser?.bootstrap
   });
   const registeredPageRoutes = new Set<string>();
   const registeredReadRoutes = new Set<string>();

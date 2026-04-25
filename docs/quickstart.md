@@ -74,6 +74,9 @@ http://127.0.0.1:4321/
 This is the running frontend entry. It boots browser UI, then fetches the
 markdown surface for the requested route.
 
+If you later need browser-only first-load initialization, use
+[Browser Bootstrap](/browser-bootstrap) instead of overloading dynamic auto.
+
 You should see a simple starter page with:
 
 - the project title
@@ -171,6 +174,8 @@ change so you can understand how MDAN apps are actually edited.
   Understand the model behind the starter.
 - [Examples](/examples)
   See the other runnable examples.
+- [Browser Bootstrap](/browser-bootstrap)
+  Use this when first browser load needs browser-only initialization.
 
 ## Working Inside This Repository
 

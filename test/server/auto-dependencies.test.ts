@@ -371,6 +371,87 @@ describe("resolveAutoDependencies", () => {
     expect(String(response.body)).toContain("## Not Acceptable");
   });
 
+  it("keeps normal markdown GET reads on the page handler path without browser bootstrap behavior", async () => {
+    const pageSpy = vi.fn(async () => page("root"));
+    const server = createMdanServer({
+      actionProof: { disabled: true }
+    });
+
+    server.page("/root", pageSpy);
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/root",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(pageSpy).toHaveBeenCalledTimes(1);
+    expect(String(response.body)).toContain("# root");
+  });
+
+  it("runs static auto dependencies without requiring any browser bootstrap intent", async () => {
+    const server = createMdanServer({
+      actionProof: { disabled: true }
+    });
+    const stepSpy = vi.fn(async () => page("step-1"));
+
+    server.page("/root", async () => page("root", "/step-1"));
+    server.page("/step-1", stepSpy);
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/root",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(stepSpy).toHaveBeenCalledTimes(1);
+    expect(String(response.body)).toContain("# step-1");
+  });
+
+  it("keeps dynamic auto available for non-browser dependency resolution", async () => {
+    const server = createMdanServer({
+      actionProof: { disabled: true },
+      auto: {
+        resolveRequest({ sourceRequest, action }) {
+          const sourceUrl = new URL(sourceRequest.url);
+          const targetUrl = new URL(action.target, sourceRequest.url);
+          const location = sourceUrl.searchParams.get("location");
+          if (location) {
+            targetUrl.searchParams.set("location", location);
+          }
+          return {
+            ...sourceRequest,
+            method: "GET",
+            url: targetUrl.toString()
+          };
+        }
+      }
+    });
+
+    server.page("/root", async () => page("root", "/step-1"));
+    server.get("/step-1", async ({ inputs }) => envelope(String(inputs.location ?? "missing")));
+
+    const response = await server.handle({
+      method: "GET",
+      url: "https://example.test/root?location=hangzhou",
+      headers: {
+        accept: "text/markdown"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("# hangzhou");
+  });
+
   it("preserves session mutations from page-based auto dependency results", async () => {
     const router = new MdanRouter();
 

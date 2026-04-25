@@ -36,4 +36,20 @@ export type MdanPageHandler = (
   context: MdanPageHandlerContext
 ) => Promise<MdanPageHandlerResult> | MdanPageHandlerResult;
 
+export interface MdanBrowserBootstrapContext {
+  request: MdanRequest;
+  session: MdanSessionSnapshot | null;
+}
+
+export type MdanBrowserBootstrapResult =
+  | ReadableSurface
+  | MdanPage
+  | MdanPageResult
+  | MdanActionResult
+  | null;
+
+export type MdanBrowserBootstrapHandler = (
+  context: MdanBrowserBootstrapContext
+) => Promise<MdanBrowserBootstrapResult> | MdanBrowserBootstrapResult;
+
 export type { MdanActionResult, MdanPageResult, MdanStreamResult, MdanResponse };

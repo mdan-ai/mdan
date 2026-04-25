@@ -38,6 +38,12 @@ That path takes you from product model to running app to first real change.
 - [Customize The Starter](/customize-the-starter)
 - [Examples](/examples)
 
+### I Need Browser Initialization Guidance
+
+- [Browser Bootstrap](/browser-bootstrap)
+- [Browser Behavior](/browser-behavior)
+- [Auto Dependencies](/auto-dependencies)
+
 ### I Need The Protocol And Spec
 
 - [Spec Overview](/spec)
@@ -55,6 +61,7 @@ That path takes you from product model to running app to first real change.
 - [Form Rendering](/form-rendering)
 - [SDK Packages](/sdk-packages)
 - [API Reference](/api-reference)
+- [Browser Bootstrap](/browser-bootstrap)
 - [Auto Dependencies](/auto-dependencies)
 - [Glossary](/glossary)
 

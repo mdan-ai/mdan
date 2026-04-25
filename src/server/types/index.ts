@@ -17,6 +17,9 @@ export type {
 } from "./result.js";
 export type {
   MdanHandler,
+  MdanBrowserBootstrapContext,
+  MdanBrowserBootstrapHandler,
+  MdanBrowserBootstrapResult,
   MdanHandlerContext,
   MdanPageHandler,
   MdanPageHandlerContext,

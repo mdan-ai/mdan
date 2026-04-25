@@ -14,6 +14,8 @@ import {
   createReadableSurfaceValidationResponse
 } from "./readable-surface-runtime.js";
 import {
+  normalizeActionHandlerResultLike,
+  pageResultToActionResult,
   type NormalizedActionHandlerResult,
   type NormalizedPageResult
 } from "./result-normalization.js";
@@ -43,9 +45,19 @@ import type {
   MdanActionResult,
   MdanHandlerResult,
 } from "./types/result.js";
-import type { MdanHandler, MdanPageHandler } from "./types/handler.js";
+import type {
+  MdanBrowserBootstrapHandler,
+  MdanBrowserBootstrapResult,
+  MdanHandler,
+  MdanPageHandler
+} from "./types/handler.js";
 import type { MdanSessionProvider, MdanSessionSnapshot } from "./types/session.js";
-import type { MdanRequest, MdanResponse } from "./types/transport.js";
+import {
+  MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER,
+  MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE,
+  type MdanRequest,
+  type MdanResponse
+} from "./types/transport.js";
 
 import type { MdanPostInputValidator } from "./post-input-validation.js";
 
@@ -58,6 +70,7 @@ export interface CreateMdanServerOptions {
   auto?: AutoDependencyOptions;
   autoDependencies?: AutoDependencyOptions;
   semanticSlots?: boolean | ReadableSurfaceSemanticSlotOptions;
+  browserBootstrap?: MdanBrowserBootstrapHandler;
 }
 
 function getPathname(request: MdanRequest): string {
@@ -94,6 +107,42 @@ interface RuntimeContext {
 
 function createInternalErrorResponseFor(): MdanResponse {
   return createMarkdownErrorResultResponse(createInternalServerErrorResult());
+}
+
+function getHeaderValue(headers: MdanRequest["headers"], name: string): string | undefined {
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === name) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function isBrowserBootstrapRequest(request: MdanRequest): boolean {
+  return getHeaderValue(request.headers, MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER) === MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE;
+}
+
+function stripBrowserBootstrapIntent(request: MdanRequest): MdanRequest {
+  return {
+    ...request,
+    headers: Object.fromEntries(
+      Object.entries(request.headers).filter(([key]) => key.toLowerCase() !== MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER)
+    )
+  };
+}
+
+function isPageLike(value: unknown): value is NonNullable<MdanActionResult["page"]> {
+  return Boolean(value && typeof value === "object" && "markdown" in value && "blocks" in value);
+}
+
+function isPageResultLike(value: unknown): value is {
+  page: NonNullable<MdanActionResult["page"]>;
+  route?: string;
+  status?: number;
+  headers?: Record<string, string>;
+  session?: MdanActionResult["session"];
+} {
+  return Boolean(value && typeof value === "object" && "page" in value && isPageLike((value as { page?: unknown }).page));
 }
 
 type ExecutedHandler<T> =
@@ -273,6 +322,110 @@ async function handlePageRequest(
   );
 }
 
+function normalizeBrowserBootstrapResult(
+  result: MdanBrowserBootstrapResult,
+  fallbackRoute: string,
+  fallbackAppId?: string
+): NormalizedActionHandlerResult {
+  if (!result) {
+    return {};
+  }
+
+  if (isPageResultLike(result)) {
+    const action = pageResultToActionResult(
+      {
+        page: result.page,
+        route: result.route,
+        status: result.status,
+        headers: result.headers,
+        session: result.session
+      },
+      fallbackRoute
+    );
+    return action ? { action } : {};
+  }
+
+  if (isPageLike(result)) {
+    const action = pageResultToActionResult({ page: result }, fallbackRoute);
+    return action ? { action } : {};
+  }
+
+  return normalizeActionHandlerResultLike(result, fallbackAppId);
+}
+
+async function handleBrowserBootstrapRequest(
+  context: RuntimeContext,
+  request: MdanRequest,
+  representation: RequestRepresentation,
+  pathname: string,
+  session: MdanSessionSnapshot | null
+): Promise<MdanResponse | null> {
+  if (representation === "event-stream" || !context.options.browserBootstrap || !isBrowserBootstrapRequest(request)) {
+    return null;
+  }
+
+  const executedBootstrap = await executeHandler<NormalizedActionHandlerResult>(() =>
+    Promise.resolve(
+      context.options.browserBootstrap!({
+        request,
+        session
+      })
+    ).then((result) =>
+      normalizeBrowserBootstrapResult(
+        result,
+        pathname,
+        context.options.appId
+      )
+    )
+  );
+  if (executedBootstrap.response) {
+    return executedBootstrap.response;
+  }
+
+  const normalizedBootstrapResult = executedBootstrap.value;
+  const normalizedBootstrapValidation = validateNormalizedSurfaceResult(
+    context,
+    normalizedBootstrapResult.surface,
+    normalizedBootstrapResult.invalid,
+    createInvalidActionHandlerResult()
+  );
+  if (normalizedBootstrapValidation) {
+    return normalizedBootstrapValidation;
+  }
+  if (!normalizedBootstrapResult.action) {
+    return null;
+  }
+
+  const autoSourceRequest = stripBrowserBootstrapIntent(request);
+  const resolvedResult = normalizedBootstrapResult.action.page
+    ? await resolveAutoDependencies(
+        normalizedBootstrapResult.action.page,
+        autoSourceRequest,
+        session,
+        context.router,
+        context.assetOptions,
+        context.autoDependencyOptions,
+        context.options.appId
+      )
+    : await resolveAutoActionResult(
+        normalizedBootstrapResult.action,
+        autoSourceRequest,
+        session,
+        context.router,
+        context.assetOptions,
+        context.autoDependencyOptions,
+        context.options.appId
+      );
+
+  return await finalizeActionResponse(
+    context,
+    session,
+    request,
+    representation,
+    resolvedResult
+  );
+}
+
 async function handleActionRequest(
   context: RuntimeContext,
   request: MdanRequest,
@@ -390,12 +543,23 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
       if (normalizedRequest.method === "GET") {
         const pageMatch = router.resolvePage(pathname);
         if (pageMatch) {
-      const pageResponse = await handlePageRequest(context, normalizedRequest, representation, pageMatch, session);
-      if (pageResponse) {
-        return await pageResponse;
+          const bootstrapResponse = await handleBrowserBootstrapRequest(
+            context,
+            normalizedRequest,
+            representation,
+            pathname,
+            session
+          );
+          if (bootstrapResponse) {
+            return bootstrapResponse;
+          }
+
+          const pageResponse = await handlePageRequest(context, normalizedRequest, representation, pageMatch, session);
+          if (pageResponse) {
+            return await pageResponse;
+          }
+        }
       }
-    }
-  }
 
       const match = router.resolve(normalizedRequest.method, pathname);
       if (!match) {

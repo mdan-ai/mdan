@@ -244,6 +244,40 @@ describe("app API", () => {
     await expect(response.text()).resolves.toContain("/__mdan/module.js");
   });
 
+  it("accepts a browser bootstrap hook on the app options", async () => {
+    const app = createApp({
+      appId: "starter",
+      browser: {
+        bootstrap: async () => ({
+          page: {
+            frontmatter: {},
+            markdown: "# Bootstrapped",
+            blocks: []
+          }
+        })
+      }
+    });
+
+    app.route("/", async () => ({
+      frontmatter: {},
+      markdown: "# Starter",
+      blocks: []
+    }));
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/",
+      headers: {
+        accept: "text/markdown",
+        "x-mdan-bootstrap-intent": "entry"
+      },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(String(response.body)).toContain("# Bootstrapped");
+  });
+
   it("can reuse a defined page across page and action handlers", async () => {
     const app = createApp({ appId: "starter" });
     const messages = ["Booted"];

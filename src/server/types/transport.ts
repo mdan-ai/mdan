@@ -1,3 +1,6 @@
+export const MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER = "x-mdan-bootstrap-intent";
+export const MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE = "entry";
+
 export interface MdanRequest {
   method: "GET" | "POST";
   url: string;

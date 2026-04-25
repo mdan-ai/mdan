@@ -1,4 +1,8 @@
 import { createHeadlessHost } from "../surface/index.js";
+import {
+  MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER,
+  MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE
+} from "../server/types/transport.js";
 
 import { mountMdanUi, type MdanUiRuntime } from "./mount.js";
 import type { FrontendHostFactory } from "./contracts.js";
@@ -47,6 +51,8 @@ export function resolveMarkdownRoute(route: string): string {
 }
 
 function createEntryFetch(browserWindow: Window, baseFetch: typeof fetch): typeof fetch {
+  let bootstrapPending = true;
+
   return ((input: RequestInfo | URL, init?: RequestInit) => {
     const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
     if (method !== "GET") {
@@ -64,7 +70,17 @@ function createEntryFetch(browserWindow: Window, baseFetch: typeof fetch): typeo
     }
 
     const markdownTarget = resolveMarkdownRoute(`${targetUrl.pathname}${targetUrl.search}`);
-    return baseFetch(markdownTarget, init);
+    const headers = new Headers(init?.headers);
+
+    if (bootstrapPending) {
+      headers.set(MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER, MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE);
+      bootstrapPending = false;
+    }
+
+    return baseFetch(markdownTarget, {
+      ...init,
+      headers
+    });
   }) as typeof fetch;
 }
 

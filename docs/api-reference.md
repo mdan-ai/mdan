@@ -87,6 +87,16 @@ root convenience barrel.
 - `app.host("bun", options?)`
 - `page.actionJson()`
 
+### App Options
+
+- `auto.resolveRequest(context)`
+- `auto.fallbackToStaticTarget`
+- `browser.bootstrap(context)`
+
+Use `browser.bootstrap(...)` for first browser entry initialization. Use
+`auto.resolveRequest(...)` only when a normal auto GET dependency needs a
+runtime-computed internal request.
+
 ## `@mdanai/sdk/frontend`
 
 The shipped frontend helpers. Use this subpath when you want the frontend API
@@ -113,6 +123,10 @@ without the root convenience barrel.
 - `type FrontendUiHost`
 - `type FrontendHostFactory`
 
+`bootEntry(...)` automatically attaches an internal SDK-owned browser bootstrap
+intent to its first browser-driven read. App code does not configure that
+signal directly.
+
 ## `@mdanai/sdk/server`
 
 The lower-level server runtime.
@@ -126,6 +140,16 @@ The lower-level server runtime.
 - `signIn(session)`
 - `signOut()`
 - `refreshSession(session)`
+
+### Server Options
+
+- `auto.maxPasses`
+- `auto.resolveRequest(context)`
+- `auto.fallbackToStaticTarget`
+- `browserBootstrap(context)`
+
+`browserBootstrap(...)` runs only for SDK-marked first browser entry reads. It
+stays separate from general auto dependency execution.
 
 ## `@mdanai/sdk/server/node`
 
@@ -205,3 +229,4 @@ types.
 - [Action JSON](/action-json)
 - [Server Behavior](/server-behavior)
 - [Browser Behavior](/browser-behavior)
+- [Browser Bootstrap](/browser-bootstrap)

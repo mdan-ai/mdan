@@ -37,6 +37,7 @@ export const docsNav: DocsNavSection[] = [
       { route: "/action-json", label: "Action JSON" },
       { route: "/input-schemas", label: "Input Schemas" },
       { route: "/auto-dependencies", label: "Auto Dependencies" },
+      { route: "/browser-bootstrap", label: "Browser Bootstrap" },
       { route: "/guides/sessions", label: "Sessions" },
       { route: "/custom-server", label: "Custom Server" },
       { route: "/custom-rendering", label: "Custom Rendering" }
@@ -88,6 +89,7 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/sdk-packages", sourcePath: "docs/sdk-packages.md" },
   { route: "/api-reference", sourcePath: "docs/api-reference.md" },
   { route: "/auto-dependencies", sourcePath: "docs/auto-dependencies.md" },
+  { route: "/browser-bootstrap", sourcePath: "docs/browser-bootstrap.md" },
   { route: "/action-json", sourcePath: "docs/action-json.md" },
   { route: "/input-schemas", sourcePath: "docs/input-schemas.md" },
   { route: "/reference/server-adapters", sourcePath: "docs/server-adapters.md" },

@@ -136,7 +136,9 @@ describe("frontend entry", () => {
     });
 
     await booted.runtime.sync("/search?q=hello");
-    expect(fetchImpl).toHaveBeenCalledWith("/search.md?q=hello", undefined);
+    expect(fetchImpl.mock.calls.at(-1)?.[0]).toBe("/search.md?q=hello");
+    const lastHeaders = fetchImpl.mock.calls.at(-1)?.[1]?.headers as Headers;
+    expect(lastHeaders.get("x-mdan-bootstrap-intent")).toBeNull();
   });
 
   it("passes a unified frontend extension into the mounted ui", () => {

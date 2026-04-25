@@ -97,6 +97,15 @@ That entry boots browser code, then fetches the matching raw markdown route:
 - `/` -> `/index.md`
 - `/login` -> `/login.md`
 
+On that first browser-driven read, the frontend entry also attaches an
+SDK-owned internal browser bootstrap intent marker. Runtime uses that signal to
+decide whether a declared browser bootstrap hook should run before the normal
+page handler.
+
+That signal is internal to the SDK. App code should not invent custom headers
+or transport conventions to distinguish browser entry from normal agent-facing
+markdown reads.
+
 If you define your frontend in its own browser module, you can now pass that
 frontend object directly to the app-facing host path:
 
@@ -138,6 +147,8 @@ browser clients.
 
 ## Related Docs
 
+- [Browser Bootstrap](/browser-bootstrap)
+- [Auto Dependencies](/auto-dependencies)
 - [Routing](/routing)
 - [Server Behavior](/server-behavior)
 - [Custom Rendering](/custom-rendering)
