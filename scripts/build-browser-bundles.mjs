@@ -16,6 +16,10 @@ const outputs = [
   {
     entry: "src/ui/index.ts",
     outfile: "dist-browser/ui.js"
+  },
+  {
+    entry: "src/form-renderer.ts",
+    outfile: "dist-browser/form-renderer.js"
   }
 ];
 

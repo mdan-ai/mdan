@@ -12,7 +12,7 @@ This is the smallest path that still keeps:
 
 - declared MDAN actions
 - server-rendered HTML projection
-- browser-side hydration
+- browser-side runtime takeover
 - normal `visit`, `sync`, and `submit` behavior
 
 If you want to replace the entire page UI, use [Custom Rendering](/custom-rendering)
@@ -20,19 +20,17 @@ instead.
 
 ## The Working Shape
 
-The current end-to-end path has two pieces:
+The form-rendering path is now a single declaration:
 
-1. a shared `UiFormRenderer`
-2. a custom browser `uiModuleSrc` that mounts the default UI runtime with that renderer
+1. define one `UiFormRenderer` with `defineFormRenderer(...)`
+2. pass it once through `createApp({ rendering: { form } })`
 
-The reason for the second step is simple: browser hydration needs a browser-side
-module. The server cannot serialize your renderer functions into HTML.
+From there the default browser shell automatically uses the same renderer for:
 
-So the full path is:
+- server-side projection
+- browser-side runtime takeover
 
-- server-side projection: `createApp({ rendering: { form } })`
-- browser-side hydration: custom `uiModuleSrc` that passes the same renderer to
-  `mountMdanUi(...)`
+You do not need a custom `uiModuleSrc` just to keep form rendering aligned.
 
 ## The Example To Follow
 
@@ -40,7 +38,6 @@ See the runnable example here:
 
 - [examples/form-customization/app.ts](/Users/hencoo/projects/mdan/sdk/examples/form-customization/app.ts)
 - [examples/form-customization/form-renderer.js](/Users/hencoo/projects/mdan/sdk/examples/form-customization/form-renderer.js)
-- [examples/form-customization/browser-ui.js](/Users/hencoo/projects/mdan/sdk/examples/form-customization/browser-ui.js)
 - [examples/form-customization/dev.ts](/Users/hencoo/projects/mdan/sdk/examples/form-customization/dev.ts)
 
 It renders a weather query panel from the same declared `GET` action, but with
@@ -60,10 +57,9 @@ Your form renderer changes presentation, not the action manifest.
 Export one renderer object that implements both render paths:
 
 ```ts
-import { html } from "lit";
-import type { UiFormRenderer } from "@mdanai/sdk";
+import { defineFormRenderer, html } from "@mdanai/sdk/form-renderer";
 
-export const weatherFormRenderer: UiFormRenderer = {
+export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherFormRenderer", {
   renderSnapshotOperation(operation) {
     return `<section data-weather-form>${operation.label}</section>`;
   },
@@ -74,11 +70,20 @@ export const weatherFormRenderer: UiFormRenderer = {
       </section>
     `;
   }
-};
+});
 ```
 
 In a real renderer you usually map `operation.fields` into your own layout and
 wire field changes through `onInput(formKey, name, value)`.
+
+`defineFormRenderer(...)` matters because it gives the default browser shell a
+browser-loadable module identity for the same renderer. That is how one
+declaration now works on both server and browser.
+
+Keep that renderer module browser-loadable:
+
+- prefer a plain `.js` module, or a build output that the browser can import
+- avoid Node-only imports in the renderer module itself
 
 ## Step 3: Use It In `createApp(...)`
 
@@ -97,36 +102,17 @@ const app = createApp({
 ```
 
 This affects the server-rendered browser shell HTML.
+The same renderer is also recovered automatically by the default browser shell
+once browser-side JavaScript takes over. No app bridge module is needed.
 
-## Step 4: Use The Same Renderer In The Browser UI Module
+## Step 4: Keep Host Setup Normal
 
-Create a small browser module that wraps `mountMdanUi(...)`:
-
-```js
-import { mountMdanUi as baseMountMdanUi } from "/__mdan/ui.js";
-import { weatherFormRenderer } from "/form-renderer.js";
-
-export function mountMdanUi(options) {
-  return baseMountMdanUi({
-    ...options,
-    formRenderer: weatherFormRenderer
-  });
-}
-```
-
-This keeps hydration on the same custom panel markup instead of falling back to
-the default shell form.
-
-## Step 5: Point The Browser Shell At That Module
-
-Configure the host so the browser shell imports your UI wrapper:
+The host stays on the default browser shell path:
 
 ```ts
 const host = createHost(server, {
   browserShell: {
-    title: "Weather",
-    surfaceModuleSrc: "/__mdan/surface.js",
-    uiModuleSrc: "/browser-ui.js"
+    title: "Weather"
   }
 });
 ```
@@ -153,6 +139,8 @@ That means your custom form UI does not need to reinterpret raw surface actions.
 - submit through `onSubmit(operation)`
 - update fields through `onInput(formKey, name, value)`
 - let MDAN keep transport, proof handling, and route updates
+- reach for `uiModuleSrc` only when you want to replace the whole browser UI
+  runtime, not when you only want custom form presentation
 
 ## Related Docs
 

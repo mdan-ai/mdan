@@ -26,7 +26,9 @@ describe("package export boundary", () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
     expect(indexSource).toMatch(/MDAN_PAGE_MANIFEST_VERSION/);
-    expect(indexSource).toMatch(/export type \{ UiFormRenderer \}/);
+    expect(indexSource).toMatch(/defineFormRenderer/);
+    expect(indexSource).toMatch(/type\s+UiFormRenderer/);
+    expect(indexSource).toMatch(/type\s+DefinedUiFormRenderer/);
     expect(indexSource).toMatch(/type\s+MdanActionManifest/);
     expect(indexSource).toMatch(/type\s+JsonAction/);
     expect(indexSource).toMatch(/type\s+JsonBlock/);
@@ -57,6 +59,15 @@ describe("package export boundary", () => {
     expect(indexSource).not.toMatch(/AppActionHandler/);
     expect(indexSource).not.toMatch(/AppPageConfig/);
     expect(indexSource).not.toMatch(/AppPageDefinition/);
+  });
+
+  it("publishes the form renderer subpath for browser-recoverable renderers", async () => {
+    const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8")) as {
+      exports?: Record<string, unknown>;
+    };
+    const exportsMap = packageJson.exports ?? {};
+
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./form-renderer")).toBe(true);
   });
 
   it("keeps browser-shell implementation helpers off the server barrel", async () => {

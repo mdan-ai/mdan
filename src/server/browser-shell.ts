@@ -1,33 +1,35 @@
+import { basename, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { negotiateRepresentation } from "../protocol/negotiate.js";
 import type { MdanPage } from "../protocol/types.js";
+import { getDefinedFormRendererDefinition, type DefinedUiFormRenderer } from "../form-renderer.js";
 import {
   renderInitialProjection,
   type ReadableSurface,
   type RenderSurfaceSnapshotOptions
 } from "./markdown-surface.js";
+import { resolveMountedFile } from "./static-files.js";
 
 export interface BrowserShellOptions {
   title?: string;
   rootId?: string;
   moduleMode?: "cdn" | "local-dist";
   browserShellModuleSrc?: string;
-  surfaceModuleSrc?: string;
-  uiModuleSrc?: string;
   initialReadableSurface?: ReadableSurface;
   initialPage?: MdanPage;
   markdownRenderer?: RenderSurfaceSnapshotOptions["markdownRenderer"];
-  formRenderer?: RenderSurfaceSnapshotOptions["formRenderer"];
+  formRenderer?: DefinedUiFormRenderer;
   hydrate?: boolean;
 }
 
 const DEFAULT_BROWSER_SHELL_MODULE_SRC = "https://esm.sh/@mdanai/sdk/dist-browser/browser-shell.js";
-const DEFAULT_SURFACE_MODULE_SRC = "https://esm.sh/@mdanai/sdk/surface";
-const DEFAULT_UI_MODULE_SRC = "https://esm.sh/@mdanai/sdk/dist-browser/ui.js";
+const DEFAULT_FORM_RENDERER_RUNTIME_MODULE_SRC = "https://esm.sh/@mdanai/sdk/dist-browser/form-renderer.js";
 export const LOCAL_BROWSER_SHELL_MODULE_PATH = "/__mdan/browser-shell.js";
 export const LOCAL_BROWSER_SURFACE_MODULE_PATH = "/__mdan/surface.js";
 export const LOCAL_BROWSER_UI_MODULE_PATH = "/__mdan/ui.js";
+export const LOCAL_BROWSER_FORM_RENDERER_RUNTIME_MODULE_PATH = "/__mdan/form-renderer.js";
+export const LOCAL_BROWSER_APP_FORM_RENDERER_PREFIX = "/__mdan/app-form-renderer";
 
 function escapeHtml(value: string): string {
   return value
@@ -46,35 +48,35 @@ export function renderBrowserShell(options: BrowserShellOptions = {}): string {
   const browserShellModuleSrc =
     options.browserShellModuleSrc ??
     (options.moduleMode === "local-dist" ? LOCAL_BROWSER_SHELL_MODULE_PATH : DEFAULT_BROWSER_SHELL_MODULE_SRC);
-  const surfaceModuleSrc =
-    options.surfaceModuleSrc ??
-    (options.moduleMode === "local-dist" ? LOCAL_BROWSER_SURFACE_MODULE_PATH : DEFAULT_SURFACE_MODULE_SRC);
-  const uiModuleSrc =
-    options.uiModuleSrc ??
-    (options.moduleMode === "local-dist" ? LOCAL_BROWSER_UI_MODULE_PATH : DEFAULT_UI_MODULE_SRC);
-  const usesLegacySplitModules = Boolean(options.surfaceModuleSrc || options.uiModuleSrc);
+  const formRendererDefinition = resolveBrowserFormRenderer(options.formRenderer);
+  const formRendererRuntimeModuleSrc =
+    options.moduleMode === "local-dist"
+      ? LOCAL_BROWSER_FORM_RENDERER_RUNTIME_MODULE_PATH
+      : DEFAULT_FORM_RENDERER_RUNTIME_MODULE_SRC;
+  const importMapScript = formRendererDefinition
+    ? `    <script type="importmap">
+      {
+        "imports": {
+          "@mdanai/sdk/form-renderer": ${JSON.stringify(formRendererRuntimeModuleSrc)}
+        }
+      }
+    </script>`
+    : "";
   const clientRuntimeScript =
     !shouldHydrate
       ? ""
-      : usesLegacySplitModules
-        ? `    <script type="module">
-      import { createHeadlessHost } from ${JSON.stringify(surfaceModuleSrc)};
-      import { mountMdanUi } from ${JSON.stringify(uiModuleSrc)};
-
-      const root = document.getElementById(${JSON.stringify(rootId)});
-      const host = createHeadlessHost({
-        initialRoute: window.location.pathname + window.location.search
-      });
-      const runtime = mountMdanUi({ root, host });
-      runtime.mount();
-      await host.sync();
-    </script>`
-        : `    <script type="module">
+      : `    <script type="module">
       import { bootstrapBrowserShell } from ${JSON.stringify(browserShellModuleSrc)};
 
       await bootstrapBrowserShell({
         root: document.getElementById(${JSON.stringify(rootId)}),
-        initialRoute: window.location.pathname + window.location.search
+        initialRoute: window.location.pathname + window.location.search${
+          formRendererDefinition
+            ? `,
+        formRendererModuleSrc: ${JSON.stringify(formRendererDefinition.moduleSrc)},
+        formRendererExportName: ${JSON.stringify(formRendererDefinition.exportName)}`
+            : ""
+        }
       });
     </script>`;
 
@@ -90,6 +92,7 @@ export function renderBrowserShell(options: BrowserShellOptions = {}): string {
       markdownRenderer: options.markdownRenderer,
       formRenderer: options.formRenderer
     })}</main>
+${importMapScript}
 ${clientRuntimeScript}
   </body>
 </html>`;
@@ -100,7 +103,21 @@ export function shouldServeBrowserShell(method: string, acceptHeader: string | n
 }
 
 export function resolveLocalBrowserModule(pathname: string, options: BrowserShellOptions | undefined): string | null {
-  if (!options || options.moduleMode !== "local-dist") {
+  if (!options) {
+    return null;
+  }
+  const formRendererDefinition = resolveBrowserFormRenderer(options.formRenderer);
+  if (formRendererDefinition) {
+    const resolvedRendererFile = resolveMountedFile(
+      formRendererDefinition.directoryPath,
+      LOCAL_BROWSER_APP_FORM_RENDERER_PREFIX,
+      pathname
+    );
+    if (resolvedRendererFile) {
+      return resolvedRendererFile;
+    }
+  }
+  if (options.moduleMode !== "local-dist") {
     return null;
   }
   if (pathname === LOCAL_BROWSER_SHELL_MODULE_PATH) {
@@ -112,5 +129,25 @@ export function resolveLocalBrowserModule(pathname: string, options: BrowserShel
   if (pathname === LOCAL_BROWSER_UI_MODULE_PATH) {
     return fileURLToPath(new URL("../../dist-browser/ui.js", import.meta.url));
   }
+  if (pathname === LOCAL_BROWSER_FORM_RENDERER_RUNTIME_MODULE_PATH) {
+    return fileURLToPath(new URL("../../dist-browser/form-renderer.js", import.meta.url));
+  }
   return null;
+}
+
+function resolveBrowserFormRenderer(formRenderer: DefinedUiFormRenderer | undefined): {
+  directoryPath: string;
+  exportName: string;
+  moduleSrc: string;
+} | null {
+  const definition = getDefinedFormRendererDefinition(formRenderer);
+  if (!definition) {
+    return null;
+  }
+  const entryFilePath = fileURLToPath(definition.moduleUrl);
+  return {
+    directoryPath: dirname(entryFilePath),
+    exportName: definition.exportName,
+    moduleSrc: `${LOCAL_BROWSER_APP_FORM_RENDERER_PREFIX}/${basename(entryFilePath)}`
+  };
 }

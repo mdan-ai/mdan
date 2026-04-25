@@ -65,6 +65,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./form-renderer": {
+      "types": "./dist/form-renderer.d.ts",
+      "default": "./dist/form-renderer.js"
+    },
     "./server": {
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"

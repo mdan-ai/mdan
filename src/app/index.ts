@@ -3,7 +3,7 @@ import { type ReadableSurface } from "../server/markdown-surface.js";
 import { type ActionProofOptions } from "../server/action-proofing.js";
 import type { AutoRequestResolver } from "../server/auto-dependencies.js";
 import { createMdanServer } from "../server/runtime.js";
-import type { UiFormRenderer } from "../ui/form-renderer.js";
+import type { DefinedUiFormRenderer } from "../form-renderer.js";
 import type {
   MdanActionResult,
   MdanHandler,
@@ -111,7 +111,7 @@ export interface CreateAppOptions {
   auto?: AppAutoOptions;
   rendering?: {
     markdown?: AppMarkdownRenderer;
-    form?: UiFormRenderer;
+    form?: DefinedUiFormRenderer;
   };
 }
 

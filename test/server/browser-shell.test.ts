@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { html } from "lit";
 
+import { defineFormRenderer } from "../../src/form-renderer.js";
 import { createStarterServer } from "../../examples/starter/app.js";
 import { createHost } from "../../src/server/bun.js";
 import { renderBrowserShell, shouldServeBrowserShell } from "../../src/server/browser-shell.js";
@@ -75,14 +76,14 @@ describe("browser shell", () => {
     const pageHtml = renderBrowserShell({
       title: "Custom Form Renderer",
       hydrate: false,
-      formRenderer: {
+      formRenderer: defineFormRenderer(import.meta.url, "customFormRenderer", {
         renderSnapshotOperation(operation) {
           return `<section data-custom-form="${operation.source.name ?? ""}">${operation.label}</section>`;
         },
         renderMountedOperation() {
           return html``;
         }
-      },
+      }),
       initialReadableSurface: {
         markdown: "# Data\n\n<!-- mdan:block id=\"main\" -->",
         route: "/",
@@ -122,17 +123,24 @@ describe("browser shell", () => {
     expect(html).not.toContain("https://esm.sh/@mdanai/sdk/dist-browser/browser-shell.js");
   });
 
-  it("keeps explicit module URLs even when local-dist mode is enabled", () => {
+  it("wires a defined form renderer into browser bootstrap automatically", () => {
     const html = renderBrowserShell({
       title: "Starter",
       moduleMode: "local-dist",
-      surfaceModuleSrc: "/custom/surface.js",
-      uiModuleSrc: "/custom/ui.js"
+      formRenderer: defineFormRenderer(import.meta.url, "weatherFormRenderer", {
+        renderSnapshotOperation() {
+          return "<section>Weather</section>";
+        },
+        renderMountedOperation() {
+          return html``;
+        }
+      })
     });
 
-    expect(html).toContain('"/custom/surface.js"');
-    expect(html).toContain('"/custom/ui.js"');
-    expect(html).not.toContain('"/__mdan/browser-shell.js"');
+    expect(html).toContain('"/__mdan/browser-shell.js"');
+    expect(html).toContain('"/__mdan/app-form-renderer/browser-shell.test.ts"');
+    expect(html).toContain('formRendererExportName: "weatherFormRenderer"');
+    expect(html).toContain('"@mdanai/sdk/form-renderer": "/__mdan/form-renderer.js"');
   });
 
   it("only serves the shell for browser document navigation", () => {

@@ -120,9 +120,9 @@ Best for:
 What you learn:
 
 - how one shared `UiFormRenderer` can drive both browser-shell snapshot HTML and
-  hydrated UI
-- how `createApp({ rendering: { form } })` affects server-side projection
-- how a custom `uiModuleSrc` keeps hydration aligned with the same renderer
+  browser-side runtime takeover
+- how `createApp({ rendering: { form } })` now propagates the same renderer
+  through both sides automatically
 
 Read this after the starter if your main question is form customization rather
 than full custom rendering.

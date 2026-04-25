@@ -30,6 +30,7 @@ If you only need the most common entrypoints, start with these:
 The main public package entries are:
 
 - `@mdanai/sdk`
+- `@mdanai/sdk/form-renderer`
 - `@mdanai/sdk/server/node`
 - `@mdanai/sdk/server/bun`
 - `@mdanai/sdk/surface`
@@ -42,6 +43,7 @@ The default app-authoring entrypoint.
 ### Most Developers Use
 
 - `createApp(options?)`
+- `defineFormRenderer(moduleUrl, exportName, renderer)`
 - `type AppActionJsonManifest`
 - `fields`
 - `getHeader()`, `getCookie()`, `getQueryParam()`
@@ -52,6 +54,7 @@ The default app-authoring entrypoint.
 
 - `AppBrowserShellOptions`
 - `CreateAppOptions`
+- `DefinedUiFormRenderer`
 - `UiFormRenderer`
 - `MdanActionManifest`
 - `MDAN_PAGE_MANIFEST_VERSION`
@@ -75,6 +78,24 @@ The default app-authoring entrypoint.
 - `route` and `read` are both GET-capable, but they are not interchangeable
 - the same GET path cannot be owned by both `app.route(...)` and `app.read(...)`
 - current action transport support is `GET` and `POST`
+
+## `@mdanai/sdk/form-renderer`
+
+The browser-recoverable form renderer entrypoint.
+
+Use this package when you want a single custom form renderer to work in both:
+
+- server-side browser-shell projection
+- browser-side runtime takeover
+
+### Main Exports
+
+- `defineFormRenderer(moduleUrl, exportName, renderer)`
+- `defaultUiFormRenderer`
+- `html`
+- `nothing`
+- `type DefinedUiFormRenderer`
+- `type UiFormRenderer`
 
 ## `@mdanai/sdk/server`
 

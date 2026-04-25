@@ -9,7 +9,15 @@ export {
   type InferAppInputs,
   fields
 } from "./app/index.js";
-export type { UiFormRenderer } from "./ui/form-renderer.js";
+export {
+  defineFormRenderer,
+  defaultUiFormRenderer,
+  html,
+  nothing,
+  type DefinedUiFormRenderer,
+  type MountedOperationRenderOptions,
+  type UiFormRenderer
+} from "./form-renderer.js";
 export {
   MDAN_PAGE_MANIFEST_VERSION,
   type JsonObjectSchema,

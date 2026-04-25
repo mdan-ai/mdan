@@ -55,9 +55,9 @@ describe("module boundaries", () => {
       ],
       "src/server/browser-shell.ts"
     );
-    expect(source).toContain("createHeadlessHost");
-    expect(source).toContain("mountMdanUi");
     expect(source).toContain("renderInitialProjection");
+    expect(source).toContain("getDefinedFormRendererDefinition");
+    expect(source).toContain("resolveMountedFile");
   });
 
   it("keeps readable-surface projection behind the markdown gateway", async () => {

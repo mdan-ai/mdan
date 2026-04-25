@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { html } from "lit";
 
-import { createApp, fields, type InferAppInputs, type MdanActionManifest } from "../src/index.js";
+import { createApp, defineFormRenderer, fields, type InferAppInputs, type MdanActionManifest } from "../src/index.js";
 import { parseFrontmatter } from "../src/content/content-actions.js";
 
 function extractExecutable(markdown: string) {
@@ -621,14 +621,14 @@ describe("app API", () => {
         title: "Starter"
       },
       rendering: {
-        form: {
+        form: defineFormRenderer(import.meta.url, "appFormRenderer", {
           renderSnapshotOperation(operation) {
             return `<section data-app-form="${operation.source.name ?? ""}">${operation.label}</section>`;
           },
           renderMountedOperation() {
             return html``;
           }
-        }
+        })
       }
     });
 

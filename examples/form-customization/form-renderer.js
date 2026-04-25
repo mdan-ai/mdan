@@ -1,4 +1,4 @@
-import { html, nothing } from "lit";
+import { defineFormRenderer, html, nothing } from "@mdanai/sdk/form-renderer";
 
 function fieldLabel(field) {
   return html`<span class="weather-form__label">
@@ -110,7 +110,7 @@ function renderWeatherShell(inner) {
 </section>`;
 }
 
-export const weatherFormRenderer = {
+export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherFormRenderer", {
   renderSnapshotOperation(operation) {
     const hiddenFields = operation.hiddenFields
       .map((field) => `<input type="hidden" name="${escapeHtml(field.name)}" value="${escapeHtml(field.value)}">`)
@@ -150,4 +150,4 @@ export const weatherFormRenderer = {
       </section>
     `;
   }
-};
+});
