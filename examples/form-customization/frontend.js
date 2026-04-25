@@ -1,4 +1,4 @@
-import { createFrontend, defineFrontendModule, defineFormRenderer, html, nothing } from "/__mdan/frontend.js";
+import { createFrontend, defineFrontendModule, defineFormRenderer, html, nothing } from "@mdanai/sdk/frontend";
 
 function fieldLabel(field) {
   return html`<span class="weather-form__label">

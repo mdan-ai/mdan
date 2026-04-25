@@ -102,11 +102,13 @@ function toMdanRequest(request: Request, body: string | undefined, pathnameOverr
   if (pathnameOverride) {
     url.pathname = pathnameOverride;
   }
+  const query = Object.fromEntries(url.searchParams.entries());
 
   return {
     method: toMdanMethod(request.method),
     url: url.toString(),
     headers: finalHeaders,
+    ...(Object.keys(query).length > 0 ? { query } : {}),
     ...(body ? { body } : {}),
     cookies: parseCookies(request.headers.get("cookie"))
   };

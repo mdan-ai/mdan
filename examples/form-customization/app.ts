@@ -43,13 +43,12 @@ export function createFormCustomizationServer() {
     }
   });
 
-  app.route(home.bind({ location: "Hangzhou", units: "metric", include_alerts: false }));
-
-  app.read("/", ({ inputs }) => {
+  app.route("/", ({ request }) => {
+    const query = request.query ?? {};
     return home.bind({
-      location: typeof inputs.location === "string" ? inputs.location : "Hangzhou",
-      units: inputs.units === "imperial" ? "imperial" : "metric",
-      include_alerts: inputs.include_alerts === true
+      location: typeof query.location === "string" ? query.location : "Hangzhou",
+      units: query.units === "imperial" ? "imperial" : "metric",
+      include_alerts: query.include_alerts === "true"
     }).render();
   });
 
