@@ -33,7 +33,7 @@ surface semantics while changing only the panel markup.
 ## Basic Shape
 
 ```ts
-import { createFrontend, defineFormRenderer, html } from "@mdanai/sdk/frontend";
+import { createFrontend, defineFrontendModule, defineFormRenderer, html } from "@mdanai/sdk/frontend";
 
 export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherFormRenderer", {
   renderSnapshotOperation(operation) {
@@ -48,9 +48,12 @@ export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherF
   }
 });
 
-export const weatherFrontend = createFrontend({
-  form: weatherFormRenderer
-});
+export const weatherFrontend = defineFrontendModule(
+  import.meta.url,
+  createFrontend({
+    form: weatherFormRenderer
+  })
+);
 ```
 
 You then use that object as the frontend entry, not as a server callback:

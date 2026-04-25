@@ -25,7 +25,7 @@ describe("create-mdan scaffold", () => {
     await Promise.all(tmpRoots.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
   });
 
-  it("generates a node starter against the current server-first sdk public API", async () => {
+  it("generates a node starter against the current app-first public API", async () => {
     const root = await makeTempDir();
     const targetDir = join(root, "agent-app");
 
@@ -43,7 +43,8 @@ describe("create-mdan scaffold", () => {
 
     expect(packageJson).toContain('"name": "agent-app"');
     expect(packageJson).toContain('"@mdanai/sdk": "^0.7.0"');
-    expect(indexSource).toContain('@mdanai/sdk/server/node');
+    expect(indexSource).not.toContain('@mdanai/sdk/server/node');
+    expect(indexSource).toContain('app.host("node", {');
     expect(indexSource).not.toContain("rootRedirect");
     expect(serverSource).toContain('@mdanai/sdk/app');
     expect(serverSource).not.toContain("createMarkdownPage");
@@ -61,7 +62,7 @@ describe("create-mdan scaffold", () => {
     expect(`${indexSource}\n${serverSource}`).not.toMatch(/@mdanai\/sdk\/(?:core|web|elements)|createHostedApp/);
   });
 
-  it("generates a bun starter with bun host import", async () => {
+  it("generates a bun starter with app-facing bun host wiring", async () => {
     const root = await makeTempDir();
     const targetDir = join(root, "bun-app");
 
@@ -75,7 +76,8 @@ describe("create-mdan scaffold", () => {
     const indexSource = await readGenerated(targetDir, "index.mjs");
     const packageJson = await readGenerated(targetDir, "package.json");
 
-    expect(indexSource).toContain('@mdanai/sdk/server/bun');
+    expect(indexSource).not.toContain('@mdanai/sdk/server/bun');
+    expect(indexSource).toContain('app.host("bun", {');
     expect(indexSource).toContain("Bun.serve");
     expect(indexSource).not.toContain("rootRedirect");
     expect(packageJson).toContain('"start": "bun index.mjs"');

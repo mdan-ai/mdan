@@ -1,6 +1,8 @@
 import { defaultUiFormRenderer, type UiFormRenderer } from "./form-renderer.js";
 import { basicMarkdownRenderer, type MdanMarkdownRenderer } from "./model.js";
 
+export type { MdanMarkdownRenderer } from "./model.js";
+
 export interface MdanFrontendExtension {
   markdown?: MdanMarkdownRenderer;
   form?: UiFormRenderer;

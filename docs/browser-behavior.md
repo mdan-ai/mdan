@@ -76,6 +76,7 @@ action proof, the query includes `action.proof` too.
 If you want the shipped frontend layer, use `@mdanai/sdk/frontend`:
 
 - `createFrontend(...)` as the main shipped-frontend object entry
+- `defineFrontendModule(...)` when you want to pass a frontend object directly to `app.host(...)`
 - `frontend.boot(...)` for the standalone browser entry
 - `frontend.render(...)` for HTML projection from a surface view
 - `frontend.mount(...)` for the interactive default UI
@@ -95,6 +96,24 @@ That entry boots browser code, then fetches the matching raw markdown route:
 
 - `/` -> `/index.md`
 - `/login` -> `/login.md`
+
+If you define your frontend in its own browser module, you can now pass that
+frontend object directly to the app-facing host path:
+
+```ts
+import { createFrontend, defineFrontendModule } from "@mdanai/sdk/frontend";
+
+const frontend = defineFrontendModule(
+  import.meta.url,
+  createFrontend({
+    form: weatherFormRenderer
+  })
+);
+
+export default app.host("bun", {
+  frontend
+});
+```
 
 If you want full ownership, consume the headless snapshot yourself and render
 with your own framework.

@@ -1,9 +1,8 @@
-import { createHost } from "@mdanai/sdk/server/bun";
 import { createStarterServer } from "./app.js";
 
 const port = Number(process.env.PORT ?? "4323");
-const server = createStarterServer();
-const host = createHost(server, {
+const app = createStarterServer();
+const host = app.host("bun", {
   frontend: true
 });
 

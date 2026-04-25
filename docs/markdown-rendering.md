@@ -28,7 +28,7 @@ and region updates while changing only Markdown projection.
 ## Basic Shape
 
 ```ts
-import { createFrontend, type MdanMarkdownRenderer } from "@mdanai/sdk/frontend";
+import { createFrontend, defineFrontendModule, type MdanMarkdownRenderer } from "@mdanai/sdk/frontend";
 
 export const weatherMarkdownRenderer: MdanMarkdownRenderer = {
   render(markdown, context) {
@@ -37,9 +37,12 @@ export const weatherMarkdownRenderer: MdanMarkdownRenderer = {
   }
 };
 
-export const weatherFrontend = createFrontend({
-  markdown: weatherMarkdownRenderer
-});
+export const weatherFrontend = defineFrontendModule(
+  import.meta.url,
+  createFrontend({
+    markdown: weatherMarkdownRenderer
+  })
+);
 ```
 
 You then use that object as the shipped frontend entry:

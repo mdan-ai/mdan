@@ -1,4 +1,4 @@
-import { createFrontend, defineFormRenderer, html, nothing } from "/__mdan/frontend.js";
+import { createFrontend, defineFrontendModule, defineFormRenderer, html, nothing } from "/__mdan/frontend.js";
 
 function fieldLabel(field) {
   return html`<span class="weather-form__label">
@@ -152,6 +152,9 @@ const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherFormRend
   }
 });
 
-export default createFrontend({
-  form: weatherFormRenderer
-});
+export default defineFrontendModule(
+  import.meta.url,
+  createFrontend({
+    form: weatherFormRenderer
+  })
+);

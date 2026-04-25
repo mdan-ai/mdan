@@ -9,8 +9,8 @@ description: TypeScript API reference for the public `@mdanai/sdk` package paths
 
 Most developers start with:
 
-- `createApp(...)` from `@mdanai/sdk/app`
-- `createHost(...)` from `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
+- `createApp(...)` and `createFrontend(...)` from `@mdanai/sdk`
+- `app.host("node" | "bun", options?)` from the app instance
 - `createHeadlessHost(...)` from `@mdanai/sdk/surface` when building a custom frontend
 
 ## Entry Points
@@ -26,7 +26,23 @@ Most developers start with:
 
 ## `@mdanai/sdk`
 
-Reserved root entrypoint. It does not publish the app/server API surface anymore.
+The convenience root entrypoint for the most common app and shipped frontend
+authoring helpers.
+
+### Main Exports
+
+- `createApp(options?)`
+- `fields`
+- `type InferAppInputs`
+- `signIn(session)`
+- `signOut()`
+- `refreshSession(session)`
+- `createFrontend(options?)`
+- `defineFrontendModule(moduleUrl, frontend, exportName?)`
+- `defineFormRenderer(moduleUrl, exportName, renderer)`
+- `defaultUiFormRenderer`
+- `html`
+- `nothing`
 
 ## `@mdanai/sdk/core`
 
@@ -44,7 +60,8 @@ The shared protocol and markdown-content layer.
 
 ## `@mdanai/sdk/app`
 
-The app authoring layer.
+The app authoring layer. Use this subpath when you want the app API without the
+root convenience barrel.
 
 ### Most Developers Use
 
@@ -66,15 +83,19 @@ The app authoring layer.
 - `app.action(...)`
 - `app.read(...)`
 - `app.write(...)`
+- `app.host("node", options?)`
+- `app.host("bun", options?)`
 - `page.actionJson()`
 
 ## `@mdanai/sdk/frontend`
 
-The shipped frontend helpers.
+The shipped frontend helpers. Use this subpath when you want the frontend API
+without the root convenience barrel.
 
 ### Main Exports
 
 - `createFrontend(...)`
+- `defineFrontendModule(moduleUrl, frontend, exportName?)`
 - `mountMdanUi(...)`
 - `renderSurfaceSnapshot(...)`
 - `bootEntry(...)`
@@ -111,6 +132,41 @@ The lower-level server runtime.
 - `createHost(server, options?)`
 - `createNodeHost(server, options?)`
 - `createNodeRequestListener(server, options?)`
+
+Most apps now use:
+
+```ts
+createHost(server, {
+  frontend: true
+});
+```
+
+If you want a custom browser frontend module instead of the built-in browser
+entry, use:
+
+```ts
+createHost(server, {
+  frontend: {
+    module: "/abs/path/to/frontend.js"
+  }
+});
+```
+
+If you already have a frontend object and want to pass it directly, give it a
+browser-recoverable module identity first:
+
+```ts
+const frontend = defineFrontendModule(
+  import.meta.url,
+  createFrontend({
+    form: weatherFormRenderer
+  })
+);
+
+app.host("bun", {
+  frontend
+});
+```
 
 ## `@mdanai/sdk/server/bun`
 

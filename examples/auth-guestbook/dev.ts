@@ -1,9 +1,8 @@
-import { createHost } from "@mdanai/sdk/server/bun";
 import { createAuthGuestbookServer } from "./app.js";
 
 const port = Number(process.env.PORT ?? "4321");
-const server = createAuthGuestbookServer();
-const host = createHost(server, {
+const app = createAuthGuestbookServer();
+const host = app.host("bun", {
   rootRedirect: "/login",
   frontend: true
 });

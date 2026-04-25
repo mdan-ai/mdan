@@ -1,5 +1,7 @@
 import type { MdanActionManifest, MdanPage } from "../core/protocol.js";
 import { type ReadableSurface } from "../core/surface/markdown.js";
+import { createHost as createBunHost, type CreateBunHostOptions } from "../server/bun.js";
+import { createHost as createNodeHost, type CreateNodeHostOptions } from "../server/node-runtime.js";
 import { createMdanServer, type CreateMdanServerOptions } from "../server/runtime.js";
 export { refreshSession, signIn, signOut } from "../server/session.js";
 import type {
@@ -104,6 +106,8 @@ export interface AppInstance {
   action<TInputs extends Record<string, unknown> = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
   read<TInputs extends Record<string, unknown> = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
   write<TInputs extends Record<string, unknown> = MdanInputMap>(path: string, handler: AppActionHandler<TInputs>): void;
+  host(runtime: "bun", options?: CreateBunHostOptions): ReturnType<typeof createBunHost>;
+  host(runtime: "node", options?: CreateNodeHostOptions): ReturnType<typeof createNodeHost>;
   handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
@@ -334,12 +338,25 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     action(path, { method: "POST" }, handler);
   };
 
+  function host(runtime: "bun", options?: CreateBunHostOptions): ReturnType<typeof createBunHost>;
+  function host(runtime: "node", options?: CreateNodeHostOptions): ReturnType<typeof createNodeHost>;
+  function host(
+    runtime: "bun" | "node",
+    options: CreateBunHostOptions | CreateNodeHostOptions = {}
+  ) {
+    if (runtime === "bun") {
+      return createBunHost(server, options as CreateBunHostOptions);
+    }
+    return createNodeHost(server, options as CreateNodeHostOptions);
+  }
+
   return {
     page,
     route,
     action,
     read,
     write,
+    host,
     async handle(request: MdanRequest): Promise<MdanResponse> {
       return await server.handle(request);
     }

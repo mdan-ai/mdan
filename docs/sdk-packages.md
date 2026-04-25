@@ -7,7 +7,9 @@ description: Supported public package entry paths for `@mdanai/sdk`, including t
 
 ## Choose By Task
 
-- building pages and actions:
+- getting started with app authoring and shipped frontend helpers:
+  `@mdanai/sdk`
+- building pages and actions with an explicit authoring-only import:
   `@mdanai/sdk/app`
 - hosting in Node:
   `@mdanai/sdk/server/node`
@@ -40,7 +42,7 @@ Anything outside these paths is not a stable public API.
 ## Ownership Split
 
 - `@mdanai/sdk`
-  reserved root entrypoint
+  convenience root entrypoint for app authoring and shipped frontend helpers
 - `@mdanai/sdk/app`
   app authoring helpers such as `createApp`, `fields`, and page/action wiring
 - `@mdanai/sdk/core`
@@ -55,11 +57,16 @@ Anything outside these paths is not a stable public API.
 
 ## Practical Rule
 
-- start with `@mdanai/sdk/app`
+- start with `@mdanai/sdk`
+- reach for `@mdanai/sdk/app` when you want the app authoring API without the
+  root convenience barrel
 - reach for `@mdanai/sdk/core` only when you intentionally want the shared
   protocol/content layer
-- host with `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
-- add `@mdanai/sdk/frontend` when you want the shipped frontend helpers
+- host with `app.host("node" | "bun", options?)` on the app-facing path
+- reach for `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` when you
+  intentionally want the lower-level host adapters
+- reach for `@mdanai/sdk/frontend` when you want the shipped frontend helpers
+  without the root convenience barrel
 - add `@mdanai/sdk/surface` when you want your own browser UI
 
 ## Related Docs

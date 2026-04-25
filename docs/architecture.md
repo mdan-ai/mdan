@@ -21,7 +21,7 @@ reintroducing server/frontend coupling.
 The current package model is:
 
 - `@mdanai/sdk`
-  reserved root entry
+  convenience root entry for app authoring and shipped frontend helpers
 - `@mdanai/sdk/core`
   shared protocol, content, and pure surface semantics
 - `@mdanai/sdk/app`
@@ -288,8 +288,12 @@ When in doubt:
 
 Recommended entry paths:
 
+- convenience app + frontend authoring:
+  `@mdanai/sdk`
 - authoring:
   `@mdanai/sdk/app`
+- app-facing hosting:
+  `app.host("node" | "bun", options?)`
 - hosting:
   `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun`
 - runtime-only server work:

@@ -56,6 +56,10 @@ This creates a small project that already includes:
 - `app/server.mjs`
 - `index.mjs`
 
+The generated `index.mjs` uses the app-facing host convenience:
+
+- `app.host("node" | "bun", { frontend: true })`
+
 If you want a deeper file-by-file explanation after the app is running, read
 [Customize The Starter](/customize-the-starter) next.
 
@@ -115,7 +119,7 @@ three-part authoring model:
   the app definition, explicit manifest wiring, routes, actions, and page
   rendering logic
 - `index.mjs`
-  the local Node or Bun host entry
+  the local Node or Bun host entry that calls `app.host(...)`
 
 Think of those three files like this:
 

@@ -320,13 +320,13 @@ describe("module boundaries", () => {
     expect(indexSource, "top-level exports should not expose bridge").not.toMatch(/\.\/bridge(?:\/|["'])/);
   });
 
-  it("keeps the reserved root empty while exposing only the intended low-level public boundaries", async () => {
+  it("keeps the root focused on convenience exports while exposing the intended lower-level public boundaries", async () => {
     const packageJson = JSON.parse(await readSource("package.json")) as { exports?: Record<string, unknown> };
     const indexSource = await readSource("src/index.ts");
     const appSource = await readSource("src/app/index.ts");
     const exportsMap = packageJson.exports ?? {};
 
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "."), "root entry should stay reserved").toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "."), "root entry should remain public").toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./app")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./protocol"), "protocol remains an internal source boundary").toBe(false);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./core"), "core should be the shared low-level boundary").toBe(true);
@@ -336,7 +336,10 @@ describe("module boundaries", () => {
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./surface")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./web")).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./ui")).toBe(false);
-    expect(indexSource.trim(), "root entry should stay empty").toBe("export {};");
+    expect(indexSource, "root entry should expose createApp").toMatch(/createApp/);
+    expect(indexSource, "root entry should expose createFrontend").toMatch(/createFrontend/);
+    expect(indexSource, "root entry should not expose host adapters").not.toMatch(/createHost/);
+    expect(indexSource, "root entry should not expose headless runtime").not.toMatch(/createHeadlessHost/);
     expect(appSource, "app authoring layer should not keep screen terminology").not.toMatch(/AppScreen|screen\(/);
   });
 

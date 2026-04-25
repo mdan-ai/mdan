@@ -62,15 +62,15 @@ npm install @mdanai/sdk
 
 Default path:
 
-- `@mdanai/sdk/app`: app authoring helpers
-- `@mdanai/sdk/server`: markdown-only server runtime helpers
-- `@mdanai/sdk/server/node`: host with Node HTTP
-- `@mdanai/sdk/server/bun`: host with Bun
+- `@mdanai/sdk`: app authoring + shipped frontend helpers
+- `app.host("node" | "bun", options?)`: app-facing host convenience
 
 Advanced path:
 
 - `@mdanai/sdk/core`: shared protocol and markdown-content layer
 - `@mdanai/sdk/frontend`: shipped frontend helpers
+- `@mdanai/sdk/server/node`: low-level Node host adapter
+- `@mdanai/sdk/server/bun`: low-level Bun host adapter
 - `@mdanai/sdk/surface`: custom frontend/runtime escape hatch
 
 ## Recommended Entry Paths
@@ -87,10 +87,7 @@ Advanced path:
 ## Minimal App
 
 ```ts
-import { createApp, fields } from "@mdanai/sdk/app";
-import type { InferAppInputs } from "@mdanai/sdk/app";
-import { createHost } from "@mdanai/sdk/server/bun";
-
+import { createApp, fields, type InferAppInputs } from "@mdanai/sdk";
 const messages = ["Welcome to MDAN"];
 const submitFields = {
   message: fields.string({ required: true })
@@ -164,8 +161,15 @@ app.action("/post", async ({ inputs }) => {
   return home.bind(messages).render();
 });
 
-export default createHost(app);
+export default app.host("bun", {
+  frontend: true
+});
 ```
+
+That host shape does two things by default:
+
+- serves the built-in browser entry for natural routes such as `/`
+- keeps the raw markdown surface available at `/index.md`
 
 ## App API Shape
 

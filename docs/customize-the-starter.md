@@ -59,10 +59,15 @@ The starter keeps the important pieces small:
 - `app/server.mjs`
   app definition, routes, actions, and render logic
 - `index.mjs`
-  Node or Bun host entry
+  Node or Bun host entry that calls `app.host(...)`
 
 For this first pass, only touch `app/index.md`, `app/index.action.json`, and
 `app/server.mjs`.
+
+Leave `index.mjs` alone for now. The generated starter already uses the default
+app-facing host path:
+
+- `app.host("node" | "bun", { frontend: true })`
 
 ## 3. The Three-Part Authoring Model
 

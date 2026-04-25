@@ -1,16 +1,10 @@
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-import { createHost } from "@mdanai/sdk/server/bun";
 import { createFormCustomizationServer } from "./app.js";
+import frontend from "./frontend.js";
 
 const port = Number(process.env.PORT ?? "4326");
-const root = dirname(fileURLToPath(import.meta.url));
-const server = createFormCustomizationServer();
-const host = createHost(server, {
-  frontend: {
-    module: join(root, "frontend.js")
-  }
+const app = createFormCustomizationServer();
+const host = app.host("bun", {
+  frontend
 });
 
 Bun.serve({

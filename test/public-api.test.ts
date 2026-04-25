@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = dirname(fileURLToPath(new URL(".", import.meta.url)));
 
 describe("package export boundary", () => {
-  it("publishes the root app API but keeps protocol entrypoints internal", async () => {
+  it("publishes the root convenience API but keeps protocol entrypoints internal", async () => {
     const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8")) as {
       exports?: Record<string, unknown>;
     };
@@ -17,13 +17,16 @@ describe("package export boundary", () => {
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./protocol")).toBe(false);
   });
 
-  it("keeps the reserved root export empty", async () => {
+  it("publishes a convenience root export for app and frontend helpers", async () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
-    expect(indexSource.trim()).toBe("export {};");
+    expect(indexSource).toMatch(/createApp/);
+    expect(indexSource).toMatch(/fields/);
+    expect(indexSource).toMatch(/createFrontend/);
+    expect(indexSource).toMatch(/defineFormRenderer/);
   });
 
-  it("keeps protocol manifest types off the reserved root export", async () => {
+  it("keeps protocol manifest types off the root convenience export", async () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
     expect(indexSource).not.toMatch(/MDAN_PAGE_MANIFEST_VERSION/);
@@ -32,7 +35,7 @@ describe("package export boundary", () => {
     expect(indexSource).not.toMatch(/type\s+JsonBlock/);
   });
 
-  it("publishes app authoring from the app barrel instead of the reserved root export", async () => {
+  it("keeps the app barrel available for explicit authoring imports", async () => {
     const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8")) as {
       exports?: Record<string, unknown>;
     };
@@ -53,7 +56,7 @@ describe("package export boundary", () => {
     expect(serverIndexSource).not.toMatch(/getQueryParam/);
   });
 
-  it("keeps low-value authoring types off the root app export", async () => {
+  it("keeps low-value authoring types off the root convenience export", async () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
     expect(indexSource).not.toMatch(/AppActionDefinition/);

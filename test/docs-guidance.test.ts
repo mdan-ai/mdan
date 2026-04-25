@@ -14,13 +14,14 @@ describe("docs guidance", () => {
     expect(quickstart).toContain("`app/index.action.json`");
     expect(quickstart).toContain("`app/server.mjs`");
     expect(quickstart).toContain("`index.mjs`");
+    expect(quickstart).toContain('`app.host("node" | "bun", { frontend: true })`');
   });
 
   it("keeps create-mdan focused on server-first authoring", async () => {
     const createMdanReadme = await readFile(join(repoRoot, "create-mdan/README.md"), "utf8");
 
     expect(createMdanReadme).toContain("- `@mdanai/sdk/app` for app authoring");
-    expect(createMdanReadme).toContain("- `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` for host integration");
+    expect(createMdanReadme).toContain("- `app.host(\"node\" | \"bun\", options?)` for host integration");
     expect(createMdanReadme).toContain("- `@mdanai/sdk/core` for the shared protocol/content layer");
   });
 });

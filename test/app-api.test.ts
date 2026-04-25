@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createApp, fields, type InferAppInputs } from "../src/app/index.js";
+import { createApp, fields, type InferAppInputs } from "../src/index.js";
+import { createFrontend, defineFrontendModule } from "../src/frontend/index.js";
 import type { MdanActionManifest } from "../src/core/index.js";
 import { parseFrontmatter } from "../src/content/content-actions.js";
 
@@ -178,6 +179,69 @@ describe("app API", () => {
 
     expect(response.status).toBe(200);
     expect(String(response.body)).toContain("Booted");
+  });
+
+  it("provides a bun host convenience on the app instance", async () => {
+    const app = createApp({ appId: "starter" });
+    const home = app.page("/", {
+      markdown: "# Starter\n\n<!-- mdan:block id=\"main\" -->",
+      actionJson: {
+        version: "mdan.page.v1",
+        blocks: {
+          main: {
+            actions: []
+          }
+        },
+        actions: {}
+      },
+      render() {
+        return { main: "- Booted" };
+      }
+    });
+    app.route(home);
+
+    const host = app.host("bun", {
+      frontend: true
+    });
+    const response = await host(new Request("http://example.test/", {
+      headers: {
+        accept: "text/html"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/html");
+    await expect(response.text()).resolves.toContain("/__mdan/entry.js");
+  });
+
+  it("provides a node host convenience on the app instance", () => {
+    const app = createApp({ appId: "starter" });
+
+    const host = app.host("node", {
+      frontend: true
+    });
+
+    expect(host).toBeTypeOf("function");
+  });
+
+  it("accepts a module-defined frontend object on the app host convenience", async () => {
+    const app = createApp({ appId: "starter" });
+    const frontend = defineFrontendModule(
+      "file:///tmp/weather-frontend.js",
+      createFrontend({})
+    );
+
+    const host = app.host("bun", {
+      frontend
+    });
+    const response = await host(new Request("http://example.test/", {
+      headers: {
+        accept: "text/html"
+      }
+    }));
+
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toContain("/__mdan/app-frontend.js");
   });
 
   it("can reuse a defined page across page and action handlers", async () => {

@@ -1,14 +1,26 @@
 import { fileURLToPath } from "node:url";
 
+const FRONTEND_MODULE_SYMBOL = Symbol.for("mdan.frontend.module");
+
+interface FrontendModuleCarrier {
+  [FRONTEND_MODULE_SYMBOL]?: {
+    exportName?: unknown;
+    moduleUrl?: unknown;
+  };
+  title?: unknown;
+}
+
 export interface HostFrontendOptions {
   module?: string;
+  exportName?: string;
   title?: string;
 }
 
-export type HostFrontendOption = boolean | string | HostFrontendOptions;
+export type HostFrontendOption = boolean | string | HostFrontendOptions | object;
 
 export interface NormalizedHostFrontendOptions {
   module?: string;
+  exportName?: string;
   title?: string;
 }
 
@@ -35,10 +47,26 @@ export function normalizeHostFrontendOption(
   if (typeof frontend === "string") {
     return { module: frontend };
   }
+  const carrier = frontend as FrontendModuleCarrier;
+  const taggedModule = carrier[FRONTEND_MODULE_SYMBOL];
+  if (taggedModule && typeof taggedModule.moduleUrl === "string") {
+    return {
+      module: normalizeFrontendModulePath(taggedModule.moduleUrl),
+      ...(typeof taggedModule.exportName === "string" ? { exportName: taggedModule.exportName } : {}),
+      ...(typeof carrier.title === "string" ? { title: carrier.title } : {})
+    };
+  }
   return {
-    ...(typeof frontend.module === "string" ? { module: frontend.module } : {}),
-    ...(typeof frontend.title === "string" ? { title: frontend.title } : {})
+    ...(typeof (carrier as HostFrontendOptions).module === "string" ? { module: (carrier as HostFrontendOptions).module } : {}),
+    ...(typeof (carrier as HostFrontendOptions).exportName === "string" ? { exportName: (carrier as HostFrontendOptions).exportName } : {}),
+    ...(typeof carrier.title === "string" ? { title: carrier.title } : {})
   };
+}
+
+function normalizeFrontendModulePath(moduleUrl: string): string {
+  return moduleUrl.startsWith("file:")
+    ? fileURLToPath(moduleUrl)
+    : moduleUrl;
 }
 
 export function getBuiltinFrontendStaticFile(pathname: string, frontend: HostFrontendOption | undefined): string | null {
@@ -66,6 +94,7 @@ export function renderBuiltinFrontendEntryHtml(frontend: HostFrontendOption | un
 import * as frontendModule from "/__mdan/app-frontend.js";
 
 const frontend =
+  ${normalized.exportName ? `frontendModule[${JSON.stringify(normalized.exportName)}] ??\n  ` : ""}\
   frontendModule.default ??
   frontendModule.frontend ??
   Object.values(frontendModule).find((value) => value && typeof value === "object" && typeof value.autoBoot === "function");

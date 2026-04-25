@@ -118,6 +118,23 @@ createHost(server, {
 });
 ```
 
+If you already have a frontend object defined in that browser module, you can
+also hand the object to the app-facing host convenience instead of repeating
+the module path:
+
+```ts
+const frontend = defineFrontendModule(
+  import.meta.url,
+  createFrontend({
+    form: weatherFormRenderer
+  })
+);
+
+app.host("bun", {
+  frontend
+});
+```
+
 `ignoreFavicon` defaults to enabled. Requests to `/favicon.ico` return `204`
 unless `ignoreFavicon: false` is set.
 

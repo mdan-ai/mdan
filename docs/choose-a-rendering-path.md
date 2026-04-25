@@ -55,6 +55,7 @@ Choose this path when:
 Use:
 
 - `createFrontend({ markdown })`
+- `defineFrontendModule(import.meta.url, frontend)` when you want to hand that frontend to `app.host(...)`
 - `frontend.mount(...)`
 - `frontend.render(...)`
 
@@ -74,6 +75,7 @@ Use:
 
 - `createFrontend({ form })`
 - `defineFormRenderer(...)`
+- `defineFrontendModule(import.meta.url, frontend)` when you want to hand that frontend to `app.host(...)`
 - `frontend.mount(...)`
 - `frontend.render(...)`
 

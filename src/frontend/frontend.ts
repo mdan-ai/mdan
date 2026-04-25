@@ -20,6 +20,17 @@ import {
 } from "./snapshot.js";
 import type { UiSnapshotView } from "./model.js";
 
+const FRONTEND_MODULE_SYMBOL = Symbol.for("mdan.frontend.module");
+
+interface FrontendModuleDefinition {
+  exportName: string;
+  moduleUrl: string;
+}
+
+export interface MdanFrontendModuleTagged extends MdanFrontend {
+  [FRONTEND_MODULE_SYMBOL]: FrontendModuleDefinition;
+}
+
 export interface MdanFrontend extends ResolvedFrontendExtension {
   boot(options?: Omit<BootEntryOptions, "frontend">): BootedEntry;
   autoBoot(options?: Omit<BootEntryOptions, "frontend">): BootedEntry | null;
@@ -60,4 +71,21 @@ export function createFrontend(extension: MdanFrontendExtension = {}): MdanFront
       });
     }
   };
+}
+
+export function defineFrontendModule(
+  moduleUrl: string,
+  frontend: MdanFrontend,
+  exportName = "default"
+): MdanFrontendModuleTagged {
+  Object.defineProperty(frontend, FRONTEND_MODULE_SYMBOL, {
+    value: {
+      moduleUrl,
+      exportName
+    } satisfies FrontendModuleDefinition,
+    enumerable: false,
+    configurable: true
+  });
+
+  return frontend as MdanFrontendModuleTagged;
 }
