@@ -25,7 +25,7 @@ Examples:
 
 - `/` -> `/index.md`
 - `/login` -> `/login.md`
-- `/docs/getting-started` -> `/docs/getting-started.md`
+- `/quickstart` -> `/quickstart.md`
 
 The natural route is what people open in the browser.
 
@@ -57,7 +57,7 @@ flowchart TD
 
 Host routing happens in:
 
-- [src/server/host/shared.ts](/Users/hencoo/projects/mdan/sdk/src/server/host/shared.ts)
+- `src/server/host/shared.ts`
 
 The host planner decides whether a request should:
 
@@ -74,14 +74,14 @@ The important routing rules are:
 
 The Node and Bun adapters then execute that plan:
 
-- [src/server/node.ts](/Users/hencoo/projects/mdan/sdk/src/server/node.ts)
-- [src/server/bun.ts](/Users/hencoo/projects/mdan/sdk/src/server/bun.ts)
+- `src/server/node.ts`
+- `src/server/bun.ts`
 
 ## Frontend Entry Responsibilities
 
 The frontend entry lives in:
 
-- [src/frontend/entry.ts](/Users/hencoo/projects/mdan/sdk/src/frontend/entry.ts)
+- `src/frontend/entry.ts`
 
 It does three things:
 
@@ -122,4 +122,4 @@ It matters because it gives us:
 - [Architecture](/architecture)
 - [Custom Rendering](/custom-rendering)
 - [Choose A Rendering Path](/choose-a-rendering-path)
-- [Server Adapters](/server-adapters)
+- [Server Adapters](/reference/server-adapters)

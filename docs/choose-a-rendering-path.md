@@ -37,9 +37,10 @@ Choose this path when:
 
 Use:
 
-- the frontend entry
-- `mountMdanUi(...)`
-- `renderSurfaceSnapshot(...)`
+- `createFrontend(...)`
+- `frontend.boot(...)`
+- `frontend.mount(...)`
+- `frontend.render(...)`
 
 This keeps both behavior and presentation on the shipped path.
 
@@ -103,7 +104,7 @@ Read:
 
 Start at the smallest layer that solves the problem:
 
-- projection only -> frontend renderers
+- projection only -> `createFrontend(...)` plus frontend renderers
 - full UI ownership -> surface runtime
 
 That keeps your integration simpler and keeps you closer to the shipped browser

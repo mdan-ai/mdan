@@ -17,7 +17,7 @@ By the end, you will have:
 
 - one page edited in `app/index.md`
 - one manifest edited in `app/index.action.json`
-- one action handler edited in `app.ts`
+- one action handler edited in `app/server.mjs`
 - one changed browser view
 - one changed Markdown response
 
@@ -32,7 +32,7 @@ You should already have this shape:
 app/
   index.md
   index.action.json
-app.ts
+  server.mjs
 index.mjs
 ```
 
@@ -56,13 +56,13 @@ The starter keeps the important pieces small:
   readable page content shared across browser and Markdown clients
 - `app/index.action.json`
   explicit executable action contract for that page
-- `app.ts`
+- `app/server.mjs`
   app definition, routes, actions, and render logic
 - `index.mjs`
   Node or Bun host entry
 
 For this first pass, only touch `app/index.md`, `app/index.action.json`, and
-`app.ts`.
+`app/server.mjs`.
 
 ## 3. The Three-Part Authoring Model
 
@@ -72,7 +72,7 @@ Think of those files as three different layers:
   the shared readable surface for both browsers and agents
 - `app/index.action.json`
   the explicit executable contract attached to that page
-- `app.ts`
+- `app/server.mjs`
   the runtime behavior that fills that surface with current state and handles
   actions
 
@@ -84,7 +84,7 @@ The shortest way to remember it is:
   what the page says
 - `app/index.action.json`
   what the page declares can happen next
-- `app.ts`
+- `app/server.mjs`
   how the runtime loads that page, binds current state, and handles those
   declared actions
 
@@ -145,7 +145,7 @@ Change the submit label there:
 }
 ```
 
-Then open `app.ts`.
+Then open `app/server.mjs`.
 
 The generated starter already uses the current App API:
 
@@ -154,14 +154,15 @@ The generated starter already uses the current App API:
 - `app.route(...)`
 - `app.action(...)`
 
-The generated starter runtime looks like the live starter example in this
-repository: it reads `app/index.md`, reads `app/index.action.json`, passes that
-manifest into `app.page(...)`, and binds current state with `page.bind(...)`.
+The generated starter runtime follows the same current app-authoring model used
+throughout this repository: it reads `app/index.md`, reads
+`app/index.action.json`, passes that manifest into `app.page(...)`, and binds
+current state with `page.bind(...)`.
 
 First change the initial message list so the app is clearly yours:
 
 ```js
-export function createStarterServer(initialMessages = [
+export function createAppServer(initialMessages = [
   "Hello from my first MDAN app"
 ]) {
 ```
@@ -196,7 +197,7 @@ That Markdown response is the core MDAN surface.
 This is the important checkpoint in the whole guide:
 
 - your `app/index.md` edit changed the readable surface
-- your `app.ts` edit changed the current state and action metadata
+- your `app/server.mjs` edit changed the current state and action metadata
 - the Markdown response shows both of those changes together
 
 That is the real MDAN model: page content and executable actions stay close
@@ -232,7 +233,7 @@ You changed a real MDAN starter app at the two layers that matter most:
 
 - the shared page surface in `app/index.md`
 - the explicit action contract in `app/index.action.json`
-- the runtime behavior in `app.ts`
+- the runtime behavior in `app/server.mjs`
 - the browser and Markdown outputs changed together because they come from the
   same app model
 

@@ -53,7 +53,7 @@ This creates a small project that already includes:
 
 - `app/index.md`
 - `app/index.action.json`
-- `app.ts`
+- `app/server.mjs`
 - `index.mjs`
 
 If you want a deeper file-by-file explanation after the app is running, read
@@ -111,7 +111,7 @@ three-part authoring model:
   the shared readable page content
 - `app/index.action.json`
   the explicit action JSON manifest for that page
-- `app.ts`
+- `app/server.mjs`
   the app definition, explicit manifest wiring, routes, actions, and page
   rendering logic
 - `index.mjs`
@@ -123,7 +123,7 @@ Think of those three files like this:
   what the page says
 - `app/index.action.json`
   what the page declares can happen next
-- `app.ts`
+- `app/server.mjs`
   how the runtime loads that page, binds state, and handles those declared
   actions
 

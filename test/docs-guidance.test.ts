@@ -12,7 +12,7 @@ describe("docs guidance", () => {
 
     expect(quickstart).toContain("`app/index.md`");
     expect(quickstart).toContain("`app/index.action.json`");
-    expect(quickstart).toContain("`app.ts`");
+    expect(quickstart).toContain("`app/server.mjs`");
     expect(quickstart).toContain("`index.mjs`");
   });
 

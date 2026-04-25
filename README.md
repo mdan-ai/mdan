@@ -115,7 +115,7 @@ This page shows the current message feed and the next available actions.
 Read the feed from the returned surface and submit messages through the declared action contract.
 
 ## Result
-The surface should expose the current messages and next allowed actions.
+The surface should expose the current messages and declared actions.
 
 <!-- mdan:block id="main" -->`,
   actionJson: {

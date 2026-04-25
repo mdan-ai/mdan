@@ -101,7 +101,7 @@ looks old, or the browser changed but the Markdown response seems confusing.
 ### What Is Usually Happening
 
 - you changed `app/index.md` but are expecting runtime state to change too
-- you changed `app.ts` or `app/index.action.json` but are only checking the
+- you changed `app/server.mjs` or `app/index.action.json` but are only checking the
   browser page copy
 - you are reading a different route or port than the browser
 
@@ -123,7 +123,7 @@ Remember the split:
 
 - `app/index.md` changes the shared readable surface
 - `app/index.action.json` changes the declared action contract
-- `app.ts` changes state, action handling, and returned runtime data
+- `app/server.mjs` changes state, action handling, and returned runtime data
 
 If you want a guided walkthrough of that split, use
 [Customize The Starter](/customize-the-starter).

@@ -29,7 +29,7 @@ In the current app-authoring model, one page is usually split into three parts:
   the readable Markdown surface
 - `app/index.action.json`
   the explicit executable contract for that page
-- `app.ts`
+- a runtime module such as `app.ts` or `app/server.mjs`
   the runtime that loads the page, binds state, and handles the declared
   actions
 
@@ -120,9 +120,8 @@ Example output:
 
 The action manifest does not execute anything by itself.
 
-It declares what the page exposes. Your runtime code in `app.ts` still needs to
-register matching behavior with `app.route(...)`, `app.read(...)`, or
-`app.action(...)`.
+It declares what the page exposes. Your runtime module still needs to register
+matching behavior with `app.route(...)`, `app.read(...)`, or `app.action(...)`.
 
 In practice that usually means:
 

@@ -71,7 +71,7 @@ It explains:
 
 - why explicit action manifests now live next to page Markdown
 - what `page.actionJson()` really returns
-- how that manifest connects to runtime handlers in `app.ts`
+- how that manifest connects to runtime handlers in your runtime module
 - what fields matter during debugging and integration
 
 ### Input Schemas

@@ -45,5 +45,5 @@ What to look for:
 
 Key files:
 
-- [app.ts](/Users/hencoo/projects/mdan/sdk/examples/form-customization/app.ts)
-- [form-renderer.js](/Users/hencoo/projects/mdan/sdk/examples/form-customization/form-renderer.js)
+- `examples/form-customization/app.ts`
+- `examples/form-customization/form-renderer.js`
