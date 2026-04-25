@@ -10,7 +10,7 @@ import type {
 import {
   composeHeadlessSnapshot,
   emptySnapshot,
-  patchSnapshotByOperation,
+  patchSnapshotByOperationResult,
   toSnapshot
 } from "./snapshot.js";
 import {
@@ -32,6 +32,14 @@ interface WindowWithMdanDebug extends Window {
     messages: HeadlessDebugMessage[];
   };
 }
+
+function formatRegionPatchWarning(updatedRegions: string[], reason: "route-changed" | "missing-blocks"): string {
+  if (reason === "route-changed") {
+    return `[mdan] region response declared updated_regions ${JSON.stringify(updatedRegions)} but changed route, so the runtime fell back to a page transition.`;
+  }
+  return `[mdan] region response declared updated_regions ${JSON.stringify(updatedRegions)} but did not include matching blocks, so the runtime fell back to a page transition.`;
+}
+
 function pushHistory(target: string): void {
   if (typeof window === "undefined") {
     return;
@@ -145,9 +153,20 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
       }
 
       const nextSnapshot = toSnapshot(surface, snapshot);
-      const patchedSnapshot = transition === "region" ? patchSnapshotByOperation(snapshot, nextSnapshot, operation) : null;
+      const patchResult =
+        transition === "region"
+          ? patchSnapshotByOperationResult(snapshot, nextSnapshot, operation)
+          : {
+              snapshot: null,
+              updatedRegions: [],
+              patchApplied: false
+            };
+      const patchedSnapshot = patchResult.snapshot;
       snapshot = patchedSnapshot ?? nextSnapshot;
       const nextTransition = transition === "region" && !patchedSnapshot ? "page" : transition;
+      if (debugMessages && transition === "region" && !patchResult.patchApplied && patchResult.fallbackReason) {
+        console.warn(formatRegionPatchWarning(patchResult.updatedRegions, patchResult.fallbackReason));
+      }
       if (snapshot.route && nextTransition === "page") {
         pushHistory(snapshot.route);
       }
@@ -156,7 +175,14 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
         direction: "receive",
         method,
         url,
-        markdown: surface.markdown
+        markdown: surface.markdown,
+        transition,
+        ...(patchResult.updatedRegions.length > 0 ? { updatedRegions: patchResult.updatedRegions } : {}),
+        ...(transition === "region" ? { patchApplied: patchResult.patchApplied } : {}),
+        ...(transition === "region" && !patchResult.patchApplied ? { fallbackTransition: nextTransition } : {}),
+        ...(transition === "region" && patchResult.fallbackReason ? { patchFallbackReason: patchResult.fallbackReason } : {}),
+        requestedRoute: target,
+        ...(snapshot.route ? { resolvedRoute: snapshot.route } : {})
       });
     } catch (error) {
       setStatus({

@@ -35,6 +35,13 @@ interface DebugMessageRecord {
   method: string;
   url: string;
   markdown: string;
+  transition?: string;
+  updatedRegions?: string[];
+  patchApplied?: boolean;
+  fallbackTransition?: string;
+  patchFallbackReason?: string;
+  requestedRoute?: string;
+  resolvedRoute?: string;
 }
 
 interface WindowWithMdanDebug extends Window {
@@ -220,7 +227,20 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
                                   <span>${message.direction}</span>
                                   <span>${message.method}</span>
                                   <span>${message.url}</span>
+                                  ${message.transition ? html`<span>transition:${message.transition}</span>` : null}
+                                  ${message.patchApplied !== undefined ? html`<span>patch:${String(message.patchApplied)}</span>` : null}
+                                  ${message.fallbackTransition ? html`<span>fallback:${message.fallbackTransition}</span>` : null}
                                 </div>
+                                ${(message.updatedRegions?.length ?? 0) > 0 || message.patchFallbackReason || message.requestedRoute || message.resolvedRoute
+                                  ? html`
+                                      <div style="display:grid;gap:0.2rem;margin-bottom:0.5rem;color:#cbd5e1;">
+                                        ${message.updatedRegions?.length ? html`<div>updatedRegions: ${message.updatedRegions.join(", ")}</div>` : null}
+                                        ${message.patchFallbackReason ? html`<div>patchFallbackReason: ${message.patchFallbackReason}</div>` : null}
+                                        ${message.requestedRoute ? html`<div>requestedRoute: ${message.requestedRoute}</div>` : null}
+                                        ${message.resolvedRoute ? html`<div>resolvedRoute: ${message.resolvedRoute}</div>` : null}
+                                      </div>
+                                    `
+                                  : null}
                                 <pre style="margin:0;white-space:pre-wrap;word-break:break-word;color:#e2e8f0;">${message.markdown}</pre>
                               </article>
                             `

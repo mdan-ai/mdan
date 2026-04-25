@@ -3,6 +3,13 @@ import type { ReadableSurface } from "./content.js";
 import type { HeadlessRuntimeState, HeadlessSnapshot } from "./contracts.js";
 import type { MdanHeadlessBlock, MdanOperation } from "../core/surface/presentation.js";
 
+export interface RegionPatchResult {
+  snapshot: HeadlessSnapshot | null;
+  updatedRegions: string[];
+  patchApplied: boolean;
+  fallbackReason?: "route-changed" | "missing-blocks";
+}
+
 export function emptySnapshot(route?: string): HeadlessSnapshot {
   return {
     status: "idle",
@@ -38,17 +45,26 @@ function resolveUpdatedRegions(operation?: MdanOperation): string[] {
   return updatedRegions.filter((entry): entry is string => typeof entry === "string");
 }
 
-export function patchSnapshotByOperation(
+export function patchSnapshotByOperationResult(
   current: HeadlessSnapshot,
   incoming: HeadlessSnapshot,
   operation?: MdanOperation
-): HeadlessSnapshot | null {
+): RegionPatchResult {
   const updatedRegions = resolveUpdatedRegions(operation);
   if (updatedRegions.length === 0) {
-    return null;
+    return {
+      snapshot: null,
+      updatedRegions,
+      patchApplied: false
+    };
   }
   if (incoming.route && current.route && incoming.route !== current.route) {
-    return null;
+    return {
+      snapshot: null,
+      updatedRegions,
+      patchApplied: false,
+      fallbackReason: "route-changed"
+    };
   }
 
   const byName = new Map(incoming.blocks.map((block) => [block.name, block]));
@@ -65,16 +81,33 @@ export function patchSnapshotByOperation(
   }
 
   if (!patched) {
-    return null;
+    return {
+      snapshot: null,
+      updatedRegions,
+      patchApplied: false,
+      fallbackReason: "missing-blocks"
+    };
   }
 
   return {
-    status: current.status,
-    ...(current.route ? { route: current.route } : {}),
-    ...(current.error ? { error: current.error } : {}),
-    markdown: current.markdown,
-    blocks: nextBlocks
+    snapshot: {
+      status: current.status,
+      ...(current.route ? { route: current.route } : {}),
+      ...(current.error ? { error: current.error } : {}),
+      markdown: current.markdown,
+      blocks: nextBlocks
+    },
+    updatedRegions,
+    patchApplied: true
   };
+}
+
+export function patchSnapshotByOperation(
+  current: HeadlessSnapshot,
+  incoming: HeadlessSnapshot,
+  operation?: MdanOperation
+): HeadlessSnapshot | null {
+  return patchSnapshotByOperationResult(current, incoming, operation).snapshot;
 }
 
 export function toSnapshot(surface: ReadableSurface, current: HeadlessSnapshot | null): HeadlessSnapshot {

@@ -354,6 +354,84 @@ describe("Markdown-first headless host", () => {
     expect(host.getSnapshot().blocks.find((block) => block.name === "side")).toBeUndefined();
   });
 
+  it("warns in debug mode when a region response cannot patch the declared target block", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: async () => `---
+route: "/dashboard"
+---
+
+# New side only
+
+<!-- mdan:block id="side" -->
+
+\`\`\`mdan
+{
+  "app_id": "demo",
+  "state_id": "demo:/dashboard:new-side-only",
+  "state_version": 1,
+  "blocks": {
+    "side": { "actions": [] }
+  },
+  "regions": {
+    "side": "New side only"
+  },
+  "actions": {}
+}
+\`\`\`
+`
+    }));
+    const host = createHeadlessHost({
+      initialMarkdown: artifactBody(surface("/dashboard", "Old main", { main: "Old main", side: "Old side" })),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      debugMessages: true
+    });
+    const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "patch_messages");
+    expect(operation).toBeTruthy();
+
+    await host.submit(operation!, {});
+
+    expect(host.getSnapshot().transition).toBe("page");
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('updated_regions ["main"]')
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("did not include matching blocks")
+    );
+  });
+
+  it("records transition diagnostics in debug messages for region patch fallbacks", async () => {
+    const infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+    const fetchImpl = vi.fn(async () => artifactResponse(surface("/archive", "Archived", { main: "Archived" })));
+    const host = createHeadlessHost({
+      initialMarkdown: artifactBody(surface("/dashboard", "Old main", { main: "Old main", side: "Old side" })),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      debugMessages: true
+    });
+    const operation = host.getSnapshot().blocks[0]?.operations.find((candidate) => candidate.name === "patch_messages");
+    expect(operation).toBeTruthy();
+
+    await host.submit(operation!, {});
+
+    const receiveMessage = [...infoSpy.mock.calls]
+      .map((call) => call[1])
+      .reverse()
+      .find((message) => (message as { direction?: string } | undefined)?.direction === "receive");
+
+    expect(receiveMessage).toMatchObject({
+      transition: "region",
+      updatedRegions: ["main"],
+      patchApplied: false,
+      fallbackTransition: "page",
+      patchFallbackReason: "route-changed",
+      requestedRoute: "/messages/patch",
+      resolvedRoute: "/archive"
+    });
+  });
+
   it("moves to error state with parsed markdown content on non-2xx responses", async () => {
     const fetchImpl = vi.fn(async () => artifactResponse(surface("/missing", "## Not Found", {}), 404));
     const host = createHeadlessHost({ initialMarkdown: artifactBody(surface("/start", "Start")), fetchImpl: fetchImpl as unknown as typeof fetch });

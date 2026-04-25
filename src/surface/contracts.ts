@@ -20,6 +20,13 @@ export interface HeadlessDebugMessage {
   method: string;
   url: string;
   markdown: string;
+  transition?: "page" | "region" | "stream";
+  updatedRegions?: string[];
+  patchApplied?: boolean;
+  fallbackTransition?: "page" | "region" | "stream";
+  patchFallbackReason?: "route-changed" | "missing-blocks";
+  requestedRoute?: string;
+  resolvedRoute?: string;
 }
 
 export interface MdanHeadlessUiHost {
