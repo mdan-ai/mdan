@@ -204,7 +204,7 @@ describe("auth-guestbook markdown example", () => {
     expect(parseMarkdownResponse(postWithOldAliceCookie).content).toContain("Sign in required");
   });
 
-  it("renders html for page requests, keeps page markdown fetchable, and keeps block updates off html/markdown paths", async () => {
+  it("rejects html for page requests, keeps page markdown fetchable, and keeps block updates off non-markdown paths", async () => {
     const server = createAuthGuestbookServer();
 
     const loginPage = await server.handle({
@@ -216,11 +216,9 @@ describe("auth-guestbook markdown example", () => {
       cookies: {}
     });
 
-    expect(loginPage.status).toBe(200);
-    expect(loginPage.headers["content-type"]).toBe("text/html");
-    expect(String(loginPage.body)).toContain("<!doctype html>");
-    expect(String(loginPage.body)).toContain("<h1>Sign In</h1>");
-    expect(String(loginPage.body)).not.toContain('id="mdan-initial-surface"');
+    expect(loginPage.status).toBe(406);
+    expect(loginPage.headers["content-type"]).toContain("text/markdown");
+    expect(String(loginPage.body)).toContain("## Not Acceptable");
 
     const loginMarkdown = await server.handle({
       method: "GET",

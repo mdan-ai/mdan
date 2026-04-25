@@ -2,10 +2,9 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp } from "@mdanai/sdk";
+import { createApp } from "@mdanai/sdk/app";
 
 const appId = "__APP_ID__";
-const projectName = __PROJECT_NAME_JSON__;
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "index.md"), "utf8");
 const actionJson = JSON.parse(readFileSync(join(root, "index.action.json"), "utf8"));
@@ -13,11 +12,7 @@ const actionJson = JSON.parse(readFileSync(join(root, "index.action.json"), "utf
 export function createAppServer(initialMessages = ["Welcome to MDAN"]) {
   const messages = [...initialMessages];
   const app = createApp({
-    appId,
-    browserShell: {
-      title: projectName,
-      moduleMode: "local-dist"
-    }
+    appId
   });
   const home = app.page("/", {
     markdown: template,

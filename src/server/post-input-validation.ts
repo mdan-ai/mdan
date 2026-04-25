@@ -1,4 +1,5 @@
-import type { MdanRequest, MdanSessionSnapshot } from "./types.js";
+import type { MdanSessionSnapshot } from "./types/session.js";
+import type { MdanRequest } from "./types/transport.js";
 
 export interface PostInputValidationPolicy {
   blockName: string;

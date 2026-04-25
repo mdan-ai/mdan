@@ -1,9 +1,7 @@
-import type { MdanPage } from "../protocol/types.js";
-import { type ReadableSurface } from "../server/markdown-surface.js";
-import { type ActionProofOptions } from "../server/action-proofing.js";
-import type { AutoRequestResolver } from "../server/auto-dependencies.js";
-import { createMdanServer } from "../server/runtime.js";
-import type { DefinedUiFormRenderer } from "../form-renderer.js";
+import type { MdanActionManifest, MdanPage } from "../core/protocol.js";
+import { type ReadableSurface } from "../core/surface/markdown.js";
+import { createMdanServer, type CreateMdanServerOptions } from "../server/runtime.js";
+export { refreshSession, signIn, signOut } from "../server/session.js";
 import type {
   MdanActionResult,
   MdanHandler,
@@ -15,9 +13,10 @@ import type {
   MdanRequest,
   MdanResponse,
   MdanSessionProvider,
+  MdanSessionSnapshot,
   MdanStreamResult
-} from "../server/types.js";
-import type { MdanActionManifest } from "../protocol/surface.js";
+} from "../server/types/index.js";
+export type { MdanSessionProvider, MdanSessionSnapshot } from "../server/types/index.js";
 
 type AppTransportMethod = "GET" | "POST";
 type AppInputSchemaProperty = Record<string, unknown>;
@@ -83,36 +82,13 @@ export interface AppPageDefinition<TRenderArgs extends unknown[] = []> {
   actionJson: () => AppActionJsonManifest;
 }
 
-export interface AppMarkdownRenderContext {
-  kind: "page" | "block";
-  route?: string;
-  blockName?: string;
-}
-
-export interface AppMarkdownRenderer {
-  render(markdown: string, context?: AppMarkdownRenderContext): string;
-}
-
-export interface AppBrowserShellOptions {
-  title?: string;
-  moduleMode?: "cdn" | "local-dist";
-}
-
 export interface AppAutoOptions {
-  resolveRequest?: AutoRequestResolver;
-  fallbackToStaticTarget?: boolean;
+  resolveRequest?: NonNullable<CreateMdanServerOptions["auto"]>["resolveRequest"];
+  fallbackToStaticTarget?: NonNullable<CreateMdanServerOptions["auto"]>["fallbackToStaticTarget"];
 }
 
-export interface CreateAppOptions {
-  appId?: string;
-  session?: MdanSessionProvider;
-  actionProof?: ActionProofOptions;
-  browserShell?: AppBrowserShellOptions;
+export interface CreateAppOptions extends Pick<CreateMdanServerOptions, "appId" | "session" | "actionProof"> {
   auto?: AppAutoOptions;
-  rendering?: {
-    markdown?: AppMarkdownRenderer;
-    form?: DefinedUiFormRenderer;
-  };
 }
 
 export interface AppInstance {
@@ -268,15 +244,9 @@ export const fields = {
 };
 
 export function createApp(options: CreateAppOptions = {}): AppInstance {
-  const { rendering, ...serverOptions } = options;
   const server = createMdanServer({
-    ...serverOptions,
-    browserShell: {
-      ...serverOptions.browserShell,
-      ...(rendering?.markdown ? { markdownRenderer: rendering.markdown } : {}),
-      ...(rendering?.form ? { formRenderer: rendering.form } : {})
-    },
-    auto: serverOptions.auto
+    ...options,
+    auto: options.auto
   });
   const registeredPageRoutes = new Set<string>();
   const registeredReadRoutes = new Set<string>();

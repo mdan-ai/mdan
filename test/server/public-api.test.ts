@@ -9,6 +9,11 @@ describe("@mdanai/sdk/server public API", () => {
     expect(server.fail).toBeTypeOf("function");
     expect(server.stream).toBeTypeOf("function");
     expect(server.cleanupExpiredAssets).toBeTypeOf("function");
+    expect("createApp" in server).toBe(false);
+    expect("fields" in server).toBe(false);
+    expect("getHeader" in server).toBe(false);
+    expect("getCookie" in server).toBe(false);
+    expect("getQueryParam" in server).toBe(false);
   });
 
   it("keeps lower-level handler and result typing details off the main barrel", () => {

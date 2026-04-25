@@ -1,17 +1,17 @@
 import {
   isProjectableReadableSurface,
+  normalizeReadableSurface,
   projectReadableSurfaceToPage,
   type ReadableSurface
-} from "./markdown-surface.js";
-import { normalizeReadableSurface } from "./readable-surface-normalization.js";
+} from "../core/surface/markdown.js";
 
 import type {
   MdanActionResult,
   MdanHandlerResultLike,
-  MdanPageHandlerResult,
   MdanPageResult,
   MdanStreamResult
-} from "./types.js";
+} from "./types/result.js";
+import type { MdanPageHandlerResult } from "./types/handler.js";
 
 export interface NormalizedPageResult {
   page: MdanActionResult["page"] | null;

@@ -116,10 +116,10 @@ Agent-only Markdown content embedded in comment markers such as
 `agent:begin` / `agent:end`. These are not meant to appear in human-visible
 projections.
 
-## Browser Shell
+## Browser Entry
 
-The browser-facing HTML delivery layer used by the current host path for page
-document reads.
+The thin browser-facing HTML entry that boots frontend code, then fetches the
+markdown surface for the requested route.
 
 See [Browser Behavior](/browser-behavior).
 

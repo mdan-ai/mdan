@@ -1,6 +1,7 @@
 import { createResponse } from "./response.js";
 import { fail } from "./result.js";
-import type { MdanActionResult, MdanResponse } from "./types.js";
+import type { MdanResponse } from "./types/transport.js";
+import type { MdanActionResult } from "./types/index.js";
 
 function createErrorFragment(title: string, detail?: string) {
   return {
@@ -112,19 +113,11 @@ export function createActionInputSchemaViolationResult(errors: string[]): MdanAc
   );
 }
 
-export function createHtmlPageOnlyResult(): MdanActionResult {
-  return createErrorResult(
-    406,
-    "Not Acceptable",
-    "HTML responses are only available for page GET requests. Use text/markdown for page reads."
-  );
-}
-
-export function createNonMarkdownActionOnlyResult(requestedRepresentation: "event-stream" | "html"): MdanActionResult {
+export function createNonMarkdownActionOnlyResult(requestedRepresentation: "event-stream"): MdanActionResult {
   const requestedType =
     requestedRepresentation === "event-stream"
       ? "text/event-stream"
-      : "text/html";
+      : "text/markdown";
   return createErrorResult(
     406,
     "Not Acceptable",

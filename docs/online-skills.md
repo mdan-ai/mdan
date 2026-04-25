@@ -189,7 +189,7 @@ More specifically:
 
 - `online skills` names the shape of the thing
 - `MDAN` provides a shared surface model for building it
-- `@mdanai/sdk` gives you a practical TypeScript path to ship it
+- the MDAN SDK packages give you a practical TypeScript path to ship it
 
 ## What A Minimal Online Skill Needs
 

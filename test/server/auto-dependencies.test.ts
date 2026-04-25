@@ -350,7 +350,7 @@ describe("resolveAutoDependencies", () => {
     ).rejects.toThrow(/request\.url/i);
   });
 
-  it("applies page auto dependencies before rendering html page reads", async () => {
+  it("rejects html page reads before auto dependency projection", async () => {
     const server = createMdanServer({
       actionProof: { disabled: true }
     });
@@ -367,9 +367,8 @@ describe("resolveAutoDependencies", () => {
       cookies: {}
     });
 
-    expect(response.status).toBe(200);
-    expect(String(response.body)).toContain("step-1");
-    expect(String(response.body)).not.toContain(">root<");
+    expect(response.status).toBe(406);
+    expect(String(response.body)).toContain("## Not Acceptable");
   });
 
   it("preserves session mutations from page-based auto dependency results", async () => {

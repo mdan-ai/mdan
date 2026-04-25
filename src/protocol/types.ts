@@ -118,4 +118,4 @@ export interface MdanHeadlessFragmentBootstrap {
 
 export type MdanHeadlessBootstrap = MdanHeadlessPageBootstrap | MdanHeadlessFragmentBootstrap;
 
-export type MdanRepresentation = "markdown" | "html" | "event-stream" | "not-acceptable";
+export type MdanRepresentation = "markdown" | "event-stream" | "not-acceptable";

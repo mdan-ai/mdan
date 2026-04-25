@@ -1,18 +1,9 @@
-import type { MdanPage } from "../protocol/types.js";
-import {
-  serializeMarkdownFragment,
-  serializeMarkdownPage,
-  type ReadableSurface
-} from "./markdown-surface.js";
+import type { MdanPage } from "../core/protocol.js";
+import { serializeMarkdownFragment, serializeMarkdownPage } from "../core/surface/markdown.js";
 import { serializeSseMessage } from "./sse.js";
-import { renderBrowserShell, type BrowserShellOptions } from "./browser-shell.js";
 import { toMarkdownContentType } from "./content-type.js";
-import type {
-  MdanActionResult,
-  MdanHandlerResult,
-  MdanResponse,
-  MdanStreamChunk
-} from "./types.js";
+import type { MdanActionResult, MdanHandlerResult, MdanStreamChunk } from "./types/result.js";
+import type { MdanResponse } from "./types/transport.js";
 
 function resolveResponseBody(result: MdanActionResult): string {
   if (result.page) {
@@ -52,26 +43,6 @@ function createStreamBody(result: MdanHandlerResult): string | AsyncIterable<str
   })();
 }
 
-export function createHtmlSurfaceResponse(
-  surface: ReadableSurface,
-  options: BrowserShellOptions = {},
-  status = 200,
-  headers?: Record<string, string>
-): MdanResponse {
-  return {
-    status,
-    headers: {
-      "content-type": "text/html",
-      ...(headers ?? {})
-    },
-    body: renderBrowserShell({
-      ...options,
-      initialReadableSurface: surface,
-      hydrate: false
-    })
-  };
-}
-
 export function createResponse(
   result: MdanHandlerResult,
   representation: "markdown" | "event-stream"
@@ -108,24 +79,5 @@ export function createPageResponse(
       ...(headers ?? {})
     },
     body: serializeMarkdownPage(page)
-  };
-}
-
-export function createHtmlPageResponse(
-  page: MdanPage,
-  options: BrowserShellOptions = {},
-  status = 200,
-  headers?: Record<string, string>
-): MdanResponse {
-  return {
-    status,
-    headers: {
-      "content-type": "text/html",
-      ...(headers ?? {})
-    },
-    body: renderBrowserShell({
-      ...options,
-      initialPage: page
-    })
   };
 }

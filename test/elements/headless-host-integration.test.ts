@@ -2,10 +2,10 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { mountMdanUi } from "../../src/ui/index.js";
+import { mountMdanUi } from "../../src/frontend/index.js";
+import type { FrontendListener, FrontendSnapshot, FrontendUiHost } from "../../src/frontend/contracts.js";
 import type { MdanActionManifest } from "../../src/protocol/surface.js";
 import { createHeadlessHost } from "../../src/surface/index.js";
-import type { HeadlessListener, HeadlessSnapshot, MdanHeadlessUiHost } from "../../src/surface/protocol.js";
 
 type FixtureSurface = {
   content: string;
@@ -159,7 +159,6 @@ Say something useful.
   it("clears any existing container markup before mounting the interactive ui", async () => {
     const root = document.createElement("main");
     root.id = "mdan-app";
-    root.setAttribute("data-mdan-browser-shell", "");
     root.innerHTML = "<h1>Inbox</h1><p>Say something useful.</p>";
     document.body.append(root);
 
@@ -183,9 +182,9 @@ Say something useful.
   });
 
   it("renders host error snapshots as an explicit mdan-error element", async () => {
-    const host: MdanHeadlessUiHost = {
-      subscribe(listener: HeadlessListener) {
-        const snapshot: HeadlessSnapshot = {
+    const host: FrontendUiHost = {
+      subscribe(listener: FrontendListener) {
+        const snapshot: FrontendSnapshot = {
           status: "error",
           transition: "page",
           route: "/broken",

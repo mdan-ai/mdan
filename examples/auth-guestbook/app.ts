@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp, signIn, signOut, type AppActionJsonManifest, type AppBrowserShellOptions } from "../../src/index.js";
+import { createApp, signIn, signOut, type AppActionJsonManifest } from "@mdanai/sdk/app";
 
 type SessionState = {
   sid: string;
@@ -48,14 +48,13 @@ function loadExampleAssets(): ExampleAssets {
 
 const assets = loadExampleAssets();
 
-export function createAuthGuestbookServer(browserShell: AppBrowserShellOptions = { moduleMode: "local-dist" }) {
+export function createAuthGuestbookServer() {
   const users = new Map<string, string>();
   const sessions = new Map<string, SessionState>();
   const messages: MessageEntry[] = [];
 
   const app = createApp({
     appId: "auth-guestbook",
-    browserShell,
     session: {
       async read(request) {
         const sid = request.cookies.mdan_session;

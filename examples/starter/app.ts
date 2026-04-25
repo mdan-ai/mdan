@@ -2,15 +2,14 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp, type AppBrowserShellOptions, type AppActionJsonManifest } from "../../src/index.js";
+import { createApp, type AppActionJsonManifest } from "@mdanai/sdk/app";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
 const actionJson = JSON.parse(readFileSync(join(root, "app", "index.action.json"), "utf8")) as AppActionJsonManifest;
 
 export function createStarterServer(
-  initialMessages: string[] = ["Welcome to MDAN"],
-  browserShell: AppBrowserShellOptions = { moduleMode: "local-dist" }
+  initialMessages: string[] = ["Welcome to MDAN"]
 ) {
   interface SubmitMessageInputs {
     message?: string;
@@ -18,8 +17,7 @@ export function createStarterServer(
 
   const messages = [...initialMessages];
   const app = createApp({
-    appId: "starter",
-    browserShell
+    appId: "starter"
   });
   const home = app.page("/", {
     markdown: template,

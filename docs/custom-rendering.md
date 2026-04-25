@@ -14,7 +14,18 @@ This is the right path when:
 - you still want MDAN to own route state and action submission
 - you do not want to re-implement the browser/runtime contract yourself
 
-If you just want the fastest browser app, stay on the default browser shell.
+If you just want the fastest shipped frontend path, stay on the default
+frontend helpers.
+
+If you only want to customize Markdown or form projection inside the shipped
+frontend, use the frontend rendering hooks instead:
+
+- [Choose A Rendering Path](/choose-a-rendering-path)
+- [Markdown Rendering](/markdown-rendering)
+- [Form Rendering](/form-rendering)
+
+If you want the shipped frontend entry, use the natural browser route and let
+it fetch matching markdown surfaces from the server.
 
 ## What You Keep And What You Replace
 
@@ -57,6 +68,10 @@ The host gives you the main browser-side behavior:
 - `visit(target)`
 - `sync(target?)`
 - `submit(operation, values)`
+
+If you are building reusable frontend code, you can type it against the
+frontend contracts from `@mdanai/sdk/frontend` and accept any compatible host,
+instead of depending on the concrete surface runtime types directly.
 
 ## The Basic Lifecycle
 
@@ -184,7 +199,10 @@ contract as the default browser path.
 
 ## Related Docs
 
+- [Choose A Rendering Path](/choose-a-rendering-path)
 - [Custom Server](/custom-server)
+- [Markdown Rendering](/markdown-rendering)
+- [Form Rendering](/form-rendering)
 - [Browser Behavior](/browser-behavior)
 - [SDK Packages](/sdk-packages)
 - [API Reference](/api-reference)

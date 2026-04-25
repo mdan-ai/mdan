@@ -13,10 +13,10 @@ This example organizes assets into explicit source files while following the Mar
 
 Runtime contract:
 
-- `GET page` supports `text/html` and `text/markdown`
+- `GET page` supports `text/markdown`
 - `GET page` no longer exposes `application/json`; page discovery happens through the Markdown response
 - `POST action/block` accepts `application/json` request bodies and returns Markdown responses with `Accept: text/markdown`
-- HTML page responses are rendered on the server from the same underlying runtime state
+- frontend consumers render UI from the returned markdown surface
 
 ## Run with Bun
 
@@ -33,9 +33,9 @@ Open:
 - `http://127.0.0.1:4321/login`
 - `http://127.0.0.1:4321/register`
 - `http://127.0.0.1:4321/guestbook`
+- `http://127.0.0.1:4321/login.md` if you want the raw markdown route
 
 Quick checks:
 
-- `curl -H 'Accept: text/html' http://127.0.0.1:4321/login`
-- `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/login`
+- `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/login.md`
 - `curl -X POST -H 'Accept: text/markdown' -H 'Content-Type: application/json' -d '{"action":{"proof":"<proof>"},"input":{"username":"ada","password":"pw"}}' http://127.0.0.1:4321/auth/register`

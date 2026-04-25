@@ -1,4 +1,4 @@
-import type { MdanSessionMutation, MdanSessionSnapshot } from "./types.js";
+import type { MdanSessionMutation, MdanSessionSnapshot } from "./types/session.js";
 
 export function signIn(session: MdanSessionSnapshot): MdanSessionMutation {
   return {

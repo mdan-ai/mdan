@@ -1,13 +1,12 @@
-import { negotiateRepresentation } from "../protocol/negotiate.js";
+import { negotiateRepresentation } from "../core/protocol.js";
 
 import {
   isProjectableReadableSurface,
   type ReadableSurface
-} from "./markdown-surface.js";
+} from "../core/surface/markdown.js";
 import { withActionProofs, resolveActionProofOptions, type ActionProofOptions, type ResolvedActionProofOptions } from "./action-proofing.js";
 import { validateActionRequest } from "./action-request-validation.js";
 import { resolveAutoActionResult, resolveAutoDependencies, type AutoDependencyOptions } from "./auto-dependencies.js";
-import type { BrowserShellOptions } from "./browser-shell.js";
 import { dispatchActionHandler, dispatchPageHandler } from "./handler-dispatch.js";
 import { MdanRouter } from "./router.js";
 import {
@@ -19,21 +18,18 @@ import {
   type NormalizedPageResult
 } from "./result-normalization.js";
 import {
-  createHtmlPageResponse,
-  createHtmlSurfaceResponse,
   createPageResponse,
   createResponse
 } from "./response.js";
 import {
   createErrorResponse,
-  createHtmlPageOnlyResult,
   createInternalServerErrorResult,
   createInvalidActionHandlerResult,
   createInvalidPageHandlerResult,
   createMarkdownErrorResultResponse,
   createNotFoundResult
 } from "./runtime-errors.js";
-import type { ReadableSurfaceSemanticSlotOptions } from "./readable-surface-options.js";
+import type { ReadableSurfaceSemanticSlotOptions } from "../core/surface/validation.js";
 export {
   validatePostInputs,
   type MdanPostInputValidator,
@@ -45,14 +41,11 @@ export {
 import type { MdanAssetStoreOptions } from "./assets.js";
 import type {
   MdanActionResult,
-  MdanHandler,
   MdanHandlerResult,
-  MdanPageHandler,
-  MdanRequest,
-  MdanResponse,
-  MdanSessionProvider,
-  MdanSessionSnapshot
-} from "./types.js";
+} from "./types/result.js";
+import type { MdanHandler, MdanPageHandler } from "./types/handler.js";
+import type { MdanSessionProvider, MdanSessionSnapshot } from "./types/session.js";
+import type { MdanRequest, MdanResponse } from "./types/transport.js";
 
 import type { MdanPostInputValidator } from "./post-input-validation.js";
 
@@ -64,7 +57,6 @@ export interface CreateMdanServerOptions {
   assets?: MdanAssetStoreOptions;
   auto?: AutoDependencyOptions;
   autoDependencies?: AutoDependencyOptions;
-  browserShell?: BrowserShellOptions;
   semanticSlots?: boolean | ReadableSurfaceSemanticSlotOptions;
 }
 
@@ -87,7 +79,7 @@ function mergeDefinedOptions<T extends object>(...sources: Array<T | undefined>)
   return merged as T;
 }
 
-type RequestRepresentation = "markdown" | "event-stream" | "html";
+type RequestRepresentation = "markdown" | "event-stream";
 type PageMatch = NonNullable<ReturnType<MdanRouter["resolvePage"]>>;
 type ActionMatch = NonNullable<ReturnType<MdanRouter["resolve"]>>;
 
@@ -191,7 +183,7 @@ async function finalizeActionResponse(
   context: RuntimeContext,
   session: MdanSessionSnapshot | null,
   request: MdanRequest,
-  representation: Exclude<RequestRepresentation, "html">,
+  representation: RequestRepresentation,
   result: MdanHandlerResult
 ): Promise<MdanResponse> {
   const signedResult =
@@ -205,28 +197,6 @@ async function finalizeActionResponse(
     request,
     response,
     result.session
-  );
-}
-
-function createStaticBrowserShellOptions(context: RuntimeContext): BrowserShellOptions {
-  return {
-    ...context.options.browserShell,
-    hydrate: false
-  };
-}
-
-function createStaticHtmlPageReadResponse(
-  context: RuntimeContext,
-  page: NonNullable<NormalizedPageResult["page"]>,
-  status = 200,
-  headers?: Record<string, string>
-): MdanResponse | null {
-  const browserShellOptions = createStaticBrowserShellOptions(context);
-  return createHtmlPageResponse(
-    page,
-    browserShellOptions,
-    status,
-    headers
   );
 }
 
@@ -284,25 +254,6 @@ async function handlePageRequest(
     context.options.appId
   );
   if (!resolvedPage.page) {
-    return createMarkdownErrorResultResponse(createInternalServerErrorResult());
-  }
-
-  if (representation === "html") {
-    const htmlResponse = createStaticHtmlPageReadResponse(
-      context,
-      resolvedPage.page,
-      resolvedPage.status ?? normalizedPageResult.status ?? 200,
-      resolvedPage.headers ?? normalizedPageResult.headers
-    );
-    if (htmlResponse) {
-      return await finalizeCommittedResponse(
-        context,
-        session,
-        request,
-        htmlResponse,
-        resolvedPage.session ?? normalizedPageResult.session
-      );
-    }
     return createMarkdownErrorResultResponse(createInternalServerErrorResult());
   }
 
@@ -439,16 +390,12 @@ export function createMdanServer(options: CreateMdanServerOptions = {}) {
       if (normalizedRequest.method === "GET") {
         const pageMatch = router.resolvePage(pathname);
         if (pageMatch) {
-          const pageResponse = await handlePageRequest(context, normalizedRequest, representation, pageMatch, session);
-          if (pageResponse) {
-            return await pageResponse;
-          }
-        }
+      const pageResponse = await handlePageRequest(context, normalizedRequest, representation, pageMatch, session);
+      if (pageResponse) {
+        return await pageResponse;
       }
-
-      if (representation === "html") {
-        return createMarkdownErrorResultResponse(createHtmlPageOnlyResult());
-      }
+    }
+  }
 
       const match = router.resolve(normalizedRequest.method, pathname);
       if (!match) {

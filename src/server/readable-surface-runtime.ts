@@ -1,13 +1,13 @@
-import { type ReadableSurface } from "./markdown-surface.js";
-import type { ReadableSurfaceValidationOptions } from "./readable-surface-options.js";
-import { getReadableSurfaceViolation } from "./readable-surface-validation.js";
+import { type ReadableSurface } from "../core/surface/markdown.js";
+import type { ReadableSurfaceValidationOptions } from "../core/surface/validation.js";
+import { getReadableSurfaceViolation } from "../core/surface/validation.js";
 import {
   createActionsContractViolationResult,
   createAgentBlocksViolationResult,
   createMarkdownErrorResultResponse,
   createSemanticSlotsViolationResult
 } from "./runtime-errors.js";
-import type { MdanResponse } from "./types.js";
+import type { MdanResponse } from "./types/transport.js";
 
 export function createReadableSurfaceValidationResponse(
   surface: ReadableSurface,

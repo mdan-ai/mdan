@@ -1,13 +1,18 @@
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { createHost } from "@mdanai/sdk/server/bun";
 import { createAuthGuestbookServer } from "./app.js";
 
 const port = Number(process.env.PORT ?? "4321");
+const root = dirname(fileURLToPath(import.meta.url));
 const server = createAuthGuestbookServer();
 const host = createHost(server, {
   rootRedirect: "/login",
-  browserShell: {
-    title: "MDAN Auth Guestbook",
-    moduleMode: "local-dist"
+  frontendEntry: join(root, "..", "shared", "index.html"),
+  staticFiles: {
+    "/index.html": join(root, "..", "shared", "index.html"),
+    "/__mdan/entry.js": join(root, "..", "..", "dist-browser", "entry.js")
   }
 });
 

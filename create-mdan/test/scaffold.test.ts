@@ -25,7 +25,7 @@ describe("create-mdan scaffold", () => {
     await Promise.all(tmpRoots.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
   });
 
-  it("generates a node starter against the current app-first sdk public API", async () => {
+  it("generates a node starter against the current server-first sdk public API", async () => {
     const root = await makeTempDir();
     const targetDir = join(root, "agent-app");
 
@@ -45,8 +45,7 @@ describe("create-mdan scaffold", () => {
     expect(packageJson).toContain('"@mdanai/sdk": "^0.7.0"');
     expect(indexSource).toContain('@mdanai/sdk/server/node');
     expect(indexSource).not.toContain("rootRedirect");
-    expect(serverSource).toContain('@mdanai/sdk');
-    expect(serverSource).not.toContain('@mdanai/sdk/server');
+    expect(serverSource).toContain('@mdanai/sdk/app');
     expect(serverSource).not.toContain("createMarkdownPage");
     expect(serverSource).toContain("const home = app.page");
     expect(serverSource).toContain("app.route(home.bind(messages));");
@@ -103,8 +102,6 @@ describe("create-mdan scaffold", () => {
     expect(packageJson.name).toBe("my-fancy-app");
     expect(indexSource).toContain('const projectName = "My \\"Fancy\\" App!";');
     expect(serverSource).toContain('const appId = "my-fancy-app";');
-    expect(serverSource).toContain('const projectName = "My \\"Fancy\\" App!";');
-    expect(serverSource).toContain("appId,");
     expect(serverSource).not.toContain("app_id:");
     expect(serverSource).not.toContain("state_id:");
     expect(actionJson).toContain('"app_id": "my-fancy-app"');

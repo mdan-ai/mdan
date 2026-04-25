@@ -4,7 +4,7 @@ import {
   finalizeMdanHeaders,
   normalizeDecodedBody,
   toMdanMethod
-} from "../../src/server/host-adapter-shared.js";
+} from "../../src/server/host/adapter-shared.js";
 
 describe("normalizeDecodedBody", () => {
   it("passes through json payloads without rewriting", async () => {

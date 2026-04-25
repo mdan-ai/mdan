@@ -7,15 +7,15 @@ import { describe, expect, it } from "vitest";
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
 describe("README guidance", () => {
-  it("uses the current app API and documents the recommended root-plus-surface split", async () => {
+  it("uses the current server API and documents the recommended server-plus-frontend split", async () => {
     const readme = await readFile(join(repoRoot, "README.md"), "utf8");
 
-    expect(readme).toContain("import { createApp, fields } from \"@mdanai/sdk\";");
+    expect(readme).toContain("import { createApp, fields } from \"@mdanai/sdk/app\";");
     expect(readme).toContain("actionJson:");
     expect(readme).not.toContain("app.bindActions(");
     expect(readme).not.toContain("createHostedApp");
-    expect(readme).toContain("`app + browser shell`");
-    expect(readme).toContain("`app + surface`");
+    expect(readme).toContain("`server + frontend`");
+    expect(readme).toContain("`server + surface`");
     expect(readme).toContain("`server only`");
   });
 });

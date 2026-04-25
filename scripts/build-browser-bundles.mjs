@@ -6,20 +6,16 @@ const isWatch = process.argv.includes("--watch");
 
 const outputs = [
   {
-    entry: "src/browser-shell/client.ts",
-    outfile: "dist-browser/browser-shell.js"
-  },
-  {
     entry: "src/surface/index.ts",
     outfile: "dist-browser/surface.js"
   },
   {
-    entry: "src/ui/index.ts",
-    outfile: "dist-browser/ui.js"
+    entry: "src/frontend/bootstrap.ts",
+    outfile: "dist-browser/entry.js"
   },
   {
-    entry: "src/form-renderer.ts",
-    outfile: "dist-browser/form-renderer.js"
+    entry: "src/frontend/index.ts",
+    outfile: "dist-browser/frontend.js"
   }
 ];
 
@@ -29,8 +25,17 @@ const stalePaths = [
   "dist/input",
   "dist/shared",
   "dist/web",
+  "dist-browser/browser-shell.js",
+  "dist-browser/app-shell.js",
+  "dist-browser/app-shell.js.map",
+  "dist-browser/entry.js.map",
   "dist-browser/elements.js",
+  "dist-browser/ui.js",
+  "dist-browser/form-renderer.js",
+  "dist-browser/frontend.js.map",
   "dist-browser/web.js",
+  "dist/form-renderer.d.ts",
+  "dist/form-renderer.js",
   "dist/web/model.d.ts",
   "dist/web/model.js",
   "dist/server/browser-shell-snapshot.d.ts",

@@ -27,7 +27,7 @@ function expectSourceNotToImport(source: string, forbidden: RegExp[], path: stri
 
 describe("module boundaries", () => {
   it("keeps the surface runtime independent from optional UI and markdown rendering", async () => {
-    const files = ["src/surface/headless.ts", "src/surface/protocol.ts"];
+    const files = ["src/surface/headless.ts", "src/surface/contracts.ts"];
     const forbidden = [
       /from\s+["'](?:\.\.\/)?ui(?:\/|["'])/,
       /from\s+["']lit(?:\/|["'])/,
@@ -40,31 +40,26 @@ describe("module boundaries", () => {
     }
   });
 
-  it("keeps the server adapter shell independent from the default ui implementation", async () => {
-    const source = await readSource("src/server/browser-shell.ts");
+  it("keeps the headless runtime focused on orchestration instead of inline transport and snapshot helpers", async () => {
+    const source = await readSource("src/surface/headless.ts");
 
-    expectSourceNotToImport(
-      source,
-      [
-        /from\s+["'](?:\.\.\/)?ui(?:\/components|\/theme|\/mount|\/register|["'])/,
-        /from\s+["']lit(?:\/|["'])/,
-        /from\s+["']\.\/browser-shell-snapshot\.js["']/,
-        /from\s+["']\.\.\/input(?:\/|["'])/,
-        /from\s+["']\.\.\/content(?:\/|["'])/,
-        /from\s+["']\.\.\/shared(?:\/|["'])/
-      ],
-      "src/server/browser-shell.ts"
-    );
-    expect(source).toContain("renderInitialProjection");
-    expect(source).toContain("getDefinedFormRendererDefinition");
-    expect(source).toContain("resolveMountedFile");
+    expect(source).toMatch(/from\s+["']\.\/snapshot\.js["']/);
+    expect(source).toMatch(/from\s+["']\.\/transport\.js["']/);
+    expect(source, "src/surface/headless.ts should not keep inline GET url encoding").not.toMatch(/function toGetUrl\(/);
+    expect(source, "src/surface/headless.ts should not keep inline submit body construction").not.toMatch(/function buildSubmitBody\(/);
+    expect(source, "src/surface/headless.ts should not keep inline snapshot patching").not.toMatch(/function patchSnapshotByRegions\(/);
+    expect(source, "src/surface/headless.ts should not keep inline snapshot projection").not.toMatch(/function toSnapshot\(/);
+  });
+
+  it("does not keep a server browser-shell implementation after the markdown-only cut", async () => {
+    expect(await pathExists("src/server/browser-shell.ts")).toBe(false);
+    expect(await pathExists("src/server/browser-form-bridge.ts")).toBe(false);
   });
 
   it("keeps readable-surface projection behind the markdown gateway", async () => {
     expect(await pathExists("src/server/surface-projection.ts")).toBe(false);
 
     const files = [
-      "src/server/browser-shell.ts",
       "src/server/result-normalization.ts",
       "src/server/response.ts",
       "src/server/runtime.ts"
@@ -79,13 +74,13 @@ describe("module boundaries", () => {
     }
   });
 
-  it("keeps readable-surface validation independent from runtime types", async () => {
-    const source = await readSource("src/server/readable-surface-validation.ts");
+  it("keeps core readable-surface validation independent from server runtime types", async () => {
+    const source = await readSource("src/core/surface/validation.ts");
 
     expectSourceNotToImport(
       source,
-      [/from\s+["']\.\/runtime\.js["']/],
-      "src/server/readable-surface-validation.ts"
+      [/from\s+["']\.\.\/server(?:\/|["'])/, /from\s+["']\.\/runtime\.js["']/],
+      "src/core/surface/validation.ts"
     );
   });
 
@@ -95,7 +90,8 @@ describe("module boundaries", () => {
     expectSourceNotToImport(
       source,
       [
-        /from\s+["']\.\/readable-surface-validation\.js["']/
+        /from\s+["']\.\/readable-surface-validation\.js["']/,
+        /from\s+["']\.\/readable-surface-options\.js["']/
       ],
       "src/server/runtime.ts"
     );
@@ -132,8 +128,8 @@ describe("module boundaries", () => {
     );
   });
 
-  it("keeps surface render semantics independent from runtime-specific layers", async () => {
-    const source = await readSource("src/surface/render-semantics.ts");
+  it("keeps core surface presentation semantics independent from runtime-specific layers", async () => {
+    const source = await readSource("src/core/surface/presentation.ts");
 
     expectSourceNotToImport(
       source,
@@ -142,12 +138,20 @@ describe("module boundaries", () => {
         /from\s+["']\.\.\/ui(?:\/|["'])/,
         /from\s+["']\.\.\/server(?:\/|["'])/
       ],
-      "src/surface/render-semantics.ts"
+      "src/core/surface/presentation.ts"
     );
   });
 
-  it("keeps ui model code behind the surface presentation boundary", async () => {
-    const files = ["src/ui/model.ts", "src/ui/mount.ts"];
+  it("keeps core surface form semantics free of runtime environment types", async () => {
+    const source = await readSource("src/core/surface/forms.ts");
+
+    expect(source, "src/core/surface/forms.ts should not depend on browser-only File checks").not.toMatch(/\bFile\b/);
+    expect(source, "src/core/surface/forms.ts should not depend on browser transport types").not.toMatch(/\bFormData\b|\bHeaders\b|\bRequest\b|\bResponse\b/);
+    expect(source, "src/core/surface/forms.ts should not depend on global runtime objects").not.toMatch(/\bwindow\b|\bdocument\b|\bfetch\b/);
+  });
+
+  it("keeps frontend model code behind the surface presentation boundary", async () => {
+    const files = ["src/frontend/model.ts", "src/frontend/mount.ts"];
     const forbidden = [
       /from\s+["']\.\.\/content(?:\/|["'])/,
       /from\s+["']\.\.\/protocol(?:\/|["'])/,
@@ -160,8 +164,8 @@ describe("module boundaries", () => {
     }
   });
 
-  it("keeps ui surface imports funneled through src/ui/model.ts only", async () => {
-    const files = ["src/ui/index.ts", "src/ui/mount.ts", "src/ui/register.ts", "src/ui/snapshot.ts"];
+  it("keeps frontend surface imports funneled through src/frontend/model.ts only", async () => {
+    const files = ["src/frontend/index.ts", "src/frontend/mount.ts", "src/frontend/register.ts", "src/frontend/snapshot.ts"];
 
     for (const file of files) {
       expectSourceNotToImport(
@@ -171,25 +175,62 @@ describe("module boundaries", () => {
       );
     }
 
-    const modelSource = await readSource("src/ui/model.ts");
-    expect(modelSource).toMatch(/from\s+["']\.\.\/surface\/presentation\.js["']/);
-    expect(modelSource).toMatch(/from\s+["']\.\.\/surface\/protocol\.js["']/);
-    expect(modelSource).toMatch(/from\s+["']\.\.\/surface\/forms\.js["']/);
+    const modelSource = await readSource("src/frontend/model.ts");
+    expect(modelSource).toMatch(/from\s+["']\.\.\/core\/surface\/presentation\.js["']/);
+    expect(modelSource).toMatch(/from\s+["']\.\.\/core\/surface\/forms\.js["']/);
+    expect(modelSource).toMatch(/from\s+["']\.\/contracts\.js["']/);
   });
 
-  it("keeps the ui barrel focused on the default ui runtime entrypoints", async () => {
-    const source = await readSource("src/ui/index.ts");
+  it("keeps frontend runtime contracts local to the frontend layer", async () => {
+    const files = ["src/frontend/contracts.ts", "src/frontend/model.ts", "src/frontend/mount.ts", "src/frontend/entry.ts"];
 
-    expect(source).toContain('export * from "./register.js";');
-    expect(source).toContain('export * from "./mount.js";');
-    expect(source).not.toContain('export * from "./model.js";');
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["']\.\.\/surface\/protocol\.js["']/],
+        file
+      );
+    }
+  });
+
+  it("keeps surface protocol types internal to the surface layer", async () => {
+    const files = [
+      "src/frontend/contracts.ts",
+      "src/frontend/model.ts",
+      "src/frontend/mount.ts",
+      "src/frontend/entry.ts",
+      "test/elements/headless-host-integration.test.ts"
+    ];
+
+    for (const file of files) {
+      expectSourceNotToImport(
+        await readSource(file),
+        [/from\s+["'](?:\.\.\/)*src\/surface\/protocol\.js["']/, /from\s+["']\.\.\/surface\/protocol\.js["']/],
+        file
+      );
+    }
+  });
+
+  it("keeps the frontend entry typed against frontend contracts instead of surface implementation signatures", async () => {
+    const source = await readSource("src/frontend/entry.ts");
+
+    expect(source).toMatch(/from\s+["']\.\/contracts\.js["']/);
+    expect(source).not.toMatch(/createHost\?: typeof createHeadlessHost/);
+  });
+
+  it("keeps the frontend barrel focused on the default frontend runtime entrypoints", async () => {
+    const source = await readSource("src/frontend/index.ts");
+
+    expect(source).toContain('export { mountMdanUi } from "./mount.js";');
+    expect(source).toContain('export { registerMdanUi } from "./register.js";');
+    expect(source).not.toContain('from "./model.js"');
   });
 
   it("keeps surface content helpers behind the surface content gateway", async () => {
     const files = [
       "src/surface/adapter.ts",
       "src/surface/headless.ts",
-      "src/surface/presentation.ts"
+      "src/surface/forms.ts"
     ];
 
     for (const file of files) {
@@ -205,10 +246,8 @@ describe("module boundaries", () => {
     const files = [
       "src/surface/adapter.ts",
       "src/surface/headless.ts",
-      "src/surface/presentation.ts",
-      "src/surface/protocol.ts",
-      "src/surface/render-semantics.ts",
-      "src/surface/surface-actions.ts"
+      "src/surface/forms.ts",
+      "src/surface/contracts.ts"
     ];
 
     for (const file of files) {
@@ -220,8 +259,15 @@ describe("module boundaries", () => {
     }
   });
 
+  it("removes the old surface presentation barrels after the core split", async () => {
+    expect(await pathExists("src/surface/presentation.ts")).toBe(false);
+    expect(await pathExists("src/surface/render-semantics.ts")).toBe(false);
+    expect(await pathExists("src/surface/protocol-model.ts")).toBe(false);
+    expect(await pathExists("src/surface/protocol.ts")).toBe(false);
+  });
+
   it("keeps server public types independent from asset store implementation", async () => {
-    const source = await readSource("src/server/types.ts");
+    const source = await readSource("src/server/types/index.ts");
 
     expectSourceNotToImport(
       source,
@@ -230,7 +276,7 @@ describe("module boundaries", () => {
         /from\s+["']\.\/assets\.js["']/,
         /from\s+["']\.\.\/bridge(?:\/|["'])/
       ],
-      "src/server/types.ts"
+      "src/server/types/index.ts"
     );
   });
 
@@ -257,9 +303,9 @@ describe("module boundaries", () => {
 
     for (const file of files) {
       const source = await readSource(file);
-      expect(source, `${file} should not import the server authoring barrel`).not.toMatch(
-        /@mdanai\/sdk\/server|from\s+["']\.\.\/\.\.\/src\/server\/index\.js["']/
-      );
+      if (file === "create-mdan/template/shared/app/server.mjs") {
+        expect(source, `${file} should import the app authoring barrel`).toMatch(/@mdanai\/sdk\/app/);
+      }
       expect(source, `${file} should not keep app.screen on the main authoring path`).not.toMatch(/app\.screen\(/);
     }
   });
@@ -274,24 +320,23 @@ describe("module boundaries", () => {
     expect(indexSource, "top-level exports should not expose bridge").not.toMatch(/\.\/bridge(?:\/|["'])/);
   });
 
-  it("exposes the root app API while keeping protocol internals off separate public boundaries", async () => {
+  it("keeps the reserved root empty while exposing only the intended low-level public boundaries", async () => {
     const packageJson = JSON.parse(await readSource("package.json")) as { exports?: Record<string, unknown> };
     const indexSource = await readSource("src/index.ts");
     const appSource = await readSource("src/app/index.ts");
     const exportsMap = packageJson.exports ?? {};
 
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "."), "root entry should publish the app API").toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "."), "root entry should stay reserved").toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./app")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./protocol"), "protocol remains an internal source boundary").toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./core"), "core remains an internal source boundary").toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./core"), "core should be the shared low-level boundary").toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./server")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./server/node")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./server/bun")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./surface")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./web")).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./ui")).toBe(false);
-    expect(indexSource, "root app API should not re-export createMdanServer directly").not.toMatch(/createMdanServer/);
-    expect(indexSource, "root app API should not proxy the broad server barrel").not.toMatch(/\.\/server\/index\.js/);
-    expect(indexSource, "root app API should not keep screen terminology").not.toMatch(/AppScreen|screen/);
+    expect(indexSource.trim(), "root entry should stay empty").toBe("export {};");
     expect(appSource, "app authoring layer should not keep screen terminology").not.toMatch(/AppScreen|screen\(/);
   });
 
@@ -406,8 +451,8 @@ describe("module boundaries", () => {
     const nodeSource = await readSource("src/server/node.ts");
     const bunSource = await readSource("src/server/bun.ts");
 
-    expect(nodeSource).toContain('from "./host-shared.js"');
-    expect(bunSource).toContain('from "./host-shared.js"');
+    expect(nodeSource).toContain('from "./host/shared.js"');
+    expect(bunSource).toContain('from "./host/shared.js"');
     expect(nodeSource).toContain("planHostRequest(");
     expect(bunSource).toContain("planHostRequest(");
   });
@@ -429,7 +474,6 @@ describe("module boundaries", () => {
 
   it("keeps server implementation modules from depending directly on surface projection internals", async () => {
     const files = [
-      "src/server/browser-shell.ts",
       "src/server/result-normalization.ts",
       "src/server/action-proofing.ts"
     ];
@@ -460,15 +504,24 @@ describe("module boundaries", () => {
     }
   });
 
+  it("keeps core markdown-surface utilities independent from frontend helpers", async () => {
+    const source = await readSource("src/core/surface/markdown.ts");
+
+    expectSourceNotToImport(
+      source,
+      [
+        /from\s+["']\.\.\/frontend(?:\/|["'])/
+      ],
+      "src/core/surface/markdown.ts"
+    );
+  });
+
   it("keeps server content dependencies behind the markdown gateway", async () => {
     const files = [
-      "src/server/browser-form-bridge.ts",
-      "src/server/browser-shell.ts",
-      "src/server/contracts.ts",
       "src/server/response.ts",
       "src/server/result-normalization.ts",
       "src/server/runtime.ts",
-      "src/server/types.ts"
+      "src/server/types/index.ts"
     ];
 
     for (const file of files) {
@@ -480,15 +533,11 @@ describe("module boundaries", () => {
     }
   });
 
-  it("keeps runtime-facing layers off the deprecated core source boundary", async () => {
+  it("keeps frontend runtime layers off the internal core boundary", async () => {
     const files = [
-      "src/server/runtime.ts",
-      "src/server/action-proofing.ts",
-      "src/server/request-inputs.ts",
-      "src/server/response.ts",
-      "src/surface/headless.ts",
-      "src/surface/protocol.ts",
-      "src/ui/mount.ts"
+      "src/frontend/mount.ts",
+      "src/frontend/register.ts",
+      "src/frontend/snapshot.ts"
     ];
 
     for (const file of files) {
@@ -512,8 +561,8 @@ describe("module boundaries", () => {
     expect(source, "src/surface/adapter.ts should delegate field schema merging").not.toMatch(/function blockInputsFromActions\(/);
   });
 
-  it("keeps the default ui depending only on surface-facing core contracts", async () => {
-    const files = ["src/ui/mount.ts"];
+  it("keeps the default frontend depending only on surface-facing core contracts", async () => {
+    const files = ["src/frontend/mount.ts"];
 
     for (const file of files) {
       expectSourceNotToImport(

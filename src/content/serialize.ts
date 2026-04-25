@@ -1,5 +1,5 @@
-import { MDAN_PAGE_MANIFEST_VERSION } from "../protocol/surface.js";
-import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../protocol/types.js";
+import { MDAN_PAGE_MANIFEST_VERSION } from "../core/protocol.js";
+import type { MdanBlock, MdanFragment, MdanFrontmatter, MdanPage } from "../core/protocol.js";
 
 const blockAnchorPattern = /<!--\s*mdan:block\b([^>]*)-->\s*(?:\n|$)?/g;
 

@@ -1,6 +1,6 @@
 ---
 title: Starter Example
-description: Smallest runnable MDAN starter example showing Markdown as the canonical response, declared actions, and browser HTML projection.
+description: Smallest runnable MDAN starter example showing Markdown as the canonical response and declared actions embedded in the same surface.
 ---
 
 # starter (Markdown-first example)
@@ -13,10 +13,10 @@ Source layout:
 
 Runtime contract:
 
-- `GET page` supports `text/html` and `text/markdown`
+- `GET page` supports `text/markdown`
 - `GET page` no longer exposes `application/json`; page discovery happens through the Markdown response
 - `POST action/block` accepts `application/json` request bodies and returns Markdown responses with `Accept: text/markdown`
-- HTML page responses are rendered on the server from the same underlying MDAN state, while Markdown remains the canonical readout
+- frontend consumers render UI from the returned markdown surface
 
 Run:
 
@@ -27,13 +27,15 @@ bun run dev:starter
 
 This command performs an initial SDK build, starts TypeScript watch to keep `dist/` current, and then launches the example server.
 
-Open `http://127.0.0.1:4323/`.
+Open:
+
+- `http://127.0.0.1:4323/` for the shipped browser UI
+- `http://127.0.0.1:4323/index.md` if you want the raw markdown route in the browser
 
 If port `4323` is already in use, run `PORT=4324 bun run dev:starter`.
 
 Quick checks:
 
-- `curl -H 'Accept: text/html' http://127.0.0.1:4323/`
 - `curl -H 'Accept: text/markdown' http://127.0.0.1:4323/`
 
 Action proof flow:

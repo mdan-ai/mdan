@@ -121,7 +121,7 @@ infinite auto chains.
 ## Example: Weather Root Resolver
 
 ```ts
-import { createApp, fields } from "@mdanai/sdk";
+import { createApp, fields } from "@mdanai/sdk/app";
 
 const resolveRootSchema = fields.object({
   location: fields.string(),
@@ -231,7 +231,7 @@ The current repository has runtime tests for:
 - `auto` plus `autoDependencies` merge behavior
 - dynamic resolver request rewriting
 - same-origin and request-shape validation
-- HTML page reads resolving auto dependencies before render
+- natural browser document reads resolving auto dependencies before runtime
 - page, fragment, and session metadata propagation
 - POST-origin body stripping during internal auto GET dispatch
 

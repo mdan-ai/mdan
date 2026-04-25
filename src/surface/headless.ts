@@ -1,13 +1,24 @@
-import { adaptReadableSurfaceToHeadlessSnapshot } from "./adapter.js";
-import { parseReadableSurface, type ReadableSurface } from "./content.js";
-import type { MdanHeadlessBlock, MdanOperation, MdanSubmitValues } from "./protocol-model.js";
+import { parseReadableSurface } from "./content.js";
+import type { MdanOperation, MdanSubmitValues } from "../core/surface/presentation.js";
 import type {
   HeadlessDebugMessage,
   HeadlessListener,
   HeadlessRuntimeState,
   HeadlessSnapshot,
   MdanHeadlessHost
-} from "./protocol.js";
+} from "./contracts.js";
+import {
+  composeHeadlessSnapshot,
+  emptySnapshot,
+  patchSnapshotByOperation,
+  toSnapshot
+} from "./snapshot.js";
+import {
+  buildSubmitBody,
+  extractResponseErrorMessage,
+  isResponseOk,
+  toGetUrl
+} from "./transport.js";
 
 export interface CreateHeadlessHostOptions {
   initialMarkdown?: string;
@@ -16,193 +27,16 @@ export interface CreateHeadlessHostOptions {
   debugMessages?: boolean;
 }
 
-function serializeJsonBody(value: unknown): string {
-  return JSON.stringify(value);
-}
-
 interface WindowWithMdanDebug extends Window {
   __MDAN_DEBUG__?: {
     messages: HeadlessDebugMessage[];
   };
 }
-
-function emptySnapshot(route?: string): HeadlessSnapshot {
-  return {
-    status: "idle",
-    ...(route ? { route } : {}),
-    markdown: "",
-    blocks: []
-  };
-}
-
-function replaceBlock(blocks: MdanHeadlessBlock[], nextBlock: MdanHeadlessBlock): MdanHeadlessBlock[] {
-  let replaced = false;
-  const next = blocks.map((block) => {
-    if (block.name !== nextBlock.name) {
-      return block;
-    }
-    replaced = true;
-    return nextBlock;
-  });
-  if (!replaced) {
-    next.push(nextBlock);
-  }
-  return next;
-}
-
-function resolveUpdatedRegions(operation?: MdanOperation): string[] {
-  if (!operation || operation.stateEffect?.responseMode !== "region") {
-    return [];
-  }
-  const updatedRegions = operation.stateEffect.updatedRegions;
-  if (!Array.isArray(updatedRegions)) {
-    return [];
-  }
-  return updatedRegions.filter((entry): entry is string => typeof entry === "string");
-}
-
-function patchSnapshotByRegions(
-  current: HeadlessSnapshot,
-  incoming: HeadlessSnapshot,
-  updatedRegions: string[]
-): HeadlessSnapshot | null {
-  if (updatedRegions.length === 0) {
-    return null;
-  }
-  if (incoming.route && current.route && incoming.route !== current.route) {
-    return null;
-  }
-
-  const byName = new Map(incoming.blocks.map((block) => [block.name, block]));
-  let nextBlocks = [...current.blocks];
-  let patched = false;
-
-  for (const region of updatedRegions) {
-    const incomingBlock = byName.get(region);
-    if (!incomingBlock) {
-      continue;
-    }
-    nextBlocks = replaceBlock(nextBlocks, incomingBlock);
-    patched = true;
-  }
-
-  if (!patched) {
-    return null;
-  }
-
-  return {
-    status: current.status,
-    ...(current.route ? { route: current.route } : {}),
-    ...(current.error ? { error: current.error } : {}),
-    markdown: current.markdown,
-    blocks: nextBlocks
-  };
-}
-
-function toSnapshot(surface: ReadableSurface, current: HeadlessSnapshot | null): HeadlessSnapshot {
-  const adapted = adaptReadableSurfaceToHeadlessSnapshot(surface);
-  return {
-    status: current?.status ?? "idle",
-    ...(adapted.route ?? current?.route ? { route: adapted.route ?? current?.route } : {}),
-    ...(current?.error ? { error: current.error } : {}),
-    markdown: adapted.markdown,
-    blocks: adapted.blocks
-  };
-}
-
-function toGetUrl(target: string, operation: MdanOperation | undefined, values: MdanSubmitValues): string {
-  const params = new URLSearchParams();
-  if (typeof operation?.actionProof === "string" && operation.actionProof.length > 0) {
-    params.set("action.proof", operation.actionProof);
-  }
-  for (const [key, value] of Object.entries(values)) {
-    if (typeof value === "string") {
-      params.set(key, value);
-    } else if (typeof value === "number" || typeof value === "boolean") {
-      params.set(key, String(value));
-    } else if (value !== null && !(typeof File !== "undefined" && value instanceof File)) {
-      params.set(key, JSON.stringify(value));
-    }
-  }
-  const query = params.toString();
-  return query ? `${target}?${query}` : target;
-}
-
-function hasFileValue(values: MdanSubmitValues): boolean {
-  const hasFileCtor = typeof File !== "undefined";
-  return hasFileCtor && Object.values(values).some((value) => value instanceof File);
-}
-
-function toFormValue(value: MdanSubmitValues[string]): string | File {
-  if (typeof File !== "undefined" && value instanceof File) {
-    return value;
-  }
-  if (typeof value === "string") {
-    return value;
-  }
-  return JSON.stringify(value);
-}
-
-function buildSubmitBody(operation: MdanOperation, values: MdanSubmitValues): { body: string | FormData; multipart: boolean } {
-  const actionProof = typeof operation.actionProof === "string" ? operation.actionProof : undefined;
-  if (hasFileValue(values)) {
-    const form = new FormData();
-    if (actionProof) {
-      form.set("action.proof", actionProof);
-    }
-    for (const [key, value] of Object.entries(values)) {
-      form.set(key, toFormValue(value));
-    }
-    return { body: form, multipart: true };
-  }
-
-  if (!actionProof) {
-    return { body: serializeJsonBody({ input: values }), multipart: false };
-  }
-  return {
-    body: serializeJsonBody({
-      action: {
-        proof: actionProof
-      },
-      input: values
-    }),
-    multipart: false
-  };
-}
-
 function pushHistory(target: string): void {
   if (typeof window === "undefined") {
     return;
   }
   window.history.pushState({}, "", target);
-}
-
-function isResponseOk(response: unknown): boolean {
-  const candidate = response as { ok?: unknown; status?: unknown };
-  if (typeof candidate.ok === "boolean") {
-    return candidate.ok;
-  }
-  if (typeof candidate.status === "number") {
-    return candidate.status >= 200 && candidate.status < 300;
-  }
-  return true;
-}
-
-function extractResponseErrorMessage(response: unknown, surface: ReadableSurface | null, fallbackContent: string): string {
-  const candidate = response as { status?: unknown; statusText?: unknown };
-  const status = typeof candidate.status === "number" ? candidate.status : undefined;
-  const statusText = typeof candidate.statusText === "string" ? candidate.statusText.trim() : "";
-  const content = surface ? adaptReadableSurfaceToHeadlessSnapshot(surface).markdown : fallbackContent;
-  const firstLine = content
-    .split("\n")
-    .map((line) => line.trim())
-    .find(Boolean);
-  const parts = [
-    status !== undefined ? `HTTP ${status}` : "HTTP request failed",
-    statusText || undefined,
-    firstLine || undefined
-  ].filter(Boolean);
-  return parts.join(": ");
 }
 
 export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): MdanHeadlessHost {
@@ -234,20 +68,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
   }
 
   function publish(): void {
-    const next: HeadlessSnapshot = {
-      status: status.status,
-      markdown: snapshot.markdown,
-      blocks: [...snapshot.blocks]
-    };
-    if (status.error) {
-      next.error = status.error;
-    }
-    if (status.transition) {
-      next.transition = status.transition;
-    }
-    if (snapshot.route) {
-      next.route = snapshot.route;
-    }
+    const next = composeHeadlessSnapshot(snapshot, status);
 
     for (const listener of listeners) {
       listener(next);
@@ -324,9 +145,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
       }
 
       const nextSnapshot = toSnapshot(surface, snapshot);
-      const updatedRegions = resolveUpdatedRegions(operation);
-      const patchedSnapshot =
-        transition === "region" ? patchSnapshotByRegions(snapshot, nextSnapshot, updatedRegions) : null;
+      const patchedSnapshot = transition === "region" ? patchSnapshotByOperation(snapshot, nextSnapshot, operation) : null;
       snapshot = patchedSnapshot ?? nextSnapshot;
       const nextTransition = transition === "region" && !patchedSnapshot ? "page" : transition;
       if (snapshot.route && nextTransition === "page") {
@@ -377,14 +196,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
     unmount,
     subscribe(listener: HeadlessListener) {
       listeners.add(listener);
-      listener({
-        status: status.status,
-        ...(status.error ? { error: status.error } : {}),
-        ...(status.transition ? { transition: status.transition } : {}),
-        ...(snapshot.route ? { route: snapshot.route } : {}),
-        markdown: snapshot.markdown,
-        blocks: [...snapshot.blocks]
-      });
+      listener(composeHeadlessSnapshot(snapshot, status));
       return () => {
         listeners.delete(listener);
       };
@@ -404,21 +216,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
       await load(nextTarget);
     },
     getSnapshot(): HeadlessSnapshot {
-      const next: HeadlessSnapshot = {
-        status: status.status,
-        markdown: snapshot.markdown,
-        blocks: [...snapshot.blocks]
-      };
-      if (status.error) {
-        next.error = status.error;
-      }
-      if (status.transition) {
-        next.transition = status.transition;
-      }
-      if (snapshot.route) {
-        next.route = snapshot.route;
-      }
-      return next;
+      return composeHeadlessSnapshot(snapshot, status);
     }
   };
 }

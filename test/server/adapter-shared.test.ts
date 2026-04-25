@@ -10,7 +10,6 @@ import {
   normalizeMultipartBody,
   normalizeUrlEncodedBody,
   parseCookies,
-  resolveLocalBrowserModule,
   resolveMountedFile
 } from "../../src/server/adapter-shared.js";
 
@@ -160,23 +159,5 @@ describe("resolveMountedFile", () => {
   it("supports root mount and still blocks traversal", () => {
     expect(resolveMountedFile("/tmp/site", "/", "/docs/readme.md")).toBe("/tmp/site/docs/readme.md");
     expect(resolveMountedFile("/tmp/site", "/", "/../escape.md")).toBeNull();
-  });
-});
-
-describe("resolveLocalBrowserModule", () => {
-  it("resolves package browser bundles independently from the host cwd", async () => {
-    const previousCwd = process.cwd();
-    const hostCwd = await mkdtemp(join(tmpdir(), "mdan-host-"));
-    try {
-      process.chdir(hostCwd);
-      expect(resolveLocalBrowserModule("/__mdan/surface.js", { moduleMode: "local-dist" })).toBe(
-        join(previousCwd, "dist-browser", "surface.js")
-      );
-      expect(resolveLocalBrowserModule("/__mdan/ui.js", { moduleMode: "local-dist" })).toBe(
-        join(previousCwd, "dist-browser", "ui.js")
-      );
-    } finally {
-      process.chdir(previousCwd);
-    }
   });
 });

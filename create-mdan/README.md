@@ -1,13 +1,12 @@
 # create-mdan
 
 `create-mdan` scaffolds a minimal MDAN agent app or skills app that uses the public
-`@mdanai/sdk` app API.
+`@mdanai/sdk/app` app API.
 
 Generated starters already follow the current default path:
 
 - Markdown is the public read surface
 - each page keeps an adjacent `.action.json` manifest
-- browsers use the HTML projection
 - actions submit JSON and return updated Markdown surfaces
 - the app code uses `createApp`, `page`, `route`, `action`, and `page.bind(...)`
 
@@ -50,8 +49,9 @@ The generated project includes:
 
 The generated project uses public SDK entry points only:
 
-- `@mdanai/sdk` for app authoring
+- `@mdanai/sdk/app` for app authoring
 - `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` for host integration
+- `@mdanai/sdk/core` for the shared protocol/content layer when needed
 
 ## Next Step
 
@@ -60,4 +60,4 @@ After scaffolding:
 - open `http://127.0.0.1:4321/`
 - edit `app/index.md`
 - edit `app/index.action.json`
-- run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/`
+- run `curl -H 'Accept: text/markdown' http://127.0.0.1:4321/index.md`

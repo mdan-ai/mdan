@@ -75,7 +75,7 @@ it is not clear what part is the shared MDAN model.
 
 ### What Is Happening
 
-The browser is showing the HTML projection of the app.
+The browser is showing a UI built from the markdown surface.
 
 MDAN becomes easiest to see when you inspect the Markdown response directly:
 
@@ -207,36 +207,17 @@ You are testing the runtime directly and expecting every request to support
 
 ### What Is Happening
 
-HTML is the browser-facing projection for page `GET` requests. It is not the
-general-purpose response mode for all runtime interactions.
+The current server runtime does not return HTML at all. HTML is a frontend
+projection built from the returned markdown surface.
 
 ### Practical Rule
 
-- page read: use browser navigation or `Accept: text/markdown`
+- page read: use `Accept: text/markdown`
 - action read/write: use `Accept: text/markdown`
 - stream action: use `Accept: text/event-stream`
 
-If you want the browser page, open the route in the browser instead of forcing
-HTML onto an action request.
-
-## Local Browser Assets Do Not Load
-
-### Symptom
-
-The server starts, but the browser page is incomplete or local browser assets do
-not seem to load correctly during SDK development.
-
-### What Is Usually Happening
-
-The starter and local examples use:
-
-```ts
-browserShell: {
-  moduleMode: "local-dist"
-}
-```
-
-That means the host expects local browser bundles to be available.
+If you want browser UI, consume the markdown surface in the frontend layer
+instead of asking the server for HTML.
 
 ### What To Do
 

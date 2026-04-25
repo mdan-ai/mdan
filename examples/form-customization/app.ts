@@ -2,8 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp, type AppActionJsonManifest, type AppBrowserShellOptions } from "../../src/index.js";
-import { weatherFormRenderer } from "./form-renderer.js";
+import { createApp, type AppActionJsonManifest } from "@mdanai/sdk/app";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");
@@ -29,17 +28,9 @@ function renderForecast(query: WeatherQuery) {
 - Wind: ${wind}${advisory}`;
 }
 
-export function createFormCustomizationServer(
-  browserShell: AppBrowserShellOptions = {
-    title: "MDAN Form Customization"
-  }
-) {
+export function createFormCustomizationServer() {
   const app = createApp({
-    appId: "form-customization",
-    browserShell,
-    rendering: {
-      form: weatherFormRenderer
-    }
+    appId: "form-customization"
   });
 
   const home = app.page("/", {

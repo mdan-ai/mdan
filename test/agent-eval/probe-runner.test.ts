@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createMarkdownPage } from "../../src/server/markdown-surface.js";
+import { createMarkdownPage } from "../../src/core/surface/markdown.js";
 import { createMdanServer } from "../../src/server/index.js";
 import { createSubmitMessageFixture, defineAgentEvalCase, runSubmitMessageFixtureProbe, serveAgentEvalFixture } from "./support/index.js";
 

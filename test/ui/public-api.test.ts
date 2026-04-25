@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import * as ui from "../../src/ui/index.js";
+import * as frontend from "../../src/frontend/index.js";
 
-describe("internal ui module", () => {
-  it("keeps the default UI entrypoints available for internal browser bundles", () => {
-    expect(ui.mountMdanUi).toBeTypeOf("function");
-    expect(ui.registerMdanUi).toBeTypeOf("function");
-    expect("resolveUiSnapshotView" in ui).toBe(false);
-    expect("submitUiOperation" in ui).toBe(false);
+describe("frontend public api", () => {
+  it("exposes the default frontend entrypoints without leaking ui internals", () => {
+    expect(frontend.mountMdanUi).toBeTypeOf("function");
+    expect(frontend.bootEntry).toBeTypeOf("function");
+    expect(frontend.autoBootEntry).toBeTypeOf("function");
+    expect(frontend.registerMdanUi).toBeTypeOf("function");
+    expect(frontend.defineFrontend).toBeTypeOf("function");
+    expect(frontend.defineFormRenderer).toBeTypeOf("function");
+    expect(frontend.defaultUiFormRenderer).toBeTypeOf("object");
+    expect("resolveUiSnapshotView" in frontend).toBe(false);
+    expect("submitUiOperation" in frontend).toBe(false);
   });
 });

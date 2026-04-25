@@ -1,0 +1,125 @@
+---
+title: Routing
+description: How natural browser routes, raw markdown routes, host routing, and the frontend entry work together in the current MDAN SDK architecture.
+---
+
+# Routing
+
+This page explains the current MDAN routing model.
+
+The short version is:
+
+- browsers use natural routes such as `/login`
+- raw MDAN content stays available on matching `.md` routes such as `/login.md`
+- the server still returns markdown, not HTML page projections
+- the frontend entry fetches the matching `.md` route and renders it in the browser
+
+## The Two Route Forms
+
+For each browser-facing route, there are two related forms:
+
+- natural browser route
+- raw markdown route
+
+Examples:
+
+- `/` -> `/index.md`
+- `/login` -> `/login.md`
+- `/docs/getting-started` -> `/docs/getting-started.md`
+
+The natural route is what people open in the browser.
+
+The `.md` route is the canonical raw MDAN response:
+
+- `text/markdown`
+- readable by humans, agents, and tooling
+- still the source that the frontend consumes
+
+## Request Flow
+
+```mermaid
+flowchart TD
+    A["Browser requests /login"] --> B{"Host route plan"}
+    B -->|Natural HTML document route| C["Serve frontend index.html"]
+    C --> D["frontend entry boots"]
+    D --> E["Map /login -> /login.md"]
+    E --> F["Fetch /login.md"]
+    F --> G["Server runtime returns text/markdown"]
+    G --> H["surface + frontend render UI"]
+
+    I["Browser or curl requests /login.md"] --> J{"Host route plan"}
+    J -->|Markdown route| K["Rewrite pathname to /login"]
+    K --> L["Server runtime"]
+    L --> M["Return raw markdown"]
+```
+
+## Host Responsibilities
+
+Host routing happens in:
+
+- [src/server/host/shared.ts](/Users/hencoo/projects/mdan/sdk/src/server/host/shared.ts)
+
+The host planner decides whether a request should:
+
+- serve the frontend entry HTML
+- serve a static file
+- or continue into the markdown runtime
+
+The important routing rules are:
+
+- `GET` document requests without a file extension can serve the frontend entry
+- `.md` requests always go to the markdown runtime
+- `favicon` and static assets do not go through page routing
+- `__mdan` asset routes stay reserved for frontend bundles and related assets
+
+The Node and Bun adapters then execute that plan:
+
+- [src/server/node.ts](/Users/hencoo/projects/mdan/sdk/src/server/node.ts)
+- [src/server/bun.ts](/Users/hencoo/projects/mdan/sdk/src/server/bun.ts)
+
+## Frontend Entry Responsibilities
+
+The frontend entry lives in:
+
+- [src/frontend/entry.ts](/Users/hencoo/projects/mdan/sdk/src/frontend/entry.ts)
+
+It does three things:
+
+1. reads the current browser route
+2. maps that route to the matching `.md` route
+3. boots the shipped frontend runtime against that markdown response
+
+Examples:
+
+- `/` becomes `/index.md`
+- `/login` becomes `/login.md`
+
+That means the browser-visible route stays clean while the underlying transport
+still uses raw markdown.
+
+## Why `.md` Matters
+
+The `.md` route is not a compatibility hack. It is the canonical raw surface
+route.
+
+It matters because it gives us:
+
+- a direct browser/debugging path to the raw markdown response
+- a stable route for agents and tooling
+- a clean way for the frontend entry to fetch MDAN content
+- a routing model that does not require server-side HTML page rendering
+
+## Practical Rules
+
+- open `/login` in the browser when you want the app UI
+- open `/login.md` when you want the raw markdown surface
+- keep server behavior markdown-only
+- keep HTML production in the frontend layer
+
+## Related Docs
+
+- [Browser Behavior](/browser-behavior)
+- [Architecture](/architecture)
+- [Custom Rendering](/custom-rendering)
+- [Choose A Rendering Path](/choose-a-rendering-path)
+- [Server Adapters](/server-adapters)

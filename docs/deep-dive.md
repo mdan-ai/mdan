@@ -97,7 +97,7 @@ It explains:
 
 ### Custom Rendering
 
-Use this when the default browser shell is no longer the right fit.
+Use this when the shipped frontend is no longer the right fit.
 
 It explains:
 

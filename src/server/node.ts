@@ -7,30 +7,22 @@ import {
   DEFAULT_MAX_BODY_BYTES,
   PayloadTooLargeError
 } from "./body-normalization.js";
-import {
-  adaptBrowserFormResponse,
-  isBrowserFormRequest
-} from "./browser-form-bridge.js";
-import {
-  type BrowserShellOptions
-} from "./browser-shell.js";
-import { handlePlannedHostRequest } from "./host-flow-shared.js";
-import { planHostRequest } from "./host-shared.js";
-import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host-adapter-shared.js";
+import { handlePlannedHostRequest } from "./host/flow.js";
+import { planHostRequest } from "./host/shared.js";
+import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
 import { parseCookies } from "./cookies.js";
 import {
   getStaticContentType
-} from "./static-files.js";
+} from "./host/static-files.js";
 import { toMarkdownContentType } from "./content-type.js";
 import type { MdanAssetStoreOptions } from "./asset-types.js";
-import type { MdanRequest, MdanResponse } from "./types.js";
+import type { MdanRequest, MdanResponse } from "./types/transport.js";
 
 interface MdanRequestHandler {
   handle(request: MdanRequest): Promise<MdanResponse>;
 }
 
 export interface CreateNodeRequestListenerOptions {
-  transformHtml?: (html: string) => string;
   maxBodyBytes?: number;
   assets?: MdanAssetStoreOptions;
 }
@@ -43,9 +35,9 @@ export interface NodeStaticMount {
 export interface CreateNodeHostOptions extends CreateNodeRequestListenerOptions {
   rootRedirect?: string;
   ignoreFavicon?: boolean;
+  frontendEntry?: string;
   staticFiles?: Record<string, string>;
   staticMounts?: NodeStaticMount[];
-  browserShell?: BrowserShellOptions;
 }
 
 async function readBody(request: IncomingMessage, maxBodyBytes: number): Promise<string | undefined> {
@@ -112,34 +104,36 @@ function normalizeHeaderValue(value: string | string[] | undefined): string | un
   return value;
 }
 
-function toMdanRequest(request: IncomingMessage, body: string | undefined, options: { browserForm?: boolean } = {}): MdanRequest {
+function toMdanRequest(request: IncomingMessage, body: string | undefined, pathnameOverride?: string): MdanRequest {
   const host = request.headers.host ?? "127.0.0.1";
   const rawHeaders = Object.fromEntries(
     Object.entries(request.headers).map(([key, value]) => [key, normalizeHeaderValue(value)])
   ) as Record<string, string | undefined>;
   const finalHeaders = finalizeMdanHeaders({
     headers: rawHeaders,
-    body,
-    browserForm: options.browserForm
+    body
   });
+  const url = new URL(request.url ?? "/", `http://${host}`);
+  if (pathnameOverride) {
+    url.pathname = pathnameOverride;
+  }
 
   return {
     method: toMdanMethod(request.method),
-    url: new URL(request.url ?? "/", `http://${host}`).toString(),
+    url: url.toString(),
     headers: finalHeaders,
     ...(body ? { body } : {}),
     cookies: parseCookies(finalHeaders.cookie)
   };
 }
 
-async function writeResponse(response: ServerResponse, result: MdanResponse, transformHtml?: (html: string) => string): Promise<void> {
+async function writeResponse(response: ServerResponse, result: MdanResponse): Promise<void> {
   response.statusCode = result.status;
   for (const [key, value] of Object.entries(result.headers)) {
     response.setHeader(key, value);
   }
-  const contentType = String(result.headers["content-type"] ?? "");
   if (typeof result.body === "string") {
-    response.end(contentType.includes("text/html") && transformHtml ? transformHtml(result.body) : result.body);
+    response.end(result.body);
     return;
   }
 
@@ -149,27 +143,37 @@ async function writeResponse(response: ServerResponse, result: MdanResponse, tra
   response.end();
 }
 
+async function runRuntimeRequest(
+  handler: MdanRequestHandler,
+  request: IncomingMessage,
+  response: ServerResponse,
+  options: CreateNodeRequestListenerOptions,
+  pathnameOverride?: string
+): Promise<void> {
+  const contentType = request.headers["content-type"] ?? "";
+  const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
+  let normalizedBody: string | undefined;
+  try {
+    normalizedBody = await normalizeBody(await readBody(request, maxBodyBytes), contentType, options.assets);
+  } catch (error) {
+    if (error instanceof PayloadTooLargeError) {
+      response.statusCode = 413;
+      response.setHeader("content-type", toMarkdownContentType());
+      response.end("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.");
+      return;
+    }
+    throw error;
+  }
+  const result = await handler.handle(toMdanRequest(request, normalizedBody, pathnameOverride));
+  await writeResponse(response, result);
+}
+
 export function createNodeRequestListener(
   handler: MdanRequestHandler,
   options: CreateNodeRequestListenerOptions = {}
 ): RequestListener {
   return async (request, response) => {
-    const contentType = request.headers["content-type"] ?? "";
-    const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
-    let normalizedBody: string | undefined;
-    try {
-      normalizedBody = await normalizeBody(await readBody(request, maxBodyBytes), contentType, options.assets);
-    } catch (error) {
-      if (error instanceof PayloadTooLargeError) {
-        response.statusCode = 413;
-        response.setHeader("content-type", toMarkdownContentType());
-        response.end("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.");
-        return;
-      }
-      throw error;
-    }
-    const result = await handler.handle(toMdanRequest(request, normalizedBody));
-    await writeResponse(response, result, options.transformHtml);
+    await runRuntimeRequest(handler, request, response, options);
   };
 }
 
@@ -196,45 +200,9 @@ export function createNodeHost(handler: MdanRequestHandler, options: CreateNodeH
         response.end();
         return true;
       },
-      async onMissingLocalBrowserModule(filePath) {
-        response.statusCode = 500;
-        response.setHeader("content-type", "text/html");
-        response.end(
-          `<!doctype html><html><body><pre>Missing local browser module: ${filePath}\nRun: bun run build</pre></body></html>`
-        );
-        return true;
-      },
-      async onBrowserShell() {
-        const htmlRequest = toMdanRequest(request, undefined);
-        const htmlResult = await handler.handle(htmlRequest);
-        await writeResponse(response, htmlResult, options.transformHtml);
-        return true;
-      },
       async onRuntime() {
-        const contentType = normalizeHeaderValue(request.headers["content-type"]);
-        const accept = normalizeHeaderValue(request.headers.accept);
-        const browserForm = isBrowserFormRequest(request.method ?? "GET", accept, contentType);
-        if (!browserForm) {
-          await requestListener(request, response);
-          return true;
-        }
-
-        const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
-        let normalizedBody: string | undefined;
-        try {
-          normalizedBody = await normalizeBody(await readBody(request, maxBodyBytes), contentType ?? "", options.assets);
-        } catch (error) {
-          if (error instanceof PayloadTooLargeError) {
-            response.statusCode = 413;
-            response.setHeader("content-type", toMarkdownContentType());
-            response.end("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.");
-            return true;
-          }
-          throw error;
-        }
-
-        const result = await handler.handle(toMdanRequest(request, normalizedBody, { browserForm: true }));
-        await writeResponse(response, adaptBrowserFormResponse(result, options.browserShell), options.transformHtml);
+        const pathnameOverride = plan.kind === "runtime" ? plan.pathnameOverride : undefined;
+        await runRuntimeRequest(handler, request, response, options, pathnameOverride);
         return true;
       },
       serveStaticFile(filePath) {

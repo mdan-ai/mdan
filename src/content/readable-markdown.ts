@@ -1,5 +1,5 @@
 import { parseFrontmatter } from "./content-actions.js";
-import { MDAN_PAGE_MANIFEST_VERSION, type MdanActionManifest } from "../protocol/surface.js";
+import { MDAN_PAGE_MANIFEST_VERSION, type MdanActionManifest } from "../core/protocol.js";
 
 const READABLE_MARKDOWN_FALLBACK_ACTIONS: MdanActionManifest = {
   version: MDAN_PAGE_MANIFEST_VERSION,

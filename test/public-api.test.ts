@@ -13,40 +13,44 @@ describe("package export boundary", () => {
     const exportsMap = packageJson.exports ?? {};
 
     expect(Object.prototype.hasOwnProperty.call(exportsMap, ".")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./core")).toBe(true);
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./protocol")).toBe(false);
   });
 
-  it("keeps browser shell runtime types off the root app export", async () => {
+  it("keeps the reserved root export empty", async () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
-    expect(indexSource).not.toMatch(/type\s+BrowserShellOptions/);
+    expect(indexSource.trim()).toBe("export {};");
   });
 
-  it("exposes explicit manifest types and version constant from the root app export", async () => {
+  it("keeps protocol manifest types off the reserved root export", async () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
-    expect(indexSource).toMatch(/MDAN_PAGE_MANIFEST_VERSION/);
-    expect(indexSource).toMatch(/defineFormRenderer/);
-    expect(indexSource).toMatch(/type\s+UiFormRenderer/);
-    expect(indexSource).toMatch(/type\s+DefinedUiFormRenderer/);
-    expect(indexSource).toMatch(/type\s+MdanActionManifest/);
-    expect(indexSource).toMatch(/type\s+JsonAction/);
-    expect(indexSource).toMatch(/type\s+JsonBlock/);
-    expect(indexSource).toMatch(/type\s+MdanActionVerb/);
-    expect(indexSource).toMatch(/type\s+MdanActionMethod/);
-    expect(indexSource).toMatch(/type\s+MdanConfirmationPolicy/);
+    expect(indexSource).not.toMatch(/MDAN_PAGE_MANIFEST_VERSION/);
+    expect(indexSource).not.toMatch(/type\s+MdanActionManifest/);
+    expect(indexSource).not.toMatch(/type\s+JsonAction/);
+    expect(indexSource).not.toMatch(/type\s+JsonBlock/);
   });
 
-  it("keeps low-level server tuning knobs off createApp options", async () => {
-    const appSource = await readFile(join(repoRoot, "src/app/index.ts"), "utf8");
+  it("publishes app authoring from the app barrel instead of the reserved root export", async () => {
+    const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8")) as {
+      exports?: Record<string, unknown>;
+    };
+    const exportsMap = packageJson.exports ?? {};
+    const appIndexSource = await readFile(join(repoRoot, "src/app/index.ts"), "utf8");
+    const serverIndexSource = await readFile(join(repoRoot, "src/server/index.ts"), "utf8");
 
-    expect(appSource).not.toMatch(/CreateMdanServerOptions/);
-    expect(appSource).not.toMatch(/type\s+BrowserShellOptions/);
-    expect(appSource).not.toMatch(/server\/browser-shell/);
-    expect(appSource).not.toMatch(/validatePostRequest/);
-    expect(appSource).not.toMatch(/autoDependencies/);
-    expect(appSource).not.toMatch(/semanticSlots/);
-    expect(appSource).not.toMatch(/assets\?:/);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./app")).toBe(true);
+    expect(appIndexSource).toMatch(/createApp/);
+    expect(appIndexSource).toMatch(/fields/);
+    expect(appIndexSource).toMatch(/signIn/);
+    expect(appIndexSource).toMatch(/signOut/);
+    expect(appIndexSource).toMatch(/refreshSession/);
+    expect(serverIndexSource).not.toMatch(/createApp/);
+    expect(serverIndexSource).not.toMatch(/fields/);
+    expect(serverIndexSource).not.toMatch(/getCookie/);
+    expect(serverIndexSource).not.toMatch(/getHeader/);
+    expect(serverIndexSource).not.toMatch(/getQueryParam/);
   });
 
   it("keeps low-value authoring types off the root app export", async () => {
@@ -61,16 +65,16 @@ describe("package export boundary", () => {
     expect(indexSource).not.toMatch(/AppPageDefinition/);
   });
 
-  it("publishes the form renderer subpath for browser-recoverable renderers", async () => {
+  it("publishes the frontend subpath for browser rendering helpers", async () => {
     const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8")) as {
       exports?: Record<string, unknown>;
     };
     const exportsMap = packageJson.exports ?? {};
 
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./form-renderer")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend")).toBe(true);
   });
 
-  it("keeps browser-shell implementation helpers off the server barrel", async () => {
+  it("keeps legacy browser-entry implementation helpers off the server barrel", async () => {
     const serverIndexSource = await readFile(join(repoRoot, "src/server/index.ts"), "utf8");
 
     expect(serverIndexSource).not.toMatch(/renderBrowserShell/);
@@ -78,7 +82,7 @@ describe("package export boundary", () => {
     expect(serverIndexSource).not.toMatch(/shouldServeBrowserShell/);
     expect(serverIndexSource).not.toMatch(/LOCAL_BROWSER_SHELL_MODULE_PATH/);
     expect(serverIndexSource).not.toMatch(/LOCAL_BROWSER_SURFACE_MODULE_PATH/);
-    expect(serverIndexSource).not.toMatch(/LOCAL_BROWSER_UI_MODULE_PATH/);
+    expect(serverIndexSource).not.toMatch(/LOCAL_BROWSER_FRONTEND_MODULE_PATH/);
   });
 
   it("keeps body-normalization helpers off the server barrel", async () => {

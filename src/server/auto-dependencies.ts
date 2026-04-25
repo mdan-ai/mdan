@@ -1,9 +1,11 @@
-import type { MdanBlock, MdanFragment, MdanOperation, MdanPage } from "../protocol/types.js";
+import type { MdanBlock, MdanFragment, MdanOperation, MdanPage } from "../core/protocol.js";
 
 import { dispatchGetRoute } from "./handler-dispatch.js";
 import type { MdanAssetStoreOptions } from "./assets.js";
 import { MdanRouter } from "./router.js";
-import type { MdanActionResult, MdanRequest, MdanSessionSnapshot } from "./types.js";
+import type { MdanSessionSnapshot } from "./types/session.js";
+import type { MdanRequest } from "./types/transport.js";
+import type { MdanActionResult } from "./types/index.js";
 
 export interface AutoResolveRequestContext {
   action: MdanOperation;

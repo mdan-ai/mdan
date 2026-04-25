@@ -6,23 +6,16 @@ import {
   DEFAULT_MAX_BODY_BYTES,
   PayloadTooLargeError
 } from "./body-normalization.js";
-import {
-  adaptBrowserFormResponse,
-  isBrowserFormRequest
-} from "./browser-form-bridge.js";
-import {
-  type BrowserShellOptions
-} from "./browser-shell.js";
-import { handlePlannedHostRequest } from "./host-flow-shared.js";
-import { planHostRequest } from "./host-shared.js";
-import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host-adapter-shared.js";
+import { handlePlannedHostRequest } from "./host/flow.js";
+import { planHostRequest } from "./host/shared.js";
+import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
 import { parseCookies } from "./cookies.js";
 import {
   getStaticContentType
-} from "./static-files.js";
+} from "./host/static-files.js";
 import { toMarkdownContentType } from "./content-type.js";
 import type { MdanAssetStoreOptions } from "./asset-types.js";
-import type { MdanRequest, MdanResponse } from "./types.js";
+import type { MdanRequest, MdanResponse } from "./types/transport.js";
 
 interface MdanRequestHandler {
   handle(request: MdanRequest): Promise<MdanResponse>;
@@ -31,10 +24,9 @@ interface MdanRequestHandler {
 export interface CreateBunHostOptions {
   rootRedirect?: string;
   ignoreFavicon?: boolean;
+  frontendEntry?: string;
   staticFiles?: Record<string, string>;
   staticMounts?: BunStaticMount[];
-  browserShell?: BrowserShellOptions;
-  transformHtml?: (html: string) => string;
   maxBodyBytes?: number;
   assets?: MdanAssetStoreOptions;
 }
@@ -95,20 +87,23 @@ async function tryServeStaticFile(filePath: string): Promise<Response | null> {
   }
 }
 
-function toMdanRequest(request: Request, body: string | undefined, options: { browserForm?: boolean } = {}): MdanRequest {
+function toMdanRequest(request: Request, body: string | undefined, pathnameOverride?: string): MdanRequest {
   const rawHeaders: Record<string, string | undefined> = {};
   request.headers.forEach((value, key) => {
     rawHeaders[key] = value;
   });
   const finalHeaders = finalizeMdanHeaders({
     headers: rawHeaders,
-    body,
-    browserForm: options.browserForm
+    body
   });
+  const url = new URL(request.url);
+  if (pathnameOverride) {
+    url.pathname = pathnameOverride;
+  }
 
   return {
     method: toMdanMethod(request.method),
-    url: request.url,
+    url: url.toString(),
     headers: finalHeaders,
     ...(body ? { body } : {}),
     cookies: parseCookies(request.headers.get("cookie"))
@@ -136,12 +131,11 @@ function toReadableStream(body: AsyncIterable<string>): ReadableStream<Uint8Arra
   });
 }
 
-function toResponse(result: MdanResponse, transformHtml?: (html: string) => string): Response {
+function toResponse(result: MdanResponse): Response {
   const headers = new Headers(result.headers);
-  const contentType = headers.get("content-type") ?? "";
 
   if (typeof result.body === "string") {
-    return new Response(contentType.includes("text/html") && transformHtml ? transformHtml(result.body) : result.body, {
+    return new Response(result.body, {
       status: result.status,
       headers
     });
@@ -151,6 +145,32 @@ function toResponse(result: MdanResponse, transformHtml?: (html: string) => stri
     status: result.status,
     headers
   });
+}
+
+async function runRuntimeRequest(
+  handler: MdanRequestHandler,
+  request: Request,
+  options: Pick<CreateBunHostOptions, "maxBodyBytes" | "assets">,
+  pathnameOverride?: string
+): Promise<Response> {
+  const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
+  let normalizedBody: string | undefined;
+  try {
+    normalizedBody = await normalizeBody(request, maxBodyBytes, options.assets);
+  } catch (error) {
+    if (error instanceof PayloadTooLargeError) {
+      return new Response("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.", {
+        status: 413,
+        headers: {
+          "content-type": toMarkdownContentType()
+        }
+      });
+    }
+    throw error;
+  }
+
+  const result = await handler.handle(toMdanRequest(request, normalizedBody, pathnameOverride));
+  return toResponse(result);
 }
 
 export function createHost(handler: MdanRequestHandler, options: CreateBunHostOptions = {}) {
@@ -174,46 +194,9 @@ export function createHost(handler: MdanRequestHandler, options: CreateBunHostOp
       onFavicon() {
         return new Response(null, { status: 204 });
       },
-      onMissingLocalBrowserModule(filePath) {
-        return new Response(
-          `<!doctype html><html><body><pre>Missing local browser module: ${filePath}\nRun: bun run build</pre></body></html>`,
-          {
-            status: 500,
-            headers: {
-              "content-type": "text/html"
-            }
-          }
-        );
-      },
-      async onBrowserShell() {
-        const htmlRequest = toMdanRequest(request, undefined);
-        const htmlResult = await handler.handle(htmlRequest);
-        return toResponse(htmlResult, options.transformHtml);
-      },
       async onRuntime() {
-        const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
-        let normalizedBody: string | undefined;
-        try {
-          normalizedBody = await normalizeBody(request, maxBodyBytes, options.assets);
-        } catch (error) {
-          if (error instanceof PayloadTooLargeError) {
-            return new Response("## Payload Too Large\n\nRequest body exceeded maxBodyBytes.", {
-              status: 413,
-              headers: {
-                "content-type": toMarkdownContentType()
-              }
-            });
-          }
-          throw error;
-        }
-
-        const browserForm = isBrowserFormRequest(
-          request.method,
-          request.headers.get("accept"),
-          request.headers.get("content-type")
-        );
-        const result = await handler.handle(toMdanRequest(request, normalizedBody, { browserForm }));
-        return toResponse(browserForm ? adaptBrowserFormResponse(result, options.browserShell) : result, options.transformHtml);
+        const pathnameOverride = plan.kind === "runtime" ? plan.pathnameOverride : undefined;
+        return runRuntimeRequest(handler, request, options, pathnameOverride);
       },
       serveStaticFile(filePath) {
         return tryServeStaticFile(filePath);

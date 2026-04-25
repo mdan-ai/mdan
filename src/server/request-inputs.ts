@@ -1,7 +1,7 @@
 import { MdanParseError } from "./errors.js";
-import { normalizeInputValuesBySchema } from "../protocol/input/input-schema.js";
+import { normalizeInputValuesBySchema } from "../core/protocol.js";
 import { parseActionRequestBody } from "./json-body.js";
-import type { MdanRequest } from "./types.js";
+import type { MdanRequest } from "./types/transport.js";
 
 export interface ParsedRequestAction {
   proof?: string;

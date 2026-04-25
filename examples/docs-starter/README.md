@@ -12,10 +12,10 @@ Source layout:
 
 Runtime contract:
 
-- `GET page` supports `text/html` and `text/markdown`
+- `GET page` supports `text/markdown`
 - `GET page` no longer exposes `application/json`; page discovery happens through the Markdown response
 - the example exposes a `GET` refresh action and returns the same Markdown response contract for action reads
-- HTML page responses are rendered on the server from the same underlying surface
+- frontend consumers render UI from the returned markdown surface
 
 Run:
 
@@ -26,9 +26,11 @@ bun run dev:docs-starter
 
 This command performs an initial SDK build, starts TypeScript watch to keep `dist/` current, and then launches the example server.
 
-Open `http://127.0.0.1:4326/`.
+Open:
+
+- `http://127.0.0.1:4326/` for the shipped browser UI
+- `http://127.0.0.1:4326/index.md` if you want the raw markdown route in the browser
 
 Quick checks:
 
-- `curl -H 'Accept: text/html' http://127.0.0.1:4326/`
 - `curl -H 'Accept: text/markdown' http://127.0.0.1:4326/`

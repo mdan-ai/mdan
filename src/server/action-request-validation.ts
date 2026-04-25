@@ -10,7 +10,8 @@ import {
   createErrorResponse,
   createNonMarkdownActionOnlyResult
 } from "./runtime-errors.js";
-import type { MdanRequest, MdanResponse, MdanSessionSnapshot } from "./types.js";
+import type { MdanSessionSnapshot } from "./types/session.js";
+import type { MdanRequest, MdanResponse } from "./types/transport.js";
 import type { MdanPostInputValidator } from "./post-input-validation.js";
 
 export type ValidatedActionRequest =

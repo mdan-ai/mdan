@@ -67,7 +67,8 @@ Open:
 http://127.0.0.1:4321/
 ```
 
-This is the human-facing HTML projection of the app.
+This is the running frontend entry. It boots browser UI, then fetches the
+markdown surface for the requested route.
 
 You should see a simple starter page with:
 
@@ -96,8 +97,8 @@ You should now see the MDAN surface directly:
 - the current message block content
 - an embedded `mdan` block that declares the next actions
 
-That Markdown response is the canonical read surface. The HTML page is the
-browser projection of the same underlying app state.
+That Markdown response is the canonical read surface. The frontend entry reads
+that same surface and renders browser UI from it.
 
 ## 4. Know What The Generated Files Are For
 
@@ -133,8 +134,8 @@ default starter working before you change it.
 
 The starter demonstrates the core MDAN loop:
 
-- one app serves browsers as HTML
-- the same app serves agents as Markdown
+- one app serves markdown surfaces
+- the browser entry consumes the same markdown surface
 - actions are explicit instead of guessed
 - every response can provide the next readable interaction context
 

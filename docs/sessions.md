@@ -57,7 +57,7 @@ The runtime calls:
 Handlers return session mutations with helpers:
 
 ```ts
-import { signIn, signOut } from "@mdanai/sdk/server";
+import { signIn, signOut } from "@mdanai/sdk/app";
 
 server.post("/auth/login", async ({ inputs }) => {
   const sid = crypto.randomUUID();

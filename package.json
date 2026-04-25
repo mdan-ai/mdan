@@ -65,9 +65,17 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./form-renderer": {
-      "types": "./dist/form-renderer.d.ts",
-      "default": "./dist/form-renderer.js"
+    "./app": {
+      "types": "./dist/app/index.d.ts",
+      "default": "./dist/app/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
+    },
+    "./frontend": {
+      "types": "./dist/frontend/index.d.ts",
+      "default": "./dist/frontend/index.js"
     },
     "./server": {
       "types": "./dist/server/index.d.ts",

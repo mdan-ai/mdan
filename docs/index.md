@@ -48,6 +48,11 @@ That path takes you from product model to running app to first real change.
 
 - [Troubleshooting](/troubleshooting)
 - [Deep Dive](/deep-dive)
+- [Architecture](/architecture)
+- [Routing](/routing)
+- [Choose A Rendering Path](/choose-a-rendering-path)
+- [Markdown Rendering](/markdown-rendering)
+- [Form Rendering](/form-rendering)
 - [SDK Packages](/sdk-packages)
 - [API Reference](/api-reference)
 - [Auto Dependencies](/auto-dependencies)
@@ -56,4 +61,3 @@ That path takes you from product model to running app to first real change.
 ## Maintainers
 
 - [Contributing](/contributing)
-- [Architecture](/architecture)

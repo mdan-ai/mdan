@@ -1,23 +1,18 @@
 ---
 title: Browser Behavior
-description: Practical guide to how browsers continue from an MDAN surface, including browser shell delivery, headless host behavior, action submission, region updates, and browser-side error handling.
+description: Practical guide to how browsers continue from a markdown MDAN surface using the headless surface runtime and optional frontend helpers.
 ---
 
 # Browser Behavior
 
 Use this page when your question is about how browsers continue from an MDAN
-surface after the initial page load.
+surface after the initial fetch.
 
-Typical questions:
+The key rule now is simple:
 
-- what the browser shell does
-- when `@mdanai/sdk/surface` is involved
-- how browser actions are submitted
-- how region updates work in the browser
-- how browser-side errors are represented
-
-If your question is about server-side routing, request shape, or response
-negotiation, use [Server Behavior](/server-behavior).
+- the server returns `text/markdown`
+- the browser consumes that markdown surface
+- HTML is produced in the frontend layer, not by the server
 
 ## The Two Browser Layers
 
@@ -26,57 +21,17 @@ The SDK has two browser-facing layers:
 - `@mdanai/sdk/surface`
   the headless runtime that owns transport, route state, action submission, and
   region patching
-- an internal shipped default UI implementation
-  used by the browser shell
+- `@mdanai/sdk/frontend`
+  the shipped frontend helpers that can render a surface snapshot and mount the
+  default browser UI
 
 Custom frontends should depend on `@mdanai/sdk/surface` directly.
-
-## Browser Shell
-
-App hosts can enable `browserShell` for page document requests:
-
-```ts
-const app = createApp({
-  browserShell: {
-    title: "MDAN Starter"
-  }
-});
-```
-
-For `GET` requests that negotiate `text/html`, the host returns a readable HTML
-projection of the current surface.
-
-Today that means:
-
-- page reads render server-side HTML from the current surface
-- the default host path sets `hydrate: false`
-- browsers can get a readable page without booting a custom frontend runtime
-
-## Local Browser Assets
-
-When you render a hydrated browser shell directly, browser modules load from CDN
-URLs by default.
-
-For local SDK development you can use:
-
-```ts
-browserShell: {
-  moduleMode: "local-dist"
-}
-```
-
-In `local-dist` mode, host adapters serve:
-
-- `/__mdan/browser-shell.js`
-- `/__mdan/surface.js`
-- `/__mdan/ui.js`
-
-from `dist-browser/`.
+Frontend integrations that only need a host contract can stay typed against
+`@mdanai/sdk/frontend` contracts and pass in any structurally compatible host.
 
 ## Headless Host
 
-`createHeadlessHost()` accepts an optional initial Markdown response, an initial
-route, an optional `fetchImpl`, and `debugMessages`.
+`createHeadlessHost()` is the browser runtime entry.
 
 The host exposes:
 
@@ -88,7 +43,7 @@ The host exposes:
 - `sync(target?)`
 - `submit(operation, values)`
 
-The snapshot contains the current Markdown, blocks, route, loading/error
+The snapshot contains the current markdown, blocks, route, loading/error
 status, and the current transition state.
 
 ## Browser Action Submission
@@ -107,14 +62,42 @@ POST actions are submitted with JSON request bodies by default:
 ```
 
 The headless host requests `Accept: text/markdown` for both page reads and
-ordinary action results, so the returned body is the same Markdown contract an
-agent or curl client would read directly.
+ordinary action results, so the returned body is the same markdown contract a
+curl client or agent would read directly.
 
 If any submitted value is a `File`, the host sends multipart form data and
 includes `action.proof` as a form field.
 
 GET actions submit values through the query string. When an operation carries an
 action proof, the query includes `action.proof` too.
+
+## Frontend Rendering
+
+If you want the shipped frontend layer, use `@mdanai/sdk/frontend`:
+
+- `autoBootEntry(...)` or `bootEntry(...)` for the standalone browser entry
+- `renderSurfaceSnapshot(...)` for HTML projection from a surface view
+- `mountMdanUi(...)` for the interactive default UI
+- `defineFrontend(...)` for a unified shipped-frontend extension object
+- `frontend.markdown` when you want custom Markdown projection
+- `defineFormRenderer(...)` and `UiFormRenderer` for custom form panels
+- `frontend.form` when you want custom form projection
+- `FrontendSnapshot`, `FrontendUiHost`, and `FrontendHostFactory` when you want
+  to type your browser integration against the frontend contract instead of the
+  concrete surface runtime
+
+The recommended browser entry now uses the natural browser route:
+
+- `/`
+- `/login`
+
+That entry boots browser code, then fetches the matching raw markdown route:
+
+- `/` -> `/index.md`
+- `/login` -> `/login.md`
+
+If you want full ownership, consume the headless snapshot yourself and render
+with your own framework.
 
 ## Region Updates
 
@@ -128,38 +111,17 @@ host falls back to a page replacement.
 
 Non-2xx responses move the host into `error` status.
 
-If the response body is readable Markdown, the host adapts it so the UI can
+If the response body is readable markdown, the host adapts it so the UI can
 show the server-provided error content.
 
-Responses that are not readable Markdown are treated as runtime errors for
+Responses that are not readable markdown are treated as runtime errors for
 browser clients.
-
-## Debug Messages
-
-Enable browser-side transport inspection with:
-
-```ts
-const host = createHeadlessHost({
-  debugMessages: true
-});
-```
-
-Debug records are stored in `window.__MDAN_DEBUG__.messages`.
-
-## Practical Rule
-
-Think of browser behavior as the layer that:
-
-- continues from the current surface
-- submits declared actions
-- applies returned page or region updates
-- preserves browser navigation state
-- surfaces readable server-provided errors
-
-It should not invent its own parallel action model.
 
 ## Related Docs
 
+- [Routing](/routing)
 - [Server Behavior](/server-behavior)
 - [Custom Rendering](/custom-rendering)
+- [Markdown Rendering](/markdown-rendering)
+- [Form Rendering](/form-rendering)
 - [Troubleshooting](/troubleshooting)

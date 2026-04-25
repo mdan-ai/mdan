@@ -5,11 +5,12 @@ import {
   readActionProofClaims,
   verifyActionProofTokenWithClaims
 } from "./action-proof.js";
-import { normalizeInputValuesBySchema } from "../protocol/input/input-schema.js";
-import type { MdanConfirmationPolicy, MdanOperation } from "../protocol/types.js";
+import { normalizeInputValuesBySchema } from "../core/protocol.js";
+import type { MdanConfirmationPolicy, MdanOperation } from "../core/protocol.js";
 
 import type { ParsedRequestAction } from "./request-inputs.js";
-import type { MdanActionResult, MdanRequest } from "./types.js";
+import type { MdanRequest } from "./types/transport.js";
+import type { MdanActionResult } from "./types/index.js";
 
 export interface ActionProofOptions {
   secret?: string;

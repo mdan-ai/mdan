@@ -19,4 +19,4 @@ export type {
   MdanResponse,
   MdanSessionProvider,
   MdanSessionSnapshot
-} from "./types.js";
+} from "./types/index.js";

@@ -1,32 +1,17 @@
-import { stripAgentBlocks } from "../content/agent-blocks.js";
+import { stripAgentBlocks } from "../core/content.js";
 
 export { stripAgentBlocks };
 export {
   parseReadableSurface,
   type ParseMarkdownSurfaceOptions,
   type ReadableSurface
-} from "../content/readable-markdown.js";
+} from "../core/content.js";
 export {
   basicMarkdownRenderer,
   type MdanMarkdownRenderContext,
   type MdanMarkdownRenderer
-} from "../content/markdown-renderer.js";
-
-function stripFrontmatter(markdown: string): string {
-  return markdown.replace(/^---\n[\s\S]*?\n---\n?/, "");
-}
-
-function stripContentBlocks(markdown: string): string {
-  return markdown
-    .replace(/^\s*<!--\s*mdan:block\b[^>]*-->\s*$/gm, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-export function stripReadablePageMarkdown(markdown: string): string {
-  return stripAgentBlocks(stripContentBlocks(stripFrontmatter(markdown)));
-}
-
-export function stripReadableBlockMarkdown(markdown: string): string {
-  return stripAgentBlocks(markdown);
-}
+} from "../core/content.js";
+export {
+  stripReadableBlockMarkdown,
+  stripReadablePageMarkdown
+} from "../core/surface/readable.js";

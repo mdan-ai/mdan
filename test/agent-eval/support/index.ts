@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 
 import { extractSections, parseFrontmatter } from "../../../src/content/content-actions.js";
-import { createMarkdownPage } from "../../../src/server/markdown-surface.js";
+import { createMarkdownPage } from "../../../src/core/surface/markdown.js";
 import { createNodeHost } from "../../../src/server/node.js";
 import { createMdanServer, type MdanRequest } from "../../../src/server/index.js";
 

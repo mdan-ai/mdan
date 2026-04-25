@@ -71,7 +71,7 @@ Body
     expect(String(response.body)).toContain("missing_action");
   });
 
-  it("accepts Markdown-native page handlers for markdown and html reads", async () => {
+  it("accepts Markdown-native page handlers for markdown reads and rejects html negotiation", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.page("/markdown", async () => ({
       markdown: "# Markdown Page",
@@ -102,9 +102,8 @@ Body
       cookies: {}
     });
 
-    expect(html.status).toBe(200);
-    expect(String(html.body)).toContain("<h1>Markdown Page</h1>");
-    expect(String(html.body)).not.toContain('id="mdan-initial-surface"');
+    expect(html.status).toBe(406);
+    expect(String(html.body)).toContain("## Not Acceptable");
 
     const json = await server.handle({
       method: "GET",
@@ -119,7 +118,7 @@ Body
     expect(String(json.body)).toContain("## Not Acceptable");
   });
 
-  it("accepts readable-surface page handlers for markdown and html reads", async () => {
+  it("accepts readable-surface page handlers for markdown reads and rejects html negotiation", async () => {
     const server = createMdanServer({ actionProof: { disabled: true } });
     server.page("/readable", async () => ({
       markdown: "# Readable Page\n\n<!-- mdan:block id=\"main\" -->\nBody",
@@ -159,10 +158,8 @@ Body
       cookies: {}
     });
 
-    expect(html.status).toBe(200);
-    expect(String(html.body)).toContain("<h1>Readable Page</h1>");
-    expect(String(html.body)).toContain("Body");
-    expect(String(html.body)).not.toContain('id="mdan-initial-surface"');
+    expect(html.status).toBe(406);
+    expect(String(html.body)).toContain("## Not Acceptable");
 
     const json = await server.handle({
       method: "GET",
@@ -406,7 +403,7 @@ Broken
     expect(commits).toEqual([{ sid: "s1" }]);
   });
 
-  it("commits page handler session mutations on html reads", async () => {
+  it("does not commit page handler session mutations for rejected html reads", async () => {
     const commits: Array<Record<string, unknown> | null> = [];
     const server = createMdanServer({
       session: {
@@ -444,9 +441,9 @@ Broken
       cookies: {}
     });
 
-    expect(response.status).toBe(200);
-    expect(response.headers["set-cookie"]).toContain("session=html");
-    expect(commits).toEqual([{ sid: "s2" }]);
+    expect(response.status).toBe(406);
+    expect(response.headers["set-cookie"]).toBeUndefined();
+    expect(commits).toEqual([]);
   });
 
   it("commits action handler session mutations on markdown reads", async () => {

@@ -6,7 +6,7 @@ import {
   resolveDispatchMode,
   resolveActionBehavior,
   resolveActionVariant
-} from "../../src/surface/render-semantics.js";
+} from "../../src/core/surface/presentation.js";
 
 describe("SSE helpers", () => {
   it("serializes message into data-prefixed lines", () => {

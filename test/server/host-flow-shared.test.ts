@@ -1,8 +1,38 @@
 import { describe, expect, it } from "vitest";
 
-import { handlePlannedHostRequest } from "../../src/server/host-flow-shared.js";
+import { handlePlannedHostRequest } from "../../src/server/host/flow.js";
+import { planHostRequest } from "../../src/server/host/shared.js";
 
 describe("handlePlannedHostRequest", () => {
+  it("plans frontend entry delivery for html document routes while leaving markdown suffix routes on runtime", () => {
+    expect(
+      planHostRequest("/login", "GET", "text/html,application/xhtml+xml", {
+        frontendEntry: "/tmp/index.html"
+      })
+    ).toEqual({
+      kind: "static-candidates",
+      filePaths: ["/tmp/index.html"]
+    });
+
+    expect(
+      planHostRequest("/login.md", "GET", "text/html,application/xhtml+xml", {
+        frontendEntry: "/tmp/index.html"
+      })
+    ).toEqual({
+      kind: "runtime",
+      pathnameOverride: "/login"
+    });
+
+    expect(
+      planHostRequest("/index.md", "GET", "text/markdown", {
+        frontendEntry: "/tmp/index.html"
+      })
+    ).toEqual({
+      kind: "runtime",
+      pathnameOverride: "/"
+    });
+  });
+
   it("returns redirect responses through the adapter callback", async () => {
     await expect(
       handlePlannedHostRequest(
@@ -10,8 +40,6 @@ describe("handlePlannedHostRequest", () => {
         {
           onRedirect: async (location) => ({ kind: "redirect", location }),
           onFavicon: async () => ({ kind: "favicon" }),
-          onMissingLocalBrowserModule: async (filePath) => ({ kind: "missing", filePath }),
-          onBrowserShell: async () => ({ kind: "browser-shell" }),
           onRuntime: async () => ({ kind: "runtime" }),
           serveStaticFile: async () => null
         }
@@ -28,8 +56,6 @@ describe("handlePlannedHostRequest", () => {
         {
           onRedirect: async (location) => ({ kind: "redirect", location }),
           onFavicon: async () => ({ kind: "favicon" }),
-          onMissingLocalBrowserModule: async (filePath) => ({ kind: "missing", filePath }),
-          onBrowserShell: async () => ({ kind: "browser-shell" }),
           onRuntime: async () => ({ kind: "runtime" }),
           serveStaticFile: async (filePath) => {
             seen.push(filePath);
@@ -51,8 +77,6 @@ describe("handlePlannedHostRequest", () => {
         {
           onRedirect: async (location) => ({ kind: "redirect", location }),
           onFavicon: async () => ({ kind: "favicon" }),
-          onMissingLocalBrowserModule: async (filePath) => ({ kind: "missing", filePath }),
-          onBrowserShell: async () => ({ kind: "browser-shell" }),
           onRuntime: async () => ({ kind: "runtime" }),
           serveStaticFile: async (filePath) => {
             seen.push(filePath);

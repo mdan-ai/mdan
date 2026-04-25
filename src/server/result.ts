@@ -1,4 +1,4 @@
-import type { MdanActionResult, MdanStreamChunk, MdanStreamResult } from "./types.js";
+import type { MdanActionResult, MdanStreamChunk, MdanStreamResult } from "./types/result.js";
 
 export function ok(result: MdanActionResult): MdanActionResult {
   return {

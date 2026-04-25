@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { parseMarkdownSurface } from "../../src/content/readable-markdown.js";
-import { createMarkdownFragment, createMarkdownPage, createExecutableContent } from "../../src/server/markdown-surface.js";
+import { createMarkdownFragment, createMarkdownPage, createExecutableContent } from "../../src/core/surface/markdown.js";
 
 describe("markdown surface helpers", () => {
   it("serializes executable JSON with stable indentation", () => {

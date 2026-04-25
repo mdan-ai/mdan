@@ -1,11 +1,12 @@
 ---
 title: Form Customization Example
-description: End-to-end example showing how one custom form renderer can drive both browser-shell snapshot HTML and browser-side runtime takeover.
+description: Frontend-focused example showing a custom form renderer built on top of `@mdanai/sdk/frontend`.
 ---
 
 # form-customization
 
-This example shows the default browser-shell form injection path.
+This example shows the frontend form-renderer primitives, separate from the
+server markdown transport.
 
 Source layout:
 
@@ -17,10 +18,8 @@ Source layout:
 
 What it demonstrates:
 
-- define one shared `weatherFormRenderer`
-- use it once in `createApp({ rendering: { form } })`
-- let the default browser shell reuse the same renderer for both server-side
-  projection and browser-side runtime takeover
+- define one shared `weatherFrontend`
+- keep frontend-specific code on the `@mdanai/sdk/frontend` entrypoint
 - keep the MDAN action contract unchanged while replacing the default panel markup
 
 Run:
@@ -41,7 +40,6 @@ PORT=4327 bun run examples/form-customization/dev.ts
 What to look for:
 
 - the weather query panel is not the default `mdan-form` layout
-- the same custom panel appears before and after browser-side takeover
 - changing the query still submits through the declared MDAN `GET` action
 
 Key files:

@@ -16,11 +16,11 @@ describe("docs guidance", () => {
     expect(quickstart).toContain("`index.mjs`");
   });
 
-  it("keeps create-mdan focused on root app authoring", async () => {
+  it("keeps create-mdan focused on server-first authoring", async () => {
     const createMdanReadme = await readFile(join(repoRoot, "create-mdan/README.md"), "utf8");
 
-    expect(createMdanReadme).toContain("- `@mdanai/sdk` for app authoring");
+    expect(createMdanReadme).toContain("- `@mdanai/sdk/app` for app authoring");
     expect(createMdanReadme).toContain("- `@mdanai/sdk/server/node` or `@mdanai/sdk/server/bun` for host integration");
-    expect(createMdanReadme).not.toContain("- `@mdanai/sdk/server`");
+    expect(createMdanReadme).toContain("- `@mdanai/sdk/core` for the shared protocol/content layer");
   });
 });

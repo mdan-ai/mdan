@@ -23,14 +23,13 @@ function parseAcceptHeader(acceptHeader: string): AcceptEntry[] {
 
 export function negotiateRepresentation(acceptHeader?: string): MdanRepresentation {
   if (!acceptHeader) {
-    return "html";
+    return "markdown";
   }
 
   const accepted = parseAcceptHeader(acceptHeader);
   const weightByRepresentation: Record<Exclude<MdanRepresentation, "not-acceptable">, number> = {
     "event-stream": 0,
-    markdown: 0,
-    html: 0
+    markdown: 0
   };
 
   for (const entry of accepted) {
@@ -48,8 +47,8 @@ export function negotiateRepresentation(acceptHeader?: string): MdanRepresentati
       continue;
     }
 
-    if (["text/html", "text/*", "*/*"].includes(entry.mediaType)) {
-      weightByRepresentation.html = Math.max(weightByRepresentation.html, entry.q);
+    if (["text/*", "*/*"].includes(entry.mediaType)) {
+      weightByRepresentation.markdown = Math.max(weightByRepresentation.markdown, entry.q);
     }
   }
 
@@ -62,8 +61,7 @@ export function negotiateRepresentation(acceptHeader?: string): MdanRepresentati
 
   const tieBreaker: Record<Exclude<MdanRepresentation, "not-acceptable">, number> = {
     "event-stream": 3,
-    markdown: 2,
-    html: 1
+    markdown: 2
   };
 
   candidates.sort((left, right) => {

@@ -40,7 +40,8 @@ contract visible instead of hiding it inside runtime code.
 
 ```ts
 import { readFileSync } from "node:fs";
-import { MDAN_PAGE_MANIFEST_VERSION, createApp, type MdanActionManifest } from "@mdanai/sdk";
+import { createApp } from "@mdanai/sdk/app";
+import { MDAN_PAGE_MANIFEST_VERSION, type MdanActionManifest } from "@mdanai/sdk/core";
 
 const app = createApp();
 const markdown = readFileSync("app/index.md", "utf8");
@@ -137,7 +138,7 @@ you return will no longer match what the runtime can actually handle.
 ## Notes
 
 - `page.actionJson()` and `page.bind(...).actionJson()` return the same action manifest.
-- `MDAN_PAGE_MANIFEST_VERSION` and `MdanActionManifest` are exported from `@mdanai/sdk`
+- `MDAN_PAGE_MANIFEST_VERSION` and `MdanActionManifest` are exported from `@mdanai/sdk/core`
   so explicit `.action.json` files can be typed without reaching into internal paths.
 - Source action JSON does not include runtime proof
   fields like `action_proof`; those are added by runtime response handling.

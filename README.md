@@ -4,8 +4,8 @@
 and online skills.
 
 MDAN is a Markdown-first application surface model for shared human and agent
-interaction. A page stays readable as Markdown, carries explicit action
-contracts, and can be projected to browser HTML from the same server flow.
+interaction. A page stays readable as Markdown and carries explicit action
+contracts in the same response.
 
 It is designed for teams building agent-facing apps, skills apps, online
 skills, interactive internal tools, and other workflows where the same surface
@@ -62,29 +62,33 @@ npm install @mdanai/sdk
 
 Default path:
 
-- `@mdanai/sdk`: app authoring with `createApp`, `page`, `route`, `action`, `fields`, and explicit `actionJson`
+- `@mdanai/sdk/app`: app authoring helpers
+- `@mdanai/sdk/server`: markdown-only server runtime helpers
 - `@mdanai/sdk/server/node`: host with Node HTTP
 - `@mdanai/sdk/server/bun`: host with Bun
 
 Advanced path:
 
+- `@mdanai/sdk/core`: shared protocol and markdown-content layer
+- `@mdanai/sdk/frontend`: shipped frontend helpers
 - `@mdanai/sdk/surface`: custom frontend/runtime escape hatch
-- `@mdanai/sdk/server`: lower-level runtime helpers for sessions, assets, streaming, and internal runtime control
 
 ## Recommended Entry Paths
 
-- `app + browser shell`
-  Start here when you want the fastest path to a browser app and agent-readable Markdown surface from the same server.
-- `app + surface`
-  Use this when you want the root app API on the server but your own frontend on top of `@mdanai/sdk/surface`.
+- `server + frontend`
+  Start here when you want the shipped app authoring/server API plus the shipped frontend helpers in the browser.
+- `server + surface`
+  Use this when you want the server app API but your own frontend on top of `@mdanai/sdk/surface`.
 - `server only`
   Use this when you intentionally need lower-level runtime control, custom integrations, or direct server modeling.
+- `core only`
+  Use this only when you intentionally want the shared protocol/content layer without the server wrapper.
 
 ## Minimal App
 
 ```ts
-import { createApp, fields } from "@mdanai/sdk";
-import type { InferAppInputs } from "@mdanai/sdk";
+import { createApp, fields } from "@mdanai/sdk/app";
+import type { InferAppInputs } from "@mdanai/sdk/app";
 import { createHost } from "@mdanai/sdk/server/bun";
 
 const messages = ["Welcome to MDAN"];
@@ -95,10 +99,7 @@ const submitInputSchema = fields.object(submitFields).schema;
 type SubmitMessageInputs = InferAppInputs<typeof submitFields>;
 
 const app = createApp({
-  appId: "starter",
-  browserShell: {
-    title: "MDAN Starter"
-  }
+  appId: "starter"
 });
 
 const home = app.page("/", {
@@ -163,11 +164,7 @@ app.action("/post", async ({ inputs }) => {
   return home.bind(messages).render();
 });
 
-export default createHost(app, {
-  browserShell: {
-    title: "MDAN Starter"
-  }
-});
+export default createHost(app);
 ```
 
 ## App API Shape
@@ -180,7 +177,6 @@ export default createHost(app, {
 - `app.action(path, { method: "GET" }, handler)`: register a GET action handler
 - `app.read(path, handler)`: semantic helper for GET read handlers
 - `app.write(path, handler)`: semantic helper for POST write handlers
-- `getHeader(request, name)`, `getCookie(request, name)`, `getQueryParam(request, name)`: request read helpers on root API
 - `page.actionJson()`: inspect the explicit action JSON (`blocks` + `actions`)
 - `page.bind(state)`: associate current state with a page definition
 - `page.render(state)`: render directly when you want the explicit form
@@ -201,7 +197,6 @@ return home.bind(messages).render();
 ## Runtime Model
 
 - `text/markdown` is the canonical public read representation
-- `text/html` is the browser projection of the same surface
 - POST action submissions use JSON request bodies
 - action proof is enabled by default
 
@@ -212,13 +207,13 @@ you configure `createApp({ appId })`.
 ## Custom Frontends
 
 If you want your own React, Vue, or other frontend instead of the shipped
-browser shell, build on:
+frontend helpers, build on:
 
 ```ts
 import { createHeadlessHost } from "@mdanai/sdk/surface";
 ```
 
-Use the root app API for app authoring, and only reach for `surface` when you
+Use the app API for app authoring, and only reach for `surface` when you
 intentionally want to own the browser UI layer.
 
 ## Docs
@@ -231,6 +226,6 @@ intentionally want to own the browser UI layer.
 
 Repo-local docs:
 
-- [Architecture](https://github.com/mdan-ai/mdan/blob/main/ARCHITECTURE.md)
+- [Architecture](https://github.com/mdan-ai/mdan/blob/main/sdk/docs/architecture.md)
 - [Contributing](https://github.com/mdan-ai/mdan/blob/main/CONTRIBUTING.md)
 - [Examples](https://github.com/mdan-ai/mdan/tree/main/examples)

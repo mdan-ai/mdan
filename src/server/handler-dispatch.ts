@@ -1,6 +1,6 @@
 import { openAssetStream as openStoredAssetStream, readAsset as readStoredAsset, type MdanAssetStoreOptions } from "./assets.js";
-import type { ReadableSurfaceValidationOptions } from "./readable-surface-options.js";
-import { getReadableSurfaceViolation } from "./readable-surface-validation.js";
+import type { ReadableSurfaceValidationOptions } from "../core/surface/validation.js";
+import { getReadableSurfaceViolation } from "../core/surface/validation.js";
 import {
   normalizeActionHandlerResultLike,
   normalizePageHandlerResult,
@@ -13,10 +13,10 @@ import type {
   MdanActionResult,
   MdanHandler,
   MdanInputMap,
-  MdanPageHandler,
-  MdanRequest,
-  MdanSessionSnapshot
-} from "./types.js";
+  MdanPageHandler
+} from "./types/index.js";
+import type { MdanSessionSnapshot } from "./types/session.js";
+import type { MdanRequest } from "./types/transport.js";
 
 export async function dispatchPageHandler(
   handler: MdanPageHandler,

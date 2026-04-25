@@ -1,4 +1,4 @@
-import type { MdanHandler, MdanPageHandler } from "./types.js";
+import type { MdanHandler, MdanPageHandler } from "./types/handler.js";
 
 export interface MdanRouteMatch<THandler> {
   handler: THandler;

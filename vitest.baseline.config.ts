@@ -29,11 +29,11 @@ export default defineConfig({
       "test/core/serialize.test.ts",
       "test/core/semantic-slots.test.ts",
       "test/elements/model.test.ts",
+      "test/frontend/entry.test.ts",
       "test/elements/headless-host-integration.test.ts",
       "test/server/adapter-shared.test.ts",
       "test/server/agent-consumption-contract.test.ts",
       "test/server/auto-dependencies.test.ts",
-      "test/server/browser-shell.test.ts",
       "test/server/host-adapter-shared.test.ts",
       "test/server/host-flow-shared.test.ts",
       "test/server/public-api.test.ts",
@@ -67,7 +67,7 @@ export default defineConfig({
         "src/server/router.ts",
         "src/server/runtime.ts",
         "src/server/session.ts",
-        "src/surface/render-semantics.ts",
+        "src/core/surface/presentation.ts",
         "src/server/sse.ts"
       ],
       thresholds: {

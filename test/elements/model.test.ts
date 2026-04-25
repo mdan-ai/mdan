@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { resolveUiSnapshotView } from "../../src/ui/model.js";
+import { resolveUiSnapshotView } from "../../src/frontend/model.js";
 import {
   buildOperationPayload,
   createInputsByName,
