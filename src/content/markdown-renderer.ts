@@ -1,3 +1,5 @@
+import { Renderer, marked } from "marked";
+
 import { stripAgentBlocks } from "./agent-blocks.js";
 
 export interface MdanMarkdownRenderContext {
@@ -10,12 +12,6 @@ export interface MdanMarkdownRenderer {
   render(markdown: string, context?: MdanMarkdownRenderContext): string;
 }
 
-type RenderNode =
-  | { type: "h1"; text: string }
-  | { type: "h2"; text: string }
-  | { type: "p"; text: string }
-  | { type: "ul"; items: string[] };
-
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -24,12 +20,39 @@ function escapeHtml(value: string): string {
     .replaceAll('"', "&quot;");
 }
 
-function parseRenderableMarkdown(markdown: string): RenderNode[] {
-  const lines = stripAgentBlocks(markdown).split("\n");
+function sanitizeHref(href: string | null | undefined): string | null {
+  if (typeof href !== "string") {
+    return null;
+  }
+  const trimmed = href.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("./") ||
+    trimmed.startsWith("../") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("?")
+  ) {
+    return trimmed;
+  }
+  try {
+    const parsed = new URL(trimmed, "http://mdan.local");
+    if (parsed.protocol === "http:" || parsed.protocol === "https:" || parsed.protocol === "mailto:") {
+      return trimmed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function stripFrontmatter(markdown: string): string {
+  const lines = markdown.split("\n");
   const visible: string[] = [];
   let inFrontmatter = false;
   let frontmatterHandled = false;
-  let inCode = false;
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -43,93 +66,39 @@ function parseRenderableMarkdown(markdown: string): RenderNode[] {
     if (inFrontmatter) {
       continue;
     }
-    if (trimmed.startsWith("```")) {
-      inCode = !inCode;
-      continue;
-    }
-    if (inCode) {
-      continue;
-    }
     visible.push(line);
   }
 
-  const nodes: RenderNode[] = [];
-  let paragraphLines: string[] = [];
-  let listItems: string[] = [];
+  return visible.join("\n").trim();
+}
 
-  function flushParagraph(): void {
-    const text = paragraphLines.map((line) => line.trim()).filter(Boolean).join(" ").trim();
-    if (text) {
-      nodes.push({ type: "p", text });
-    }
-    paragraphLines = [];
-  }
-
-  function flushList(): void {
-    const items = listItems.map((item) => item.trim()).filter(Boolean);
-    if (items.length > 0) {
-      nodes.push({ type: "ul", items });
-    }
-    listItems = [];
-  }
-
-  function flushAll(): void {
-    flushParagraph();
-    flushList();
-  }
-
-  for (const line of visible) {
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      flushAll();
-      continue;
-    }
-
-    if (trimmed.startsWith("# ")) {
-      flushAll();
-      nodes.push({ type: "h1", text: trimmed.slice(2).trim() });
-      continue;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      flushAll();
-      nodes.push({ type: "h2", text: trimmed.slice(3).trim() });
-      continue;
-    }
-
-    if (trimmed.startsWith("- ")) {
-      flushParagraph();
-      listItems.push(trimmed.slice(2).trim());
-      continue;
-    }
-
-    flushList();
-    paragraphLines.push(trimmed);
-  }
-
-  flushAll();
-  return nodes;
+function prepareRenderableMarkdown(markdown: string): string {
+  return stripFrontmatter(stripAgentBlocks(markdown));
 }
 
 export const basicMarkdownRenderer: MdanMarkdownRenderer = {
   render(markdown: string): string {
-    return parseRenderableMarkdown(markdown)
-      .map((node) => {
-        if (node.type === "h1") {
-          return `<h1>${escapeHtml(node.text)}</h1>`;
-        }
-        if (node.type === "h2") {
-          return `<h2>${escapeHtml(node.text)}</h2>`;
-        }
-        if (node.type === "p") {
-          return `<p>${escapeHtml(node.text)}</p>`;
-        }
-        if (node.type === "ul") {
-          return `<ul>${node.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
-        }
-        return "";
-      })
-      .join("\n");
+    const prepared = prepareRenderableMarkdown(markdown);
+    if (!prepared) {
+      return "";
+    }
+
+    const renderer = new Renderer();
+    renderer.html = ({ text }) => escapeHtml(text);
+    renderer.link = ({ href, title, tokens }) => {
+      const safeHref = sanitizeHref(href);
+      const text = renderer.parser.parseInline(tokens);
+      if (!safeHref) {
+        return text;
+      }
+      const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
+      return `<a href="${escapeHtml(safeHref)}"${titleAttribute}>${text}</a>`;
+    };
+
+    return marked.parse(prepared, {
+      async: false,
+      gfm: true,
+      renderer
+    });
   }
 };

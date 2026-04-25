@@ -33,6 +33,25 @@ describe("handlePlannedHostRequest", () => {
     });
   });
 
+  it("plans built-in frontend entry and bundled asset delivery when frontend mode is enabled", () => {
+    expect(
+      planHostRequest("/login", "GET", "text/html,application/xhtml+xml", {
+        frontend: true
+      })
+    ).toEqual({
+      kind: "frontend-entry"
+    });
+
+    expect(
+      planHostRequest("/__mdan/entry.js", "GET", "text/javascript", {
+        frontend: true
+      })
+    ).toEqual({
+      kind: "static-candidates",
+      filePaths: [expect.stringContaining("dist-browser/entry.js")]
+    });
+  });
+
   it("returns redirect responses through the adapter callback", async () => {
     await expect(
       handlePlannedHostRequest(
@@ -40,6 +59,7 @@ describe("handlePlannedHostRequest", () => {
         {
           onRedirect: async (location) => ({ kind: "redirect", location }),
           onFavicon: async () => ({ kind: "favicon" }),
+          onFrontendEntry: async () => ({ kind: "frontend-entry" }),
           onRuntime: async () => ({ kind: "runtime" }),
           serveStaticFile: async () => null
         }
@@ -56,6 +76,7 @@ describe("handlePlannedHostRequest", () => {
         {
           onRedirect: async (location) => ({ kind: "redirect", location }),
           onFavicon: async () => ({ kind: "favicon" }),
+          onFrontendEntry: async () => ({ kind: "frontend-entry" }),
           onRuntime: async () => ({ kind: "runtime" }),
           serveStaticFile: async (filePath) => {
             seen.push(filePath);
@@ -77,6 +98,7 @@ describe("handlePlannedHostRequest", () => {
         {
           onRedirect: async (location) => ({ kind: "redirect", location }),
           onFavicon: async () => ({ kind: "favicon" }),
+          onFrontendEntry: async () => ({ kind: "frontend-entry" }),
           onRuntime: async () => ({ kind: "runtime" }),
           serveStaticFile: async (filePath) => {
             seen.push(filePath);

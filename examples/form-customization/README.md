@@ -13,7 +13,7 @@ Source layout:
 - `app/index.md`
 - `app/index.action.json`
 - `app.ts`
-- `form-renderer.js`
+- `frontend.js`
 - `dev.ts`
 
 What it demonstrates:
@@ -46,4 +46,4 @@ What to look for:
 Key files:
 
 - `examples/form-customization/app.ts`
-- `examples/form-customization/form-renderer.js`
+- `examples/form-customization/frontend.js`

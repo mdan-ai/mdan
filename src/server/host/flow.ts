@@ -3,6 +3,7 @@ import type { HostRequestPlan } from "./shared.js";
 export interface HostPlanHandlers<TResult> {
   onRedirect(location: string): Promise<TResult> | TResult;
   onFavicon(): Promise<TResult> | TResult;
+  onFrontendEntry(): Promise<TResult> | TResult;
   onRuntime(): Promise<TResult> | TResult;
   serveStaticFile(filePath: string): Promise<TResult | null> | TResult | null;
 }
@@ -17,6 +18,10 @@ export async function handlePlannedHostRequest<TResult>(
 
   if (plan.kind === "favicon") {
     return handlers.onFavicon();
+  }
+
+  if (plan.kind === "frontend-entry") {
+    return handlers.onFrontendEntry();
   }
 
   if (plan.kind === "static-candidates") {

@@ -1,3 +1,4 @@
+import { getBuiltinFrontendStaticFile, type HostFrontendOption } from "./frontend.js";
 import { resolveMountedFile } from "./static-files.js";
 import { extname } from "node:path";
 
@@ -9,6 +10,7 @@ export interface HostStaticMount {
 export interface HostRoutingOptions {
   rootRedirect?: string;
   ignoreFavicon?: boolean;
+  frontend?: HostFrontendOption;
   frontendEntry?: string;
   staticFiles?: Record<string, string>;
   staticMounts?: HostStaticMount[];
@@ -17,6 +19,7 @@ export interface HostRoutingOptions {
 export type HostRequestPlan =
   | { kind: "redirect"; location: string }
   | { kind: "favicon" }
+  | { kind: "frontend-entry" }
   | { kind: "static-candidates"; filePaths: string[] }
   | { kind: "runtime"; pathnameOverride?: string };
 
@@ -37,7 +40,7 @@ function shouldServeFrontendEntry(
   acceptHeader: string | null | undefined,
   options: HostRoutingOptions
 ): boolean {
-  if (!options.frontendEntry || method !== "GET") {
+  if ((!options.frontendEntry && !options.frontend) || method !== "GET") {
     return false;
   }
   if (pathname === "/favicon.ico" || pathname.startsWith("/__mdan/")) {
@@ -45,6 +48,9 @@ function shouldServeFrontendEntry(
   }
   if (pathname.endsWith(".md")) {
     return false;
+  }
+  if (pathname === "/index.html") {
+    return true;
   }
   if (pathname !== "/" && extname(pathname) !== "") {
     return false;
@@ -68,13 +74,19 @@ export function planHostRequest(
   }
 
   if (shouldServeFrontendEntry(pathname, method, acceptHeader, options)) {
-    return { kind: "static-candidates", filePaths: [options.frontendEntry!] };
+    return options.frontend
+      ? { kind: "frontend-entry" }
+      : { kind: "static-candidates", filePaths: [options.frontendEntry!] };
   }
 
   const filePaths: string[] = [];
   const staticFile = options.staticFiles?.[pathname];
   if (staticFile) {
     filePaths.push(staticFile);
+  }
+  const builtinFrontendFile = getBuiltinFrontendStaticFile(pathname, options.frontend);
+  if (builtinFrontendFile) {
+    filePaths.push(builtinFrontendFile);
   }
   for (const mount of options.staticMounts ?? []) {
     const target = resolveMountedFile(mount.directory, mount.urlPrefix, pathname);

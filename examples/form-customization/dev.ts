@@ -8,10 +8,8 @@ const port = Number(process.env.PORT ?? "4326");
 const root = dirname(fileURLToPath(import.meta.url));
 const server = createFormCustomizationServer();
 const host = createHost(server, {
-  frontendEntry: join(root, "..", "shared", "index.html"),
-  staticFiles: {
-    "/index.html": join(root, "..", "shared", "index.html"),
-    "/__mdan/entry.js": join(root, "..", "..", "dist-browser", "entry.js")
+  frontend: {
+    module: join(root, "frontend.js")
   }
 });
 

@@ -7,6 +7,7 @@ import {
   DEFAULT_MAX_BODY_BYTES,
   PayloadTooLargeError
 } from "./body-normalization.js";
+import { renderBuiltinFrontendEntryHtml, type HostFrontendOption } from "./host/frontend.js";
 import { handlePlannedHostRequest } from "./host/flow.js";
 import { planHostRequest } from "./host/shared.js";
 import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
@@ -35,6 +36,7 @@ export interface NodeStaticMount {
 export interface CreateNodeHostOptions extends CreateNodeRequestListenerOptions {
   rootRedirect?: string;
   ignoreFavicon?: boolean;
+  frontend?: HostFrontendOption;
   frontendEntry?: string;
   staticFiles?: Record<string, string>;
   staticMounts?: NodeStaticMount[];
@@ -198,6 +200,12 @@ export function createNodeHost(handler: MdanRequestHandler, options: CreateNodeH
       onFavicon() {
         response.statusCode = 204;
         response.end();
+        return true;
+      },
+      onFrontendEntry() {
+        response.statusCode = 200;
+        response.setHeader("content-type", "text/html; charset=utf-8");
+        response.end(renderBuiltinFrontendEntryHtml(options.frontend));
         return true;
       },
       async onRuntime() {

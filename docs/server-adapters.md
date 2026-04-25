@@ -95,7 +95,7 @@ High-level hosts support:
 ```ts
 createHost(server, {
   rootRedirect: "/login",
-  frontendEntry: "/abs/path/to/index.html",
+  frontend: true,
   ignoreFavicon: true
 });
 ```
@@ -103,9 +103,20 @@ createHost(server, {
 `rootRedirect` returns `302` from `/` to the configured target before the
 runtime is called.
 
-`frontendEntry` serves a static browser entry for natural HTML document routes
-such as `/login`, while the matching raw markdown route remains available as
-`/login.md`.
+`frontend: true` enables the built-in browser entry and bundled frontend assets
+for natural HTML document routes such as `/login`, while the matching raw
+markdown route remains available as `/login.md`.
+
+If you want a custom browser frontend module, point the host at a browser-safe
+module file:
+
+```ts
+createHost(server, {
+  frontend: {
+    module: "/abs/path/to/frontend.js"
+  }
+});
+```
 
 `ignoreFavicon` defaults to enabled. Requests to `/favicon.ico` return `204`
 unless `ignoreFavicon: false` is set.

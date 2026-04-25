@@ -6,6 +6,7 @@ import {
   DEFAULT_MAX_BODY_BYTES,
   PayloadTooLargeError
 } from "./body-normalization.js";
+import { renderBuiltinFrontendEntryHtml, type HostFrontendOption } from "./host/frontend.js";
 import { handlePlannedHostRequest } from "./host/flow.js";
 import { planHostRequest } from "./host/shared.js";
 import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
@@ -24,6 +25,7 @@ interface MdanRequestHandler {
 export interface CreateBunHostOptions {
   rootRedirect?: string;
   ignoreFavicon?: boolean;
+  frontend?: HostFrontendOption;
   frontendEntry?: string;
   staticFiles?: Record<string, string>;
   staticMounts?: BunStaticMount[];
@@ -193,6 +195,14 @@ export function createHost(handler: MdanRequestHandler, options: CreateBunHostOp
       },
       onFavicon() {
         return new Response(null, { status: 204 });
+      },
+      onFrontendEntry() {
+        return new Response(renderBuiltinFrontendEntryHtml(options.frontend), {
+          status: 200,
+          headers: {
+            "content-type": "text/html; charset=utf-8"
+          }
+        });
       },
       async onRuntime() {
         const pathnameOverride = plan.kind === "runtime" ? plan.pathnameOverride : undefined;

@@ -1,4 +1,4 @@
-import { createFrontend, defineFormRenderer, html, nothing } from "@mdanai/sdk/frontend";
+import { createFrontend, defineFormRenderer, html, nothing } from "/__mdan/frontend.js";
 
 function fieldLabel(field) {
   return html`<span class="weather-form__label">
@@ -110,14 +110,14 @@ function renderWeatherShell(inner) {
 </section>`;
 }
 
-export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherFormRenderer", {
+const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherFormRenderer", {
   renderSnapshotOperation(operation) {
     const hiddenFields = operation.hiddenFields
       .map((field) => `<input type="hidden" name="${escapeHtml(field.name)}" value="${escapeHtml(field.value)}">`)
       .join("");
     const fields = operation.fields.map((field) => renderSnapshotField(field)).join("");
     return renderWeatherShell(
-      `<form class="weather-form__body" action="${escapeHtml(operation.target)}" method="${operation.methodAttribute}">
+      `<form class="weather-form__body" action="${escapeHtml(operation.target)}" method="${escapeHtml(operation.methodAttribute)}">
         <div class="weather-form__grid">${hiddenFields}${fields}</div>
         <button class="weather-form__submit" type="submit">${escapeHtml(operation.label)}</button>
       </form>`
@@ -152,6 +152,6 @@ export const weatherFormRenderer = defineFormRenderer(import.meta.url, "weatherF
   }
 });
 
-export const weatherFrontend = createFrontend({
+export default createFrontend({
   form: weatherFormRenderer
 });

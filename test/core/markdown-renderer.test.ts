@@ -15,12 +15,14 @@ describe("basicMarkdownRenderer", () => {
 
     expect(html).toContain("<h1>Guestbook</h1>");
     expect(html).toContain("<p>Welcome to the board.</p>");
-    expect(html).toContain("<ul><li>first</li><li>second</li></ul>");
+    expect(html).toContain("<ul>");
+    expect(html).toContain("<li>first</li>");
+    expect(html).toContain("<li>second</li>");
   });
 
   it("escapes unsafe html characters", () => {
     const html = basicMarkdownRenderer.render('# <script>alert("x")</script>');
-    expect(html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;");
+    expect(html).toContain("&lt;script&gt;alert(\"x\")&lt;/script&gt;");
   });
 
   it("removes frontmatter before rendering", () => {
@@ -33,10 +35,10 @@ describe("basicMarkdownRenderer", () => {
       "# Login"
     ].join("\n"));
 
-    expect(html).toBe("<h1>Login</h1>");
+    expect(html.trim()).toBe("<h1>Login</h1>");
   });
 
-  it("ignores fenced code blocks", () => {
+  it("renders fenced code blocks", () => {
     const html = basicMarkdownRenderer.render([
       "# Title",
       "",
@@ -48,8 +50,9 @@ describe("basicMarkdownRenderer", () => {
     ].join("\n"));
 
     expect(html).toContain("<h1>Title</h1>");
+    expect(html).toContain("<pre><code");
+    expect(html).toContain("console.log");
     expect(html).toContain("<p>Visible paragraph</p>");
-    expect(html).not.toContain("console.log");
   });
 
   it("hides agent-only blocks from rendered html", () => {
@@ -75,7 +78,7 @@ describe("basicMarkdownRenderer", () => {
 
   it("treats ## headings as h2", () => {
     const html = basicMarkdownRenderer.render("## Section");
-    expect(html).toBe("<h2>Section</h2>");
+    expect(html.trim()).toBe("<h2>Section</h2>");
   });
 
   it("renders h2 headings separately from the following paragraph body", () => {
@@ -97,10 +100,25 @@ describe("basicMarkdownRenderer", () => {
 
   it("collapses single-line paragraph chunks", () => {
     const html = basicMarkdownRenderer.render("line one\nline two");
-    expect(html).toBe("<p>line one line two</p>");
+    expect(html).toContain("<p>line one");
+    expect(html).toContain("line two</p>");
   });
 
   it("returns empty output for blank markdown", () => {
     expect(basicMarkdownRenderer.render("\n\n")).toBe("");
+  });
+
+  it("renders tables, links, and inline code", () => {
+    const html = basicMarkdownRenderer.render([
+      "| city | temp |",
+      "| --- | --- |",
+      "| Paris | 18 |",
+      "",
+      "Use `weather.lookup` and [forecast](/forecast)."
+    ].join("\n"));
+
+    expect(html).toContain("<table>");
+    expect(html).toContain("<code>weather.lookup</code>");
+    expect(html).toContain('<a href="/forecast">forecast</a>');
   });
 });
