@@ -1,3 +1,3 @@
-import { autoBootEntry } from "./entry.js";
+import { createFrontend } from "./frontend.js";
 
-autoBootEntry();
+createFrontend().autoBoot();

@@ -55,8 +55,8 @@
     "test": "bun run test:baseline",
     "test:baseline": "bunx vitest run --config vitest.baseline.config.ts",
     "test:coverage": "bunx vitest run --config vitest.baseline.config.ts --coverage",
-    "test:legacy-compat": "bunx vitest run test/core/surface-adapter.test.ts test/server/runtime-json-contract-mode.test.ts test/server/auth-guestbook-markdown-example.test.ts",
-    "test:json": "bun run test:legacy-compat",
+    "test:markdown-runtime": "bunx vitest run test/core/surface-adapter.test.ts test/server/runtime-json-contract-mode.test.ts test/server/auth-guestbook-markdown-example.test.ts",
+    "test:smoke": "bun run test:markdown-runtime",
     "test:tssdk-migrated": "bunx vitest run test",
     "test:create-mdan": "bunx vitest run create-mdan/test"
   },

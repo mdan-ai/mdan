@@ -75,7 +75,6 @@ The shipped frontend helpers.
 ### Main Exports
 
 - `createFrontend(...)`
-- `defineFrontend(...)`
 - `mountMdanUi(...)`
 - `renderSurfaceSnapshot(...)`
 - `bootEntry(...)`

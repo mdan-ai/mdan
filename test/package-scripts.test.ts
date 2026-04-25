@@ -38,7 +38,7 @@ describe("package scripts", () => {
     };
     const scripts = packageJson.scripts ?? {};
 
-    await Promise.all(extractRepoPaths(scripts["test:json"] ?? "").map(expectRepoPath));
+    await Promise.all(extractRepoPaths(scripts["test:markdown-runtime"] ?? "").map(expectRepoPath));
   });
 
   it("keeps vitest baseline file references pointing at existing files", async () => {

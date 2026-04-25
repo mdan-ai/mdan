@@ -25,7 +25,6 @@ export type {
   MdanSubmitValue,
   MdanSubmitValues
 } from "./contracts.js";
-export { defineFrontend } from "./extension.js";
 export {
   defineFormRenderer,
   defaultUiFormRenderer,

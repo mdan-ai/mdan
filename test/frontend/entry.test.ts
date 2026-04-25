@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { autoBootEntry, bootEntry, createFrontend, defineFrontend, resolveEntryRoute, resolveMarkdownRoute } from "../../src/frontend/index.js";
+import { autoBootEntry, bootEntry, createFrontend, resolveEntryRoute, resolveMarkdownRoute } from "../../src/frontend/index.js";
 
 afterEach(() => {
   document.body.replaceChildren();
@@ -140,7 +140,7 @@ describe("frontend entry", () => {
   });
 
   it("passes a unified frontend extension into the mounted ui", () => {
-    const frontend = defineFrontend({
+    const frontend = createFrontend({
       markdown: {
         render(markdown) {
           return `<article>${markdown}</article>`;
@@ -172,7 +172,10 @@ describe("frontend entry", () => {
 
     expect(mountUi).toHaveBeenCalledWith(
       expect.objectContaining({
-        frontend
+        frontend: expect.objectContaining({
+          markdown: frontend.markdown,
+          form: frontend.form
+        })
       })
     );
   });

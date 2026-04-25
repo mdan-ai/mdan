@@ -79,7 +79,6 @@ If you want the shipped frontend layer, use `@mdanai/sdk/frontend`:
 - `frontend.boot(...)` for the standalone browser entry
 - `frontend.render(...)` for HTML projection from a surface view
 - `frontend.mount(...)` for the interactive default UI
-- `defineFrontend(...)` if you only want the lower-level extension object
 - `frontend.markdown` when you want custom Markdown projection
 - `defineFormRenderer(...)` and `UiFormRenderer` for custom form panels
 - `frontend.form` when you want custom form projection

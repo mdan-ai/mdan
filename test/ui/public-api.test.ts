@@ -9,7 +9,6 @@ describe("frontend public api", () => {
     expect(frontend.bootEntry).toBeTypeOf("function");
     expect(frontend.autoBootEntry).toBeTypeOf("function");
     expect(frontend.registerMdanUi).toBeTypeOf("function");
-    expect(frontend.defineFrontend).toBeTypeOf("function");
     expect(frontend.defineFormRenderer).toBeTypeOf("function");
     expect(frontend.defaultUiFormRenderer).toBeTypeOf("object");
     expect("resolveUiSnapshotView" in frontend).toBe(false);

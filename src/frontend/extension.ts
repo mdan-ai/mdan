@@ -17,10 +17,6 @@ export interface ResolvedFrontendExtension {
   form: UiFormRenderer;
 }
 
-export function defineFrontend(extension: MdanFrontendExtension): MdanFrontendExtension {
-  return extension;
-}
-
 export function resolveFrontendExtension(
   options: ResolveFrontendExtensionOptions = {}
 ): ResolvedFrontendExtension {
