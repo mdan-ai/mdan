@@ -1,3 +1,8 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const FRONTEND_MODULE_SYMBOL = Symbol.for("mdan.frontend.module");
@@ -26,6 +31,7 @@ export interface NormalizedHostFrontendOptions {
 
 const builtinEntryFilePath = fileURLToPath(new URL("../../../dist-browser/entry.js", import.meta.url));
 const builtinFrontendFilePath = fileURLToPath(new URL("../../../dist-browser/frontend.js", import.meta.url));
+const generatedFrontendDir = join(tmpdir(), "mdan-host-frontend");
 
 function escapeHtml(value: string): string {
   return value
@@ -80,10 +86,65 @@ export function getBuiltinFrontendStaticFile(pathname: string, frontend: HostFro
   if (pathname === "/__mdan/frontend.js") {
     return builtinFrontendFilePath;
   }
-  if (pathname === "/__mdan/app-frontend.js" && normalized.module) {
-    return normalized.module;
+  if (pathname === "/__mdan/module.js" && normalized.module) {
+    return ensureBundledFrontendModule(normalized);
   }
   return null;
+}
+
+function ensureBundledFrontendModule(frontend: NormalizedHostFrontendOptions): string {
+  const sourceModule = frontend.module;
+  if (!sourceModule) {
+    throw new Error("Expected a frontend module path when building /__mdan/module.js.");
+  }
+
+  const exportName = frontend.exportName?.trim() ? frontend.exportName.trim() : "default";
+  const hash = createHash("sha256")
+    .update(`${sourceModule}:${exportName}`)
+    .digest("hex")
+    .slice(0, 16);
+  const wrapperPath = join(generatedFrontendDir, `${hash}.entry.mjs`);
+  const bundlePath = join(generatedFrontendDir, `${hash}.bundle.js`);
+
+  const wrapperSource = `export { ${exportName === "default" ? "default" : `${exportName} as default`} } from ${JSON.stringify(sourceModule)};\n`;
+
+  const existingWrapper = readIfPresent(wrapperPath);
+  const needsWrapperWrite = existingWrapper !== wrapperSource;
+  if (needsWrapperWrite) {
+    mkdirSync(dirname(wrapperPath), { recursive: true });
+    writeFileSync(wrapperPath, wrapperSource, "utf8");
+  }
+
+  const build = spawnSync(
+    "bun",
+    [
+      "build",
+      "--target=browser",
+      "--format=esm",
+      "--outfile",
+      bundlePath,
+      wrapperPath
+    ],
+    {
+      stdio: "pipe"
+    }
+  );
+
+  if (build.status !== 0) {
+    const stderr = build.stderr?.toString().trim();
+    const stdout = build.stdout?.toString().trim();
+    const details = stderr || stdout || "bun build failed";
+    throw new Error(`Unable to build frontend module bundle for ${sourceModule}: ${details}`);
+  }
+
+  return bundlePath;
+}
+
+function readIfPresent(filePath: string): string | null {
+  if (!existsSync(filePath)) {
+    return null;
+  }
+  return readFileSync(filePath, "utf8");
 }
 
 export function renderBuiltinFrontendEntryHtml(frontend: HostFrontendOption | undefined): string {
@@ -91,7 +152,7 @@ export function renderBuiltinFrontendEntryHtml(frontend: HostFrontendOption | un
   const title = normalized?.title?.trim() ? normalized.title.trim() : "MDAN Entry";
   const script = normalized?.module
     ? `<script type="module">
-import * as frontendModule from "/__mdan/app-frontend.js";
+import * as frontendModule from "/__mdan/module.js";
 
 const frontend =
   ${normalized.exportName ? `frontendModule[${JSON.stringify(normalized.exportName)}] ??\n  ` : ""}\
@@ -100,7 +161,7 @@ const frontend =
   Object.values(frontendModule).find((value) => value && typeof value === "object" && typeof value.autoBoot === "function");
 
 if (!frontend || typeof frontend.autoBoot !== "function") {
-  throw new Error("Expected /__mdan/app-frontend.js to export a frontend object with autoBoot().");
+  throw new Error("Expected /__mdan/module.js to export a frontend object with autoBoot().");
 }
 
 frontend.autoBoot();

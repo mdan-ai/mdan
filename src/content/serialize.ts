@@ -249,7 +249,7 @@ function serializeExecutableBlock(payload: string | undefined): string {
 function serializeMarkdownWithVisibleBlockContent(
   markdown: string,
   visibleBlockNames: Set<string> | null,
-  visibleBlockContent: Record<string, string> | undefined
+  _visibleBlockContent: Record<string, string> | undefined
 ): string {
   const trimmed = markdown.trim();
   const matches = [...trimmed.matchAll(blockAnchorPattern)];
@@ -276,12 +276,8 @@ function serializeMarkdownWithVisibleBlockContent(
       return;
     }
 
-    const replacement = id ? visibleBlockContent?.[id]?.trim() : undefined;
-    if (replacement) {
-      result += `${replacement}\n\n`;
-    } else {
-      result += blockBody;
-    }
+    result += match[0];
+    result += blockBody;
     cursor = nextStart;
   });
 

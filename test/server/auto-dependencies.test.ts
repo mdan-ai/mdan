@@ -658,6 +658,139 @@ Broken
     expect(result.fragment?.markdown).toBe("## Updated");
   });
 
+  it("drops the original auto operation when a page auto dependency resolves to a terminal page", async () => {
+    const router = new MdanRouter();
+
+    router.page("/step-1", async () => ({
+      page: page("step-1")
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const resolved = await resolveAutoDependencies(page("root", "/step-1"), request, null, router, {});
+
+    expect(resolved.page.blocks[0]?.operations ?? []).toEqual([]);
+    expect(resolved.page.markdown).toContain("# step-1");
+  });
+
+  it("drops the original auto operation when a fragment auto dependency resolves without a replacement block", async () => {
+    const router = new MdanRouter();
+
+    router.get("/step-1", async () => ({
+      fragment: {
+        markdown: "## Loaded",
+        blocks: []
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const result = await resolveAutoActionResult(
+      {
+        fragment: {
+          markdown: "## Root",
+          blocks: [
+            {
+              name: "main",
+              operations: [
+                {
+                  method: "GET",
+                  target: "/step-1",
+                  name: "load-root",
+                  inputs: [],
+                  auto: true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      request,
+      null,
+      router,
+      {}
+    );
+
+    expect(result.fragment?.blocks[0]?.operations ?? []).toEqual([]);
+    expect(result.fragment?.markdown).toBe("## Loaded");
+  });
+
+  it("uses the returned fragment block as the new source of truth after auto resolution", async () => {
+    const router = new MdanRouter();
+
+    router.get("/step-1", async () => ({
+      fragment: {
+        markdown: "## Loaded",
+        blocks: [
+          {
+            name: "main",
+            inputs: [],
+            operations: [
+              {
+                method: "POST" as const,
+                target: "/submit",
+                name: "submit-loaded",
+                inputs: ["message"]
+              }
+            ]
+          }
+        ]
+      }
+    }));
+
+    const request = {
+      method: "GET" as const,
+      url: "https://example.test/root",
+      headers: {},
+      cookies: {}
+    };
+
+    const result = await resolveAutoActionResult(
+      {
+        fragment: {
+          markdown: "## Root",
+          blocks: [
+            {
+              name: "main",
+              operations: [
+                {
+                  method: "GET",
+                  target: "/step-1",
+                  name: "load-root",
+                  inputs: [],
+                  auto: true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      request,
+      null,
+      router,
+      {}
+    );
+
+    expect(result.fragment?.blocks[0]?.operations).toEqual([
+      {
+        method: "POST",
+        target: "/submit",
+        name: "submit-loaded",
+        inputs: ["message"]
+      }
+    ]);
+  });
+
   it("keeps current metadata when resolved fragment omits overrides", async () => {
     const router = new MdanRouter();
 

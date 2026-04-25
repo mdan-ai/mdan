@@ -47,10 +47,10 @@ describe("serializePage", () => {
     });
 
     expect(out).not.toContain("id=\"login\"");
-    expect(out).not.toContain("mdan:block");
+    expect(out).toContain('<!-- mdan:block id="submit_message" -->');
   });
 
-  it("writes block content into executable regions", () => {
+  it("keeps page block anchors in markdown while writing block content into executable regions", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: ["# Guestbook", "", "<!-- mdan:block id=\"submit_message\" -->"].join("\n"),
@@ -60,8 +60,8 @@ describe("serializePage", () => {
       }
     });
 
-    expect(out).toContain("## Leave a message");
-    expect(out).not.toContain("mdan:block");
+    expect(out).toContain('<!-- mdan:block id="submit_message" -->');
+    expect(out).not.toContain("# Guestbook\n\n## Leave a message");
     expect(out).toContain('"regions": {');
     expect(out).toContain('"submit_message": "## Leave a message"');
   });
@@ -117,6 +117,7 @@ describe("serializePage", () => {
     });
 
     expect(out).not.toContain("Hidden content");
+    expect(out).toContain('<!-- mdan:block id="b" -->');
     expect(out).toContain('"b": "## Visible content"');
   });
 

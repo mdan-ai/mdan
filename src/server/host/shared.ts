@@ -56,7 +56,7 @@ function shouldServeFrontendEntry(
     return false;
   }
   const accept = (acceptHeader ?? "").toLowerCase();
-  return accept.includes("text/html");
+  return accept === "" || accept === "*/*" || accept.includes("text/html");
 }
 
 export function planHostRequest(

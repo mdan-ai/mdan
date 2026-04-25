@@ -1,8 +1,15 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { createFrontend, defineFrontendModule } from "../../src/frontend/index.js";
 import { handlePlannedHostRequest } from "../../src/server/host/flow.js";
-import { normalizeHostFrontendOption, renderBuiltinFrontendEntryHtml } from "../../src/server/host/frontend.js";
+import {
+  getBuiltinFrontendStaticFile,
+  normalizeHostFrontendOption,
+  renderBuiltinFrontendEntryHtml
+} from "../../src/server/host/frontend.js";
 import { planHostRequest } from "../../src/server/host/shared.js";
 
 describe("handlePlannedHostRequest", () => {
@@ -45,6 +52,22 @@ describe("handlePlannedHostRequest", () => {
     });
 
     expect(
+      planHostRequest("/login", "GET", null, {
+        frontend: true
+      })
+    ).toEqual({
+      kind: "frontend-entry"
+    });
+
+    expect(
+      planHostRequest("/login", "GET", "*/*", {
+        frontend: true
+      })
+    ).toEqual({
+      kind: "frontend-entry"
+    });
+
+    expect(
       planHostRequest("/__mdan/entry.js", "GET", "text/javascript", {
         frontend: true
       })
@@ -54,27 +77,43 @@ describe("handlePlannedHostRequest", () => {
     });
   });
 
-  it("maps a module-defined frontend object to the built-in app frontend route", () => {
+  it("maps a module-defined frontend object to the built-in frontend module route", () => {
+    const moduleUrl = `file://${resolve("examples/form-customization/frontend.js")}`;
     const frontend = defineFrontendModule(
-      "file:///tmp/weather-frontend.js",
+      moduleUrl,
       createFrontend({})
     );
 
     expect(
       normalizeHostFrontendOption(frontend)
     ).toMatchObject({
-      module: "/tmp/weather-frontend.js",
+      module: resolve("examples/form-customization/frontend.js"),
       exportName: "default"
     });
 
     expect(
-      planHostRequest("/__mdan/app-frontend.js", "GET", "text/javascript", {
+      planHostRequest("/__mdan/module.js", "GET", "text/javascript", {
         frontend
       })
     ).toEqual({
       kind: "static-candidates",
-      filePaths: ["/tmp/weather-frontend.js"]
+      filePaths: [expect.stringContaining(".bundle.js")]
     });
+  });
+
+  it("bundles app frontend modules into a browser-loadable /__mdan/module.js asset", async () => {
+    const frontend = defineFrontendModule(
+      `file://${resolve("examples/form-customization/frontend.js")}`,
+      createFrontend({})
+    );
+
+    const filePath = getBuiltinFrontendStaticFile("/__mdan/module.js", frontend);
+
+    expect(filePath).toBeTruthy();
+    expect(filePath).toContain(".bundle.js");
+
+    const contents = await readFile(filePath!, "utf8");
+    expect(contents).not.toContain('from "@mdanai/sdk/frontend"');
   });
 
   it("uses the declared frontend export name when booting a direct frontend object", () => {
@@ -86,7 +125,7 @@ describe("handlePlannedHostRequest", () => {
 
     const html = renderBuiltinFrontendEntryHtml(frontend);
 
-    expect(html).toContain('import * as frontendModule from "/__mdan/app-frontend.js"');
+    expect(html).toContain('import * as frontendModule from "/__mdan/module.js"');
     expect(html).toContain('frontendModule["weatherFrontend"]');
   });
 
