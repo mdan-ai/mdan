@@ -18,7 +18,8 @@ There are three product layers to optimize:
 1. `MDAN`
    The product/category concept.
 2. `@mdanai/sdk`
-   The official SDK for building MDAN apps.
+   The runtime SDK for building MDAN apps and interactive Markdown plus JSON
+   surfaces.
 3. `create-mdan`
    The fastest way to scaffold a new MDAN app.
 
@@ -30,9 +31,9 @@ The stable primary terms are:
 
 - `agent app`
 - `skills app`
-- `web skills`
 - `interactive markdown`
 - `Markdown surface`
+- `Markdown plus JSON runtime`
 - `shared human and agent interaction`
 
 The stable supporting terms are:
@@ -58,8 +59,8 @@ Primary search intent:
 
 - `agent app sdk`
 - `skills app sdk`
-- `web skills sdk`
 - `interactive markdown sdk`
+- `markdown json runtime`
 - `agent interface sdk`
 
 Primary message:
@@ -67,7 +68,8 @@ Primary message:
 - this is the official SDK
 - this is what you use to build apps
 - it supports both agent-facing and human-facing flows
-- it is the SDK for taking local skills and turning them into web skills
+- it is the SDK for building Markdown plus JSON runtime surfaces that can be
+  used by external profiles such as Web Skills
 
 The package README and metadata should emphasize:
 
@@ -113,8 +115,8 @@ The first 20-30 lines should consistently include:
 
 - `agent apps`
 - `skills apps`
-- `web skills`
 - `interactive Markdown surfaces`
+- `Markdown plus JSON runtime`
 - `shared human and agent interaction`
 
 ### `create-mdan` README
@@ -199,7 +201,7 @@ volume.
 These statements should stay consistent across the main docs and package pages:
 
 - `MDAN is a Markdown-first application surface model.`
-- `@mdanai/sdk is the official SDK for building MDAN agent apps, skills apps, and web skills.`
+- `@mdanai/sdk is the TypeScript runtime SDK for MDAN interactive Markdown plus JSON surfaces.`
 - `create-mdan is the fastest way to start a new MDAN app.`
 - `MDAN apps use readable Markdown surfaces plus explicit action contracts.`
 

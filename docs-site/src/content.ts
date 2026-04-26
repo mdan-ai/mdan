@@ -25,7 +25,7 @@ export const docsNav: DocsNavSection[] = [
       { route: "/quickstart", label: "Quickstart" },
       { route: "/customize-the-starter", label: "Customize The Starter" },
       { route: "/examples", label: "Examples" },
-      { route: "/web-skills", label: "Web Skills" },
+      { route: "/web-skills", label: "Web Skills Relationship" },
       { route: "/troubleshooting", label: "Troubleshooting" }
     ]
   },
