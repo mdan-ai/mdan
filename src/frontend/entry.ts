@@ -17,6 +17,7 @@ declare global {
 export interface BootEntryOptions {
   root?: ParentNode;
   route?: string;
+  initialMarkdown?: string;
   fetchImpl?: typeof fetch;
   createHost?: FrontendHostFactory;
   mountUi?: typeof mountMdanUi;
@@ -92,6 +93,7 @@ export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
   const fetchImpl = createEntryFetch(browserWindow, baseFetch);
   const host = hostFactory({
     initialRoute: route,
+    initialMarkdown: options.initialMarkdown,
     fetchImpl
   });
   const runtime = (options.mountUi ?? mountMdanUi)({
@@ -101,7 +103,9 @@ export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
   });
 
   runtime.mount();
-  void runtime.sync(route);
+  if (!options.initialMarkdown) {
+    void runtime.sync(route);
+  }
 
   return {
     route,

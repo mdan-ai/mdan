@@ -29,6 +29,10 @@ export interface NormalizedHostFrontendOptions {
   title?: string;
 }
 
+export interface FrontendEntryHtmlOptions {
+  initialMarkdown?: string;
+}
+
 const builtinEntryFilePath = fileURLToPath(new URL("../../../dist-browser/entry.js", import.meta.url));
 const builtinFrontendFilePath = fileURLToPath(new URL("../../../dist-browser/frontend.js", import.meta.url));
 const generatedFrontendDir = join(tmpdir(), "mdan-host-frontend");
@@ -147,9 +151,10 @@ function readIfPresent(filePath: string): string | null {
   return readFileSync(filePath, "utf8");
 }
 
-export function renderBuiltinFrontendEntryHtml(frontend: HostFrontendOption | undefined): string {
+export function renderBuiltinFrontendEntryHtml(frontend: HostFrontendOption | undefined, options: FrontendEntryHtmlOptions = {}): string {
   const normalized = normalizeHostFrontendOption(frontend);
   const title = normalized?.title?.trim() ? normalized.title.trim() : "MDAN Entry";
+  const bootOptions = options.initialMarkdown ? `{ initialMarkdown: ${JSON.stringify(options.initialMarkdown)} }` : "{}";
   const script = normalized?.module
     ? `<script type="module">
 import * as frontendModule from "/__mdan/module.js";
@@ -164,9 +169,13 @@ if (!frontend || typeof frontend.autoBoot !== "function") {
   throw new Error("Expected /__mdan/module.js to export a frontend object with autoBoot().");
 }
 
-frontend.autoBoot();
+frontend.autoBoot(${bootOptions});
 </script>`
-    : '<script type="module" src="/__mdan/entry.js"></script>';
+    : `<script type="module">
+import { createFrontend } from "/__mdan/frontend.js";
+
+createFrontend().autoBoot(${bootOptions});
+</script>`;
 
   return `<!doctype html>
 <html lang="en">

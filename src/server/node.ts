@@ -8,6 +8,7 @@ import {
   PayloadTooLargeError
 } from "./body-normalization.js";
 import { renderBuiltinFrontendEntryHtml, type HostFrontendOption } from "./host/frontend.js";
+import { MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER, MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE } from "./types/transport.js";
 import { handlePlannedHostRequest } from "./host/flow.js";
 import { planHostRequest } from "./host/shared.js";
 import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
@@ -106,11 +107,17 @@ function normalizeHeaderValue(value: string | string[] | undefined): string | un
   return value;
 }
 
-function toMdanRequest(request: IncomingMessage, body: string | undefined, pathnameOverride?: string): MdanRequest {
+function toMdanRequest(
+  request: IncomingMessage,
+  body: string | undefined,
+  pathnameOverride?: string,
+  headerOverrides?: Record<string, string>
+): MdanRequest {
   const host = request.headers.host ?? "127.0.0.1";
   const rawHeaders = Object.fromEntries(
     Object.entries(request.headers).map(([key, value]) => [key, normalizeHeaderValue(value)])
   ) as Record<string, string | undefined>;
+  Object.assign(rawHeaders, headerOverrides ?? {});
   const finalHeaders = finalizeMdanHeaders({
     headers: rawHeaders,
     body
@@ -129,6 +136,17 @@ function toMdanRequest(request: IncomingMessage, body: string | undefined, pathn
     ...(body ? { body } : {}),
     cookies: parseCookies(finalHeaders.cookie)
   };
+}
+
+async function readResponseBody(result: MdanResponse): Promise<string> {
+  if (typeof result.body === "string") {
+    return result.body;
+  }
+  let combined = "";
+  for await (const chunk of result.body) {
+    combined += chunk;
+  }
+  return combined;
 }
 
 async function writeResponse(response: ServerResponse, result: MdanResponse): Promise<void> {
@@ -172,6 +190,23 @@ async function runRuntimeRequest(
   await writeResponse(response, result);
 }
 
+async function renderFrontendEntry(
+  handler: MdanRequestHandler,
+  request: IncomingMessage,
+  response: ServerResponse,
+  options: Pick<CreateNodeHostOptions, "frontend">
+): Promise<void> {
+  const result = await handler.handle(
+    toMdanRequest(request, undefined, undefined, {
+      accept: toMarkdownContentType(),
+      [MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER]: MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE
+    })
+  );
+  response.statusCode = 200;
+  response.setHeader("content-type", "text/html; charset=utf-8");
+  response.end(renderBuiltinFrontendEntryHtml(options.frontend, { initialMarkdown: await readResponseBody(result) }));
+}
+
 export function createNodeRequestListener(
   handler: MdanRequestHandler,
   options: CreateNodeRequestListenerOptions = {}
@@ -204,10 +239,8 @@ export function createNodeHost(handler: MdanRequestHandler, options: CreateNodeH
         response.end();
         return true;
       },
-      onFrontendEntry() {
-        response.statusCode = 200;
-        response.setHeader("content-type", "text/html; charset=utf-8");
-        response.end(renderBuiltinFrontendEntryHtml(options.frontend));
+      async onFrontendEntry() {
+        await renderFrontendEntry(handler, request, response, options);
         return true;
       },
       async onRuntime() {

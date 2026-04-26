@@ -38,6 +38,7 @@ export interface FrontendHost extends FrontendUiHost {
 
 export interface CreateFrontendHostOptions {
   initialRoute?: string;
+  initialMarkdown?: string;
   fetchImpl?: typeof fetch;
 }
 

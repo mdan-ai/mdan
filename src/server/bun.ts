@@ -7,6 +7,7 @@ import {
   PayloadTooLargeError
 } from "./body-normalization.js";
 import { renderBuiltinFrontendEntryHtml, type HostFrontendOption } from "./host/frontend.js";
+import { MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER, MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE } from "./types/transport.js";
 import { handlePlannedHostRequest } from "./host/flow.js";
 import { planHostRequest } from "./host/shared.js";
 import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
@@ -89,11 +90,17 @@ async function tryServeStaticFile(filePath: string): Promise<Response | null> {
   }
 }
 
-function toMdanRequest(request: Request, body: string | undefined, pathnameOverride?: string): MdanRequest {
+function toMdanRequest(
+  request: Request,
+  body: string | undefined,
+  pathnameOverride?: string,
+  headerOverrides?: Record<string, string>
+): MdanRequest {
   const rawHeaders: Record<string, string | undefined> = {};
   request.headers.forEach((value, key) => {
     rawHeaders[key] = value;
   });
+  Object.assign(rawHeaders, headerOverrides ?? {});
   const finalHeaders = finalizeMdanHeaders({
     headers: rawHeaders,
     body
@@ -151,6 +158,37 @@ function toResponse(result: MdanResponse): Response {
   });
 }
 
+async function readResponseBody(result: MdanResponse): Promise<string> {
+  if (typeof result.body === "string") {
+    return result.body;
+  }
+  let combined = "";
+  for await (const chunk of result.body) {
+    combined += chunk;
+  }
+  return combined;
+}
+
+async function renderFrontendEntry(
+  handler: MdanRequestHandler,
+  request: Request,
+  options: Pick<CreateBunHostOptions, "frontend">
+): Promise<Response> {
+  const result = await handler.handle(
+    toMdanRequest(request, undefined, undefined, {
+      accept: toMarkdownContentType(),
+      [MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER]: MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE
+    })
+  );
+  const initialMarkdown = await readResponseBody(result);
+  return new Response(renderBuiltinFrontendEntryHtml(options.frontend, { initialMarkdown }), {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8"
+    }
+  });
+}
+
 async function runRuntimeRequest(
   handler: MdanRequestHandler,
   request: Request,
@@ -199,12 +237,7 @@ export function createHost(handler: MdanRequestHandler, options: CreateBunHostOp
         return new Response(null, { status: 204 });
       },
       onFrontendEntry() {
-        return new Response(renderBuiltinFrontendEntryHtml(options.frontend), {
-          status: 200,
-          headers: {
-            "content-type": "text/html; charset=utf-8"
-          }
-        });
+        return renderFrontendEntry(handler, request, options);
       },
       async onRuntime() {
         const pathnameOverride = plan.kind === "runtime" ? plan.pathnameOverride : undefined;
