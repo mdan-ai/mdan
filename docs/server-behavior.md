@@ -88,7 +88,8 @@ The runtime validates returned results before sending them:
 - page and action handlers must return supported result shapes
 - action contracts must pass contract validation
 - agent blocks must be balanced and valid
-- semantic slots are enforced when `semanticSlots` is configured
+- semantic slots can be enforced as optional authoring lint when
+  `semanticSlots` is configured
 - action proof is signed on outgoing actions and verified on incoming actions by
   default
 

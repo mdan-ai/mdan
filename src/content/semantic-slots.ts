@@ -11,7 +11,6 @@ export interface SemanticSlotValidationOptions {
 }
 
 const SEMANTIC_SLOT_NAMES: SemanticSlotName[] = ["Purpose", "Context", "Rules", "Result", "Examples", "Views", "Handoff"];
-const REQUIRED_SEMANTIC_SLOT_NAMES = new Set<SemanticSlotName>(["Purpose", "Context", "Rules", "Result"]);
 const SLOT_NAME_MAP = new Map<string, SemanticSlotName>(
   SEMANTIC_SLOT_NAMES.map((name) => [name.toLowerCase(), name])
 );
@@ -61,7 +60,7 @@ export function validateSemanticSlots(content: string, options: SemanticSlotVali
   const errors: string[] = [];
   const cleaned = stripUntrustedSectionBodies(String(content));
   const byName = new Map<SemanticSlotName, SemanticSlotEntry[]>();
-  const requiredNames = options.requiredNames ?? [...REQUIRED_SEMANTIC_SLOT_NAMES];
+  const requiredNames = options.requiredNames ?? [];
   const minCount = options.minCount ?? 0;
 
   for (const slot of extractSemanticSlots(cleaned)) {

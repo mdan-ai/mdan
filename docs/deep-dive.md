@@ -58,7 +58,7 @@ Use this when you are writing or reviewing MDAN page content.
 
 It explains:
 
-- how shared page structure should be written
+- how optional shared page structure can be written
 - how region-level content differs from page-level content
 - how agent-only guidance stays separate from human-visible content
 

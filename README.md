@@ -166,6 +166,10 @@ export default app.host("bun", {
 });
 ```
 
+This example uses semantic slots (`Purpose`, `Context`, `Rules`, `Result`) as a
+recommended authoring pattern. They are not required by the core runtime
+contract; the executable contract is the attached `actionJson`.
+
 That host shape does two things by default:
 
 - serves the built-in browser entry for natural routes such as `/`

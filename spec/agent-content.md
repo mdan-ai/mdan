@@ -1,6 +1,6 @@
 ---
 title: MDAN Agent Content
-description: Normative contract for shared readable content, semantic slots, agent-only blocks, and trust boundaries in MDAN surfaces.
+description: Normative contract for shared readable content, agent-only blocks, trust boundaries, and optional semantic slot guidance in MDAN surfaces.
 ---
 
 # MDAN Agent Content
@@ -10,13 +10,13 @@ description: Normative contract for shared readable content, semantic slots, age
 
 ## 1. Scope
 
-This document defines the normative content-layer contract for MDAN surfaces
-shared between humans and agents.
+This document defines the content-layer contract for MDAN surfaces shared
+between humans and agents.
 
 It covers:
 
 - shared readable Markdown content
-- semantic slots
+- optional semantic-slot guidance
 - agent-only blocks
 - untrusted content boundaries
 
@@ -39,8 +39,11 @@ Conforming implementations:
 
 ## 3. Semantic Slots
 
-Semantic slots are structured Markdown H2 sections used to stabilize prompt and
-surface structure.
+Semantic slots are structured Markdown H2 sections that may be used to
+stabilize prompt and surface structure.
+
+They are an optional authoring profile, not a required part of the MDAN runtime
+contract.
 
 The current interoperable slot names are:
 
@@ -48,10 +51,11 @@ The current interoperable slot names are:
 - `Context`
 - `Rules`
 - `Result`
+- `Examples`
 - `Views`
 - `Handoff`
 
-Core slots:
+Common page slots:
 
 - `Purpose`
 - `Context`
@@ -60,10 +64,12 @@ Core slots:
 
 Optional interoperable extension slots:
 
+- `Examples`
 - `Views`
 - `Handoff`
 
-When a profile enforces semantic-slot validation:
+When an implementation or project profile explicitly enables semantic-slot
+validation:
 
 - slot headings MUST be H2 headings
 - duplicate slot names MUST be rejected
@@ -74,13 +80,13 @@ When a profile enforces semantic-slot validation:
 Profiles MAY impose different slot requirements on page surfaces and region
 surfaces.
 
-The current interoperable profile expectation is:
+The current built-in SDK guidance profile checks:
 
 - full page surfaces use `Purpose`, `Context`, `Rules`, and `Result`
 - region-oriented surfaces at minimum use `Context` and `Result`
 
-These are profile constraints, not a requirement that every Markdown document
-in the ecosystem always include the same slot set.
+These are optional profile constraints, not a requirement that every MDAN
+surface always include the same slot set.
 
 ## 5. Agent Blocks
 
@@ -142,5 +148,6 @@ see.
 Use agent blocks only for hidden agent guidance that should not appear in
 human-visible projections.
 
-Use semantic slots to stabilize prompt and interaction structure without
-requiring a separate prompt channel.
+Use semantic slots when they stabilize prompt and interaction structure without
+forcing an awkward page shape. Prefer ordinary product-specific headings when
+they make the human-facing surface clearer.

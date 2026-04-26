@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { extractSemanticSlots, validateSemanticSlots } from "../../src/content/semantic-slots.js";
 
 describe("semantic slots", () => {
-  it("requires Purpose, Context, Rules, Result", () => {
+  it("does not require page profile slots by default", () => {
     const content = `# Demo
 
 ## Purpose
@@ -12,7 +12,20 @@ Ship stable baseline.
 Runtime is Markdown-first.
 `;
 
-    expect(validateSemanticSlots(content)).toEqual([
+    expect(validateSemanticSlots(content)).toEqual([]);
+  });
+
+  it("can require Purpose, Context, Rules, Result when a profile opts in", () => {
+    const content = `# Demo
+
+## Purpose
+Ship stable baseline.
+
+## Context
+Runtime is Markdown-first.
+`;
+
+    expect(validateSemanticSlots(content, { requiredNames: ["Purpose", "Context", "Rules", "Result"] })).toEqual([
       'content must include a "## Rules" section',
       'content must include a "## Result" section'
     ]);

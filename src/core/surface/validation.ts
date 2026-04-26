@@ -17,6 +17,9 @@ export interface ReadableSurfaceValidationOptions {
   semanticSlots?: boolean | ReadableSurfaceSemanticSlotOptions;
 }
 
+const PAGE_SEMANTIC_SLOT_PROFILE = ["Purpose", "Context", "Rules", "Result"] as const;
+const REGION_SEMANTIC_SLOT_PROFILE = ["Context", "Result"] as const;
+
 export interface SurfaceContractViolation {
   path: string;
   message: string;
@@ -101,7 +104,9 @@ function getReadableSurfacePromptViolation(
   const semanticSlotOptions = resolveSemanticSlotOptions(options.semanticSlots);
 
   if (semanticSlotOptions.requireOnPage) {
-    const semanticSlotErrors = validateMarkdownSemanticSlots(surface.markdown);
+    const semanticSlotErrors = validateMarkdownSemanticSlots(surface.markdown, {
+      requiredNames: [...PAGE_SEMANTIC_SLOT_PROFILE]
+    });
     if (semanticSlotErrors.length > 0) {
       return { kind: "semantic", errors: semanticSlotErrors };
     }
@@ -111,7 +116,7 @@ function getReadableSurfacePromptViolation(
     const errors: string[] = [];
     for (const [blockName, markdown] of Object.entries(surface.regions ?? {})) {
       const blockErrors = validateMarkdownSemanticSlots(markdown, {
-        requiredNames: ["Context", "Result"]
+        requiredNames: [...REGION_SEMANTIC_SLOT_PROFILE]
       });
       for (const message of blockErrors) {
         errors.push(`block "${blockName}": ${message}`);

@@ -159,8 +159,11 @@ same state.
 
 ### 5.3 Semantic Slots
 
-Semantic slots are structured content sections used to stabilize shared prompt
-and interaction structure.
+Semantic slots are optional structured content sections that can stabilize
+shared prompt and interaction structure.
+
+They are not required for core surface conformance. The executable contract
+remains the action/state JSON, not the presence of specific prose headings.
 
 Recognized slot names are:
 
@@ -172,7 +175,8 @@ Recognized slot names are:
 - `Views`
 - `Handoff`
 
-If an implementation claims slot support:
+If an implementation or profile explicitly claims semantic-slot validation
+support:
 
 - slot headings MUST be recognizable
 - duplicate slot names MUST be rejected

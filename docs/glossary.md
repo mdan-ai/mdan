@@ -105,7 +105,7 @@ See [Action Proof](/spec/action-proof).
 
 ## Semantic Slots
 
-Structured headings like `Purpose`, `Context`, `Rules`, and `Result` that help
+Optional structured headings like `Purpose`, `Context`, `Rules`, and `Result` that help
 stabilize shared readable content.
 
 See [Agent Content](/spec/agent-content).

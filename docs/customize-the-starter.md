@@ -128,6 +128,11 @@ What changed here:
 
 This is the MDAN surface layer.
 
+The `Purpose`, `Context`, `Rules`, and `Result` headings are the starter's
+recommended semantic-slot pattern. They are useful authoring guidance, not a
+core SDK requirement. The executable contract still comes from
+`app/index.action.json`.
+
 ## 5. Edit The Action Contract And Runtime Behavior
 
 Open `app/index.action.json`.

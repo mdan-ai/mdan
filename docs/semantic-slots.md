@@ -1,17 +1,23 @@
 ---
 title: Semantic Slots
-description: Practical guidance for writing MDAN semantic slots in Markdown so both humans and agents can consume the same surface reliably.
+description: Optional authoring guidance for writing MDAN Markdown surfaces that are easy for both humans and agents to read.
 ---
 
 # Semantic Slots
 
-Use this guide when writing Markdown content for MDAN pages and regions.
+Use this guide when you want a consistent authoring pattern for Markdown
+content in MDAN pages and regions.
 
-Goal: make the same Markdown readable for humans and unambiguous for agents.
+Semantic slots are not required by the core MDAN runtime contract. They are a
+recommended writing convention and an optional validation profile for teams that
+want stricter authoring checks.
 
-## Slot Model In The Current SDK
+Goal: make the same Markdown easier for humans to scan and easier for agents to
+interpret.
 
-Page-level semantic slots (H2 headings):
+## Optional Slot Model
+
+Common page-level semantic slots (H2 headings):
 
 - `## Purpose`
 - `## Context`
@@ -24,20 +30,24 @@ Optional slots:
 - `## Views`
 - `## Handoff`
 
-Block/region-level semantic slots (recommended when region text is complex):
+Common block/region-level semantic slots when region text is complex:
 
 - `## Context`
 - `## Result`
+
+These names are the current SDK's built-in optional validation profile. Apps may
+use other headings when they fit the product better.
 
 ## Semantic Slot Isolation
 
 Keep three layers isolated:
 
 1. Page shared slots (`Purpose/Context/Rules/Result`)
-These are the canonical shared contract for both human and agent readers.
+These are a common shared authoring pattern for human and agent readers.
 
 2. Block/region slots (`Context/Result` inside dynamic regions)
-These explain local region state only. Do not override page-level purpose/rules.
+These explain local region state only. Avoid using them to override page-level
+purpose/rules.
 
 3. Agent-only slots (`agent:begin ... agent:end`)
 These are hidden guidance for agent execution and must not be relied on by human-visible flow.
@@ -49,7 +59,7 @@ Isolation rules:
 - Do not depend on agent-only blocks for correctness of human-visible page meaning.
 - Keep cross-slot references explicit: if a block depends on page constraints, reference them briefly instead of duplicating all content.
 
-For protocol details, see [Agent Content](/spec/agent-content).
+For the runtime-relevant content boundary, see [Agent Content](/spec/agent-content).
 
 ## Authoring Principles
 
@@ -60,10 +70,11 @@ For protocol details, see [Agent Content](/spec/agent-content).
 Session state, current filters, selected location, and current route belong here.
 
 3. Put hard constraints in `Rules`.
-Use clear MUST/SHOULD language. Keep it executable, not narrative.
+Use clear language. If you use MUST/SHOULD, reserve it for real app constraints.
 
 4. Put expected output shape in `Result`.
-Describe what a correct response should contain, not internal implementation.
+Describe what this surface or region is expected to show, not internal
+implementation.
 
 5. Put common invocations in `Examples`.
 Use this for sample paths, query strings, input objects, or command snippets that show how to call the declared actions.
@@ -97,8 +108,9 @@ Describe the expected output structure and success criteria.
 <!-- mdan:block id="main" -->
 ```
 
-Bind block actions in the adjacent `*.action.json` file instead of embedding
-action ids in Markdown.
+Bind executable actions in the adjacent `*.action.json` file instead of relying
+on prose. Markdown explains meaning; action JSON is the executable source of
+truth.
 
 For agent-only hidden guidance, use `agent:begin` blocks instead of polluting shared slots:
 
@@ -126,14 +138,23 @@ Return normalized inputs before submitting the action.
 - Body content can be localized (`zh-CN`, `en-US`, etc.).
 - If bilingual text is needed, keep one slot and place bilingual lines inside, instead of duplicating slots.
 
-## Release Checklist
+## Optional Checklist
 
-- Page includes `Purpose/Context/Rules/Result`.
-- Slot headings are H2 (`##`) and unique.
-- Rules are actionable and verifiable.
-- Result describes observable output.
-- Examples, when present, show valid calls or inputs.
-- No sensitive/internal-only guidance leaked outside `agent:begin`.
+- Use semantic slots only where they improve readability.
+- Keep slot headings H2 (`##`) and unique when using the built-in validator.
+- Keep rules actionable and verifiable.
+- Keep result text observable and user-facing.
+- Use examples, when present, to show valid calls or inputs.
+- Do not leak sensitive/internal-only guidance outside `agent:begin`.
+
+## Runtime Validation
+
+The SDK exposes `semanticSlots` as an optional authoring lint profile. It is not
+enabled by default and is not required for MDAN protocol correctness.
+
+Use it when a project wants to enforce this writing convention consistently.
+Leave it disabled when a page, dashboard, form, or custom app surface reads
+better with a different structure.
 
 ## Related Docs
 
