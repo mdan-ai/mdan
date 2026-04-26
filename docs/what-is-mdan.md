@@ -55,12 +55,13 @@ consume the markdown surface directly and project it however they want.
 - frontends do not need a separate server HTML mode
 - the same surface can keep driving the next step
 
-This makes MDAN a useful runtime profile for [Web Skills](/web-skills), but
-Web Skills themselves are a separate authoring and publishing specification.
+This is especially useful for [Web Skills](/web-skills): URL-addressable
+skills that expose readable state and explicit next actions over standard web
+protocols.
 
 ## Where To Start Next
 
 1. [Quickstart](/quickstart)
 2. [Customize The Starter](/customize-the-starter)
-3. [Examples](/examples)
-4. [Web Skills Relationship](/web-skills)
+3. [Web Skills](/web-skills)
+4. [Examples](/examples)

@@ -1,13 +1,13 @@
 ---
 title: MDAN SDK Docs
-description: Developer documentation for the MDAN TypeScript SDK for building interactive Markdown plus JSON surfaces shared by humans and agents.
+description: Developer documentation for the MDAN TypeScript SDK for building agent apps, skills apps, web skills, and interactive Markdown apps shared by humans and agents.
 ---
 
 # MDAN SDK Docs
 
 MDAN is a Markdown-first application surface model and TypeScript SDK for
-building interactive Markdown plus JSON surfaces that work for both humans and
-agents.
+building agent apps, skills apps, web skills, and interactive Markdown apps
+that work for both humans and agents.
 
 This docs site works best when you read it in one of two ways:
 
@@ -27,9 +27,10 @@ That path takes you from product model to running app to first real change.
 
 ## Choose By Goal
 
-### I Need The Runtime Model
+### I Need The Product Model
 
 - [What is MDAN?](/what-is-mdan)
+- [Web Skills](/web-skills)
 
 ### I Want To Run Something Fast
 
@@ -48,7 +49,6 @@ That path takes you from product model to running app to first real change.
 - [Spec Overview](/spec)
 - [Application Surface Spec](/spec/application-surface)
 - [Surface Contract](/spec/surface-contract)
-- [Web Skills Relationship](/web-skills)
 
 ## More Docs
 

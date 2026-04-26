@@ -7,8 +7,8 @@ description: Runnable MDAN examples for learning the markdown-first server contr
 
 Pick the example that matches the app shape you want to build.
 
-The same surface shape can be used by Web Skills that choose MDAN as their
-runtime profile, but these examples are primarily SDK runtime examples.
+Every example is also a small [Web Skill](/web-skills): it has a URL, a readable
+Markdown surface, and explicit next actions that agents or browsers can follow.
 
 ## Start Here
 
@@ -39,7 +39,7 @@ All examples now share the same transport rule:
 
 ## Related Docs
 
-- [Web Skills Relationship](/web-skills)
+- [Web Skills](/web-skills)
 - [Customize The Starter](/customize-the-starter)
 - [Form Rendering](/form-rendering)
 - [Custom Rendering](/custom-rendering)
