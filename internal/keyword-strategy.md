@@ -30,7 +30,7 @@ The stable primary terms are:
 
 - `agent app`
 - `skills app`
-- `online skills`
+- `web skills`
 - `interactive markdown`
 - `Markdown surface`
 - `shared human and agent interaction`
@@ -58,7 +58,7 @@ Primary search intent:
 
 - `agent app sdk`
 - `skills app sdk`
-- `online skills sdk`
+- `web skills sdk`
 - `interactive markdown sdk`
 - `agent interface sdk`
 
@@ -67,7 +67,7 @@ Primary message:
 - this is the official SDK
 - this is what you use to build apps
 - it supports both agent-facing and human-facing flows
-- it is the SDK for taking local skills and turning them into online skills
+- it is the SDK for taking local skills and turning them into web skills
 
 The package README and metadata should emphasize:
 
@@ -113,7 +113,7 @@ The first 20-30 lines should consistently include:
 
 - `agent apps`
 - `skills apps`
-- `online skills`
+- `web skills`
 - `interactive Markdown surfaces`
 - `shared human and agent interaction`
 
@@ -199,7 +199,7 @@ volume.
 These statements should stay consistent across the main docs and package pages:
 
 - `MDAN is a Markdown-first application surface model.`
-- `@mdanai/sdk is the official SDK for building MDAN agent apps, skills apps, and online skills.`
+- `@mdanai/sdk is the official SDK for building MDAN agent apps, skills apps, and web skills.`
 - `create-mdan is the fastest way to start a new MDAN app.`
 - `MDAN apps use readable Markdown surfaces plus explicit action contracts.`
 

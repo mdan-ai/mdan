@@ -1,6 +1,6 @@
 ---
 title: Quickstart
-description: Create and run a TypeScript MDAN starter app, open it in a browser, and inspect the same interactive Markdown app, agent app, or online skill surface as a Markdown response for agents.
+description: Create and run a TypeScript MDAN starter app, open it in a browser, and inspect the same interactive Markdown app, agent app, or web skill surface as a Markdown response for agents.
 ---
 
 # Quickstart

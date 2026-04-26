@@ -1,19 +1,19 @@
 ---
-title: Online Skills
-description: Define online skills as live skill surfaces with readable Markdown and machine interfaces, explain why the concept matters, how it relates to MDAN, and how to build one with the SDK.
+title: Web Skills
+description: Define web skills as live skill surfaces with readable Markdown and machine interfaces, explain why the concept matters, how it relates to MDAN, and how to build one with the SDK.
 ---
 
-# Online Skills
+# Web Skills
 
-Use this page when you want to understand what we mean by `online skills`, why
+Use this page when you want to understand what we mean by `web skills`, why
 we use that term, and why it matters to MDAN.
 
 This is a definition page first, not a low-level protocol spec.
 
 ## The Short Definition
 
-An online skill is a skill that has been moved out of a purely local execution
-context and turned into a live online surface.
+A web skill is a skill that has been moved out of a purely local execution
+context and turned into a live, URL-addressable web surface.
 
 That surface should be:
 
@@ -23,7 +23,7 @@ That surface should be:
 - continuable across multiple steps
 - backed by a machine interface, not only prose
 
-In the MDAN framing, an online skill is usually best understood as:
+In the MDAN framing, a web skill is usually best understood as:
 
 - `Markdown`
   a readable shared surface
@@ -43,7 +43,7 @@ In practice, people often use `skill` to mean things like:
 - a chatbot behavior
 
 Those are all useful, but they are not the same thing as a skill that is
-available online and can be consumed by both people and software.
+available on the web and can be consumed by both people and software.
 
 Once a skill needs to be:
 
@@ -53,15 +53,15 @@ Once a skill needs to be:
 - continued through declared next steps
 - shared across humans, agents, and runtimes
 
-it stops being only a local skill and starts becoming an online skill.
+it stops being only a local skill and starts becoming a web skill.
 
 So the point of the term is not to invent jargon for its own sake. The point is
 to name a real transition:
 
 - from local capability
-- to online, interactive, shared capability
+- to web-addressable, interactive, shared capability
 
-## Local Skills Vs Online Skills
+## Local Skills Vs Web Skills
 
 Local skills are usually:
 
@@ -70,7 +70,7 @@ Local skills are usually:
 - optimized for one-shot execution
 - weak at exposing readable context to humans
 
-Online skills are different.
+Web skills are different.
 
 They need to expose:
 
@@ -80,7 +80,7 @@ They need to expose:
 - executable next steps
 - a stable integration surface
 
-That is why a local skill often looks like a function, while an online skill
+That is why a local skill often looks like a function, while a web skill
 starts looking like an app surface.
 
 ## `Markdown + JSON`
@@ -114,7 +114,7 @@ It answers questions like:
 
 This `json` layer is not limited to one protocol.
 
-For an online skill, the machine interface can be:
+For a web skill, the machine interface can be:
 
 - MDAN action JSON
 - MCP
@@ -129,10 +129,10 @@ MDAN envelope." We mean:
 
 ## Why This Matters To MDAN
 
-MDAN is strongly related to online skills because it is built around the exact
-problem online skills create.
+MDAN is strongly related to web skills because it is built around the exact
+problem web skills create.
 
-An online skill is not just a hidden tool endpoint. It needs a surface.
+A web skill is not just a hidden tool endpoint. It needs a surface.
 
 That surface needs to:
 
@@ -148,9 +148,9 @@ MDAN gives you one way to do that by keeping:
 - explicit actions as the executable continuation layer
 - HTML as a browser projection of that same surface
 
-So MDAN is not the only possible machine interface for an online skill.
+So MDAN is not the only possible machine interface for a web skill.
 
-But it is a strong model for building online skills because it keeps the
+But it is a strong model for building web skills because it keeps the
 readable layer and the executable layer close together instead of splitting them
 into unrelated systems.
 
@@ -164,7 +164,7 @@ A tool call is often:
 - one response
 - one hidden machine interface
 
-An online skill is usually richer than that.
+A web skill is usually richer than that.
 
 It often needs:
 
@@ -175,25 +175,25 @@ It often needs:
 - agent access
 - multi-step continuation
 
-That is why we use `online skills` instead of collapsing everything into
+That is why we use `web skills` instead of collapsing everything into
 `tools`.
 
 ## How MDAN Fits Into The Model
 
 You can think about the relationship like this:
 
-- `online skills` is the broader concept
+- `web skills` is the broader concept
 - `MDAN` is one strong way to implement that concept
 
 More specifically:
 
-- `online skills` names the shape of the thing
+- `web skills` names the shape of the thing
 - `MDAN` provides a shared surface model for building it
 - the MDAN SDK packages give you a practical TypeScript path to ship it
 
-## What A Minimal Online Skill Needs
+## What A Minimal Web Skill Needs
 
-At a practical level, a minimal online skill usually needs:
+At a practical level, a minimal web skill usually needs:
 
 - a readable description of the current skill surface
 - a way to show current state or result
@@ -217,7 +217,7 @@ The simplest MDAN path is:
 4. handle those actions on the server
 5. return the next readable surface after each action
 
-That gives you an online skill with:
+That gives you a web skill with:
 
 - a browser-facing HTML view
 - an agent-readable Markdown view
@@ -240,15 +240,15 @@ That surface can now be:
 - continued through declared actions
 - integrated through machine-readable interfaces
 
-That is the shift from local skills to online skills.
+That is the shift from local skills to web skills.
 
 ## Practical Rule
 
-Use `online skills` when you mean more than a hidden local capability.
+Use `web skills` when you mean more than a hidden local capability.
 
 Use it when the thing you are building is:
 
-- online
+- reachable on the web
 - interactive
 - stateful enough to continue
 - readable enough to inspect

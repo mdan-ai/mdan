@@ -1,14 +1,14 @@
 # @mdanai/sdk
 
 `@mdanai/sdk` is the official SDK for building MDAN agent apps, skills apps,
-and online skills.
+and web skills.
 
 MDAN is a Markdown-first application surface model for shared human and agent
 interaction. A page stays readable as Markdown and carries explicit action
 contracts in the same response.
 
-It is designed for teams building agent-facing apps, skills apps, online
-skills, interactive internal tools, and other workflows where the same surface
+It is designed for teams building agent-facing apps, skills apps, web skills,
+interactive internal tools, and other workflows where the same surface
 should work for both humans and AI agents.
 
 ## Start Here
@@ -48,7 +48,7 @@ Typical use cases:
 
 - agent apps and internal tools
 - guided forms and skills apps
-- online skills exposed over shared Markdown surfaces
+- web skills exposed over shared Markdown surfaces
 - interactive docs and runbooks
 - multi-step workflows that return both results and next actions
 

@@ -25,7 +25,7 @@ export const docsNav: DocsNavSection[] = [
       { route: "/quickstart", label: "Quickstart" },
       { route: "/customize-the-starter", label: "Customize The Starter" },
       { route: "/examples", label: "Examples" },
-      { route: "/online-skills", label: "Online Skills" },
+      { route: "/web-skills", label: "Web Skills" },
       { route: "/troubleshooting", label: "Troubleshooting" }
     ]
   },
@@ -72,7 +72,7 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/customize-the-starter", sourcePath: "docs/customize-the-starter.md" },
   { route: "/glossary", sourcePath: "docs/glossary.md" },
   { route: "/what-is-mdan", sourcePath: "docs/what-is-mdan.md" },
-  { route: "/online-skills", sourcePath: "docs/online-skills.md" },
+  { route: "/web-skills", sourcePath: "docs/web-skills.md" },
   { route: "/examples", sourcePath: "docs/examples.md" },
   { route: "/deep-dive", sourcePath: "docs/deep-dive.md" },
   { route: "/semantic-slots", sourcePath: "docs/semantic-slots.md" },
