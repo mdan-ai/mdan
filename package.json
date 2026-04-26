@@ -2,7 +2,7 @@
   "name": "@mdanai/sdk",
   "version": "0.7.6",
   "private": false,
-  "description": "TypeScript SDK for building MDAN agent apps, skills apps, and web skills with interactive Markdown surfaces and actions.",
+  "description": "TypeScript SDK for building MDAN agent apps, skills apps, and interactive Markdown surfaces with actions.",
   "license": "MIT",
   "homepage": "https://docs.mdan.ai",
   "bugs": {

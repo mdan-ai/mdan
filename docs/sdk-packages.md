@@ -9,8 +9,6 @@ description: Supported public package entry paths for `@mdanai/sdk`, including t
 
 - getting started with app authoring and shipped frontend helpers:
   `@mdanai/sdk`
-- building a [Web Skill](/web-skills) with a URL-addressable Markdown surface:
-  `@mdanai/sdk`
 - building pages and actions with an explicit authoring-only import:
   `@mdanai/sdk/app`
 - hosting in Node:
@@ -76,5 +74,4 @@ Anything outside these paths is not a stable public API.
 - [Architecture](/architecture)
 - [API Reference](/api-reference)
 - [Custom Server](/custom-server)
-- [Web Skills](/web-skills)
 - [Browser Behavior](/browser-behavior)
