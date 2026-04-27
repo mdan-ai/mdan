@@ -211,7 +211,7 @@ describe("app API", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/html");
-    await expect(response.text()).resolves.toContain("/__mdan/entry.js");
+    await expect(response.text()).resolves.toContain("/__mdan/frontend.js");
   });
 
   it("provides a node host convenience on the app instance", () => {

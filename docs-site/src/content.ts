@@ -113,7 +113,7 @@ export const docsPages: DocsPageDefinition[] = [
   { route: "/spec/region-update-semantics", sourcePath: "spec/region-update-semantics.md" },
   { route: "/spec/versioning-and-conformance", sourcePath: "spec/versioning-and-conformance.md" },
   { route: "/contributing", sourcePath: "CONTRIBUTING.md" },
-  { route: "/architecture", sourcePath: "ARCHITECTURE.md" }
+  { route: "/architecture", sourcePath: "docs/architecture.md" }
 ];
 
 export async function assertDocsPagesExist(repoRoot: string): Promise<void> {

@@ -147,8 +147,9 @@ contract docs and regression tests together.
 
 ## Compatibility Notes
 
-- Favor public imports only: `@mdanai/sdk/server`, `@mdanai/sdk/server/node`,
-  `@mdanai/sdk/server/bun`, `@mdanai/sdk/surface`, `@mdanai/sdk/ui`
+- Favor public imports only: `@mdanai/sdk`, `@mdanai/sdk/app`,
+  `@mdanai/sdk/core`, `@mdanai/sdk/frontend`, `@mdanai/sdk/server`,
+  `@mdanai/sdk/server/node`, `@mdanai/sdk/server/bun`, `@mdanai/sdk/surface`
 - Do not add new application guidance that depends on `src/` or `dist/` deep imports
 - Treat legacy JSON surface support as compatibility coverage, not the preferred new path
 

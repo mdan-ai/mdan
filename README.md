@@ -234,6 +234,6 @@ intentionally want to own the browser UI layer.
 
 Repo-local docs:
 
-- [Architecture](https://github.com/mdan-ai/mdan/blob/main/sdk/docs/architecture.md)
+- [Architecture](https://github.com/mdan-ai/mdan/blob/main/docs/architecture.md)
 - [Contributing](https://github.com/mdan-ai/mdan/blob/main/CONTRIBUTING.md)
 - [Examples](https://github.com/mdan-ai/mdan/tree/main/examples)
