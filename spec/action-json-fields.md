@@ -112,7 +112,7 @@ type BlockObject = {
 ### 4.2 `actions`
 
 - type: string[]
-- meaning: action ids associated with the block.
+- meaning: action ids mounted in the block.
 - rule: every id MUST reference an existing key in the top-level `actions`
   object.
 
@@ -213,7 +213,9 @@ Each action id is carried by the key under `actions.<id>`, not by a required
 ### 5.8 `state_effect`
 
 - `response_mode`: `page` or `region`
-- `updated_regions`: region names for region updates.
+- `updated_regions`: optional explicit region names for region updates. When
+  omitted for a region action, the submitted action's mounted block is the
+  default region target.
 
 ### 5.9 `guard`
 

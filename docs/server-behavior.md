@@ -74,10 +74,15 @@ declared `state_effect`:
 - `response_mode: "page"`
   replaces the current page surface
 - `response_mode: "region"`
-  patches only the declared `updated_regions` when possible
+  patches targeted regions when possible
 
-If the route changes or expected region data is missing, the runtime falls back
-to page replacement.
+For region actions, `updated_regions` is optional. When omitted, browser
+continuation uses the block that submitted the action as the default region
+target. Declare `updated_regions` when one action should update a different
+block or multiple blocks.
+
+If the route changes or expected region data is missing, browser continuation
+falls back to page replacement.
 
 Server-side auto dependencies are resolved before responses are sent, so all
 markdown consumers observe the same final state.

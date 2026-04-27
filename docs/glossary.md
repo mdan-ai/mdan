@@ -59,6 +59,12 @@ surface.
 
 See [Action Execution](/spec/action-execution).
 
+## Block
+
+A named UI region in a surface. A block may contain rendered Markdown, mount
+actions through `blocks.<id>.actions`, act as a region update target, or combine
+those roles.
+
 ## State
 
 The identity boundary of the app at a point in time.

@@ -116,6 +116,64 @@ Example output:
 - `transport.method`: current transport (`GET` or `POST` in current runtime).
 - `input_schema`: JSON object-schema for action input.
 
+## Blocks, Actions, And Region Updates
+
+Block/action binding and region updates are related, but they are not the same
+relationship.
+
+`blocks.<id>.actions` decides where an action is mounted:
+
+```json
+{
+  "blocks": {
+    "composer": {
+      "actions": ["send_message"]
+    },
+    "messages": {
+      "actions": []
+    }
+  }
+}
+```
+
+That means `send_message` is displayed from the `composer` block.
+
+`state_effect.response_mode` decides what kind of continuation the action
+expects after it runs:
+
+```json
+{
+  "actions": {
+    "send_message": {
+      "target": "/messages",
+      "transport": { "method": "POST" },
+      "state_effect": {
+        "response_mode": "region"
+      }
+    }
+  }
+}
+```
+
+For `response_mode: "region"`, `updated_regions` is optional. If it is omitted,
+the browser runtime updates the block that triggered the action. In the example
+above, the default region target is `composer`.
+
+Use `updated_regions` only when the action should update a different block, or
+multiple blocks:
+
+```json
+{
+  "state_effect": {
+    "response_mode": "region",
+    "updated_regions": ["messages", "composer"]
+  }
+}
+```
+
+That keeps the common case compact while still making cross-block updates
+explicit.
+
 ## How It Connects To Runtime Code
 
 The action manifest does not execute anything by itself.

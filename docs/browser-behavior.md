@@ -179,7 +179,11 @@ with your own framework.
 ## Region Updates
 
 For action results with `state_effect.response_mode: "region"`, the headless
-host patches only the named `updated_regions` when possible.
+host patches only the targeted regions when possible.
+
+If the action declares `updated_regions`, those names are the explicit patch
+targets. If `updated_regions` is omitted, the browser runtime uses the block
+that mounted and submitted the action as the default region target.
 
 If the returned surface changes route, or the expected region is absent, the
 host falls back to a page replacement.

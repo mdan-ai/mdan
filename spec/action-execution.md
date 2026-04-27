@@ -152,11 +152,14 @@ The interoperable values are:
 Semantics:
 
 - `page` means the result replaces the current page-level surface
-- `region` means the result is intended to update only named regions when safe
+- `region` means the result is intended to update targeted regions when safe
 
 When `response_mode` is `region`:
 
-- `updated_regions` SHOULD identify the intended regions
+- if `updated_regions` is omitted, the submitted action's mounted block is the
+  default target region
+- `updated_regions` identifies explicit target regions for cross-block or
+  multi-block updates
 - consumers MUST fall back to page replacement if region application is unsafe
   or ambiguous
 

@@ -16,7 +16,7 @@ outcomes.
 It covers:
 
 - `state_effect.response_mode = "region"`
-- `updated_regions` semantics
+- explicit and default region target semantics
 - region patch safety and fallback behavior
 
 It does not define:
@@ -40,8 +40,7 @@ When an action declares:
 ```json
 {
   "state_effect": {
-    "response_mode": "region",
-    "updated_regions": ["main"]
+    "response_mode": "region"
   }
 }
 ```
@@ -49,9 +48,25 @@ When an action declares:
 then:
 
 - `response_mode = "region"` signals intended partial update semantics.
-- `updated_regions` identifies intended region names.
+- if `updated_regions` is absent, the submitted action's mounted block is the
+  default region target.
 
-`updated_regions` SHOULD be present for region mode.
+When an action declares:
+
+```json
+{
+  "state_effect": {
+    "response_mode": "region",
+    "updated_regions": ["messages", "composer"]
+  }
+}
+```
+
+then `updated_regions` identifies the explicit intended region names.
+
+Producers SHOULD omit `updated_regions` for the common case where an action only
+updates the block it is mounted in. Producers SHOULD include `updated_regions`
+when an action updates a different block or multiple blocks.
 
 ## 4. Safe Application Requirements
 
@@ -84,6 +99,7 @@ A producer using region mode:
 
 - MUST keep region payload and action metadata semantically aligned
 - SHOULD include stable region names across related states
+- SHOULD declare `updated_regions` for cross-block updates
 - SHOULD avoid region mode when operation semantics imply broad page
   restructuring
 

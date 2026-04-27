@@ -147,7 +147,9 @@ vs file-backed action submission.
 ## Region Updates
 
 When an action declares `state_effect.response_mode: "region"`, the headless
-host will try to patch only the named regions.
+host will try to patch targeted regions. If the operation declares
+`updated_regions`, those names are the targets. If it does not, the submitted
+action's mounted block is the default target.
 
 If the returned route changes, or the expected region is missing, the host
 falls back to a page replacement.

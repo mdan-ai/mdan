@@ -284,7 +284,7 @@ Recognized result types are:
 They MUST remain semantically distinct:
 
 - `page` replaces a full page surface
-- `region` updates one or more named regions
+- `region` updates targeted regions
 - `stream` delivers incremental results over time
 
 Implementations MUST NOT silently collapse these result classes into one.
