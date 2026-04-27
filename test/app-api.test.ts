@@ -537,6 +537,8 @@ describe("app API", () => {
       )
     } as const;
 
+    expect(input.location.schema).toEqual({ type: "string" });
+
     type QueryInputs = InferAppInputs<typeof input>;
 
     const result = app.page("/typed", {

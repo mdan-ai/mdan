@@ -1,7 +1,6 @@
 import type {
   MdanHeadlessBlock,
   MdanOperation,
-  MdanSubmitValue,
   MdanSubmitValues
 } from "../core/surface/presentation.js";
 

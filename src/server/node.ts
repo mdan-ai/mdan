@@ -221,8 +221,6 @@ export function createNodeRequestListener(
 }
 
 export function createNodeHost(handler: MdanRequestHandler, options: CreateNodeHostOptions = {}): RequestListener {
-  const requestListener = createNodeRequestListener(handler, options);
-
   return async (request, response) => {
     const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`);
     const plan = planHostRequest(

@@ -15,8 +15,6 @@ import type {
   MdanPageHandlerContext,
   MdanRequest,
   MdanResponse,
-  MdanSessionProvider,
-  MdanSessionSnapshot,
   MdanStreamResult
 } from "../server/types/index.js";
 export type { MdanSessionProvider, MdanSessionSnapshot } from "../server/types/index.js";
@@ -345,17 +343,15 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     action(path, { method: "POST" }, handler);
   };
 
-  function host(runtime: "bun", options?: CreateBunHostOptions): ReturnType<typeof createBunHost>;
-  function host(runtime: "node", options?: CreateNodeHostOptions): ReturnType<typeof createNodeHost>;
-  function host(
+  const host = ((
     runtime: "bun" | "node",
     options: CreateBunHostOptions | CreateNodeHostOptions = {}
-  ) {
+  ) => {
     if (runtime === "bun") {
       return createBunHost(server, options as CreateBunHostOptions);
     }
     return createNodeHost(server, options as CreateNodeHostOptions);
-  }
+  }) as AppInstance["host"];
 
   return {
     page,

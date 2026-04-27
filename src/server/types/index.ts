@@ -25,7 +25,6 @@ export type {
   MdanPageHandlerContext,
   MdanPageHandlerResult
 } from "./handler.js";
-import type { MdanSessionMutation } from "./session.js";
 
 export type MdanInputScalar = string | number | boolean | null;
 export type MdanInputValue =
