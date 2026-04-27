@@ -243,14 +243,14 @@ describe("module boundaries", () => {
     expect(source).not.toMatch(/createHost\?: typeof createHeadlessHost/);
   });
 
-  it("keeps the frontend barrel as an explicit compatibility layer over frontend sublayers", async () => {
+  it("keeps the frontend barrel as a flat explicit public entrypoint", async () => {
     const source = await readSource("src/frontend/index.ts");
 
-    expect(source).toContain('from "./authoring.js";');
-    expect(source).toContain('from "./runtime.js";');
     expect(source).not.toContain("export *");
-    expect(source).not.toContain('from "./mount.js"');
-    expect(source).not.toContain('from "./register.js"');
+    expect(source).toContain('from "./frontend.js"');
+    expect(source).toContain('from "./form-renderer.js"');
+    expect(source).toContain('from "./mount.js"');
+    expect(source).toContain('from "./register.js"');
     expect(source).not.toContain('from "./model.js"');
   });
 

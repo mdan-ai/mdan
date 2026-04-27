@@ -99,8 +99,8 @@ describe("package export boundary", () => {
     const exportsMap = packageJson.exports ?? {};
 
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend")).toBe(true);
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend/authoring")).toBe(true);
-    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend/runtime")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend/authoring")).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend/runtime")).toBe(false);
   });
 
   it("keeps legacy browser-entry implementation helpers off the server barrel", async () => {

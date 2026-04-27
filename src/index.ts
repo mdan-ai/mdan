@@ -21,4 +21,4 @@ export {
   type MdanFrontend,
   type MdanFrontendExtension,
   type UiFormRenderer
-} from "./frontend/authoring.js";
+} from "./frontend/index.js";
