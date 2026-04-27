@@ -56,7 +56,12 @@ import { createHost } from "@mdanai/sdk/server/node";
 
 const server = createMdanServer();
 
-http.createServer(createHost(server)).listen(3000);
+http.createServer(createHost(server, {
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
+})).listen(3000);
 ```
 
 Bun example:
@@ -69,9 +74,24 @@ const server = createMdanServer();
 
 Bun.serve({
   port: 3000,
-  fetch: createHost(server)
+  fetch: createHost(server, {
+    frontend: true,
+    browser: {
+      projection: "html"
+    }
+  })
 });
 ```
+
+Those options keep the current default browser experience:
+
+- natural browser routes such as `/login`
+- readable HTML document projection for page loads
+- raw markdown still available on matching `.md` routes
+- frontend enhancement for the action layer
+
+If you only need the raw markdown runtime and do not want browser UI handling,
+you can still use `createHost(server)` without `frontend: true`.
 
 ## What The Runtime Owns
 
@@ -84,7 +104,7 @@ Bun.serve({
 - session mutation intents
 - final Markdown or SSE response shaping
 
-The server no longer owns HTML projection.
+The lower-level runtime contract stays markdown-first.
 
 ## What The Host Adapter Owns
 
@@ -95,6 +115,8 @@ The host adapter owns:
 - normalizing form bodies into runtime-friendly JSON-compatible inputs
 - enforcing body size limits
 - serving optional static files
+- browser document entry behavior
+- optional readable HTML projection for browser page loads
 - writing string or streaming responses back to the underlying transport
 
 ## Relationship To Custom Rendering

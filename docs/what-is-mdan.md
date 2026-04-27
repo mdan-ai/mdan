@@ -30,8 +30,8 @@ That markdown carries:
 - block anchors
 - embedded executable action/state data
 
-So the server does not need to negotiate a separate HTML view. Frontends can
-consume the markdown surface directly and project it however they want.
+So Markdown stays the canonical app surface, while hosts and frontends can
+project that same surface into browser HTML when needed.
 
 ## How The SDK Fits
 

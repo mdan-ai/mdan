@@ -98,7 +98,6 @@ The runtime returns `500` for:
 - page handlers that do not return Markdown-native pages or legacy compatibility envelopes
 - action handlers that do not return Markdown-native action results, legacy compatibility envelopes, or stream results
 - invalid actions contracts
-- invalid semantic slots when semantic-slot validation is enabled
 - invalid agent blocks
 
 Contract violations should be fixed in application code. Agents and browser

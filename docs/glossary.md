@@ -49,8 +49,8 @@ executable truth by itself.
 
 ## Actions Contract
 
-The executable contract for the current state: action list, input constraints,
-state effects, and allowed next actions.
+The executable contract for the current state: declared actions, input
+constraints, and state effects.
 
 ## Action
 
@@ -58,11 +58,6 @@ A declared next operation that a client or agent may execute from the current
 surface.
 
 See [Action Execution](/spec/action-execution).
-
-## Allowed Next Actions
-
-The allow-list of action ids that are executable from the current state. If
-present, clients should not execute actions outside it.
 
 ## State
 

@@ -7,12 +7,12 @@ description: Practical guide to the markdown-only MDAN server runtime, including
 
 Use this page when your question is about what the MDAN server runtime does.
 
-The current runtime is markdown-only on the wire:
+The current runtime is markdown-first on the wire:
 
 - page reads return `text/markdown`
 - ordinary action results return `text/markdown`
 - stream actions return `text/event-stream`
-- `text/html` is not a server response mode
+- host-level browser HTML projection is layered on top of that markdown surface
 
 ## Runtime Shape
 
@@ -48,7 +48,8 @@ Practical rule:
 - page read: ask for `text/markdown`
 - ordinary action result: ask for `text/markdown`
 - stream action: ask for `text/event-stream`
-- do not ask the server for `text/html`
+- do not ask action handlers to return `text/html`; browser HTML projection is
+  a host concern built from the markdown surface
 
 ## Action Request Format
 
@@ -104,8 +105,9 @@ Think of the server runtime as the owner of:
 - result interpretation
 - final response shaping
 
-The frontend should consume the returned markdown surface. It should not expect
-the server to pre-render HTML for it.
+The frontend and host consume that returned markdown surface. If browser HTML
+projection is enabled, the host may render readable HTML from it for document
+page loads, but the runtime contract itself remains markdown-first.
 
 ## Related Docs
 
