@@ -47,5 +47,7 @@ describe("@mdanai/sdk/server public API", () => {
     expect("validatePostInputs" in server).toBe(false);
     expect("MdanAssetStoreOptions" in server).toBe(false);
     expect("AssetCleanupResult" in server).toBe(false);
+    expect("semanticSlots" in server).toBe(false);
+    expect("validateSemanticSlots" in server).toBe(false);
   });
 });

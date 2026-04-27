@@ -140,10 +140,6 @@ export function createActionsContractViolationResult(detail: string): MdanAction
   return createErrorResult(500, "Actions Contract Violation", detail);
 }
 
-export function createSemanticSlotsViolationResult(errors: string[]): MdanActionResult {
-  return createErrorResult(500, "Semantic Slots Violation", errors.join("\n"));
-}
-
 export function createAgentBlocksViolationResult(errors: string[]): MdanActionResult {
   return createErrorResult(500, "Agent Blocks Violation", errors.join("\n"));
 }

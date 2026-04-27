@@ -1,6 +1,6 @@
 ---
 title: Agent Content
-description: See how the current TypeScript SDK implements shared readable content, semantic slots, and agent-only blocks on top of the MDAN agent content spec.
+description: Historical notes on shared readable content, optional writing conventions, and agent-only blocks on top of the MDAN agent content spec.
 ---
 
 # Agent Content
@@ -8,13 +8,13 @@ description: See how the current TypeScript SDK implements shared readable conte
 For normative protocol rules, see [Agent Content](/spec/agent-content).
 For writing guidance, see [Semantic Slots](/semantic-slots).
 
-This page describes how the current TypeScript SDK implements shared readable
-content, semantic slots, and agent-only blocks without leaking hidden guidance
-into human-visible HTML.
+This archived page describes an earlier authoring model for shared readable
+content and agent-only blocks. Semantic slots are now only a project-level
+writing convention; the SDK does not parse or validate them.
 
-## Current SDK Semantic Slots
+## Historical Semantic Slots
 
-Semantic slots are Markdown H2 sections with canonical names:
+Semantic slots were Markdown H2 sections with names such as:
 
 - `## Purpose`
 - `## Context`
@@ -23,37 +23,8 @@ Semantic slots are Markdown H2 sections with canonical names:
 - `## Views`
 - `## Handoff`
 
-`Purpose`, `Context`, `Rules`, and `Result` are the required core slots for page
-validation. `Views` and `Handoff` are accepted optional slots that let an entry
-describe shared rendering expectations and follow-on usage without introducing a
-separate slot family.
-
-By default, semantic slots are just content. Hosts can enable validation:
-
-```ts
-const server = createMdanServer({
-  semanticSlots: true
-});
-```
-
-`semanticSlots: true` enables both page and block checks:
-
-- page `content` must include `Purpose`, `Context`, `Rules`, and `Result`
-- each returned block region must include `Context` and `Result`
-
-You can enable the checks independently:
-
-```ts
-createMdanServer({
-  semanticSlots: {
-    requireOnPage: true,
-    requireOnBlock: false
-  }
-});
-```
-
-Slot validation requires H2 headings, rejects duplicates, and rejects empty
-slots.
+These headings can still be useful as a team convention, but they are not SDK
+protocol keywords and there is no runtime `semanticSlots` validation option.
 
 ## Current SDK Untrusted Blocks
 

@@ -35,6 +35,16 @@ describe("package export boundary", () => {
     expect(indexSource).not.toMatch(/type\s+JsonBlock/);
   });
 
+  it("keeps markdown authoring convention helpers out of package exports", async () => {
+    const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
+    const coreIndexSource = await readFile(join(repoRoot, "src/core/index.ts"), "utf8");
+    const coreContentSource = await readFile(join(repoRoot, "src/core/content.ts"), "utf8");
+
+    expect(indexSource).not.toMatch(/SemanticSlots|semanticSlots|semantic-slots/);
+    expect(coreIndexSource).not.toMatch(/SemanticSlots|semanticSlots|semantic-slots/);
+    expect(coreContentSource).not.toMatch(/SemanticSlots|semanticSlots|semantic-slots/);
+  });
+
   it("keeps the app barrel available for explicit authoring imports", async () => {
     const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8")) as {
       exports?: Record<string, unknown>;

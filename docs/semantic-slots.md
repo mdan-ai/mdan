@@ -9,8 +9,8 @@ Use this guide when you want a consistent authoring pattern for Markdown
 content in MDAN pages and regions.
 
 Semantic slots are not required by the core MDAN runtime contract. They are a
-recommended writing convention and an optional validation profile for teams that
-want stricter authoring checks.
+writing convention only. The SDK does not parse or validate these headings, and
+apps may use other headings when they fit the product better.
 
 Goal: make the same Markdown easier for humans to scan and easier for agents to
 interpret.
@@ -35,8 +35,7 @@ Common block/region-level semantic slots when region text is complex:
 - `## Context`
 - `## Result`
 
-These names are the current SDK's built-in optional validation profile. Apps may
-use other headings when they fit the product better.
+These names are examples, not protocol keywords.
 
 ## Semantic Slot Isolation
 
@@ -134,27 +133,18 @@ Return normalized inputs before submitting the action.
 
 ## Multi-Language Guidance
 
-- Keep slot headings canonical in English (`Purpose/Context/Rules/Result/Examples`) for parser stability.
+- Keep slot headings consistent inside a project so authors and reviewers can scan pages quickly.
 - Body content can be localized (`zh-CN`, `en-US`, etc.).
 - If bilingual text is needed, keep one slot and place bilingual lines inside, instead of duplicating slots.
 
 ## Optional Checklist
 
 - Use semantic slots only where they improve readability.
-- Keep slot headings H2 (`##`) and unique when using the built-in validator.
+- Keep repeated headings intentional and easy to scan.
 - Keep rules actionable and verifiable.
 - Keep result text observable and user-facing.
 - Use examples, when present, to show valid calls or inputs.
 - Do not leak sensitive/internal-only guidance outside `agent:begin`.
-
-## Runtime Validation
-
-The SDK exposes `semanticSlots` as an optional authoring lint profile. It is not
-enabled by default and is not required for MDAN protocol correctness.
-
-Use it when a project wants to enforce this writing convention consistently.
-Leave it disabled when a page, dashboard, form, or custom app surface reads
-better with a different structure.
 
 ## Related Docs
 

@@ -17,16 +17,16 @@ Read them in two stages:
 
 ## Stage 1: Core Concepts
 
-1. [Semantic Slots](/semantic-slots)
-2. [Action JSON](/action-json)
-3. [Input Schemas](/input-schemas)
+1. [Action JSON](/action-json)
+2. [Input Schemas](/input-schemas)
+3. [Markdown Rendering](/markdown-rendering)
 
 That order mirrors the real development flow:
 
-- first you structure the readable Markdown surface
-- then you define and inspect the explicit action contract carried by
+- first you define and inspect the explicit action contract carried by
   `app/index.action.json`
 - then you understand how action inputs are declared and validated
+- then you choose how Markdown becomes browser HTML
 
 If you only read three pages in this section, read those three first.
 
@@ -52,13 +52,14 @@ You can use either one independently, or both together.
 
 ## What Each Page Helps You Do
 
-### Semantic Slots
+### Markdown Authoring
 
-Use this when you are writing or reviewing MDAN page content.
+Use [Semantic Slots](/semantic-slots) only as an optional team writing pattern
+when you are reviewing MDAN page content.
 
 It explains:
 
-- how optional shared page structure can be written
+- how optional shared page structure can be written without becoming SDK API
 - how region-level content differs from page-level content
 - how agent-only guidance stays separate from human-visible content
 
@@ -111,7 +112,7 @@ It explains:
 When a developer says one of these things:
 
 - "How should I structure this page?"
-  Read [Semantic Slots](/semantic-slots).
+  Consider [Semantic Slots](/semantic-slots) as an authoring convention.
 - "What is the runtime actually sending?"
   Read [Action JSON](/action-json).
 - "Why is this action input rejected?"

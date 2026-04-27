@@ -4,8 +4,7 @@ import { getReadableSurfaceViolation } from "../core/surface/validation.js";
 import {
   createActionsContractViolationResult,
   createAgentBlocksViolationResult,
-  createMarkdownErrorResultResponse,
-  createSemanticSlotsViolationResult
+  createMarkdownErrorResultResponse
 } from "./runtime-errors.js";
 import type { MdanResponse } from "./types/transport.js";
 
@@ -21,9 +20,7 @@ export function createReadableSurfaceValidationResponse(
   return createMarkdownErrorResultResponse(
     violation.kind === "agent"
       ? createAgentBlocksViolationResult(violation.errors)
-      : violation.kind === "semantic"
-        ? createSemanticSlotsViolationResult(violation.errors)
-        : createActionsContractViolationResult(violation.detail)
+      : createActionsContractViolationResult(violation.detail)
   );
 }
 

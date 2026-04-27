@@ -2,23 +2,13 @@ import { assertActionsContractEnvelope } from "../protocol.js";
 import {
   normalizeReadableSurface,
   validateMarkdownAgentBlocks,
-  validateMarkdownSemanticSlots,
   validateMarkdownContentPair,
   type ReadableSurface
 } from "./markdown.js";
 
-export interface ReadableSurfaceSemanticSlotOptions {
-  requireOnPage?: boolean;
-  requireOnBlock?: boolean;
-}
-
 export interface ReadableSurfaceValidationOptions {
   appId?: string;
-  semanticSlots?: boolean | ReadableSurfaceSemanticSlotOptions;
 }
-
-const PAGE_SEMANTIC_SLOT_PROFILE = ["Purpose", "Context", "Rules", "Result"] as const;
-const REGION_SEMANTIC_SLOT_PROFILE = ["Context", "Result"] as const;
 
 export interface SurfaceContractViolation {
   path: string;
@@ -31,41 +21,9 @@ export type ReadableSurfaceViolation =
       errors: string[];
     }
   | {
-      kind: "semantic";
-      errors: string[];
-    }
-  | {
       kind: "actions";
       detail: string;
     };
-
-type ResolvedSemanticSlotOptions = {
-  requireOnPage: boolean;
-  requireOnBlock: boolean;
-};
-
-function resolveSemanticSlotOptions(
-  semanticSlots: ReadableSurfaceValidationOptions["semanticSlots"]
-): ResolvedSemanticSlotOptions {
-  if (semanticSlots === true) {
-    return {
-      requireOnPage: true,
-      requireOnBlock: true
-    };
-  }
-
-  if (!semanticSlots) {
-    return {
-      requireOnPage: false,
-      requireOnBlock: false
-    };
-  }
-
-  return {
-    requireOnPage: semanticSlots.requireOnPage === true,
-    requireOnBlock: semanticSlots.requireOnBlock === true
-  };
-}
 
 export function validateContentActionConsistency(surface: ReadableSurface): SurfaceContractViolation[] {
   const actionRoot = surface.actions.actions;
@@ -83,9 +41,8 @@ export function validateContentActionConsistency(surface: ReadableSurface): Surf
 }
 
 function getReadableSurfacePromptViolation(
-  surface: ReadableSurface,
-  options: ReadableSurfaceValidationOptions
-): Extract<ReadableSurfaceViolation, { kind: "agent" | "semantic" }> | null {
+  surface: ReadableSurface
+): Extract<ReadableSurfaceViolation, { kind: "agent" }> | null {
   const agentBlockErrors = validateMarkdownAgentBlocks(surface.markdown);
   if (agentBlockErrors.length > 0) {
     return { kind: "agent", errors: agentBlockErrors.map((message) => `page: ${message}`) };
@@ -101,32 +58,6 @@ function getReadableSurfacePromptViolation(
     }
   }
 
-  const semanticSlotOptions = resolveSemanticSlotOptions(options.semanticSlots);
-
-  if (semanticSlotOptions.requireOnPage) {
-    const semanticSlotErrors = validateMarkdownSemanticSlots(surface.markdown, {
-      requiredNames: [...PAGE_SEMANTIC_SLOT_PROFILE]
-    });
-    if (semanticSlotErrors.length > 0) {
-      return { kind: "semantic", errors: semanticSlotErrors };
-    }
-  }
-
-  if (semanticSlotOptions.requireOnBlock) {
-    const errors: string[] = [];
-    for (const [blockName, markdown] of Object.entries(surface.regions ?? {})) {
-      const blockErrors = validateMarkdownSemanticSlots(markdown, {
-        requiredNames: [...REGION_SEMANTIC_SLOT_PROFILE]
-      });
-      for (const message of blockErrors) {
-        errors.push(`block "${blockName}": ${message}`);
-      }
-    }
-    if (errors.length > 0) {
-      return { kind: "semantic", errors };
-    }
-  }
-
   return null;
 }
 
@@ -135,7 +66,7 @@ export function getReadableSurfaceViolation(
   options: ReadableSurfaceValidationOptions
 ): ReadableSurfaceViolation | null {
   const normalizedSurface = normalizeReadableSurface(surface, options.appId);
-  const promptViolation = getReadableSurfacePromptViolation(surface, options);
+  const promptViolation = getReadableSurfacePromptViolation(surface);
   if (promptViolation) {
     return promptViolation;
   }

@@ -31,7 +31,6 @@ import {
   createMarkdownErrorResultResponse,
   createNotFoundResult
 } from "./runtime-errors.js";
-import type { ReadableSurfaceSemanticSlotOptions } from "../core/surface/validation.js";
 export {
   validatePostInputs,
   type MdanPostInputValidator,
@@ -69,7 +68,6 @@ export interface CreateMdanServerOptions {
   assets?: MdanAssetStoreOptions;
   auto?: AutoDependencyOptions;
   autoDependencies?: AutoDependencyOptions;
-  semanticSlots?: boolean | ReadableSurfaceSemanticSlotOptions;
   browserBootstrap?: MdanBrowserBootstrapHandler;
 }
 

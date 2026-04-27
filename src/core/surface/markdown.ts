@@ -4,7 +4,6 @@ import {
   parseReadableSurface,
   validateAgentBlocks,
   validateContentPair,
-  validateSemanticSlots,
   serializeFragment,
   serializePage,
   type ParseMarkdownSurfaceOptions,
@@ -68,13 +67,6 @@ export function validateMarkdownContentPair(markdown: string, actionIds: string[
 
 export function validateMarkdownAgentBlocks(markdown: string) {
   return validateAgentBlocks(markdown);
-}
-
-export function validateMarkdownSemanticSlots(
-  markdown: string,
-  options?: Parameters<typeof validateSemanticSlots>[1]
-) {
-  return validateSemanticSlots(markdown, options);
 }
 
 export function createMarkdownPage(options: CreateMarkdownPageOptions): MdanPage {

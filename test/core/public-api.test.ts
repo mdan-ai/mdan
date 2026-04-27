@@ -25,3 +25,13 @@ describe("internal protocol entry", () => {
     expect("negotiateRepresentation" in protocol).toBe(false);
   });
 });
+
+describe("@mdanai/sdk/core public authoring boundary", () => {
+  it("does not define project-specific markdown authoring conventions", async () => {
+    const core = await import("../../src/core/index.js");
+
+    expect("extractSemanticSlots" in core).toBe(false);
+    expect("validateSemanticSlots" in core).toBe(false);
+    expect("validateMarkdownSemanticSlots" in core).toBe(false);
+  });
+});
