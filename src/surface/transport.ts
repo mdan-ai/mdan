@@ -36,7 +36,19 @@ export function toGetUrl(target: string, operation: MdanOperation | undefined, v
     }
   }
   const query = params.toString();
-  return query ? `${target}?${query}` : target;
+  if (!query) {
+    return target;
+  }
+  const hashIndex = target.indexOf("#");
+  const targetWithoutHash = hashIndex >= 0 ? target.slice(0, hashIndex) : target;
+  const hash = hashIndex >= 0 ? target.slice(hashIndex) : "";
+  const separator =
+    targetWithoutHash.includes("?")
+      ? targetWithoutHash.endsWith("?") || targetWithoutHash.endsWith("&")
+        ? ""
+        : "&"
+      : "?";
+  return `${targetWithoutHash}${separator}${query}${hash}`;
 }
 
 export function buildSubmitBody(

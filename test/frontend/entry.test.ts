@@ -427,4 +427,31 @@ describe("frontend entry", () => {
 
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
+
+  it("contains rejected async frontend setup without an unhandled rejection", async () => {
+    const setupError = new Error("permission denied");
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const host = {
+      subscribe: vi.fn(() => () => {}),
+      mount: vi.fn(),
+      unmount: vi.fn(),
+      submit: vi.fn(async () => {}),
+      visit: vi.fn(async () => {}),
+      sync: vi.fn(async () => {})
+    };
+    const frontend = createFrontend({
+      async setup() {
+        throw setupError;
+      }
+    });
+    const runtime = frontend.mount({
+      root: document,
+      host
+    });
+
+    runtime.mount();
+    await Promise.resolve();
+
+    expect(consoleError).toHaveBeenCalledWith("[mdan] frontend setup failed", setupError);
+  });
 });

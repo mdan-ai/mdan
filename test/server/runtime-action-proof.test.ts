@@ -125,13 +125,19 @@ async function handleMarkdownGet(server: TestServer, path: string) {
   });
 }
 
-async function handleMarkdownPost(server: TestServer, path: string, body: string | Record<string, unknown>) {
+async function handleMarkdownPost(
+  server: TestServer,
+  path: string,
+  body: string | Record<string, unknown>,
+  headers: Record<string, string> = {}
+) {
   return server.handle({
     method: "POST",
     url: `https://example.test${path}`,
     headers: {
       accept: "text/markdown",
-      "content-type": "application/json"
+      "content-type": "application/json",
+      ...headers
     },
     body: typeof body === "string" ? body : JSON.stringify(body),
     cookies: {}
@@ -173,6 +179,31 @@ describe("runtime action proof", () => {
 
     expect(proofResponse.status).toBe(200);
     expect(String(proofResponse.body)).toContain("Created: Doc");
+  });
+
+  it("does not let client-supplied browser form headers bypass action proof", async () => {
+    const server = createMdanServer({
+      actionProof: { secret: "proof-secret" }
+    });
+    server.page("/entry", async () => createEnvelope());
+    server.post("/resources", async ({ inputs }) => withEditorRegion(createEnvelope(), `Created: ${inputs.title}`));
+
+    const response = await handleMarkdownPost(
+      server,
+      "/resources",
+      {
+        input: {
+          title: "Doc"
+        }
+      },
+      {
+        "x-mdan-browser-form": "true"
+      }
+    );
+
+    expect(response.status).toBe(400);
+    expect(String(response.body)).toContain("Invalid Action Request Format");
+    expect(String(response.body)).not.toContain("Created: Doc");
   });
 
   it("allows hosts to explicitly disable action proof", async () => {

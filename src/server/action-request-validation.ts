@@ -48,10 +48,6 @@ function hasRequestBody(request: MdanRequest): boolean {
   return typeof request.body === "string" && request.body.trim().length > 0;
 }
 
-function isBrowserFormAdaptedRequest(request: MdanRequest): boolean {
-  return request.headers["x-mdan-browser-form"] === "true";
-}
-
 export function validateActionRequest(
   options: ActionRequestValidationOptions,
   request: MdanRequest,
@@ -93,7 +89,7 @@ export function validateActionRequest(
   let { inputs, inputsRaw } = parsedInputs.parsed;
   const requestAction = parsedInputs.parsed.requestAction;
 
-  if (options.actionProof && !isBrowserFormAdaptedRequest(request)) {
+  if (options.actionProof) {
     const proofValidation = validateActionProofRequest(request, options.actionProof, requestAction, inputs, inputsRaw);
     if (!proofValidation.ok) {
       if (proofValidation.reason === "invalid-format") {

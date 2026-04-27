@@ -277,7 +277,7 @@ describe("Markdown-first headless host", () => {
           filter_messages: {
             label: "Filter",
             verb: "read",
-            target: "/messages",
+            target: "/messages?tab=unread",
             transport: { method: "GET" },
             action_proof: "proof-token",
             submit_format: "mdan-action-input-v1",
@@ -311,7 +311,7 @@ describe("Markdown-first headless host", () => {
     await host.submit(operation!, { q: "hello" });
 
     expect(fetchImpl).toHaveBeenCalledWith(
-      "/messages?action.proof=proof-token&q=hello",
+      "/messages?tab=unread&action.proof=proof-token&q=hello",
       expect.objectContaining({
         method: "GET"
       })

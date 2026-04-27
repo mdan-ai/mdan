@@ -79,29 +79,42 @@ export function attachFrontendSetup(
       const setupToken = token;
       cleanup = null;
       cleanupStarted = false;
-      const setupResult = frontend.setup?.({
-        ...context,
-        runtime: wrapped
-      });
+      let setupResult: ReturnType<NonNullable<ResolvedFrontendExtension["setup"]>>;
+      try {
+        setupResult = frontend.setup?.({
+          ...context,
+          runtime: wrapped
+        });
+      } catch (error) {
+        handleSetupError(error);
+        return;
+      }
 
       if (typeof setupResult === "function") {
         cleanup = setupResult;
         return;
       }
 
-      void Promise.resolve(setupResult).then((resolvedCleanup) => {
-        if (typeof resolvedCleanup !== "function") {
-          return;
+      void Promise.resolve(setupResult).then(
+        (resolvedCleanup) => {
+          if (typeof resolvedCleanup !== "function") {
+            return;
+          }
+          if (setupToken !== token) {
+            void Promise.resolve(resolvedCleanup()).catch((error: unknown) => {
+              console.error("[mdan] frontend setup cleanup failed", error);
+            });
+            return;
+          }
+          cleanup = resolvedCleanup;
+          if (!mounted) {
+            runCleanup();
+          }
+        },
+        (error: unknown) => {
+          handleSetupError(error);
         }
-        if (setupToken !== token) {
-          void resolvedCleanup();
-          return;
-        }
-        cleanup = resolvedCleanup;
-        if (!mounted) {
-          runCleanup();
-        }
-      });
+      );
     },
     unmount() {
       if (mounted) {
@@ -128,7 +141,13 @@ export function attachFrontendSetup(
     cleanupStarted = true;
     const cleanupToRun = cleanup;
     cleanup = null;
-    void cleanupToRun();
+    void Promise.resolve(cleanupToRun()).catch((error: unknown) => {
+      console.error("[mdan] frontend setup cleanup failed", error);
+    });
+  }
+
+  function handleSetupError(error: unknown): void {
+    console.error("[mdan] frontend setup failed", error);
   }
 
   return wrapped;
