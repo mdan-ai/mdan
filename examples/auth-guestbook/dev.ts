@@ -4,7 +4,10 @@ const port = Number(process.env.PORT ?? "4321");
 const app = createAuthGuestbookServer();
 const host = app.host("bun", {
   rootRedirect: "/login",
-  frontend: true
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
 });
 
 Bun.serve({

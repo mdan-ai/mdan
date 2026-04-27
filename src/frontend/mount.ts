@@ -11,12 +11,14 @@ import {
 } from "./model.js";
 import type { UiFormRenderer } from "./form-renderer.js";
 import { resolveFrontendExtension, type MdanFrontendExtension } from "./extension.js";
+import { mountHtmlActionLayer } from "./html-projection.js";
 
 import { registerMdanUi } from "./register.js";
 
 export interface MountMdanUiOptions {
   root: ParentNode;
   host: FrontendUiHost;
+  browserProjection?: "client" | "html";
   frontend?: MdanFrontendExtension;
   markdownRenderer?: MdanMarkdownRenderer;
   formRenderer?: UiFormRenderer;
@@ -99,8 +101,13 @@ function getDocument(root: ParentNode): Document {
 export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
   registerMdanUi();
 
+  if (options.browserProjection === "html") {
+    return mountHtmlActionLayer(options);
+  }
+
   const document = getDocument(options.root);
   const container = ensureContainer(options.root);
+  const renderContainer = container;
   ensureGlobalStyle(document);
   const host = options.host;
   const frontend = resolveFrontendExtension(options);
@@ -253,7 +260,7 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
             `
           : null}
       `,
-      container
+      renderContainer
     );
   }
 
@@ -272,7 +279,7 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
       unsubscribe?.();
       unsubscribe = null;
       host.unmount?.();
-      render(html``, container);
+      render(html``, renderContainer);
     },
     submit(operation, valuesMap) {
       return host.submit(operation, valuesMap);

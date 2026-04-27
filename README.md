@@ -162,7 +162,10 @@ app.action("/post", async ({ inputs }) => {
 });
 
 export default app.host("bun", {
-  frontend: true
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
 });
 ```
 
@@ -173,6 +176,7 @@ contract; the executable contract is the attached `actionJson`.
 That host shape does two things by default:
 
 - serves the built-in browser entry for natural routes such as `/`
+- server-renders readable Markdown into those browser documents
 - keeps the raw markdown surface available at `/index.md`
 
 ## App API Shape

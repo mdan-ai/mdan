@@ -129,6 +129,79 @@ describe("handlePlannedHostRequest", () => {
     expect(html).toContain('frontendModule["weatherFrontend"]');
   });
 
+  it("keeps client projection as an empty browser root while passing initial markdown to the frontend", () => {
+    const html = renderBuiltinFrontendEntryHtml(true, {
+      initialMarkdown: "# Client First"
+    });
+
+    expect(html).toContain('<div data-mdan-ui-root></div>');
+    expect(html).not.toContain("<h1>Client First</h1>");
+    expect(html).toContain('initialMarkdown: "# Client First"');
+  });
+
+  it("renders readable markdown into the browser root for html projection", () => {
+    const initialMarkdown = `---
+title: Searchable Demo
+description: This should become metadata.
+---
+
+# Searchable Demo
+
+This content should be visible before the frontend boots.
+
+<!-- mdan:block id="main" -->
+
+\`\`\`mdan
+{
+  "blocks": {
+    "main": {
+      "actions": ["submit"]
+    }
+  },
+  "regions": {
+    "main": "## Server Region\\n\\nRegion markdown is server-rendered."
+  },
+  "actions": {
+    "submit": {
+      "target": "/submit"
+    }
+  }
+}
+\`\`\`
+`;
+
+    const html = renderBuiltinFrontendEntryHtml(true, {
+      initialMarkdown,
+      projection: "html"
+    });
+
+    expect(html).toContain("<title>Searchable Demo</title>");
+    expect(html).toContain('<meta name="description" content="This should become metadata.">');
+    expect(html).toContain("<h1>Searchable Demo</h1>");
+    expect(html).toContain("<p>This content should be visible before the frontend boots.</p>");
+    expect(html).toContain('<section data-mdan-block="main">');
+    expect(html).toContain("<h2>Server Region</h2>");
+    expect(html).toContain('<div data-mdan-action-root data-mdan-block="main"></div>');
+    expect(html).not.toContain("&lt;!-- mdan:block");
+    expect(html).not.toContain('"target": "/submit"');
+    expect(html).not.toContain("<form");
+    expect(html).toContain("createFrontend().autoBoot");
+    expect(html).toContain("initialMarkdown:");
+    expect(html).toContain('browserProjection: "html"');
+  });
+
+  it("escapes initial markdown safely inside the inline boot script", () => {
+    const html = renderBuiltinFrontendEntryHtml(true, {
+      initialMarkdown: '# Demo\n\n</script><img src=x onerror="alert(1)">',
+      projection: "html"
+    });
+    const script = html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1] ?? "";
+
+    expect(script).not.toContain("</script>");
+    expect(script).toContain("\\u003c/script\\u003e");
+    expect(html).toContain("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
+  });
+
   it("returns redirect responses through the adapter callback", async () => {
     await expect(
       handlePlannedHostRequest(

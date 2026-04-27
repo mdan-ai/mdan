@@ -45,6 +45,7 @@ describe("create-mdan scaffold", () => {
     expect(packageJson).toContain('"@mdanai/sdk": "^0.7.0"');
     expect(indexSource).not.toContain('@mdanai/sdk/server/node');
     expect(indexSource).toContain('app.host("node", {');
+    expect(indexSource).toContain('projection: "html"');
     expect(indexSource).not.toContain("rootRedirect");
     expect(serverSource).toContain('@mdanai/sdk/app');
     expect(serverSource).not.toContain("createMarkdownPage");
@@ -78,6 +79,7 @@ describe("create-mdan scaffold", () => {
 
     expect(indexSource).not.toContain('@mdanai/sdk/server/bun');
     expect(indexSource).toContain('app.host("bun", {');
+    expect(indexSource).toContain('projection: "html"');
     expect(indexSource).toContain("Bun.serve");
     expect(indexSource).not.toContain("rootRedirect");
     expect(packageJson).toContain('"start": "bun index.mjs"');

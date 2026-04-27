@@ -51,13 +51,18 @@ You then use that object as the shipped frontend entry:
 - `weatherFrontend.mount({ root, host })`
 - `weatherFrontend.boot(...)`
 
-## Browser Entry Flow
+## Client Projection Flow
 
-With the shipped browser entry:
+With client projection:
 
 1. the browser opens the natural route such as `/login`
 2. the frontend entry fetches the matching raw markdown route such as `/login.md`
 3. the shipped frontend renders that Markdown through your `frontend.markdown`
+
+With HTML projection, the server renders readable Markdown for browser
+documents and the frontend only enhances actions. Use a frontend Markdown
+renderer when you intentionally choose client projection or a fully custom
+frontend.
 
 The Markdown renderer does not change transport. It only changes projection.
 

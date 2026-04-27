@@ -13,6 +13,8 @@ The shortest rule is:
 - keep the shipped frontend if you only need projection changes
 - move to custom rendering only when you want your own UI tree and component
   model
+- enable HTML projection when browser page flow should stay server-projected
+  for SEO or public content
 
 ## Quick Decision Guide
 
@@ -43,6 +45,26 @@ Use:
 - `frontend.render(...)`
 
 This keeps both behavior and presentation on the shipped path.
+
+By default, the shipped frontend uses client projection: the natural browser
+route serves the browser entry and the frontend consumes the markdown surface.
+For public or SEO-sensitive routes, keep the same frontend but opt into
+server-side readable HTML projection:
+
+```ts
+app.host("bun", {
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
+});
+```
+
+That renders the final readable markdown surface into each browser document
+page response. The frontend still enhances actions, but page GET continuation
+returns to natural document navigation instead of becoming client projection.
+Readable Markdown rendering stays server-owned in this mode; the frontend
+mounts the action layer from the surface metadata.
 
 ## Path 2: Customize Markdown Projection
 
@@ -106,6 +128,7 @@ Read:
 
 Start at the smallest layer that solves the problem:
 
+- SEO or server-projected document page flow -> `browser.projection: "html"`
 - projection only -> `createFrontend(...)` plus frontend renderers
 - full UI ownership -> surface runtime
 

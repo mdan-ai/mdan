@@ -7,6 +7,7 @@ import {
 import { mountMdanUi, type MdanUiRuntime } from "./mount.js";
 import type { FrontendHostFactory } from "./contracts.js";
 import type { MdanFrontendExtension } from "./extension.js";
+import { withHtmlDocumentNavigation } from "./html-projection.js";
 
 declare global {
   interface Window {
@@ -18,11 +19,13 @@ export interface BootEntryOptions {
   root?: ParentNode;
   route?: string;
   initialMarkdown?: string;
+  browserProjection?: "client" | "html";
   fetchImpl?: typeof fetch;
   createHost?: FrontendHostFactory;
   mountUi?: typeof mountMdanUi;
   frontend?: MdanFrontendExtension;
   window?: Window;
+  navigateDocument?: (target: string) => void;
 }
 
 export interface BootedEntry {
@@ -51,8 +54,8 @@ export function resolveMarkdownRoute(route: string): string {
   return `${url.pathname}${url.search}`;
 }
 
-function createEntryFetch(browserWindow: Window, baseFetch: typeof fetch): typeof fetch {
-  let bootstrapPending = true;
+function createEntryFetch(browserWindow: Window, baseFetch: typeof fetch, options: { bootstrapPending?: boolean } = {}): typeof fetch {
+  let bootstrapPending = options.bootstrapPending !== false;
 
   return ((input: RequestInfo | URL, init?: RequestInit) => {
     const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
@@ -90,15 +93,29 @@ export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
   const route = options.route ?? resolveEntryRoute(browserWindow.location);
   const hostFactory = options.createHost ?? createHeadlessHost;
   const baseFetch = options.fetchImpl ?? browserWindow.fetch.bind(browserWindow);
-  const fetchImpl = createEntryFetch(browserWindow, baseFetch);
+  const fetchImpl = createEntryFetch(browserWindow, baseFetch, {
+    bootstrapPending: !options.initialMarkdown
+  });
   const host = hostFactory({
     initialRoute: route,
     initialMarkdown: options.initialMarkdown,
+    browserProjection: options.browserProjection,
     fetchImpl
   });
+  const uiHost =
+    options.browserProjection === "html"
+      ? withHtmlDocumentNavigation({
+          host,
+          currentRoute: route,
+          navigateDocument: options.navigateDocument ?? ((target) => {
+            browserWindow.location.assign(target);
+          })
+        })
+      : host;
   const runtime = (options.mountUi ?? mountMdanUi)({
     root: options.root ?? browserWindow.document,
-    host,
+    host: uiHost,
+    browserProjection: options.browserProjection,
     frontend: options.frontend
   });
 

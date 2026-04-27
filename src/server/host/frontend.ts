@@ -5,6 +5,8 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
+import { projectReadableSurfaceToHtml } from "../../projection/html.js";
+
 const FRONTEND_MODULE_SYMBOL = Symbol.for("mdan.frontend.module");
 
 interface FrontendModuleCarrier {
@@ -31,6 +33,7 @@ export interface NormalizedHostFrontendOptions {
 
 export interface FrontendEntryHtmlOptions {
   initialMarkdown?: string;
+  projection?: "client" | "html";
 }
 
 const builtinEntryFilePath = fileURLToPath(new URL("../../../dist-browser/entry.js", import.meta.url));
@@ -43,6 +46,26 @@ function escapeHtml(value: string): string {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function inlineScriptJson(value: string): string {
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+}
+
+function toBootOptions(options: FrontendEntryHtmlOptions): string {
+  const entries: string[] = [];
+  if (options.initialMarkdown) {
+    entries.push(`initialMarkdown: ${inlineScriptJson(options.initialMarkdown)}`);
+  }
+  if (options.projection === "html") {
+    entries.push('browserProjection: "html"');
+  }
+  return entries.length > 0 ? `{ ${entries.join(", ")} }` : "{}";
 }
 
 export function normalizeHostFrontendOption(
@@ -153,8 +176,16 @@ function readIfPresent(filePath: string): string | null {
 
 export function renderBuiltinFrontendEntryHtml(frontend: HostFrontendOption | undefined, options: FrontendEntryHtmlOptions = {}): string {
   const normalized = normalizeHostFrontendOption(frontend);
-  const title = normalized?.title?.trim() ? normalized.title.trim() : "MDAN Entry";
-  const bootOptions = options.initialMarkdown ? `{ initialMarkdown: ${JSON.stringify(options.initialMarkdown)} }` : "{}";
+  const projection =
+    options.projection === "html" && options.initialMarkdown
+      ? projectReadableSurfaceToHtml(options.initialMarkdown)
+      : null;
+  const title =
+    projection?.metadata.title ??
+    (normalized?.title?.trim() ? normalized.title.trim() : "MDAN Entry");
+  const description = projection?.metadata.description;
+  const bootOptions = toBootOptions(options);
+  const rootHtml = projection?.bodyHtml ?? "";
   const script = normalized?.module
     ? `<script type="module">
 import * as frontendModule from "/__mdan/module.js";
@@ -183,6 +214,7 @@ createFrontend().autoBoot(${bootOptions});
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(title)}</title>
+    ${description ? `<meta name="description" content="${escapeHtml(description)}">` : ""}
     <style>
       html, body {
         margin: 0;
@@ -199,7 +231,7 @@ createFrontend().autoBoot(${bootOptions});
     </style>
   </head>
   <body>
-    <div data-mdan-ui-root></div>
+    <div data-mdan-ui-root>${rootHtml}</div>
     ${script}
   </body>
 </html>`;

@@ -11,8 +11,9 @@ The short version is:
 
 - browsers use natural routes such as `/login`
 - raw MDAN content stays available on matching `.md` routes such as `/login.md`
-- the server still returns markdown, not HTML page projections
-- the frontend entry fetches the matching `.md` route and renders it in the browser
+- the current default browser mode keeps HTML projection in the frontend
+- hosts can also opt into server-side readable HTML projection for browser
+  document page flow
 
 ## The Two Route Forms
 
@@ -37,6 +38,8 @@ The `.md` route is the canonical raw MDAN response:
 
 ## Request Flow
 
+The default browser mode is client projection:
+
 ```mermaid
 flowchart TD
     A["Browser requests /login"] --> B{"Host route plan"}
@@ -51,6 +54,23 @@ flowchart TD
     J -->|Markdown route| K["Rewrite pathname to /login"]
     K --> L["Server runtime"]
     L --> M["Return raw markdown"]
+```
+
+In HTML projection mode, browser document page flow stays on natural routes.
+The host reads the same runtime surface, renders the readable markdown into the
+HTML body, and gives the frontend enough initial markdown to enhance actions:
+
+```mermaid
+flowchart TD
+    A["Browser requests /login"] --> B{"Host route plan"}
+    B -->|HTML projection| C["Runtime reads final markdown surface"]
+    C --> D["Auto dependencies resolve in runtime"]
+    D --> E["Host renders readable markdown to HTML"]
+    E --> F["HTML includes initial markdown for frontend enhancement"]
+    F --> I["Page GET continuation uses document navigation"]
+    I --> A
+
+    G["Browser or curl requests /login.md"] --> H["Runtime returns raw markdown"]
 ```
 
 ## Host Responsibilities
@@ -86,8 +106,10 @@ The frontend entry lives in:
 It does three things:
 
 1. reads the current browser route
-2. maps that route to the matching `.md` route
-3. boots the shipped frontend runtime against that markdown response
+2. maps that route to the matching `.md` route when no initial markdown was
+   provided by the host
+3. boots the shipped frontend runtime against the initial or fetched markdown
+   response
 
 Examples:
 
@@ -109,12 +131,41 @@ It matters because it gives us:
 - a clean way for the frontend entry to fetch MDAN content
 - a routing model that does not require server-side HTML page rendering
 
+## Browser Projection Modes
+
+Client projection is the default:
+
+```ts
+app.host("bun", {
+  frontend: true
+});
+```
+
+Use HTML projection when browser page flow should remain server-projected HTML:
+
+```ts
+app.host("bun", {
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
+});
+```
+
+Both modes keep `/login.md` as the raw canonical markdown route. HTML
+projection changes browser document page flow; action continuation that needs
+region patching or POST behavior still uses the markdown surface protocol. In
+HTML projection mode, the server owns readable Markdown rendering and the
+frontend only mounts the action layer from the surface metadata. Protocol block
+comments are not exposed as visible HTML; the browser DOM uses stable
+`data-mdan-block` and `data-mdan-action-root` anchors instead.
+
 ## Practical Rules
 
 - open `/login` in the browser when you want the app UI
 - open `/login.md` when you want the raw markdown surface
-- keep server behavior markdown-only
-- keep HTML production in the frontend layer
+- use client projection when the browser runtime should own page continuation
+- use HTML projection for docs, public content, and SEO-sensitive routes
 
 ## Related Docs
 

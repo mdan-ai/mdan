@@ -14,7 +14,7 @@ describe("docs guidance", () => {
     expect(quickstart).toContain("`app/index.action.json`");
     expect(quickstart).toContain("`app/server.mjs`");
     expect(quickstart).toContain("`index.mjs`");
-    expect(quickstart).toContain('`app.host("node" | "bun", { frontend: true })`');
+    expect(quickstart).toContain('`app.host("node" | "bun", { frontend: true, browser: { projection: "html" } })`');
   });
 
   it("keeps create-mdan focused on server-first authoring", async () => {

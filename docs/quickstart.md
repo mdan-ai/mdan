@@ -56,9 +56,10 @@ This creates a small project that already includes:
 - `app/server.mjs`
 - `index.mjs`
 
-The generated `index.mjs` uses the app-facing host convenience:
+The generated `index.mjs` uses the app-facing host convenience with readable
+HTML projection enabled:
 
-- `app.host("node" | "bun", { frontend: true })`
+- `app.host("node" | "bun", { frontend: true, browser: { projection: "html" } })`
 
 If you want a deeper file-by-file explanation after the app is running, read
 [Customize The Starter](/customize-the-starter) next.
@@ -71,8 +72,8 @@ Open:
 http://127.0.0.1:4321/
 ```
 
-This is the running frontend entry. It boots browser UI, then fetches the
-markdown surface for the requested route.
+This is the browser document view. The host renders the readable Markdown
+surface into HTML, and the frontend enhances the page with action controls.
 
 If you later need browser-only first-load initialization, use
 [Browser Bootstrap](/browser-bootstrap) instead of overloading dynamic auto.
@@ -104,8 +105,8 @@ You should now see the MDAN surface directly:
 - the current message block content
 - an embedded `mdan` block that declares the next actions
 
-That Markdown response is the canonical read surface. The frontend entry reads
-that same surface and renders browser UI from it.
+That Markdown response is the canonical read surface. The browser document is
+projected from that same surface and enhanced with the same action metadata.
 
 ## 4. Know What The Generated Files Are For
 

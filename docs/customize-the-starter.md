@@ -67,7 +67,7 @@ For this first pass, only touch `app/index.md`, `app/index.action.json`, and
 Leave `index.mjs` alone for now. The generated starter already uses the default
 app-facing host path:
 
-- `app.host("node" | "bun", { frontend: true })`
+- `app.host("node" | "bun", { frontend: true, browser: { projection: "html" } })`
 
 ## 3. The Three-Part Authoring Model
 

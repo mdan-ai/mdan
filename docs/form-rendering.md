@@ -8,10 +8,12 @@ description: Customize frontend form rendering with `@mdanai/sdk/frontend` while
 Use this page when you want to customize form presentation in the shipped
 frontend layer.
 
-The server still only returns markdown. Form rendering lives entirely in the
-frontend package.
+Form rendering lives in the frontend package. In the recommended HTML
+projection mode, the server renders readable Markdown and the frontend mounts
+forms into the action anchors. In client projection mode, the frontend renders
+both readable Markdown and forms.
 
-This means the current flow is:
+The client projection flow is:
 
 1. the browser opens a natural route such as `/login`
 2. the frontend entry fetches the matching raw markdown route such as `/login.md`

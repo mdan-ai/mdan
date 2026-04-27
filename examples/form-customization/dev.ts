@@ -4,7 +4,10 @@ import frontend from "./frontend.js";
 const port = Number(process.env.PORT ?? "4326");
 const app = createFormCustomizationServer();
 const host = app.host("bun", {
-  frontend
+  frontend,
+  browser: {
+    projection: "html"
+  }
 });
 
 Bun.serve({

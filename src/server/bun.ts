@@ -9,7 +9,7 @@ import {
 import { renderBuiltinFrontendEntryHtml, type HostFrontendOption } from "./host/frontend.js";
 import { MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER, MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE } from "./types/transport.js";
 import { handlePlannedHostRequest } from "./host/flow.js";
-import { planHostRequest } from "./host/shared.js";
+import { planHostRequest, type HostBrowserOptions } from "./host/shared.js";
 import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
 import { parseCookies } from "./cookies.js";
 import {
@@ -28,6 +28,7 @@ export interface CreateBunHostOptions {
   ignoreFavicon?: boolean;
   frontend?: HostFrontendOption;
   frontendEntry?: string;
+  browser?: HostBrowserOptions;
   staticFiles?: Record<string, string>;
   staticMounts?: BunStaticMount[];
   maxBodyBytes?: number;
@@ -172,7 +173,7 @@ async function readResponseBody(result: MdanResponse): Promise<string> {
 async function renderFrontendEntry(
   handler: MdanRequestHandler,
   request: Request,
-  options: Pick<CreateBunHostOptions, "frontend">
+  options: Pick<CreateBunHostOptions, "frontend" | "browser">
 ): Promise<Response> {
   const result = await handler.handle(
     toMdanRequest(request, undefined, undefined, {
@@ -181,7 +182,10 @@ async function renderFrontendEntry(
     })
   );
   const initialMarkdown = await readResponseBody(result);
-  return new Response(renderBuiltinFrontendEntryHtml(options.frontend, { initialMarkdown }), {
+  return new Response(renderBuiltinFrontendEntryHtml(options.frontend, {
+    initialMarkdown,
+    projection: options.browser?.projection
+  }), {
     status: 200,
     headers: {
       "content-type": "text/html; charset=utf-8"

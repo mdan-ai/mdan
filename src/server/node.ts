@@ -10,7 +10,7 @@ import {
 import { renderBuiltinFrontendEntryHtml, type HostFrontendOption } from "./host/frontend.js";
 import { MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER, MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE } from "./types/transport.js";
 import { handlePlannedHostRequest } from "./host/flow.js";
-import { planHostRequest } from "./host/shared.js";
+import { planHostRequest, type HostBrowserOptions } from "./host/shared.js";
 import { finalizeMdanHeaders, normalizeDecodedBody, toMdanMethod } from "./host/adapter-shared.js";
 import { parseCookies } from "./cookies.js";
 import {
@@ -39,6 +39,7 @@ export interface CreateNodeHostOptions extends CreateNodeRequestListenerOptions 
   ignoreFavicon?: boolean;
   frontend?: HostFrontendOption;
   frontendEntry?: string;
+  browser?: HostBrowserOptions;
   staticFiles?: Record<string, string>;
   staticMounts?: NodeStaticMount[];
 }
@@ -194,7 +195,7 @@ async function renderFrontendEntry(
   handler: MdanRequestHandler,
   request: IncomingMessage,
   response: ServerResponse,
-  options: Pick<CreateNodeHostOptions, "frontend">
+  options: Pick<CreateNodeHostOptions, "frontend" | "browser">
 ): Promise<void> {
   const result = await handler.handle(
     toMdanRequest(request, undefined, undefined, {
@@ -204,7 +205,10 @@ async function renderFrontendEntry(
   );
   response.statusCode = 200;
   response.setHeader("content-type", "text/html; charset=utf-8");
-  response.end(renderBuiltinFrontendEntryHtml(options.frontend, { initialMarkdown: await readResponseBody(result) }));
+  response.end(renderBuiltinFrontendEntryHtml(options.frontend, {
+    initialMarkdown: await readResponseBody(result),
+    projection: options.browser?.projection
+  }));
 }
 
 export function createNodeRequestListener(

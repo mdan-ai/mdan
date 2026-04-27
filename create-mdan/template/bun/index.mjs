@@ -4,7 +4,10 @@ const projectName = __PROJECT_NAME_JSON__;
 const port = Number(process.env.PORT ?? "4321");
 const app = createAppServer();
 const host = app.host("bun", {
-  frontend: true
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
 });
 
 Bun.serve({

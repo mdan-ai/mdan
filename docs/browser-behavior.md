@@ -12,7 +12,8 @@ The key rule now is simple:
 
 - the server returns `text/markdown`
 - the browser consumes that markdown surface
-- HTML is produced in the frontend layer, not by the server
+- the host decides whether the natural browser route starts from a client
+  projection shell or stays in readable HTML document projection
 
 ## The Two Browser Layers
 
@@ -87,15 +88,61 @@ If you want the shipped frontend layer, use `@mdanai/sdk/frontend`:
   to type your browser integration against the frontend contract instead of the
   concrete surface runtime
 
-The recommended browser entry now uses the natural browser route:
+The recommended browser entry uses the natural browser route:
 
 - `/`
 - `/login`
 
-That entry boots browser code, then fetches the matching raw markdown route:
+By default, that entry boots browser code, then fetches the matching raw
+markdown route:
 
 - `/` -> `/index.md`
 - `/login` -> `/login.md`
+
+This is client projection mode. It keeps the initial HTML document small and
+lets the frontend produce the visible UI from the markdown surface.
+
+If you enable HTML projection, browser page flow stays document-oriented. The
+host reads the same runtime surface, renders its readable markdown into the
+HTML document body, and passes that initial markdown to the frontend:
+
+```ts
+app.host("bun", {
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
+});
+```
+
+In this mode, the server owns readable Markdown rendering for browser page
+documents. The frontend uses the embedded action JSON/surface metadata to mount
+the action layer, but it does not re-render the readable Markdown that the
+server already projected.
+
+The server does not expose `<!-- mdan:block -->` comments as visible HTML.
+Instead, HTML projection emits stable DOM anchors:
+
+```html
+<section data-mdan-block="main">
+  ...
+  <div data-mdan-action-root data-mdan-block="main"></div>
+</section>
+```
+
+The frontend keeps protocol state from the initial surface, then mounts each
+block's action UI into the matching `data-mdan-action-root`. If a block-specific
+anchor is missing, it falls back to a root-level action container.
+
+Ordinary page `visit()` calls, syncs, and GET page actions use document
+navigation so the next natural route is projected by the server again. Region
+updates and POST actions continue to use the markdown surface protocol because
+they are interaction continuation, not document page navigation; even there,
+the HTML-projection UI keeps the server-rendered readable document in place and
+only updates the action layer.
+
+Use HTML projection for public, docs, or SEO-sensitive pages. Use the default
+client projection when the browser runtime should own page continuation.
 
 On that first browser-driven read, the frontend entry also attaches an
 SDK-owned internal browser bootstrap intent marker. Runtime uses that signal to

@@ -7,11 +7,16 @@ export interface HostStaticMount {
   directory: string;
 }
 
+export interface HostBrowserOptions {
+  projection?: "client" | "html";
+}
+
 export interface HostRoutingOptions {
   rootRedirect?: string;
   ignoreFavicon?: boolean;
   frontend?: HostFrontendOption;
   frontendEntry?: string;
+  browser?: HostBrowserOptions;
   staticFiles?: Record<string, string>;
   staticMounts?: HostStaticMount[];
 }

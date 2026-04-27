@@ -107,6 +107,33 @@ runtime is called.
 for natural HTML document routes such as `/login`, while the matching raw
 markdown route remains available as `/login.md`.
 
+The default browser projection is client-side: the natural route serves a
+browser entry and the frontend owns page continuation from the markdown
+surface.
+
+For public or SEO-sensitive pages, opt into readable HTML projection:
+
+```ts
+createHost(server, {
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
+});
+```
+
+In this mode the host asks the runtime for the final markdown surface, including
+normal auto dependency resolution, renders the readable markdown into the HTML
+body, and still passes the same initial markdown to the frontend for action UI.
+The frontend uses that surface metadata to mount actions; readable Markdown
+rendering stays server-owned in this projection mode.
+Block placement uses HTML anchors such as `data-mdan-block="main"` and
+`data-mdan-action-root`; the frontend does not need to recover protocol block
+comments from the DOM.
+Ordinary page `visit()` calls, syncs, and GET page actions use document
+navigation so the next natural route is projected by the server again. Region
+updates and POST actions continue to use the markdown surface protocol.
+
 If you want a custom browser frontend module, point the host at a browser-safe
 module file:
 

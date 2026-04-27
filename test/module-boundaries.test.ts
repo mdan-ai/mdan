@@ -507,6 +507,20 @@ describe("module boundaries", () => {
     }
   });
 
+  it("keeps browser HTML projection details outside the server host frontend helper", async () => {
+    const source = await readSource("src/server/host/frontend.ts");
+
+    expect(source).toMatch(/from\s+["']\.\.\/\.\.\/projection\/html\.js["']/);
+    expectSourceNotToImport(
+      source,
+      [
+        /from\s+["']\.\.\/\.\.\/content\/(?:markdown-renderer|readable-markdown|content-actions)\.js["']/,
+        /from\s+["']\.\.\/\.\.\/core\/surface\/readable\.js["']/
+      ],
+      "src/server/host/frontend.ts"
+    );
+  });
+
   it("keeps core markdown-surface utilities independent from frontend helpers", async () => {
     const source = await readSource("src/core/surface/markdown.ts");
 

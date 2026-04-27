@@ -161,7 +161,10 @@ Most apps now use:
 
 ```ts
 createHost(server, {
-  frontend: true
+  frontend: true,
+  browser: {
+    projection: "html"
+  }
 });
 ```
 
