@@ -1,6 +1,6 @@
 import { parseReadableSurface } from "./content.js";
 import { buildGetActionUrl } from "../core/surface/forms.js";
-import type { MdanActionManifest, MdanOperation, MdanSubmitValues } from "../core/surface/presentation.js";
+import type { MdanOperation, MdanSubmitValues } from "../core/surface/presentation.js";
 import type {
   HeadlessDebugMessage,
   HeadlessListener,
@@ -22,7 +22,7 @@ import {
 
 export interface CreateHeadlessHostOptions {
   initialMarkdown?: string;
-  initialActions?: MdanActionManifest;
+  initialSnapshot?: HeadlessSnapshot;
   initialRoute?: string;
   fetchImpl?: typeof fetch;
   debugMessages?: boolean;
@@ -58,21 +58,19 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
         allowBareMarkdown: true
       })
     : null;
-  const initialSurface =
-    initialParsedMarkdown ??
-    (options.initialActions
+  let snapshot: HeadlessSnapshot = initialParsedMarkdown
+    ? toSnapshot(initialParsedMarkdown, null)
+    : options.initialSnapshot
       ? {
-          markdown: "",
-          actions: options.initialActions,
-          ...(options.initialRoute ? { route: options.initialRoute } : {})
+          ...options.initialSnapshot,
+          status: "idle" as const
         }
-      : null);
-  let snapshot = initialParsedMarkdown
-      ? toSnapshot(initialParsedMarkdown, null)
-      : initialSurface
-        ? toSnapshot(initialSurface, null)
       : emptySnapshot(options.initialRoute);
-  let status: HeadlessRuntimeState = { status: "idle", transition: "page" };
+  let status: HeadlessRuntimeState = {
+    status: options.initialSnapshot?.status ?? "idle",
+    transition: options.initialSnapshot?.transition ?? "page",
+    ...(options.initialSnapshot?.error ? { error: options.initialSnapshot.error } : {})
+  };
   const listeners = new Set<HeadlessListener>();
 
   function recordDebugMessage(message: HeadlessDebugMessage): void {

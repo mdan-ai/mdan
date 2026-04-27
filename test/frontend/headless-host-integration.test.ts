@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { mountMdanUi } from "../../src/frontend/index.js";
 import type { FrontendListener, FrontendSnapshot, FrontendUiHost } from "../../src/frontend/contracts.js";
+import { mountHtmlProjectionRuntime } from "../../src/frontend/html-projection.js";
 import type { MdanActionManifest } from "../../src/protocol/surface.js";
 import { createHeadlessHost } from "../../src/surface/index.js";
 
@@ -200,10 +201,9 @@ Say something useful.
 <!-- mdan:block id="main" -->
 `))
     });
-    const runtime = mountMdanUi({
+    const runtime = mountHtmlProjectionRuntime({
       root: document,
-      host,
-      browserProjection: "html"
+      host
     });
 
     runtime.mount();
@@ -276,10 +276,9 @@ Say something useful.
         }
       })
     });
-    const runtime = mountMdanUi({
+    const runtime = mountHtmlProjectionRuntime({
       root: document,
-      host,
-      browserProjection: "html"
+      host
     });
 
     runtime.mount();
@@ -323,10 +322,9 @@ Server rendered copy stays put.
       initialMarkdown: artifactBody(initial),
       fetchImpl: fetchImpl as unknown as typeof fetch
     });
-    const runtime = mountMdanUi({
+    const runtime = mountHtmlProjectionRuntime({
       root: document,
-      host,
-      browserProjection: "html"
+      host
     });
 
     runtime.mount();

@@ -7,7 +7,7 @@ import { mountMdanUi, type MdanUiRuntime } from "./mount.js";
 import type { FrontendHostFactory } from "./contracts.js";
 import { createDefaultFrontendHost } from "./default-host.js";
 import type { MdanFrontendExtension } from "./extension.js";
-import { withHtmlDocumentNavigation } from "./html-projection.js";
+import { mountHtmlProjectionRuntime, withHtmlDocumentNavigation } from "./html-projection.js";
 import type { MdanActionManifest } from "../core/protocol.js";
 
 declare global {
@@ -116,13 +116,22 @@ export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
           })
         })
       : host;
-  const runtime = (options.mountUi ?? mountMdanUi)({
-    root: options.root ?? browserWindow.document,
-    host: uiHost,
-    route,
-    browserProjection: options.browserProjection,
-    frontend: options.frontend
-  });
+  const runtime =
+    options.browserProjection === "html"
+      ? (options.mountUi ?? mountHtmlProjectionRuntime)({
+          root: options.root ?? browserWindow.document,
+          host: uiHost,
+          route,
+          browserProjection: "html",
+          frontend: options.frontend
+        })
+      : (options.mountUi ?? mountMdanUi)({
+          root: options.root ?? browserWindow.document,
+          host: uiHost,
+          route,
+          browserProjection: options.browserProjection,
+          frontend: options.frontend
+        });
 
   runtime.mount();
   if (!hasInitialState) {

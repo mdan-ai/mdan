@@ -10,7 +10,13 @@ import {
   type UiOperationView
 } from "./model.js";
 import type { MdanSubmitValues } from "./contracts.js";
-import { resolveFrontendExtension, type MdanFrontendExtension } from "./extension.js";
+import {
+  attachFrontendSetup,
+  getFrontendSetupRoute,
+  resolveFrontendExtension,
+  type MdanFrontendExtension
+} from "./extension.js";
+import { registerMdanUi } from "./register.js";
 
 export interface HtmlDocumentNavigationOptions {
   host: FrontendHost;
@@ -21,6 +27,8 @@ export interface HtmlDocumentNavigationOptions {
 export interface MountHtmlActionLayerOptions {
   root: ParentNode;
   host: FrontendUiHost;
+  route?: string;
+  browserProjection?: "html";
   frontend?: MdanFrontendExtension;
 }
 
@@ -111,6 +119,8 @@ export function withHtmlDocumentNavigation(options: HtmlDocumentNavigationOption
 }
 
 export function mountHtmlActionLayer(options: MountHtmlActionLayerOptions): MdanUiRuntime {
+  registerMdanUi();
+
   const container = ensureContainer(options.root);
   const fallbackContainer = ensureFallbackActionContainer(container);
   const frontend = resolveFrontendExtension(options);
@@ -214,4 +224,30 @@ export function mountHtmlActionLayer(options: MountHtmlActionLayerOptions): Mdan
       return host.sync(target);
     }
   };
+}
+
+function getDocument(root: ParentNode): Document {
+  return isDocumentNode(root) ? root : root.ownerDocument ?? document;
+}
+
+export function mountHtmlProjectionRuntime(options: MountHtmlActionLayerOptions): MdanUiRuntime {
+  const frontend = resolveFrontendExtension(options);
+  const route = options.route ?? getFrontendSetupRoute(options.host);
+  const document = getDocument(options.root);
+  const setupContext = {
+    host: options.host,
+    root: options.root,
+    ...(route !== undefined ? { route } : {}),
+    browserProjection: "html" as const,
+    ...(document.defaultView ? { window: document.defaultView } : {})
+  };
+
+  return attachFrontendSetup(
+    mountHtmlActionLayer({
+      ...options,
+      frontend
+    }),
+    frontend,
+    setupContext
+  );
 }

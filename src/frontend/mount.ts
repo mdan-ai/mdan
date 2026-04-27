@@ -16,7 +16,6 @@ import {
   resolveFrontendExtension,
   type MdanFrontendExtension
 } from "./extension.js";
-import { mountHtmlActionLayer } from "./html-projection.js";
 
 import { registerMdanUi } from "./register.js";
 
@@ -118,14 +117,6 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
     ...(options.browserProjection ? { browserProjection: options.browserProjection } : {}),
     ...(document.defaultView ? { window: document.defaultView } : {})
   };
-
-  if (options.browserProjection === "html") {
-    return attachFrontendSetup(
-      mountHtmlActionLayer(options),
-      frontend,
-      setupContext
-    );
-  }
 
   const container = ensureContainer(options.root);
   const renderContainer = container;

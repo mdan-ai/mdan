@@ -65,6 +65,7 @@ describe("module boundaries", () => {
 
     expect(source).toMatch(/from\s+["']\.\/snapshot\.js["']/);
     expect(source).toMatch(/from\s+["']\.\/transport\.js["']/);
+    expect(source, "src/surface/headless.ts should not know about frontend action bootstrap").not.toMatch(/initialActions|MdanActionManifest/);
     expect(source, "src/surface/headless.ts should not keep inline GET url encoding").not.toMatch(/function toGetUrl\(/);
     expect(source, "src/surface/headless.ts should not keep inline submit body construction").not.toMatch(/function buildSubmitBody\(/);
     expect(source, "src/surface/headless.ts should not keep inline snapshot patching").not.toMatch(/function patchSnapshotByRegions\(/);
@@ -182,6 +183,17 @@ describe("module boundaries", () => {
     for (const file of files) {
       expectSourceNotToImport(await readSource(file), forbidden, relative(repoRoot, join(repoRoot, file)));
     }
+  });
+
+  it("keeps the generic frontend mount independent from html projection mode", async () => {
+    const source = await readSource("src/frontend/mount.ts");
+
+    expectSourceNotToImport(
+      source,
+      [/from\s+["']\.\/html-projection\.js["']/],
+      "src/frontend/mount.ts"
+    );
+    expect(source, "src/frontend/mount.ts should not branch into the HTML projection action layer").not.toMatch(/mountHtml|withHtml/);
   });
 
   it("keeps frontend surface imports isolated to the default host adapter", async () => {
