@@ -93,6 +93,7 @@ export interface UiHiddenFieldView {
 
 export interface UiOperationView {
   formKey: string;
+  blockName: string;
   method: "GET" | "POST";
   methodAttribute: "get" | "post";
   target: string;
@@ -164,6 +165,7 @@ function resolveUiOperationView(
 
   return {
     formKey: getFormKey(blockName, operation),
+    blockName,
     method: operation.method,
     methodAttribute: operation.method === "GET" ? "get" : "post",
     target: operation.target,
@@ -215,5 +217,16 @@ export async function submitUiOperation(
     await host.visit(action.target);
     return;
   }
-  await host.submit(action.operation, action.payload);
+  const submittedOperation =
+    action.operation.stateEffect?.responseMode === "region" &&
+    !Array.isArray(action.operation.stateEffect.updatedRegions)
+      ? {
+          ...action.operation,
+          stateEffect: {
+            ...action.operation.stateEffect,
+            updatedRegions: [operation.blockName]
+          }
+        }
+      : action.operation;
+  await host.submit(submittedOperation, action.payload);
 }

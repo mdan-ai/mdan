@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { resolveUiSnapshotView } from "../../src/frontend/model.js";
+import { resolveUiSnapshotView, submitUiOperation } from "../../src/frontend/model.js";
 import {
   buildGetActionUrl,
   buildOperationPayload,
@@ -353,6 +353,46 @@ describe("frontend model helpers", () => {
       { title: "Doc" }
     );
     expect(visitSpy).not.toHaveBeenCalled();
+  });
+
+  it("defaults region submissions to the triggering block when no updated regions are declared", async () => {
+    const view = resolveUiSnapshotView({
+      status: "idle",
+      markdown: "",
+      blocks: [
+        {
+          name: "composer",
+          markdown: "",
+          inputs: [{ name: "message", kind: "string", required: true, secret: false }],
+          operations: [
+            {
+              method: "POST",
+              target: "/messages",
+              name: "send_message",
+              inputs: ["message"],
+              stateEffect: { responseMode: "region" }
+            } as any
+          ]
+        }
+      ]
+    });
+    const operation = view.blocks[0]!.operations[0]!;
+    const host = {
+      submit: vi.fn(async () => {}),
+      visit: vi.fn(async () => {})
+    };
+
+    await submitUiOperation(host, operation, { message: "hello" });
+
+    expect(host.submit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stateEffect: {
+          responseMode: "region",
+          updatedRegions: ["composer"]
+        }
+      }),
+      { message: "hello" }
+    );
   });
 
   it("encodes input control semantics into resolved ui fields", () => {

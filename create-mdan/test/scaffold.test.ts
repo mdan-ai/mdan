@@ -61,7 +61,7 @@ describe("create-mdan scaffold", () => {
     expect(actionJson).toContain('"actions": {');
     expect(actionJson).toContain('"submit_message": {');
     expect(actionJson).toContain('"response_mode": "region"');
-    expect(actionJson).toContain('"updated_regions": ["main"]');
+    expect(actionJson).not.toContain('"updated_regions"');
     expect(serverSource).not.toContain('join(root, "actions", "main.json")');
     expect(`${indexSource}\n${serverSource}`).not.toMatch(/@mdanai\/sdk\/(?:core|web|elements)|createHostedApp/);
   });

@@ -315,8 +315,7 @@ Server rendered copy stays put.
 <!-- mdan:block id="main" -->
 `);
     initial.actions.actions.send.state_effect = {
-      response_mode: "region",
-      updated_regions: ["main"]
+      response_mode: "region"
     };
     const host = createHeadlessHost({
       initialMarkdown: artifactBody(initial),
