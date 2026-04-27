@@ -27,6 +27,33 @@ describe("internal protocol entry", () => {
 });
 
 describe("@mdanai/sdk/core public authoring boundary", () => {
+  it("exposes only protocol, schema, and readable markdown primitives", async () => {
+    const core = await import("../../src/core/index.js");
+
+    expect(core.MDAN_PAGE_MANIFEST_VERSION).toBe("mdan.page.v1");
+    expect(core.parseReadableSurface).toBeTypeOf("function");
+    expect(core.createMarkdownPage).toBeTypeOf("function");
+    expect(core.createMarkdownFragment).toBeTypeOf("function");
+    expect(core.normalizeReadableSurface).toBeTypeOf("function");
+    expect(core.assertActionsContractEnvelope).toBeTypeOf("function");
+    expect(core.fieldSchemasFromJsonObjectSchema).toBeTypeOf("function");
+    expect(core.normalizeInputValuesBySchema).toBeTypeOf("function");
+  });
+
+  it("keeps frontend, surface runtime, and form transport helpers out of core", async () => {
+    const core = await import("../../src/core/index.js");
+
+    expect("buildGetActionUrl" in core).toBe(false);
+    expect("buildOperationPayload" in core).toBe(false);
+    expect("groupOperations" in core).toBe(false);
+    expect("resolveDispatchAction" in core).toBe(false);
+    expect("resolveActionBehavior" in core).toBe(false);
+    expect("resolveActionVariant" in core).toBe(false);
+    expect("adaptReadableSurfaceToHeadlessSnapshot" in core).toBe(false);
+    expect("stripReadablePageMarkdown" in core).toBe(false);
+    expect("HeadlessSnapshotLike" in core).toBe(false);
+  });
+
   it("does not define project-specific markdown authoring conventions", async () => {
     const core = await import("../../src/core/index.js");
 

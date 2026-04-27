@@ -14,21 +14,6 @@ export {
 } from "./content.js";
 
 export {
-  buildGetActionUrl,
-  buildOperationPayload,
-  createInputsByName,
-  getInputValue,
-  groupOperations,
-  resolveDispatchAction,
-  resolveFormEnctype,
-  resolveInputDefaultValue,
-  resolveRenderableInputs,
-  shouldOmitEmptyInput,
-  type DispatchAction,
-  type OperationGroups
-} from "./surface/forms.js";
-
-export {
   createExecutableContent,
   createMarkdownFragment,
   createMarkdownPage,
@@ -77,24 +62,6 @@ export {
   type MdanSubmitValue,
   type MdanSubmitValues
 } from "./protocol.js";
-
-export {
-  humanizeInputLabel,
-  resolveActionBehavior,
-  resolveActionVariant,
-  resolveDispatchMode,
-  type UiActionBehavior,
-  type UiActionVariant,
-  type UiDispatchMode
-} from "./surface/presentation.js";
-
-export {
-  adaptReadableSurfaceToHeadlessSnapshot,
-  adaptReadableSurfaceToMdanPage,
-  stripReadableBlockMarkdown,
-  stripReadablePageMarkdown,
-  type HeadlessSnapshotLike
-} from "./surface/readable.js";
 
 export {
   getReadableSurfaceViolation,

@@ -1,43 +1,38 @@
-export { mountMdanUi } from "./mount.js";
-export { registerMdanUi } from "./register.js";
-export { renderSurfaceSnapshot, type RenderSurfaceSnapshotOptions } from "./snapshot.js";
-export {
-  autoBootEntry,
-  bootEntry,
-  resolveEntryRoute,
-  resolveMarkdownRoute,
-  type BootEntryOptions,
-  type BootedEntry
-} from "./entry.js";
 export {
   createFrontend,
   defineFrontendModule,
-  type MdanFrontend
-} from "./frontend.js";
-export type {
-  MdanFrontendExtension,
-  MdanFrontendSetupCleanup,
-  MdanFrontendSetupContext,
-  MdanMarkdownRenderer
-} from "./extension.js";
-export type {
-  CreateFrontendHostOptions,
-  FrontendHost,
-  FrontendHostFactory,
-  FrontendListener,
-  FrontendSnapshot,
-  FrontendRuntimeState,
-  FrontendUiHost,
-  MdanSubmitValue,
-  MdanSubmitValues
-} from "./contracts.js";
-export {
-  defineFormRenderer,
   defaultUiFormRenderer,
+  defineFormRenderer,
   getDefinedFormRendererDefinition,
   html,
   nothing,
   type DefinedUiFormRenderer,
+  type MdanFrontend,
+  type MdanFrontendExtension,
+  type MdanFrontendSetupCleanup,
+  type MdanFrontendSetupContext,
+  type MdanMarkdownRenderer,
   type MountedOperationRenderOptions,
   type UiFormRenderer
-} from "./form-renderer.js";
+} from "./authoring.js";
+export {
+  autoBootEntry,
+  bootEntry,
+  mountMdanUi,
+  registerMdanUi,
+  renderSurfaceSnapshot,
+  resolveEntryRoute,
+  resolveMarkdownRoute,
+  type BootedEntry,
+  type BootEntryOptions,
+  type CreateFrontendHostOptions,
+  type FrontendHost,
+  type FrontendHostFactory,
+  type FrontendListener,
+  type FrontendRuntimeState,
+  type FrontendSnapshot,
+  type FrontendUiHost,
+  type MdanSubmitValue,
+  type MdanSubmitValues,
+  type RenderSurfaceSnapshotOptions
+} from "./runtime.js";

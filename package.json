@@ -78,6 +78,14 @@
       "types": "./dist/frontend/index.d.ts",
       "default": "./dist/frontend/index.js"
     },
+    "./frontend/authoring": {
+      "types": "./dist/frontend/authoring.d.ts",
+      "default": "./dist/frontend/authoring.js"
+    },
+    "./frontend/runtime": {
+      "types": "./dist/frontend/runtime.d.ts",
+      "default": "./dist/frontend/runtime.js"
+    },
     "./server": {
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"

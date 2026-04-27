@@ -26,6 +26,20 @@ describe("package export boundary", () => {
     expect(indexSource).toMatch(/defineFormRenderer/);
   });
 
+  it("keeps root frontend exports focused on authoring instead of runtime bootstrapping", async () => {
+    const root = await import("../src/index.js");
+
+    expect(root.createApp).toBeTypeOf("function");
+    expect(root.createFrontend).toBeTypeOf("function");
+    expect(root.defineFrontendModule).toBeTypeOf("function");
+    expect(root.defineFormRenderer).toBeTypeOf("function");
+    expect(root.html).toBeTypeOf("function");
+    expect("bootEntry" in root).toBe(false);
+    expect("autoBootEntry" in root).toBe(false);
+    expect("mountMdanUi" in root).toBe(false);
+    expect("registerMdanUi" in root).toBe(false);
+  });
+
   it("keeps protocol manifest types off the root convenience export", async () => {
     const indexSource = await readFile(join(repoRoot, "src/index.ts"), "utf8");
 
@@ -85,6 +99,8 @@ describe("package export boundary", () => {
     const exportsMap = packageJson.exports ?? {};
 
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend/authoring")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(exportsMap, "./frontend/runtime")).toBe(true);
   });
 
   it("keeps legacy browser-entry implementation helpers off the server barrel", async () => {
