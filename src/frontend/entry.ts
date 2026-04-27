@@ -1,4 +1,3 @@
-import { createHeadlessHost } from "../surface/index.js";
 import {
   MDAN_BROWSER_BOOTSTRAP_INTENT_HEADER,
   MDAN_BROWSER_BOOTSTRAP_INTENT_VALUE
@@ -6,6 +5,7 @@ import {
 
 import { mountMdanUi, type MdanUiRuntime } from "./mount.js";
 import type { FrontendHostFactory } from "./contracts.js";
+import { createDefaultFrontendHost } from "./default-host.js";
 import type { MdanFrontendExtension } from "./extension.js";
 import { withHtmlDocumentNavigation } from "./html-projection.js";
 
@@ -91,7 +91,7 @@ function createEntryFetch(browserWindow: Window, baseFetch: typeof fetch, option
 export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
   const browserWindow = options.window ?? window;
   const route = options.route ?? resolveEntryRoute(browserWindow.location);
-  const hostFactory = options.createHost ?? createHeadlessHost;
+  const hostFactory = options.createHost ?? createDefaultFrontendHost;
   const baseFetch = options.fetchImpl ?? browserWindow.fetch.bind(browserWindow);
   const fetchImpl = createEntryFetch(browserWindow, baseFetch, {
     bootstrapPending: !options.initialMarkdown

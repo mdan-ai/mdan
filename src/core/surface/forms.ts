@@ -129,6 +129,51 @@ export function buildOperationPayload(
   return normalizeInputValuesByFieldSchemas(payload, payloadInputs) as MdanSubmitValues;
 }
 
+function appendSubmitValue(params: URLSearchParams, key: string, value: MdanSubmitValues[string]): void {
+  if (value === undefined || value === null) {
+    return;
+  }
+  if (typeof value === "string") {
+    params.set(key, value);
+    return;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    params.set(key, String(value));
+    return;
+  }
+  params.set(key, JSON.stringify(value));
+}
+
+export function buildGetActionUrl(
+  target: string,
+  operation: Pick<MdanOperation, "actionProof"> | undefined,
+  values: MdanSubmitValues
+): string {
+  const params = new URLSearchParams();
+  if (typeof operation?.actionProof === "string" && operation.actionProof.length > 0) {
+    params.set("action.proof", operation.actionProof);
+  }
+  for (const [key, value] of Object.entries(values)) {
+    appendSubmitValue(params, key, value);
+  }
+
+  const query = params.toString();
+  if (!query) {
+    return target;
+  }
+
+  const hashIndex = target.indexOf("#");
+  const targetWithoutHash = hashIndex >= 0 ? target.slice(0, hashIndex) : target;
+  const hash = hashIndex >= 0 ? target.slice(hashIndex) : "";
+  const separator =
+    targetWithoutHash.includes("?")
+      ? targetWithoutHash.endsWith("?") || targetWithoutHash.endsWith("&")
+        ? ""
+        : "&"
+      : "?";
+  return `${targetWithoutHash}${separator}${query}${hash}`;
+}
+
 export type DispatchAction =
   | {
       kind: "visit";

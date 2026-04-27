@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { resolveUiSnapshotView } from "../../src/frontend/model.js";
 import {
+  buildGetActionUrl,
   buildOperationPayload,
   createInputsByName,
   dispatchOperation,
@@ -129,6 +130,16 @@ describe("elements model helpers", () => {
     expect(payload).toEqual({
       required: "hello"
     });
+  });
+
+  it("builds GET action URLs without corrupting existing query or hash", () => {
+    expect(
+      buildGetActionUrl(
+        "/messages?tab=unread#list",
+        { actionProof: "proof-token" },
+        { q: "hello world", page: 2, filters: ["mine", "open"], enabled: true }
+      )
+    ).toBe("/messages?tab=unread&action.proof=proof-token&q=hello+world&page=2&filters=%5B%22mine%22%2C%22open%22%5D&enabled=true#list");
   });
 
   it("normalizes operation payload values from FieldSchema kinds", () => {

@@ -1,6 +1,6 @@
 import { html, nothing, render } from "lit";
 
-import { toGetUrl } from "../surface/transport.js";
+import { buildGetActionUrl } from "../core/surface/forms.js";
 
 import type { FrontendHost, FrontendSnapshot, FrontendUiHost } from "./contracts.js";
 import type { MdanUiRuntime } from "./mount.js";
@@ -81,7 +81,7 @@ export function withHtmlDocumentNavigation(options: HtmlDocumentNavigationOption
     },
     async submit(operation, values = {}) {
       if (shouldNavigateDocumentForOperation(operation)) {
-        navigateDocument(toGetUrl(operation.target, operation, values));
+        navigateDocument(buildGetActionUrl(operation.target, operation, values));
         return;
       }
       await host.submit(operation, values);

@@ -1,4 +1,5 @@
 import { parseReadableSurface } from "./content.js";
+import { buildGetActionUrl } from "../core/surface/forms.js";
 import type { MdanOperation, MdanSubmitValues } from "../core/surface/presentation.js";
 import type {
   HeadlessDebugMessage,
@@ -16,8 +17,7 @@ import {
 import {
   buildSubmitBody,
   extractResponseErrorMessage,
-  isResponseOk,
-  toGetUrl
+  isResponseOk
 } from "./transport.js";
 
 export interface CreateHeadlessHostOptions {
@@ -98,7 +98,7 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
     let body: string | FormData | undefined;
 
     if (method === "GET") {
-      url = toGetUrl(target, operation, values);
+      url = buildGetActionUrl(target, operation, values);
     } else {
       const submitBody = buildSubmitBody(operation!, values);
       body = submitBody.body;

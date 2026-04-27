@@ -21,36 +21,6 @@ function toFormValue(value: MdanSubmitValues[string]): string | File {
   return JSON.stringify(value);
 }
 
-export function toGetUrl(target: string, operation: MdanOperation | undefined, values: MdanSubmitValues): string {
-  const params = new URLSearchParams();
-  if (typeof operation?.actionProof === "string" && operation.actionProof.length > 0) {
-    params.set("action.proof", operation.actionProof);
-  }
-  for (const [key, value] of Object.entries(values)) {
-    if (typeof value === "string") {
-      params.set(key, value);
-    } else if (typeof value === "number" || typeof value === "boolean") {
-      params.set(key, String(value));
-    } else if (value !== null && !(typeof File !== "undefined" && value instanceof File)) {
-      params.set(key, JSON.stringify(value));
-    }
-  }
-  const query = params.toString();
-  if (!query) {
-    return target;
-  }
-  const hashIndex = target.indexOf("#");
-  const targetWithoutHash = hashIndex >= 0 ? target.slice(0, hashIndex) : target;
-  const hash = hashIndex >= 0 ? target.slice(hashIndex) : "";
-  const separator =
-    targetWithoutHash.includes("?")
-      ? targetWithoutHash.endsWith("?") || targetWithoutHash.endsWith("&")
-        ? ""
-        : "&"
-      : "?";
-  return `${targetWithoutHash}${separator}${query}${hash}`;
-}
-
 export function buildSubmitBody(
   operation: MdanOperation,
   values: MdanSubmitValues

@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,6 +17,20 @@ async function pathExists(path: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+async function listSourceFiles(path: string): Promise<string[]> {
+  const entries = await readdir(join(repoRoot, path), { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const childPath = `${path}/${entry.name}`;
+    if (entry.isDirectory()) {
+      files.push(...await listSourceFiles(childPath));
+    } else if (entry.isFile() && entry.name.endsWith(".ts")) {
+      files.push(childPath);
+    }
+  }
+  return files;
 }
 
 function expectSourceNotToImport(source: string, forbidden: RegExp[], path: string): void {
@@ -164,8 +178,8 @@ describe("module boundaries", () => {
     }
   });
 
-  it("keeps frontend surface imports funneled through src/frontend/model.ts only", async () => {
-    const files = ["src/frontend/index.ts", "src/frontend/mount.ts", "src/frontend/register.ts", "src/frontend/snapshot.ts"];
+  it("keeps frontend surface imports isolated to the default host adapter", async () => {
+    const files = (await listSourceFiles("src/frontend")).filter((file) => file !== "src/frontend/default-host.ts");
 
     for (const file of files) {
       expectSourceNotToImport(
@@ -179,6 +193,10 @@ describe("module boundaries", () => {
     expect(modelSource).toMatch(/from\s+["']\.\.\/core\/surface\/presentation\.js["']/);
     expect(modelSource).toMatch(/from\s+["']\.\.\/core\/surface\/forms\.js["']/);
     expect(modelSource).toMatch(/from\s+["']\.\/contracts\.js["']/);
+
+    const defaultHostSource = await readSource("src/frontend/default-host.ts");
+    expect(defaultHostSource).toMatch(/from\s+["']\.\.\/surface\/index\.js["']/);
+    expect(defaultHostSource).toMatch(/from\s+["']\.\/contracts\.js["']/);
   });
 
   it("keeps frontend runtime contracts local to the frontend layer", async () => {
@@ -215,6 +233,7 @@ describe("module boundaries", () => {
     const source = await readSource("src/frontend/entry.ts");
 
     expect(source).toMatch(/from\s+["']\.\/contracts\.js["']/);
+    expectSourceNotToImport(source, [/from\s+["']\.\.\/surface(?:\/|["'])/], "src/frontend/entry.ts");
     expect(source).not.toMatch(/createHost\?: typeof createHeadlessHost/);
   });
 
