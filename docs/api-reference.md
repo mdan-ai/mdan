@@ -108,7 +108,10 @@ without the root convenience barrel.
 - `defineFrontendModule(moduleUrl, frontend, exportName?)`
 - `mountMdanUi(...)`
 - `renderSurfaceSnapshot(...)`
+- `autoBootEntry(...)`
 - `bootEntry(...)`
+- `type BootedEntry`
+- `type BootEntryOptions`
 - `resolveEntryRoute(...)`
 - `resolveMarkdownRoute(...)`
 - `type MdanMarkdownRenderer`
@@ -128,6 +131,10 @@ without the root convenience barrel.
 `bootEntry(...)` automatically attaches an internal SDK-owned browser bootstrap
 intent to its first browser-driven read. App code does not configure that
 signal directly.
+
+`autoBootEntry(...)` is the DOM-aware convenience that only boots when the
+default MDAN UI root is present. `createFrontend().autoBoot(...)` uses that
+path under the hood.
 
 `createFrontend({ setup })` registers frontend-side side effects that should
 live for the same lifecycle as the mounted MDAN UI. The SDK calls `setup`

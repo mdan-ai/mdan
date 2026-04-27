@@ -53,28 +53,22 @@ Build everything:
 npm run build
 ```
 
-Run the stable baseline test suite:
+Run the full active test tree:
 
 ```bash
 npm test
+```
+
+Run the smaller fast suite while iterating:
+
+```bash
+npm run test:fast
 ```
 
 Run coverage gates:
 
 ```bash
 npm run test:coverage
-```
-
-Run the minimal legacy compatibility regression subset:
-
-```bash
-npm run test:json
-```
-
-Run the full active test tree:
-
-```bash
-npm run test:tssdk-migrated
 ```
 
 Lint the workspace:
@@ -107,7 +101,6 @@ Useful entry points:
 npm run dev:starter
 npm run dev:docs-starter
 npm run dev:auth-guestbook
-npm run dev:weather-markdown
 npm run dev:docs-site
 ```
 

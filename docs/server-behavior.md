@@ -1,6 +1,6 @@
 ---
 title: Server Behavior
-description: Practical guide to the markdown-only MDAN server runtime, including route handling, action requests, result shaping, and validation.
+description: Practical guide to the markdown-first MDAN server runtime, including route handling, action requests, result shaping, and validation.
 ---
 
 # Server Behavior
