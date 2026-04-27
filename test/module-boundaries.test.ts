@@ -40,6 +40,12 @@ function expectSourceNotToImport(source: string, forbidden: RegExp[], path: stri
 }
 
 describe("module boundaries", () => {
+  it("does not keep stale compatibility test directories after frontend and surface split", async () => {
+    expect(await pathExists("test/elements"), "test/elements should be renamed to frontend-focused tests").toBe(false);
+    expect(await pathExists("test/ui"), "test/ui should be renamed to frontend-focused tests").toBe(false);
+    expect(await pathExists("test/web"), "test/web should be renamed to surface-focused tests").toBe(false);
+  });
+
   it("keeps the surface runtime independent from optional UI and markdown rendering", async () => {
     const files = ["src/surface/headless.ts", "src/surface/contracts.ts"];
     const forbidden = [
@@ -217,7 +223,7 @@ describe("module boundaries", () => {
       "src/frontend/model.ts",
       "src/frontend/mount.ts",
       "src/frontend/entry.ts",
-      "test/elements/headless-host-integration.test.ts"
+      "test/frontend/headless-host-integration.test.ts"
     ];
 
     for (const file of files) {
@@ -360,6 +366,14 @@ describe("module boundaries", () => {
     expect(indexSource, "root entry should not expose host adapters").not.toMatch(/createHost/);
     expect(indexSource, "root entry should not expose headless runtime").not.toMatch(/createHeadlessHost/);
     expect(appSource, "app authoring layer should not keep screen terminology").not.toMatch(/AppScreen|screen\(/);
+  });
+
+  it("keeps the core public barrel explicit instead of star-exporting internals", async () => {
+    const source = await readSource("src/core/index.ts");
+
+    expect(source).not.toMatch(/export\s+\*\s+from/);
+    expect(source).toMatch(/MdanActionManifest/);
+    expect(source).toMatch(/ReadableSurface/);
   });
 
   it("does not keep a stale browser compatibility source boundary", async () => {

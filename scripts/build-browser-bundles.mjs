@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 import { spawn } from "node:child_process";
 
 const isWatch = process.argv.includes("--watch");
+const browserOutputDir = "dist-browser";
 
 const outputs = [
   {
@@ -19,33 +20,8 @@ const outputs = [
   }
 ];
 
-const stalePaths = [
-  "dist/browser",
-  "dist/elements",
-  "dist/input",
-  "dist/shared",
-  "dist/web",
-  "dist-browser/browser-shell.js",
-  "dist-browser/app-shell.js",
-  "dist-browser/app-shell.js.map",
-  "dist-browser/entry.js.map",
-  "dist-browser/elements.js",
-  "dist-browser/ui.js",
-  "dist-browser/form-renderer.js",
-  "dist-browser/frontend.js.map",
-  "dist-browser/web.js",
-  "dist/form-renderer.d.ts",
-  "dist/form-renderer.js",
-  "dist/web/model.d.ts",
-  "dist/web/model.js",
-  "dist/server/browser-shell-snapshot.d.ts",
-  "dist/server/browser-shell-snapshot.js"
-];
-
 async function ensureDirectories() {
-  for (const path of stalePaths) {
-    await rm(resolve(path), { recursive: true, force: true });
-  }
+  await rm(resolve(browserOutputDir), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   for (const output of outputs) {
     await mkdir(dirname(resolve(output.outfile)), { recursive: true });
   }

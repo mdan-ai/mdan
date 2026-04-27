@@ -15,7 +15,7 @@ import {
   shouldOmitEmptyInput
 } from "../../src/surface/forms.js";
 
-describe("elements model helpers", () => {
+describe("frontend model helpers", () => {
   it("groups operations by method", () => {
     const groups = groupOperations([
       { method: "GET", target: "/read", name: "read", inputs: [] },

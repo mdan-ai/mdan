@@ -15,7 +15,8 @@ export default [
       "create-mdan/src/**/*.ts",
       "create-mdan/test/**/*.ts",
       "docs-site/src/**/*.ts",
-      "vitest.baseline.config.ts"
+      "vitest.config.ts",
+      "vitest.coverage.config.ts"
     ],
     languageOptions: {
       parser: tsParser,

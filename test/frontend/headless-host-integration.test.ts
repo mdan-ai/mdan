@@ -72,7 +72,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("ui with Markdown-first headless host", () => {
+describe("frontend UI with Markdown-first headless host", () => {
   it("renders Markdown and action fields from a Markdown-first headless host", async () => {
     const host = createHeadlessHost({
       initialMarkdown: artifactBody(surface(`# Inbox

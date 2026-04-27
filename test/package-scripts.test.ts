@@ -21,6 +21,8 @@ describe("package scripts", () => {
     };
     const scripts = packageJson.scripts ?? {};
 
+    expect(scripts.clean).toBe("node scripts/clean-build-output.mjs");
+    expect(scripts.build).toContain("npm run clean");
     expect(scripts.build).toContain("node scripts/build-browser-bundles.mjs");
     expect(scripts.build).toContain("bunx tsc -b tsconfig.json --force");
     expect(scripts.build).toContain("npm run build:create-mdan");
@@ -41,8 +43,29 @@ describe("package scripts", () => {
     await Promise.all(extractRepoPaths(scripts["test:markdown-runtime"] ?? "").map(expectRepoPath));
   });
 
-  it("keeps vitest baseline file references pointing at existing files", async () => {
-    const config = await readFile(join(repoRoot, "vitest.baseline.config.ts"), "utf8");
+  it("cleans all generated package outputs before a full build", async () => {
+    const cleaner = await readFile(join(repoRoot, "scripts/clean-build-output.mjs"), "utf8");
+
+    expect(cleaner).toContain('"dist"');
+    expect(cleaner).toContain('"dist-browser"');
+    expect(cleaner).toContain('"create-mdan/dist"');
+  });
+
+  it("keeps default tests on the full maintained test suite", async () => {
+    const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    const scripts = packageJson.scripts ?? {};
+
+    expect(scripts.test).toBe("npm run test:all");
+    expect(scripts["test:all"]).toBe("bunx vitest run test create-mdan/test");
+    expect(scripts["test:fast"]).toBe("bunx vitest run test/core test/frontend test/server test/surface create-mdan/test");
+    expect(scripts["test:baseline"]).toBeUndefined();
+    expect(scripts["test:tssdk-migrated"]).toBeUndefined();
+  });
+
+  it("keeps vitest coverage file references pointing at existing files", async () => {
+    const config = await readFile(join(repoRoot, "vitest.coverage.config.ts"), "utf8");
     const paths = [...config.matchAll(/"((?:test|src|create-mdan\/test|create-mdan\/src)\/[^"]+\.(?:ts|tsx|js|mjs))"/g)].map((match) => match[1]!);
 
     await Promise.all(paths.map(expectRepoPath));

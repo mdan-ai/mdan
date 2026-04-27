@@ -37,7 +37,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "node scripts/build-browser-bundles.mjs && bunx tsc -b tsconfig.json --force && npm run build:create-mdan",
+    "clean": "node scripts/clean-build-output.mjs",
+    "build": "npm run clean && node scripts/build-browser-bundles.mjs && bunx tsc -b tsconfig.json --force && npm run build:create-mdan",
     "build:create-mdan": "npm --prefix create-mdan run build",
     "build:docs-site": "bunx tsc -p docs-site/tsconfig.json",
     "build:browser": "node scripts/build-browser-bundles.mjs",
@@ -47,17 +48,17 @@
     "dev:docs-site": "node docs-site/dev.mjs",
     "dev:docs-starter": "node scripts/run-example-dev.mjs examples/docs-starter/dev.ts",
     "dev:starter": "node scripts/run-example-dev.mjs examples/starter/dev.ts",
-    "lint": "eslint src test examples create-mdan/src create-mdan/test docs-site/src vitest.baseline.config.ts --max-warnings=0",
+    "lint": "eslint src test examples create-mdan/src create-mdan/test docs-site/src vitest.coverage.config.ts --max-warnings=0",
     "lint:names": "npm run lint",
     "prepack": "node scripts/prepare-npm-package.mjs --package . --readme README.md",
     "postpack": "node scripts/prepare-npm-package.mjs --package . --readme README.md --restore true",
     "prepublishOnly": "npm run build",
-    "test": "bun run test:baseline",
-    "test:baseline": "bunx vitest run --config vitest.baseline.config.ts",
-    "test:coverage": "bunx vitest run --config vitest.baseline.config.ts --coverage",
+    "test": "npm run test:all",
+    "test:all": "bunx vitest run test create-mdan/test",
+    "test:fast": "bunx vitest run test/core test/frontend test/server test/surface create-mdan/test",
+    "test:coverage": "bunx vitest run --config vitest.coverage.config.ts test create-mdan/test --coverage",
     "test:markdown-runtime": "bunx vitest run test/core/surface-adapter.test.ts test/server/runtime-json-contract-mode.test.ts test/server/auth-guestbook-markdown-example.test.ts",
     "test:smoke": "bun run test:markdown-runtime",
-    "test:tssdk-migrated": "bunx vitest run test",
     "test:create-mdan": "bunx vitest run create-mdan/test"
   },
   "exports": {
