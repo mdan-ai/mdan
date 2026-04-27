@@ -31,12 +31,12 @@ cd sdk
 bun run examples/form-customization/dev.ts
 ```
 
-Open `http://127.0.0.1:4326/`.
+Open `http://127.0.0.1:4327/`.
 
-If port `4326` is already in use, run:
+If port `4327` is already in use, run:
 
 ```bash
-PORT=4327 bun run examples/form-customization/dev.ts
+PORT=4328 bun run examples/form-customization/dev.ts
 ```
 
 What to look for:

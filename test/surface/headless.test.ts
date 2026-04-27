@@ -561,7 +561,7 @@ example only
     });
 
     expect(host.getSnapshot().route).toBe("/markdown");
-    expect(host.getSnapshot().markdown).toContain("example only");
+    expect(host.getSnapshot().blocks[0]?.markdown).toContain("example only");
     expect(host.getSnapshot().blocks[0]?.operations.map((operation) => operation.name)).toEqual([
       "submit_message"
     ]);

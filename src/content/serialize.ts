@@ -103,7 +103,6 @@ function toJsonAction(block: MdanBlock, operation: MdanBlock["operations"][numbe
 
 function toExecutablePayloadFromPage(page: MdanPage): Record<string, unknown> {
   const frontmatter = page.frontmatter;
-  const visibleBlockContent = getVisibleBlockContent(page);
   const actions = page.blocks.flatMap((block) => block.operations.map((operation) => toJsonAction(block, operation)));
   const actionsById = Object.fromEntries(
     actions
@@ -143,7 +142,6 @@ function toExecutablePayloadFromPage(page: MdanPage): Record<string, unknown> {
         }
       ])
     ),
-    ...(visibleBlockContent && Object.keys(visibleBlockContent).length > 0 ? { regions: visibleBlockContent } : {}),
     actions: actionsById
   };
 }
@@ -249,16 +247,20 @@ function serializeExecutableBlock(payload: string | undefined): string {
 function serializeMarkdownWithVisibleBlockContent(
   markdown: string,
   visibleBlockNames: Set<string> | null,
-  _visibleBlockContent: Record<string, string> | undefined
+  visibleBlockContent: Record<string, string> | undefined
 ): string {
   const trimmed = markdown.trim();
   const matches = [...trimmed.matchAll(blockAnchorPattern)];
   if (matches.length === 0) {
-    return trimmed;
+    const appendedBlocks = Object.entries(visibleBlockContent ?? {})
+      .map(([name, content]) => `<!-- mdan:block id="${name}" -->\n\n${content}`)
+      .join("\n\n");
+    return [trimmed, appendedBlocks].filter(Boolean).join("\n\n").trim();
   }
 
   let result = "";
   let cursor = 0;
+  const renderedBlocks = new Set<string>();
 
   matches.forEach((match, index) => {
     const start = match.index ?? 0;
@@ -267,21 +269,33 @@ function serializeMarkdownWithVisibleBlockContent(
     const id = extractBlockId(attrs);
     const nextStart = matches[index + 1]?.index ?? trimmed.length;
     const blockBody = trimmed.slice(end, nextStart);
+    const replacement = id ? visibleBlockContent?.[id]?.trim() : undefined;
 
     result += trimmed.slice(cursor, start);
 
     if (visibleBlockNames && id && !visibleBlockNames.has(id)) {
-      result += blockBody;
       cursor = nextStart;
       return;
     }
 
     result += match[0];
-    result += blockBody;
+    if (id && replacement) {
+      renderedBlocks.add(id);
+      result += `\n${replacement}\n`;
+    } else {
+      result += blockBody;
+    }
     cursor = nextStart;
   });
 
   result += trimmed.slice(cursor);
+  const appendedBlocks = Object.entries(visibleBlockContent ?? {})
+    .filter(([name]) => !renderedBlocks.has(name))
+    .map(([name, content]) => `<!-- mdan:block id="${name}" -->\n\n${content}`)
+    .join("\n\n");
+  if (appendedBlocks) {
+    result += `\n\n${appendedBlocks}`;
+  }
   return result.trim();
 }
 
@@ -292,9 +306,7 @@ export function serializePage(page: MdanPage): string {
   const dynamicPayload =
     page.blocks.length > 0
       ? toExecutablePayloadFromPage(page)
-      : visibleBlockContent && Object.keys(visibleBlockContent).length > 0
-        ? { regions: visibleBlockContent }
-        : null;
+      : null;
   const markdown = serializeMarkdownWithVisibleBlockContent(page.markdown, visibleBlockNames, visibleBlockContent)
     .replace(/\n{3,}/g, "\n\n")
     .trim();

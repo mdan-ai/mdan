@@ -20,7 +20,7 @@ describe("docs guidance", () => {
   it("keeps create-mdan focused on server-first authoring", async () => {
     const createMdanReadme = await readFile(join(repoRoot, "create-mdan/README.md"), "utf8");
 
-    expect(createMdanReadme).toContain("- `@mdanai/sdk/app` for app authoring");
+    expect(createMdanReadme).toContain("- `@mdanai/sdk` for app authoring");
     expect(createMdanReadme).toContain("- `app.host(\"node\" | \"bun\", options?)` for host integration");
     expect(createMdanReadme).toContain("- `@mdanai/sdk/core` for the shared protocol/content layer");
   });

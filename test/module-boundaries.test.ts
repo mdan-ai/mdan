@@ -321,19 +321,19 @@ describe("module boundaries", () => {
     );
   });
 
-  it("keeps examples and starter templates on the app-first authoring path", async () => {
+  it("keeps examples and starter templates on the root app authoring path", async () => {
     const files = [
       "examples/starter/app.ts",
       "examples/docs-starter/app.ts",
       "examples/auth-guestbook/app.ts",
+      "examples/form-customization/app.ts",
       "create-mdan/template/shared/app/server.mjs"
     ];
 
     for (const file of files) {
       const source = await readSource(file);
-      if (file === "create-mdan/template/shared/app/server.mjs") {
-        expect(source, `${file} should import the app authoring barrel`).toMatch(/@mdanai\/sdk\/app/);
-      }
+      expect(source, `${file} should use the root authoring entrypoint`).toMatch(/@mdanai\/sdk["']/);
+      expect(source, `${file} should not use deeper app imports for starter authoring`).not.toMatch(/@mdanai\/sdk\/app/);
       expect(source, `${file} should not keep app.screen on the main authoring path`).not.toMatch(/app\.screen\(/);
     }
   });

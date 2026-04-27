@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp, type AppActionJsonManifest } from "@mdanai/sdk/app";
+import { createApp, type AppActionJsonManifest } from "@mdanai/sdk";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const template = readFileSync(join(root, "app", "index.md"), "utf8");

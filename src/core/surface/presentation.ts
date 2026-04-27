@@ -9,6 +9,7 @@ import {
   resolveFieldKind,
   type FieldSchema,
   type JsonAction,
+  type MdanActionManifest,
   type MdanBlock,
   type MdanConfirmationPolicy,
   type MdanHeadlessBlock,
@@ -29,6 +30,7 @@ export {
 export type {
   FieldSchema,
   JsonAction,
+  MdanActionManifest,
   MdanBlock,
   MdanConfirmationPolicy,
   MdanHeadlessBlock,

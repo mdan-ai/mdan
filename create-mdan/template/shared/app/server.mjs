@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp } from "@mdanai/sdk/app";
+import { createApp } from "@mdanai/sdk";
 
 const appId = "__APP_ID__";
 const root = dirname(fileURLToPath(import.meta.url));

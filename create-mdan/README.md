@@ -1,7 +1,7 @@
 # create-mdan
 
 `create-mdan` scaffolds a minimal MDAN agent app or skills app that uses the public
-`@mdanai/sdk/app` app API and the app-facing host convenience.
+`@mdanai/sdk` root API and the app-facing host convenience.
 
 Generated starters already follow the current default path:
 
@@ -49,7 +49,7 @@ The generated project includes:
 
 The generated project uses public SDK entry points only:
 
-- `@mdanai/sdk/app` for app authoring
+- `@mdanai/sdk` for app authoring
 - `app.host("node" | "bun", options?)` for host integration
 - `@mdanai/sdk/core` for the shared protocol/content layer when needed
 

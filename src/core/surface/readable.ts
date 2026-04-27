@@ -31,10 +31,18 @@ function stripFrontmatter(markdown: string): string {
 }
 
 function stripContentBlocks(markdown: string): string {
-  return markdown
-    .replace(/^\s*<!--\s*mdan:block\b[^>]*-->\s*$/gm, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  const sections = parseContentBlocks(markdown);
+  if (sections.length === 0) {
+    return markdown.trim();
+  }
+  let result = "";
+  let cursor = 0;
+  for (const section of sections) {
+    result += markdown.slice(cursor, section.start);
+    cursor = section.end;
+  }
+  result += markdown.slice(cursor);
+  return result.replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export function stripReadablePageMarkdown(markdown: string): string {
@@ -191,20 +199,36 @@ function blockInputsFromActions(actions: JsonAction[]): FieldSchema[] {
   return [...byName.values()];
 }
 
-function parseContentBlocks(content: string): Map<string, string[]> {
-  const byBlock = new Map<string, string[]>();
-  let match: RegExpExecArray | null;
+interface ContentBlockSection {
+  name: string;
+  start: number;
+  end: number;
+  markdown: string;
+}
 
-  const commentExpression = /<!--\s*mdan:block\b([^>]*)-->/g;
-  while ((match = commentExpression.exec(content)) !== null) {
+function parseContentBlocks(content: string): ContentBlockSection[] {
+  const matches = [...content.matchAll(/<!--\s*mdan:block\b([^>]*)-->\s*(?:\n|$)?/g)];
+  const sections: ContentBlockSection[] = [];
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index]!;
     const attrs = match[1] ?? "";
-    const id = attrs.match(/\bid="([^"]+)"/)?.[1];
-    if (!id || byBlock.has(id)) {
+    const name = attrs.match(/\bid="([^"]+)"/)?.[1]?.trim() ?? "";
+    if (!name || sections.some((section) => section.name === name)) {
       continue;
     }
-    byBlock.set(id, []);
+    const start = match.index ?? 0;
+    const contentStart = start + match[0].length;
+    const end = matches[index + 1]?.index ?? content.length;
+    sections.push({
+      name,
+      start,
+      end,
+      markdown: content.slice(contentStart, end).trim()
+    });
   }
-  return byBlock;
+
+  return sections;
 }
 
 function actionListFromManifest(actions: ReadableSurface["actions"]): JsonAction[] {
@@ -303,7 +327,8 @@ function resolveActionsForBlock(
 export function adaptReadableSurfaceToHeadlessSnapshot(input: ReadableSurface): HeadlessSnapshotLike {
   const rawContent = String(input.markdown ?? "");
   const content = stripReadablePageMarkdown(rawContent);
-  const blockActionRefs = parseContentBlocks(rawContent);
+  const contentBlocks = new Map(parseContentBlocks(rawContent).map((section) => [section.name, section.markdown]));
+  const blockActionRefs = new Map([...contentBlocks.keys()].map((name) => [name, [] as string[]]));
   const actionList = actionListFromManifest(input.actions);
   const defaultConfirmationPolicy =
     toConfirmationPolicy(input.actions.security?.default_confirmation_policy) ?? "never";
@@ -318,7 +343,7 @@ export function adaptReadableSurfaceToHeadlessSnapshot(input: ReadableSurface): 
 
     blocks.push({
       name: blockName,
-      markdown: stripReadableBlockMarkdown(input.regions?.[blockName] ?? ""),
+      markdown: stripReadableBlockMarkdown(input.regions?.[blockName] ?? contentBlocks.get(blockName) ?? ""),
       inputs: blockInputsFromActions(actionsForBlock),
       operations
     });

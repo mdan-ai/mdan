@@ -2,6 +2,7 @@ import { parseFrontmatter } from "../content/content-actions.js";
 import { basicMarkdownRenderer } from "../content/markdown-renderer.js";
 import { parseReadableSurface } from "../content/readable-markdown.js";
 import { adaptReadableSurfaceToHeadlessSnapshot } from "../core/surface/readable.js";
+import type { MdanActionManifest } from "../core/protocol.js";
 
 export interface HtmlProjectionMetadata {
   title?: string;
@@ -11,6 +12,7 @@ export interface HtmlProjectionMetadata {
 export interface HtmlProjectionResult {
   metadata: HtmlProjectionMetadata;
   bodyHtml: string;
+  actions: MdanActionManifest;
 }
 
 function escapeHtml(value: string): string {
@@ -32,6 +34,11 @@ function renderBlockHtml(name: string, markdown: string): string {
   return `<section data-mdan-block="${escapedName}">${renderedBlock}<div data-mdan-action-root data-mdan-block="${escapedName}"></div></section>`;
 }
 
+function withoutRuntimeRegions(actions: MdanActionManifest): MdanActionManifest {
+  const { regions: _regions, ...contract } = actions;
+  return contract;
+}
+
 export function projectReadableSurfaceToHtml(markdown: string): HtmlProjectionResult {
   const frontmatter = parseFrontmatter(markdown);
   const surface = parseReadableSurface(markdown, { allowBareMarkdown: true });
@@ -41,7 +48,8 @@ export function projectReadableSurfaceToHtml(markdown: string): HtmlProjectionRe
         title: metadataString(frontmatter, "title"),
         description: metadataString(frontmatter, "description")
       },
-      bodyHtml: ""
+      bodyHtml: "",
+      actions: { blocks: {}, actions: {} }
     };
   }
 
@@ -54,6 +62,7 @@ export function projectReadableSurfaceToHtml(markdown: string): HtmlProjectionRe
       title: metadataString(frontmatter, "title"),
       description: metadataString(frontmatter, "description")
     },
-    bodyHtml: [pageHtml, blockHtml].filter(Boolean).join("\n")
+    bodyHtml: [pageHtml, blockHtml].filter(Boolean).join("\n"),
+    actions: withoutRuntimeRegions(surface.actions)
   };
 }

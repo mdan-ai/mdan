@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createApp, signIn, signOut, type AppActionJsonManifest } from "@mdanai/sdk/app";
+import { createApp, signIn, signOut, type AppActionJsonManifest } from "@mdanai/sdk";
 
 type SessionState = {
   sid: string;

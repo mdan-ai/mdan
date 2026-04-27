@@ -139,7 +139,7 @@ describe("handlePlannedHostRequest", () => {
     expect(html).toContain('initialMarkdown: "# Client First"');
   });
 
-  it("renders readable markdown into the browser root for html projection", () => {
+  it("renders readable markdown into the browser root and bootstraps only actions for html projection", () => {
     const initialMarkdown = `---
 title: Searchable Demo
 description: This should become metadata.
@@ -151,15 +151,16 @@ This content should be visible before the frontend boots.
 
 <!-- mdan:block id="main" -->
 
+## Server Region
+
+Region markdown is server-rendered.
+
 \`\`\`mdan
 {
   "blocks": {
     "main": {
       "actions": ["submit"]
     }
-  },
-  "regions": {
-    "main": "## Server Region\\n\\nRegion markdown is server-rendered."
   },
   "actions": {
     "submit": {
@@ -183,14 +184,18 @@ This content should be visible before the frontend boots.
     expect(html).toContain("<h2>Server Region</h2>");
     expect(html).toContain('<div data-mdan-action-root data-mdan-block="main"></div>');
     expect(html).not.toContain("&lt;!-- mdan:block");
-    expect(html).not.toContain('"target": "/submit"');
+    expect(html).toContain('"target":"/submit"');
     expect(html).not.toContain("<form");
     expect(html).toContain("createFrontend().autoBoot");
-    expect(html).toContain("initialMarkdown:");
+    expect(html).not.toContain("initialMarkdown:");
+    expect(html).toContain("initialActions:");
     expect(html).toContain('browserProjection: "html"');
+    const script = html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1] ?? "";
+    expect(script).not.toContain("This content should be visible before the frontend boots.");
+    expect(script).not.toContain("Region markdown is server-rendered.");
   });
 
-  it("escapes initial markdown safely inside the inline boot script", () => {
+  it("escapes html projection content without embedding markdown in the inline boot script", () => {
     const html = renderBuiltinFrontendEntryHtml(true, {
       initialMarkdown: '# Demo\n\n</script><img src=x onerror="alert(1)">',
       projection: "html"
@@ -198,7 +203,7 @@ This content should be visible before the frontend boots.
     const script = html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1] ?? "";
 
     expect(script).not.toContain("</script>");
-    expect(script).toContain("\\u003c/script\\u003e");
+    expect(script).not.toContain("\\u003c/script\\u003e");
     expect(html).toContain("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;");
   });
 

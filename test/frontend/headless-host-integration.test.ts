@@ -49,6 +49,11 @@ function surface(content: string, regions: Record<string, string> = { main: "Say
 }
 
 function artifactBody(body: FixtureSurface): string {
+  const executable = {
+    ...body.actions,
+    ...(body.view?.regions ? { regions: body.view.regions } : {})
+  };
+
   return `---
 route: "${body.view?.route_path ?? "/"}"
 ---
@@ -56,7 +61,7 @@ route: "${body.view?.route_path ?? "/"}"
 ${body.content.trim()}
 
 \`\`\`mdan
-${JSON.stringify(body.actions, null, 2)}
+${JSON.stringify(executable, null, 2)}
 \`\`\`
 `;
 }
@@ -286,7 +291,7 @@ Say something useful.
     expect(root.querySelector('[data-mdan-action-root][data-mdan-block="secondary"]')?.textContent).not.toContain("Send");
   });
 
-  it("patches only the action layer after region continuation in html projection mode", async () => {
+  it("patches the target block content after region continuation in html projection mode", async () => {
     const root = document.createElement("main");
     root.setAttribute("data-mdan-ui-root", "");
     root.innerHTML = '<h1>Inbox</h1><section data-mdan-block="main"><p>Server rendered copy stays put.</p><div data-mdan-action-root data-mdan-block="main"></div></section>';
@@ -336,8 +341,9 @@ Server rendered copy stays put.
     await settleLitRender();
 
     expect(root.querySelector("h1")?.textContent).toBe("Inbox");
-    expect(root.textContent).toContain("Server rendered copy stays put.");
-    expect(root.textContent).not.toContain("Updated region copy.");
+    expect(root.textContent).toContain("Updated region copy.");
+    expect(root.textContent).not.toContain("Server rendered copy stays put.");
+    expect(root.textContent).not.toContain("Server returned updated region markdown.");
     expect(root.querySelector("textarea[name=\"message\"]")).toBeInstanceOf(HTMLTextAreaElement);
   });
 

@@ -47,7 +47,8 @@ describe("create-mdan scaffold", () => {
     expect(indexSource).toContain('app.host("node", {');
     expect(indexSource).toContain('projection: "html"');
     expect(indexSource).not.toContain("rootRedirect");
-    expect(serverSource).toContain('@mdanai/sdk/app');
+    expect(serverSource).toContain('@mdanai/sdk');
+    expect(serverSource).not.toContain('@mdanai/sdk/app');
     expect(serverSource).not.toContain("createMarkdownPage");
     expect(serverSource).toContain("const home = app.page");
     expect(serverSource).toContain("app.route(home.bind(messages));");
@@ -59,6 +60,8 @@ describe("create-mdan scaffold", () => {
     expect(serverSource).not.toContain("fields.string({ required: true })");
     expect(actionJson).toContain('"actions": {');
     expect(actionJson).toContain('"submit_message": {');
+    expect(actionJson).toContain('"response_mode": "region"');
+    expect(actionJson).toContain('"updated_regions": ["main"]');
     expect(serverSource).not.toContain('join(root, "actions", "main.json")');
     expect(`${indexSource}\n${serverSource}`).not.toMatch(/@mdanai\/sdk\/(?:core|web|elements)|createHostedApp/);
   });

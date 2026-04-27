@@ -51,7 +51,8 @@ Visible before JavaScript.
     expect(html).toContain("<title>Public Page</title>");
     expect(html).toContain("<h1>Public Page</h1>");
     expect(html).toContain("<p>Visible before JavaScript.</p>");
-    expect(html).toContain("initialMarkdown:");
+    expect(html).not.toContain("initialMarkdown:");
+    expect(html).toContain("initialActions:");
     expect(seen).toHaveLength(1);
     expect(seen[0]?.headers.accept).toBe(toMarkdownContentType());
   });

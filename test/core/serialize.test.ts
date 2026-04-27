@@ -50,7 +50,7 @@ describe("serializePage", () => {
     expect(out).toContain('<!-- mdan:block id="submit_message" -->');
   });
 
-  it("keeps page block anchors in markdown while writing block content into executable regions", () => {
+  it("writes block content into markdown block anchors without polluting executable JSON", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: ["# Guestbook", "", "<!-- mdan:block id=\"submit_message\" -->"].join("\n"),
@@ -61,12 +61,12 @@ describe("serializePage", () => {
     });
 
     expect(out).toContain('<!-- mdan:block id="submit_message" -->');
-    expect(out).not.toContain("# Guestbook\n\n## Leave a message");
-    expect(out).toContain('"regions": {');
-    expect(out).toContain('"submit_message": "## Leave a message"');
+    expect(out).toContain("# Guestbook\n\n<!-- mdan:block id=\"submit_message\" -->\n## Leave a message");
+    expect(out).not.toContain('"regions": {');
+    expect(out).not.toContain('"submit_message": "## Leave a message"');
   });
 
-  it("serializes block content as regions when no block directives exist", () => {
+  it("appends block anchors when no block directives exist", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: "# Guestbook",
@@ -78,11 +78,12 @@ describe("serializePage", () => {
     });
 
     expect(out).toContain("# Guestbook");
-    expect(out).toContain('"one": "## First"');
-    expect(out).toContain('"two": "## Second"');
+    expect(out).toContain('<!-- mdan:block id="one" -->\n\n## First');
+    expect(out).toContain('<!-- mdan:block id="two" -->\n\n## Second');
+    expect(out).not.toContain('"regions": {');
   });
 
-  it("omits empty region values from executable content", () => {
+  it("omits empty block values from readable markdown", () => {
     const out = serializePage({
       frontmatter: {},
       markdown: "# Guestbook",
@@ -95,7 +96,8 @@ describe("serializePage", () => {
 
     expect(out).not.toContain("\n\n\n");
     expect(out).not.toContain('"a"');
-    expect(out).toContain('"b": "## Visible"');
+    expect(out).toContain('<!-- mdan:block id="b" -->\n\n## Visible');
+    expect(out).not.toContain('"regions": {');
   });
 
   it("filters blockContent by visibleBlockNames", () => {
@@ -118,7 +120,8 @@ describe("serializePage", () => {
 
     expect(out).not.toContain("Hidden content");
     expect(out).toContain('<!-- mdan:block id="b" -->');
-    expect(out).toContain('"b": "## Visible content"');
+    expect(out).toContain("## Visible content");
+    expect(out).not.toContain('"regions": {');
   });
 
   it("embeds executable JSON in a mdan fenced block", () => {

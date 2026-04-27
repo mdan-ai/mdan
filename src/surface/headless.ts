@@ -1,6 +1,6 @@
 import { parseReadableSurface } from "./content.js";
 import { buildGetActionUrl } from "../core/surface/forms.js";
-import type { MdanOperation, MdanSubmitValues } from "../core/surface/presentation.js";
+import type { MdanActionManifest, MdanOperation, MdanSubmitValues } from "../core/surface/presentation.js";
 import type {
   HeadlessDebugMessage,
   HeadlessListener,
@@ -22,6 +22,7 @@ import {
 
 export interface CreateHeadlessHostOptions {
   initialMarkdown?: string;
+  initialActions?: MdanActionManifest;
   initialRoute?: string;
   fetchImpl?: typeof fetch;
   debugMessages?: boolean;
@@ -57,8 +58,19 @@ export function createHeadlessHost(options: CreateHeadlessHostOptions = {}): Mda
         allowBareMarkdown: true
       })
     : null;
+  const initialSurface =
+    initialParsedMarkdown ??
+    (options.initialActions
+      ? {
+          markdown: "",
+          actions: options.initialActions,
+          ...(options.initialRoute ? { route: options.initialRoute } : {})
+        }
+      : null);
   let snapshot = initialParsedMarkdown
       ? toSnapshot(initialParsedMarkdown, null)
+      : initialSurface
+        ? toSnapshot(initialSurface, null)
       : emptySnapshot(options.initialRoute);
   let status: HeadlessRuntimeState = { status: "idle", transition: "page" };
   const listeners = new Set<HeadlessListener>();

@@ -8,6 +8,7 @@ import type { FrontendHostFactory } from "./contracts.js";
 import { createDefaultFrontendHost } from "./default-host.js";
 import type { MdanFrontendExtension } from "./extension.js";
 import { withHtmlDocumentNavigation } from "./html-projection.js";
+import type { MdanActionManifest } from "../core/protocol.js";
 
 declare global {
   interface Window {
@@ -19,6 +20,7 @@ export interface BootEntryOptions {
   root?: ParentNode;
   route?: string;
   initialMarkdown?: string;
+  initialActions?: MdanActionManifest;
   browserProjection?: "client" | "html";
   fetchImpl?: typeof fetch;
   createHost?: FrontendHostFactory;
@@ -93,12 +95,14 @@ export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
   const route = options.route ?? resolveEntryRoute(browserWindow.location);
   const hostFactory = options.createHost ?? createDefaultFrontendHost;
   const baseFetch = options.fetchImpl ?? browserWindow.fetch.bind(browserWindow);
+  const hasInitialState = Boolean(options.initialMarkdown || options.initialActions);
   const fetchImpl = createEntryFetch(browserWindow, baseFetch, {
-    bootstrapPending: !options.initialMarkdown
+    bootstrapPending: !hasInitialState
   });
   const host = hostFactory({
     initialRoute: route,
     initialMarkdown: options.initialMarkdown,
+    initialActions: options.initialActions,
     browserProjection: options.browserProjection,
     fetchImpl
   });
@@ -121,7 +125,7 @@ export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
   });
 
   runtime.mount();
-  if (!options.initialMarkdown) {
+  if (!hasInitialState) {
     void runtime.sync(route);
   }
 

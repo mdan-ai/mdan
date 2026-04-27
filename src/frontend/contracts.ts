@@ -1,4 +1,5 @@
 import type {
+  MdanActionManifest,
   MdanHeadlessBlock,
   MdanOperation,
   MdanSubmitValues
@@ -38,6 +39,7 @@ export interface FrontendHost extends FrontendUiHost {
 export interface CreateFrontendHostOptions {
   initialRoute?: string;
   initialMarkdown?: string;
+  initialActions?: MdanActionManifest;
   browserProjection?: "client" | "html";
   fetchImpl?: typeof fetch;
 }

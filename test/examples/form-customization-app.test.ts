@@ -19,7 +19,7 @@ describe("form customization app example", () => {
     expect(body).toContain("72F");
   });
 
-  it("keeps block anchors in raw markdown instead of inlining the block region twice", async () => {
+  it("keeps block results in readable markdown instead of executable JSON regions", async () => {
     const app = createFormCustomizationServer();
     const host = app.host("bun");
 
@@ -32,8 +32,8 @@ describe("form customization app example", () => {
     expect(response.status).toBe(200);
     const body = await response.text();
     expect(body).toContain('<!-- mdan:block id="main" -->');
-    expect(body).toContain('"regions": {');
-    expect(body).toContain('"main": "## Forecast');
-    expect(body).not.toContain("# Weather Lookup\n\nUse the custom weather query panel below to update the forecast view.\n\n## Forecast");
+    expect(body).toContain("## Forecast");
+    expect(body).not.toContain('"regions": {');
+    expect(body).not.toContain('"main": "## Forecast');
   });
 });

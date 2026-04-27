@@ -28,7 +28,8 @@
         "additionalProperties": false
       },
       "state_effect": {
-        "response_mode": "page"
+        "response_mode": "region",
+        "updated_regions": ["main"]
       }
     }
   }

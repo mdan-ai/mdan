@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 import { projectReadableSurfaceToHtml } from "../../projection/html.js";
+import type { MdanActionManifest } from "../../core/protocol.js";
 
 const FRONTEND_MODULE_SYMBOL = Symbol.for("mdan.frontend.module");
 
@@ -33,6 +34,7 @@ export interface NormalizedHostFrontendOptions {
 
 export interface FrontendEntryHtmlOptions {
   initialMarkdown?: string;
+  initialActions?: MdanActionManifest;
   projection?: "client" | "html";
 }
 
@@ -57,10 +59,22 @@ function inlineScriptJson(value: string): string {
     .replaceAll("\u2029", "\\u2029");
 }
 
+function inlineScriptValue(value: unknown): string {
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+}
+
 function toBootOptions(options: FrontendEntryHtmlOptions): string {
   const entries: string[] = [];
   if (options.initialMarkdown) {
     entries.push(`initialMarkdown: ${inlineScriptJson(options.initialMarkdown)}`);
+  }
+  if (options.initialActions) {
+    entries.push(`initialActions: ${inlineScriptValue(options.initialActions)}`);
   }
   if (options.projection === "html") {
     entries.push('browserProjection: "html"');
@@ -180,11 +194,14 @@ export function renderBuiltinFrontendEntryHtml(frontend: HostFrontendOption | un
     options.projection === "html" && options.initialMarkdown
       ? projectReadableSurfaceToHtml(options.initialMarkdown)
       : null;
+  const bootOptions = toBootOptions({
+    ...options,
+    ...(projection ? { initialMarkdown: undefined, initialActions: projection.actions } : {})
+  });
   const title =
     projection?.metadata.title ??
     (normalized?.title?.trim() ? normalized.title.trim() : "MDAN Entry");
   const description = projection?.metadata.description;
-  const bootOptions = toBootOptions(options);
   const rootHtml = projection?.bodyHtml ?? "";
   const script = normalized?.module
     ? `<script type="module">
