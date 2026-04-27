@@ -189,6 +189,9 @@ That host shape does two things by default:
 - `app.action(path, { method: "GET" }, handler)`: register a GET action handler
 - `app.read(path, handler)`: semantic helper for GET read handlers
 - `app.write(path, handler)`: semantic helper for POST write handlers
+- `app.api("GET" | "POST", path, handler)`: register a traditional JSON API route
+- `json(body, options?)`: return JSON with custom status or headers from an API route
+- API handlers may also return `{ status, headers, body }` for Response-like JSON responses
 - `page.actionJson()`: inspect the explicit action JSON (`blocks` + `actions`)
 - `page.bind(state)`: associate current state with a page definition
 - `page.render(state)`: render directly when you want the explicit form
@@ -211,6 +214,8 @@ return home.bind(messages).render();
 - `text/markdown` is the canonical public read representation
 - POST action submissions use JSON request bodies
 - action proof is enabled by default
+- traditional JSON APIs should use `app.api(...)` on dedicated `/api/*` routes
+- application-level JSON error shapes belong to the app, not the MDAN surface runtime
 
 The SDK can project a readable surface result into the canonical Markdown
 surface representation and fill `app_id`, `state_id`, and `state_version` when

@@ -33,7 +33,10 @@ authoring helpers.
 
 - `createApp(options?)`
 - `fields`
+- `json(body, options?)`
 - `type InferAppInputs`
+- `type AppApiContext`
+- `type AppApiHandler`
 - `signIn(session)`
 - `signOut()`
 - `refreshSession(session)`
@@ -68,6 +71,7 @@ root convenience barrel.
 - `createApp(options?)`
 - `type AppActionJsonManifest`
 - `fields`
+- `json(body, options?)`
 - `signIn(session)`
 - `signOut()`
 - `refreshSession(session)`
@@ -83,6 +87,7 @@ root convenience barrel.
 - `app.action(...)`
 - `app.read(...)`
 - `app.write(...)`
+- `app.api("GET" | "POST", path, handler)`
 - `app.host("node", options?)`
 - `app.host("bun", options?)`
 - `page.actionJson()`
@@ -96,6 +101,42 @@ root convenience barrel.
 Use `browser.bootstrap(...)` for first browser entry initialization. Use
 `auto.resolveRequest(...)` only when a normal auto GET dependency needs a
 runtime-computed internal request.
+
+### Traditional JSON API Routes
+
+Use `app.api(...)` for endpoints that should behave like conventional JSON
+APIs instead of MDAN surfaces:
+
+```ts
+import { createApp, json } from "@mdanai/sdk";
+
+const app = createApp({ appId: "demo" });
+
+app.api("GET", "/api/messages/:id", ({ params, query }) => ({
+  id: params.id,
+  filter: query.filter ?? null
+}));
+
+app.api("POST", "/api/messages", ({ body }) =>
+  json({ ok: true, body }, { status: 201 })
+);
+
+app.api("GET", "/api/messages/:id/cacheable", ({ params }) => ({
+  status: 200,
+  headers: {
+    "cache-control": "public, max-age=60"
+  },
+  body: {
+    id: params.id
+  }
+}));
+```
+
+API routes return `application/json` and do not participate in action proof,
+block/action binding, region updates, or MDAN representation negotiation. Keep
+them on dedicated paths such as `/api/*`. Handlers can return plain JSON data,
+`json(body, options)`, or a Response-like `{ status, headers, body }` object.
+Application-level error envelopes are intentionally left to the app.
 
 ## `@mdanai/sdk/frontend`
 

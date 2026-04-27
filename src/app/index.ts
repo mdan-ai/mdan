@@ -3,6 +3,7 @@ import { type ReadableSurface } from "../core/surface/markdown.js";
 import { createHost as createBunHost, type CreateBunHostOptions } from "../server/bun.js";
 import { createHost as createNodeHost, type CreateNodeHostOptions } from "../server/node-runtime.js";
 import { createMdanServer, type CreateMdanServerOptions } from "../server/runtime.js";
+import { matchRoutePattern } from "../server/router.js";
 export { refreshSession, signIn, signOut } from "../server/session.js";
 import type {
   MdanActionResult,
@@ -15,12 +16,14 @@ import type {
   MdanPageHandlerContext,
   MdanRequest,
   MdanResponse,
+  MdanSessionSnapshot,
   MdanStreamResult
 } from "../server/types/index.js";
 export type { MdanSessionProvider, MdanSessionSnapshot } from "../server/types/index.js";
 
 type AppTransportMethod = "GET" | "POST";
 type AppInputSchemaProperty = Record<string, unknown>;
+const APP_JSON_RESPONSE_SYMBOL = Symbol("mdan.app.jsonResponse");
 
 export interface AppFieldDefinition {
   required?: boolean;
@@ -102,6 +105,7 @@ export interface AppInstance {
   route(page: AppBoundPageDefinition): void;
   route(page: AppPageDefinition<[]>): void;
   route(path: string, handler: AppPageHandler): void;
+  api<TBody = unknown>(method: AppTransportMethod, path: string, handler: AppApiHandler<TBody>): void;
   action<TInputs extends Record<string, unknown> = MdanInputMap>(
     path: string,
     options: { method?: AppTransportMethod },
@@ -123,8 +127,135 @@ export type AppActionHandler<TInputs extends Record<string, unknown> = MdanInput
   context: Omit<MdanHandlerContext, "inputs"> & { inputs: TInputs }
 ) => Promise<ReadableSurface | MdanActionResult | MdanStreamResult> | ReadableSurface | MdanActionResult | MdanStreamResult;
 
+export interface AppApiContext<TBody = unknown> {
+  request: MdanRequest;
+  params: Record<string, string>;
+  query: Record<string, string>;
+  body: TBody;
+  session: MdanSessionSnapshot | null;
+}
+
+export interface AppJsonResponseOptions {
+  status?: number;
+  headers?: Record<string, string>;
+}
+
+export interface AppJsonResponse {
+  readonly [APP_JSON_RESPONSE_SYMBOL]: true;
+  body: unknown;
+  status: number;
+  headers: Record<string, string>;
+}
+
+interface AppJsonResponseLike {
+  body: unknown;
+  status?: number;
+  headers?: Record<string, string>;
+}
+
+export type AppApiHandler<TBody = unknown> = (
+  context: AppApiContext<TBody>
+) => Promise<unknown> | unknown;
+
+interface RegisteredApiRoute {
+  method: AppTransportMethod;
+  path: string;
+  handler: AppApiHandler;
+}
+
+export function json(body: unknown, options: AppJsonResponseOptions = {}): AppJsonResponse {
+  return {
+    [APP_JSON_RESPONSE_SYMBOL]: true,
+    body,
+    status: options.status ?? 200,
+    headers: options.headers ?? {}
+  };
+}
+
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function isAppJsonResponse(value: unknown): value is AppJsonResponse {
+  return Boolean(value && typeof value === "object" && (value as AppJsonResponse)[APP_JSON_RESPONSE_SYMBOL] === true);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function isHeaderRecord(value: unknown): value is Record<string, string> {
+  return isRecord(value) && Object.values(value).every((header) => typeof header === "string");
+}
+
+function isAppJsonResponseLike(value: unknown): value is AppJsonResponseLike {
+  if (!isRecord(value) || !Object.prototype.hasOwnProperty.call(value, "body")) {
+    return false;
+  }
+  const hasStatus = typeof value.status === "number";
+  const hasHeaders = isHeaderRecord(value.headers);
+  return hasStatus || hasHeaders;
+}
+
+function serializeJsonResponse(result: unknown): MdanResponse {
+  const response = isAppJsonResponse(result)
+    ? result
+    : isAppJsonResponseLike(result)
+      ? json(result.body, { status: result.status, headers: result.headers })
+      : json(result);
+  return {
+    status: response.status,
+    headers: {
+      ...response.headers,
+      "content-type": "application/json; charset=utf-8"
+    },
+    body: JSON.stringify(response.body ?? null)
+  };
+}
+
+function createJsonErrorResponse(status: number, code: string, message: string): MdanResponse {
+  return serializeJsonResponse(json({
+    error: {
+      code,
+      message
+    }
+  }, { status }));
+}
+
+function getRequestUrl(request: MdanRequest): URL {
+  return new URL(request.url);
+}
+
+function getRequestQuery(request: MdanRequest): Record<string, string> {
+  return request.query ?? Object.fromEntries(getRequestUrl(request).searchParams.entries());
+}
+
+function parseApiBody(request: MdanRequest): { ok: true; body: unknown } | { ok: false; response: MdanResponse } {
+  if (!request.body || request.body.trim().length === 0) {
+    return { ok: true, body: undefined };
+  }
+  const contentType = request.headers["content-type"] ?? "";
+  if (!contentType.includes("application/json")) {
+    return {
+      ok: false,
+      response: createJsonErrorResponse(
+        415,
+        "unsupported_media_type",
+        'JSON API requests with a body must use Content-Type: "application/json".'
+      )
+    };
+  }
+  try {
+    return {
+      ok: true,
+      body: JSON.parse(request.body) as unknown
+    };
+  } catch {
+    return {
+      ok: false,
+      response: createJsonErrorResponse(400, "invalid_json", "Request body must be valid JSON.")
+    };
+  }
 }
 
 function compileObjectFieldSchema(shape: AppFieldMap): AppInputSchemaProperty {
@@ -259,11 +390,23 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
   });
   const registeredPageRoutes = new Set<string>();
   const registeredReadRoutes = new Set<string>();
+  const registeredApiGetRoutes = new Set<string>();
+  const apiRoutes: RegisteredApiRoute[] = [];
 
-  function assertNoGetRouteConflict(path: string, source: "route" | "read"): void {
+  function assertNoGetRouteConflict(path: string, source: "route" | "read" | "api"): void {
     if (source === "read" && registeredPageRoutes.has(path)) {
       throw new Error(
         `[mdan-sdk] app.read cannot register "${path}" because app.route already owns this GET page route. Use app.route for page reads and keep app.read on a dedicated data endpoint.`
+      );
+    }
+    if (source === "read" && registeredApiGetRoutes.has(path)) {
+      throw new Error(
+        `[mdan-sdk] app.read cannot register "${path}" because app.api(GET) already owns this JSON API endpoint. Keep MDAN read actions and JSON API endpoints separate.`
+      );
+    }
+    if (source === "api" && registeredPageRoutes.has(path)) {
+      throw new Error(
+        `[mdan-sdk] app.api cannot register "${path}" because app.route already owns this GET page route. Keep JSON API endpoints on dedicated /api paths.`
       );
     }
     if (source === "route" && registeredReadRoutes.has(path)) {
@@ -271,6 +414,53 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
         `[mdan-sdk] app.route cannot register "${path}" because app.read/app.action(GET) already owns this GET endpoint. Use a dedicated app.read path for data reads.`
       );
     }
+    if (source === "route" && registeredApiGetRoutes.has(path)) {
+      throw new Error(
+        `[mdan-sdk] app.route cannot register "${path}" because app.api(GET) already owns this JSON API endpoint. Keep page routes and JSON API endpoints separate.`
+      );
+    }
+  }
+
+  function findApiRoute(request: MdanRequest): { route: RegisteredApiRoute; params: Record<string, string> } | null {
+    const pathname = getRequestUrl(request).pathname;
+    for (const route of apiRoutes) {
+      if (route.method !== request.method) {
+        continue;
+      }
+      const params = matchRoutePattern(route.path, pathname);
+      if (!params) {
+        continue;
+      }
+      return { route, params };
+    }
+    return null;
+  }
+
+  async function handleApiRequest(
+    request: MdanRequest,
+    route: RegisteredApiRoute,
+    params: Record<string, string>
+  ): Promise<MdanResponse> {
+    const parsedBody = parseApiBody(request);
+    if (!parsedBody.ok) {
+      return parsedBody.response;
+    }
+    const result = await route.handler({
+      request,
+      params,
+      query: getRequestQuery(request),
+      body: parsedBody.body,
+      session: options.session ? await options.session.read(request) : null
+    });
+    return serializeJsonResponse(result);
+  }
+
+  async function handle(request: MdanRequest): Promise<MdanResponse> {
+    const apiMatch = findApiRoute(request);
+    if (apiMatch) {
+      return await handleApiRequest(request, apiMatch.route, apiMatch.params);
+    }
+    return await server.handle(request);
   }
 
   const page: AppInstance["page"] = <TRenderArgs extends unknown[]>(
@@ -313,6 +503,14 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     server.page(pathOrPage.path, async () => pathOrPage.render());
   }) as AppInstance["route"];
 
+  const api: AppInstance["api"] = (method, path, handler) => {
+    if (method === "GET") {
+      assertNoGetRouteConflict(path, "api");
+      registeredApiGetRoutes.add(path);
+    }
+    apiRoutes.push({ method, path, handler: handler as AppApiHandler });
+  };
+
   const action: AppInstance["action"] = (
     path: string,
     optionsOrHandler: { method?: AppTransportMethod } | AppActionHandler,
@@ -347,21 +545,21 @@ export function createApp(options: CreateAppOptions = {}): AppInstance {
     runtime: "bun" | "node",
     options: CreateBunHostOptions | CreateNodeHostOptions = {}
   ) => {
+    const handler = { handle };
     if (runtime === "bun") {
-      return createBunHost(server, options as CreateBunHostOptions);
+      return createBunHost(handler, options as CreateBunHostOptions);
     }
-    return createNodeHost(server, options as CreateNodeHostOptions);
+    return createNodeHost(handler, options as CreateNodeHostOptions);
   }) as AppInstance["host"];
 
   return {
     page,
     route,
+    api,
     action,
     read,
     write,
     host,
-    async handle(request: MdanRequest): Promise<MdanResponse> {
-      return await server.handle(request);
-    }
+    handle
   };
 }

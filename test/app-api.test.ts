@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createApp, fields, type InferAppInputs } from "../src/index.js";
+import { createApp, fields, json, type InferAppInputs } from "../src/index.js";
 import { createFrontend, defineFrontendModule } from "../src/frontend/index.js";
 import type { MdanActionManifest } from "../src/core/index.js";
 import { parseFrontmatter } from "../src/content/content-actions.js";
@@ -429,6 +429,98 @@ describe("app API", () => {
 
     expect(writeResponse.status).toBe(200);
     expect(String(writeResponse.body)).toContain("write:Ada");
+  });
+
+  it("serves app.api GET routes as JSON without entering MDAN surface negotiation", async () => {
+    const app = createApp({ appId: "starter" });
+
+    app.api("GET", "/api/messages/:id", ({ params, query }) => ({
+      id: params.id,
+      filter: query.filter ?? null
+    }));
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/api/messages/42?filter=recent",
+      headers: { accept: "application/json" },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toBe("application/json; charset=utf-8");
+    expect(JSON.parse(String(response.body))).toEqual({
+      id: "42",
+      filter: "recent"
+    });
+  });
+
+  it("serves app.api POST routes with parsed JSON bodies and explicit JSON response metadata", async () => {
+    const app = createApp({ appId: "starter" });
+
+    app.api("POST", "/api/messages", ({ body }) => {
+      const payload = body as { message?: string };
+      return json(
+        {
+          ok: true,
+          message: payload.message
+        },
+        {
+          status: 201,
+          headers: {
+            "x-api": "messages"
+          }
+        }
+      );
+    });
+
+    const response = await app.handle({
+      method: "POST",
+      url: "https://example.test/api/messages",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ message: "hello" }),
+      cookies: {}
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.headers["content-type"]).toBe("application/json; charset=utf-8");
+    expect(response.headers["x-api"]).toBe("messages");
+    expect(JSON.parse(String(response.body))).toEqual({
+      ok: true,
+      message: "hello"
+    });
+  });
+
+  it("serves response-like app.api results as JSON responses", async () => {
+    const app = createApp({ appId: "starter" });
+
+    app.api("GET", "/api/stations/:id", ({ params }) => ({
+      status: 200,
+      headers: {
+        "cache-control": "public, max-age=60"
+      },
+      body: {
+        id: params.id,
+        name: "Central"
+      }
+    }));
+
+    const response = await app.handle({
+      method: "GET",
+      url: "https://example.test/api/stations/hgh",
+      headers: { accept: "application/json" },
+      cookies: {}
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers["cache-control"]).toBe("public, max-age=60");
+    expect(response.headers["content-type"]).toBe("application/json; charset=utf-8");
+    expect(JSON.parse(String(response.body))).toEqual({
+      id: "hgh",
+      name: "Central"
+    });
   });
 
   it("rejects GET read handlers on paths already owned by app.route", () => {

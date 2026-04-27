@@ -182,7 +182,9 @@ MDAN action requests should normally use:
 Accept: text/markdown
 ```
 
-Do not request `text/html` for a normal action POST.
+Do not request `text/html` or `application/json` for a normal MDAN action POST.
+If you need a traditional JSON endpoint, register it separately with
+`app.api(...)`.
 
 ### What To Do
 

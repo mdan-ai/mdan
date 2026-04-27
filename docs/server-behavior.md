@@ -13,6 +13,8 @@ The current runtime is markdown-first on the wire:
 - ordinary action results return `text/markdown`
 - stream actions return `text/event-stream`
 - host-level browser HTML projection is layered on top of that markdown surface
+- app-level JSON API routes registered with `app.api(...)` return
+  `application/json` outside the MDAN surface pipeline
 
 ## Runtime Shape
 
@@ -48,8 +50,17 @@ Practical rule:
 - page read: ask for `text/markdown`
 - ordinary action result: ask for `text/markdown`
 - stream action: ask for `text/event-stream`
+- traditional JSON API: register a dedicated `app.api(...)` route
 - do not ask action handlers to return `text/html`; browser HTML projection is
   a host concern built from the markdown surface
+
+`Accept: application/json` is meaningful for JSON API routes. It is not the
+MDAN surface representation for page or action routes.
+
+For `app.api(...)`, the SDK defaults successful handler returns to JSON and
+also accepts `json(body, options)` or `{ status, headers, body }`. Business
+error shapes remain an application contract; the MDAN runtime only standardizes
+the protocol errors it creates itself.
 
 ## Action Request Format
 

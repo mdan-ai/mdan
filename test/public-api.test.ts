@@ -22,6 +22,7 @@ describe("package export boundary", () => {
 
     expect(indexSource).toMatch(/createApp/);
     expect(indexSource).toMatch(/fields/);
+    expect(indexSource).toMatch(/json/);
     expect(indexSource).toMatch(/createFrontend/);
     expect(indexSource).toMatch(/defineFormRenderer/);
   });
@@ -30,6 +31,7 @@ describe("package export boundary", () => {
     const root = await import("../src/index.js");
 
     expect(root.createApp).toBeTypeOf("function");
+    expect(root.json).toBeTypeOf("function");
     expect(root.createFrontend).toBeTypeOf("function");
     expect(root.defineFrontendModule).toBeTypeOf("function");
     expect(root.defineFormRenderer).toBeTypeOf("function");
@@ -70,6 +72,7 @@ describe("package export boundary", () => {
     expect(Object.prototype.hasOwnProperty.call(exportsMap, "./app")).toBe(true);
     expect(appIndexSource).toMatch(/createApp/);
     expect(appIndexSource).toMatch(/fields/);
+    expect(appIndexSource).toMatch(/json/);
     expect(appIndexSource).toMatch(/signIn/);
     expect(appIndexSource).toMatch(/signOut/);
     expect(appIndexSource).toMatch(/refreshSession/);
