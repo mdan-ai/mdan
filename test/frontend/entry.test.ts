@@ -308,4 +308,123 @@ describe("frontend entry", () => {
       })
     );
   });
+
+  it("runs frontend setup after boot mount and cleans it up during runtime unmount", () => {
+    window.history.replaceState({}, "", "/dashboard");
+    const events: string[] = [];
+    let setupRuntime: unknown;
+    const cleanup = vi.fn(() => {
+      events.push("cleanup");
+    });
+    const host = {
+      subscribe: vi.fn((listener: (snapshot: { status: "idle"; markdown: string; blocks: [] }) => void) => {
+        listener({ status: "idle", markdown: "# Dashboard", blocks: [] });
+        return () => {};
+      }),
+      mount: vi.fn(() => {
+        events.push("host.mount");
+      }),
+      unmount: vi.fn(() => {
+        events.push("host.unmount");
+      }),
+      getSnapshot: vi.fn(() => ({ status: "idle", route: "/dashboard", markdown: "# Dashboard", blocks: [] })),
+      submit: vi.fn(async () => {}),
+      visit: vi.fn(async () => {}),
+      sync: vi.fn(async () => {})
+    };
+    const frontend = createFrontend({
+      setup(context) {
+        events.push("setup");
+        setupRuntime = context.runtime;
+        expect(context.host).toBe(host);
+        expect(context.route).toBe("/dashboard");
+        expect(context.root).toBe(document);
+        expect(context.window).toBe(window);
+        return cleanup;
+      }
+    });
+
+    const booted = frontend.boot({
+      initialMarkdown: "# Dashboard",
+      createHost: vi.fn(() => host) as never
+    });
+
+    expect(setupRuntime).toBe(booted.runtime);
+    expect(events).toEqual(["host.mount", "setup"]);
+
+    booted.runtime.unmount();
+    booted.runtime.unmount();
+
+    expect(events).toEqual(["host.mount", "setup", "cleanup", "host.unmount", "host.unmount"]);
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs frontend setup when a frontend runtime is manually mounted", () => {
+    const cleanup = vi.fn();
+    const host = {
+      subscribe: vi.fn(() => () => {}),
+      mount: vi.fn(),
+      unmount: vi.fn(),
+      submit: vi.fn(async () => {}),
+      visit: vi.fn(async () => {}),
+      sync: vi.fn(async () => {})
+    };
+    const frontend = createFrontend({
+      setup: vi.fn(() => cleanup)
+    });
+
+    const runtime = frontend.mount({
+      root: document,
+      host,
+      route: "/manual"
+    });
+
+    expect(frontend.setup).not.toHaveBeenCalled();
+
+    runtime.mount();
+    expect(frontend.setup).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtime,
+        host,
+        root: document,
+        route: "/manual"
+      })
+    );
+
+    runtime.unmount();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans up async frontend setup even when unmounted before setup resolves", async () => {
+    let resolveSetup: ((cleanup: () => void) => void) | null = null;
+    const cleanup = vi.fn();
+    const host = {
+      subscribe: vi.fn(() => () => {}),
+      mount: vi.fn(),
+      unmount: vi.fn(),
+      submit: vi.fn(async () => {}),
+      visit: vi.fn(async () => {}),
+      sync: vi.fn(async () => {})
+    };
+    const frontend = createFrontend({
+      setup() {
+        return new Promise<() => void>((resolve) => {
+          resolveSetup = resolve;
+        });
+      }
+    });
+    const runtime = frontend.mount({
+      root: document,
+      host
+    });
+
+    runtime.mount();
+    runtime.unmount();
+    expect(cleanup).not.toHaveBeenCalled();
+
+    resolveSetup?.(cleanup);
+    await Promise.resolve();
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
 });

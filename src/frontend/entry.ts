@@ -115,6 +115,7 @@ export function bootEntry(options: BootEntryOptions = {}): BootedEntry {
   const runtime = (options.mountUi ?? mountMdanUi)({
     root: options.root ?? browserWindow.document,
     host: uiHost,
+    route,
     browserProjection: options.browserProjection,
     frontend: options.frontend
   });

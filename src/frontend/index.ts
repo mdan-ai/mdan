@@ -14,7 +14,12 @@ export {
   defineFrontendModule,
   type MdanFrontend
 } from "./frontend.js";
-export type { MdanFrontendExtension, MdanMarkdownRenderer } from "./extension.js";
+export type {
+  MdanFrontendExtension,
+  MdanFrontendSetupCleanup,
+  MdanFrontendSetupContext,
+  MdanMarkdownRenderer
+} from "./extension.js";
 export type {
   CreateFrontendHostOptions,
   FrontendHost,

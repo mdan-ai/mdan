@@ -113,6 +113,8 @@ without the root convenience barrel.
 - `resolveMarkdownRoute(...)`
 - `type MdanMarkdownRenderer`
 - `type MdanFrontendExtension`
+- `type MdanFrontendSetupContext`
+- `type MdanFrontendSetupCleanup`
 - `registerMdanUi()`
 - `defineFormRenderer(moduleUrl, exportName, renderer)`
 - `defaultUiFormRenderer`
@@ -126,6 +128,26 @@ without the root convenience barrel.
 `bootEntry(...)` automatically attaches an internal SDK-owned browser bootstrap
 intent to its first browser-driven read. App code does not configure that
 signal directly.
+
+`createFrontend({ setup })` registers frontend-side side effects that should
+live for the same lifecycle as the mounted MDAN UI. The SDK calls `setup`
+after `runtime.mount()` and runs the returned cleanup function from
+`runtime.unmount()`.
+
+```ts
+const frontend = createFrontend({
+  setup({ runtime, window }) {
+    const timer = window?.setInterval(() => {
+      void runtime.sync();
+    }, 30_000);
+    return () => {
+      if (timer !== undefined) {
+        window?.clearInterval(timer);
+      }
+    };
+  }
+});
+```
 
 ## `@mdanai/sdk/server`
 

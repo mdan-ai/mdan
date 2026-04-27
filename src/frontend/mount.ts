@@ -10,7 +10,12 @@ import {
   type UiOperationView
 } from "./model.js";
 import type { UiFormRenderer } from "./form-renderer.js";
-import { resolveFrontendExtension, type MdanFrontendExtension } from "./extension.js";
+import {
+  attachFrontendSetup,
+  getFrontendSetupRoute,
+  resolveFrontendExtension,
+  type MdanFrontendExtension
+} from "./extension.js";
 import { mountHtmlActionLayer } from "./html-projection.js";
 
 import { registerMdanUi } from "./register.js";
@@ -18,6 +23,7 @@ import { registerMdanUi } from "./register.js";
 export interface MountMdanUiOptions {
   root: ParentNode;
   host: FrontendUiHost;
+  route?: string;
   browserProjection?: "client" | "html";
   frontend?: MdanFrontendExtension;
   markdownRenderer?: MdanMarkdownRenderer;
@@ -101,16 +107,29 @@ function getDocument(root: ParentNode): Document {
 export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
   registerMdanUi();
 
+  const document = getDocument(options.root);
+  const host = options.host;
+  const frontend = resolveFrontendExtension(options);
+  const route = options.route ?? getFrontendSetupRoute(host);
+  const setupContext = {
+    host,
+    root: options.root,
+    ...(route !== undefined ? { route } : {}),
+    ...(options.browserProjection ? { browserProjection: options.browserProjection } : {}),
+    ...(document.defaultView ? { window: document.defaultView } : {})
+  };
+
   if (options.browserProjection === "html") {
-    return mountHtmlActionLayer(options);
+    return attachFrontendSetup(
+      mountHtmlActionLayer(options),
+      frontend,
+      setupContext
+    );
   }
 
-  const document = getDocument(options.root);
   const container = ensureContainer(options.root);
   const renderContainer = container;
   ensureGlobalStyle(document);
-  const host = options.host;
-  const frontend = resolveFrontendExtension(options);
   const markdownRenderer = frontend.markdown;
   const formRenderer = frontend.form;
 
@@ -264,7 +283,7 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
     );
   }
 
-  return {
+  return attachFrontendSetup({
     mount(): void {
       if (container instanceof HTMLElement) {
         container.replaceChildren();
@@ -290,5 +309,5 @@ export function mountMdanUi(options: MountMdanUiOptions): MdanUiRuntime {
     sync(target) {
       return host.sync(target);
     }
-  };
+  }, frontend, setupContext);
 }

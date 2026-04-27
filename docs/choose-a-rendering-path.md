@@ -80,6 +80,8 @@ Use:
 - `defineFrontendModule(import.meta.url, frontend)` when you want to hand that frontend to `app.host(...)`
 - `frontend.mount(...)`
 - `frontend.render(...)`
+- `createFrontend({ setup })` when the renderer also needs mounted browser
+  side effects with SDK-managed cleanup
 
 Read:
 

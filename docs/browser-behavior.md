@@ -84,6 +84,8 @@ If you want the shipped frontend layer, use `@mdanai/sdk/frontend`:
 - `frontend.markdown` when you want custom Markdown projection
 - `defineFormRenderer(...)` and `UiFormRenderer` for custom form panels
 - `frontend.form` when you want custom form projection
+- `frontend.setup` when you need mounted side effects such as observers,
+  event listeners, timers, or browser-only bootstrap helpers
 - `FrontendSnapshot`, `FrontendUiHost`, and `FrontendHostFactory` when you want
   to type your browser integration against the frontend contract instead of the
   concrete surface runtime
